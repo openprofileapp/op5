@@ -1,0 +1,58 @@
+OpenProfile 5 Beta
+
+OpenProfile 5 Privacy Policy
+Last updated 01/02/2026
+
+1. Introduction
+Welcome to OpenProfile 5 (“OP5” or “OpenProfile”). We are committed to protecting your privacy and ensuring a secure and transparent user experience. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our platform. By using OpenProfile, you agree to the terms outlined in this Privacy Policy.
+
+2. Information We Collect
+We may collect the following types of information:
+- Information you provide when creating an account, such as your username, email address, and profile details.
+- Any additional contact details you choose to provide, such as phone number or social media profiles.
+- Information about your interactions with OpenProfile, including IP addresses, browser types, access times, and pages visited.
+- Data related to your use of the platform, including uploaded content, interactions with other users, and preferences.
+
+3. How We Use Your Information
+We use your information for various purposes, including:
+- To operate, maintain, and enhance OpenProfile, including personalizing your experience and developing new features.
+- To send you updates, notifications, and other relevant information related to your account and the platform.
+- To analyze usage patterns, troubleshoot issues, and ensure the platform's functionality and security.
+- To fulfill legal requirements, respond to lawful requests, and enforce our terms and policies.
+
+4. Sharing Your Information
+We may share your information in the following circumstances:
+- When you have given us explicit consent to share your information with third parties.
+- With third-party service providers who assist us in operating and maintaining OpenProfile, such as hosting services, payment processors, and customer support.
+- When required by law or to comply with legal processes, regulations, or requests from government authorities.
+- In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of the transaction.
+
+5. Security of Your Information
+We implement reasonable technical and organizational measures to protect your information from unauthorized access, disclosure, alteration, or destruction. However, no security measures are entirely foolproof, and we cannot guarantee the absolute security of your information.
+
+6. Data Retention
+We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, comply with legal obligations, and enforce our agreements. When your information is no longer needed, we will take reasonable steps to securely delete or anonymize it.
+
+7. Your Rights
+Depending on your jurisdiction, you may have certain rights regarding your personal information, including:
+- The right to request a copy of your personal information.
+- The right to request corrections or updates to inaccurate or incomplete information.
+- The right to request the deletion of your personal information, subject to certain exceptions.
+- The right to object to or restrict the processing of your information.
+- The right to receive your information and transfer it to another entity.
+To exercise these rights, please contact us using the information provided below.
+
+8. Cookies and Tracking Technologies
+OpenProfile uses cookies and similar tracking technologies to enhance your experience and collect usage data. Cookies are small data files placed on your device that help us recognize you and improve our services. You can manage cookie preferences through your browser settings, but disabling cookies may affect the functionality of the platform.
+
+9. Third-Party Links
+OpenProfile may contain links to third-party websites or services. We are not responsible for the privacy practices or content of these external sites. We encourage you to review the privacy policies of any third-party sites you visit.
+
+10. Changes to This Privacy Policy
+We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. We will notify you of significant changes by posting the updated policy on our website or through other communication channels. Your continued use of OpenProfile following any changes constitutes your acceptance of the revised policy.
+
+11. Contact Us
+For questions or concerns regarding this Privacy Policy, please contact us at support@openprofile.app.
+By using OpenProfile, you acknowledge that you have read, understood, and agree to this Privacy Policy.
+
+Copyright (c) 2017-2026 OpenProfile™. All rights reserved.
