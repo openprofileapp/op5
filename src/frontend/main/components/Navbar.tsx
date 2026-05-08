@@ -27,7 +27,7 @@ export default function Navbar({ dest }: NavbarProps) {
     };
 
     return (
-        <div className="navbar bg-base-100 shadow-sm">
+        <div className="navbar bg-base-100 shadow-sm border-b border-base-300">
             <div className="flex-1">
                 <a className="btn btn-ghost text-xl">{config.metadata.name}</a>
             </div>
@@ -51,6 +51,20 @@ export default function Navbar({ dest }: NavbarProps) {
                 <li onClick={() => changeLang("ru")}><a>Russian</a></li>
                 <li onClick={() => changeLang("id")}><a>Indonesian</a></li>
                 <li onClick={() => changeLang("ja")}><a>Japanese</a></li>
+            </ul>
+
+            <button className="avatar cursor-pointer" type="button" 
+                popoverTarget="account-dropdown"  style={{ anchorName: "--anchor-1" }}>
+                <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
+                    <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+                </div>
+            </button>
+
+            <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
+                popover="auto" id="account-dropdown" style={{ positionAnchor: "--anchor-1" }}>
+                <li onClick={() => changeLang("en")}><a>My Profile</a></li>
+                <li onClick={() => changeLang("en")}><a>Settings</a></li>
+                <li onClick={() => changeLang("en")}><a>Logout</a></li>
             </ul>
         </div>
     );
