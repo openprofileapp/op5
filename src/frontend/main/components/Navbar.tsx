@@ -1,8 +1,6 @@
 import { Link, To } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import i18n from "../../_common/i18n.js";
-
 type NavbarProps = {
     dest: To;
 };
@@ -21,50 +19,81 @@ export default function Navbar({ dest }: NavbarProps) {
         linkName = t("pages.home.goAbout");
     }
 
-    const changeLang = (lng: string) => {
-        localStorage.setItem("locale", lng);
-        i18n.changeLanguage(lng);
-    };
-
     return (
-        <div className="navbar bg-base-100 shadow-sm border-b border-base-300">
-            <div className="flex-1">
-                <a className="btn btn-ghost text-xl">{config.metadata.name}</a>
-            </div>
-            <div className="flex-none">
-                <ul className="menu menu-horizontal px-1">
-                    <li><Link to={dest}>{linkName}</Link></li>
-                </ul>
-            </div>
+        <div className="navbar bg-base-100 shadow-sm border-b border-base-300 items-center gap-4 px-16">
+            <div className="flex flex-1 items-center gap-5">
+                <a className="btn-ghost text-xl">
+                    {config.metadata.name}
+                </a>
 
-            <button className="btn" popoverTarget="popover-1" style={{ anchorName: "--anchor-1" }}>
-                Language
-            </button>
-
-            <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
-                popover="auto" id="popover-1" style={{ positionAnchor: "--anchor-1" }}>
-                <li onClick={() => changeLang("en")}><a>English</a></li>
-                <li onClick={() => changeLang("zh")}><a>Chinese</a></li>
-                <li onClick={() => changeLang("es")}><a>Spanish</a></li>
-                <li onClick={() => changeLang("hi")}><a>Hindi</a></li>
-                <li onClick={() => changeLang("ar")}><a>Arabic</a></li>
-                <li onClick={() => changeLang("ru")}><a>Russian</a></li>
-                <li onClick={() => changeLang("id")}><a>Indonesian</a></li>
-                <li onClick={() => changeLang("ja")}><a>Japanese</a></li>
-            </ul>
-
-            <button className="avatar cursor-pointer" type="button" 
-                popoverTarget="account-dropdown"  style={{ anchorName: "--anchor-1" }}>
-                <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
-                    <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+                <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent">
+                    Beta
+                    <div className="tooltip-content p-3">
+                        <div className="font-bold">v5.0.237.2-beta</div>
+                        <div className="text-xs">Released on 2/3/2026</div>
+                    </div>
                 </div>
-            </button>
 
-            <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
-                popover="auto" id="account-dropdown" style={{ positionAnchor: "--anchor-1" }}>
-                <li onClick={() => changeLang("en")}><a>My Profile</a></li>
-                <li onClick={() => changeLang("en")}><a>Settings</a></li>
-                <li onClick={() => changeLang("en")}><a>Logout</a></li>
+                <Link className="link link-hover" to={dest}>Home</Link>
+                <Link className="link link-hover" to={dest}>Characters</Link>
+                <Link className="link link-hover" to={dest}>Universes</Link>
+                <Link className="link link-hover" to={dest}>Users</Link>
+                <span>|</span>
+                <Link className="link link-hover" to={dest}>Dashboard</Link>
+                <Link className="link link-hover" to={dest}>My library</Link>
+                <span>|</span>
+                <Link className="link link-hover" to={dest}>Partner Portal</Link>
+            </div>
+
+            <div className="flex items-center gap-5">
+                <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent">
+                    <span className="mr-2" style={{ fontFamily: "NerdFont" }}></span>
+                    Lifetime Premium
+                    <div className="tooltip-content p-3">
+                        <div className="font-bold">You've got life-time premium!</div>
+                        <div className="text-xs">Thanks for registering early</div>
+                    </div>
+                </div>
+                
+                <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                    data-tip="Report">
+                    <span className="text-xl" style={{ fontFamily: "NerdFont" }}></span>
+                </button>
+
+                <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
+                    <span className="text-xl" style={{ fontFamily: "NerdFont" }}>󰂚</span>
+                    <div className="tooltip-content p-3">
+                        <div className="font-bold">Notifications</div>
+                        <div className="text-xs">No new notifications!</div>
+                    </div>
+                </button>
+
+                <div className="tooltip tooltip-bottom tooltip-accent">
+                    <button className="avatar cursor-pointer" popoverTarget="account-dropdown" 
+                    style={{ anchorName: "--account-anchor" }}>
+                        <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
+                            <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+                        </div>
+                    </button>
+                    <div className="tooltip-content p-3 text-left">
+                        <div className="font-bold">@username</div>
+                        <div className="text-xs">102 Followers</div>
+                    </div>
+                </div>
+            </div>
+
+            <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" 
+                popover="auto" id="account-dropdown" style={{ positionAnchor: "--account-anchor" }}>
+                <li>
+                    <Link to={dest}>My Profile</Link>
+                </li>
+                <li>
+                    <a className="justify-between">
+                        Settings
+                        <span className="badge badge-accent">New</span>
+                    </a>
+                </li>
+                <li><a>Logout</a></li>
             </ul>
         </div>
     );
