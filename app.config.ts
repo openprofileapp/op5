@@ -71,7 +71,7 @@ export const config = {
     },
 
     theme: {
-        primary: "#080808",
+        primary: "#160202",
         accent: "#ce1616"
     },
 
