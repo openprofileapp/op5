@@ -1,0 +1,9 @@
+@font-face {
+    font-family: "NerdFont";
+    src: url("https://cdn.dev.openprofile.app/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
+}
+
+body {
+    min-height: 100vh;
+    background-color: #160202;
+}
