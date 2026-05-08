@@ -1,0 +1,1 @@
+This is a companion package for my app that developers can install to easily access my application.

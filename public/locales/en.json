@@ -1,0 +1,40 @@
+{
+  "maintenance": {
+    "reason": "We're performing updates!"
+  },
+  "metadata": {
+    "tagline": "Example Website",
+    "description": "This is an example description",
+    "keywords": "example, keyword",
+    "version": {
+      "0.0.1": {
+        "name": "First build"
+      }
+    }
+  },
+  "responses": {
+    "emptyFields": "Please fill in all the required fields.",
+    "noAccess": "You do not have permission to access this content.",
+    "badGateway": "Bad gateway. Try refreshing!",
+    "failedCommand": "Error executing command! A report was filed and sent to the developer."
+  },
+  "pages": {
+    "languages": "Languages",
+    "404": {
+      "status": "Code 404: NOT FOUND"
+    },
+    "home": {
+      "title": "Example Page",
+      "body": "To edit this page, visit ./src/frontend/main/pages/Home.tsx",
+      "button": "Click Me",
+      "goAbout": "Go to About"
+    },
+    "about": {
+      "helmet": {
+        "title": "About"
+      },
+      "description": "Nothing to see here...",
+      "goHome": "Go to Home"
+    }
+  }
+}

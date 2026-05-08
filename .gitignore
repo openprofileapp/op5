@@ -1,0 +1,29 @@
+# Folders
+.old
+.vscode/*
+node_modules
+dist
+release
+logs
+data
+backups
+ssl
+target
+
+# Files
+!.vscode/extensions.json
+!.vscode/settings.json
+package-lock.json
+Cargo.lock
+
+# Extensions
+*.env
+!*.env.example
+*.log
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.idea
+*.ini
+*.lnk

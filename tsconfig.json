@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "strict": true,
+    "jsx": "react-jsx",
+    "sourceMap": false,
+    "declaration": true,
+    "declarationMap": false,
+    "declarationDir": "dist/src/types",
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "include": ["src", "src-tauri/src/frontend"]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "openprofile",
+  "version": "5.0.300-beta-build-cfeeba0",
+  "identifier": "app.openprofile.op5",
+  "build": {
+    "beforeDevCommand": "vite --config vite.config.app.ts",
+    "devUrl": "http://localhost:10520",
+    "beforeBuildCommand": "vite build --config vite.config.app.ts",
+    "frontendDist": "../dist/src-tauri/src/frontend"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OpenProfile",
+        "width": 1084,
+        "height": 784
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "../public/branding/icon.ico"
+    ],
+    "resources": []
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "material-icon-theme.folders.associations": {
+    "cdn": "images",
+    "status": "resolver",
+    "support": "docs",
+    "branding": "images",
+    "components": "react-components",
+    "pages": "react-components",
+    "ws": "connection"
+  },
+  "material-icon-theme.files.associations": {
+    "*.config.ts": "settings",
+    "*.config.js": "settings",
+    "*.ecosystem.config.cjs": "pm2-ecosystem",
+    "*.crt.example": "certificate",
+    "*.key.example": "key",
+    "package-lock.json": "lock",
+    "vite.config.web.ts": "vite",
+    "vite.config.app.ts": "vite",
+    "*.iss": "disc"
+  },
+  "material-icon-theme.folders.customClones": [
+    {
+      "name": "discord",
+      "base": "robot",
+      "color": "#5865F2",
+      "folderNames": ["discord"]
+    }
+  ],
+  "material-icon-theme.files.customClones": [
+    {
+      "name": "commands",
+      "base": "console",
+      "color": "#03a9f4",
+      "fileExtensions": ["command.ts", "command.js"]
+    },
+    {
+      "name": "services",
+      "base": "controller",
+      "color": "#ffc107",
+      "fileExtensions": ["service.ts", "service.js"]
+    },
+    {
+      "name": "hooks",
+      "base": "controller",
+      "color": "#7e57c2",
+      "fileExtensions": ["hook.ts", "hook.js"]
+    }
+  ],
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "log.error",
+        "settings": {
+          "fontStyle": ""
+        }
+      }
+    ]
+  },
+  "logFileHighlighter.customPatterns": [
+    {
+      "pattern": "\\[INFO\\].*",
+      "highlightEntireLine": true,
+      "foreground": "#13a10e"
+    },
+    {
+      "pattern": "\\[WARN\\].*",
+      "highlightEntireLine": true,
+      "foreground": "#c19c00"
+    },
+    {
+      "pattern": "\\[ERROR\\].*",
+      "highlightEntireLine": true,
+      "foreground": "#c50f1f"
+    },
+    {
+      "pattern": "\\[DEBUG\\].*",
+      "highlightEntireLine": true,
+      "foreground": "#3a96dd"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "maintenance": {
+    "reason": "¡Estamos realizando actualizaciones!"
+  },
+  "metadata": {
+    "tagline": "Sitio web de ejemplo",
+    "description": "Esta es una descripción de ejemplo.",
+    "keywords": "ejemplo, palabra clave",
+    "version": {
+      "0.0.1": {
+        "name": "Primera construcción"
+      }
+    }
+  },
+  "responses": {
+    "emptyFields": "Por favor complete todos los campos requeridos.",
+    "noAccess": "No tienes permiso para acceder a este contenido.",
+    "badGateway": "Mala puerta de entrada. ¡Intenta refrescarte!",
+    "failedCommand": "¡Error al ejecutar el comando! Se presentó un informe y se envió al desarrollador."
+  },
+  "pages": {
+    "404": {
+      "status": "Código 404: NO ENCONTRADO"
+    },
+    "languages": "Idiomas",
+    "home": {
+      "title": "Página de ejemplo",
+      "body": "Para editar esta página, visite ./src/frontend/main/pages/Home.tsx",
+      "button": "Haz clic en mí",
+      "goAbout": "Ir a Acerca de"
+    },
+    "about": {
+      "helmet": {
+        "title": "Acerca de"
+      },
+      "description": "No hay nada que ver aquí...",
+      "goHome": "Ir a casa"
+    }
+  }
+}

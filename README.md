@@ -1,4 +1,13 @@
-# OpenProfile 5
-OP5 is an upcoming collaborative cross-platform application for writers, producers, and role-players to share minds and create diverse characters using an immensely advanced and FREE character profile template. For fandoms and authors, we even have a public database in the works that would enable users to learn more about your characters and the universe that goes around them!
+`npm run init` to install dependencies and complete setup<br>
 
-© OpenProfile 2025
+To start the server, update "domains" in `app.config.ts` and generate valid SSL files in `/ssl`<br>
+`npm run start` to run all servers from `/dist`<br>
+`npm run dev` to develop all servers from `/src`<br>
+`npm run stop` to stop all servers<br>
+`npm run sandbox --name=main` to test code in `/sandbox/main.test.ts`<br><br>
+`npm run backup` to backup project to `/dev/backups`<br>
+`npm run sync` to sync `app.config.ts` to all other files<br>
+`npm run translate` to translate `/public/locales`<br>
+`npm run update` to update all modules<br>
+`npm run build` to compile `/src` to `/dist`<br>
+`npm run clean` to delete `/dist` and `/logs`

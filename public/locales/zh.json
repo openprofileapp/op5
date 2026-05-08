@@ -1,0 +1,40 @@
+{
+  "maintenance": {
+    "reason": "我们正在执行更新！"
+  },
+  "metadata": {
+    "tagline": "示例网站",
+    "description": "这是一个示例描述",
+    "keywords": "例如，关键字",
+    "version": {
+      "0.0.1": {
+        "name": "第一次构建"
+      }
+    }
+  },
+  "responses": {
+    "emptyFields": "请填写所有必填字段。",
+    "noAccess": "您无权访问此内容。",
+    "badGateway": "坏网关。尝试清爽一下！",
+    "failedCommand": "执行命令出错！已提交报告并发送给开发商。"
+  },
+  "pages": {
+    "404": {
+      "status": "代码 404：未找到"
+    },
+    "languages": "语言",
+    "home": {
+      "title": "示例页面",
+      "body": "要编辑此页面，请访问 ./src/frontend/main/pages/Home.tsx",
+      "button": "点我",
+      "goAbout": "转到关于"
+    },
+    "about": {
+      "helmet": {
+        "title": "关于"
+      },
+      "description": "这里没什么可看的...",
+      "goHome": "回到首页"
+    }
+  }
+}

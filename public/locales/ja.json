@@ -1,0 +1,40 @@
+{
+  "maintenance": {
+    "reason": "アップデートを行っております！"
+  },
+  "metadata": {
+    "tagline": "ウェブサイトの例",
+    "description": "これは説明例です",
+    "keywords": "例、キーワード",
+    "version": {
+      "0.0.1": {
+        "name": "最初のビルド"
+      }
+    }
+  },
+  "responses": {
+    "emptyFields": "すべての必須フィールドに入力してください。",
+    "noAccess": "このコンテンツにアクセスする権限がありません。",
+    "badGateway": "ゲートウェイが不良です。リフレッシュしてみてください！",
+    "failedCommand": "コマンド実行中にエラーが発生しました!レポートが作成され、開発者に送信されました。"
+  },
+  "pages": {
+    "404": {
+      "status": "コード 404: 見つかりません"
+    },
+    "languages": "言語",
+    "home": {
+      "title": "サンプルページ",
+      "body": "このページを編集するには、./src/frontend/main/pages/Home.tsx にアクセスしてください。",
+      "button": "クリックミー",
+      "goAbout": "概要に移動"
+    },
+    "about": {
+      "helmet": {
+        "title": "について"
+      },
+      "description": "ここには何も見るべきものはありません...",
+      "goHome": "ホームへ行く"
+    }
+  }
+}

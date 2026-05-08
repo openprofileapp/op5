@@ -1,0 +1,40 @@
+{
+  "maintenance": {
+    "reason": "Kami sedang melakukan pembaruan!"
+  },
+  "metadata": {
+    "tagline": "Contoh Situs Web",
+    "description": "Ini adalah contoh deskripsi",
+    "keywords": "misalnya, kata kunci",
+    "version": {
+      "0.0.1": {
+        "name": "Bangunan pertama"
+      }
+    }
+  },
+  "responses": {
+    "emptyFields": "Silakan isi semua bidang yang diperlukan.",
+    "noAccess": "Anda tidak memiliki izin untuk mengakses konten ini.",
+    "badGateway": "Gerbang yang buruk. Cobalah menyegarkan!",
+    "failedCommand": "Kesalahan saat menjalankan perintah! Laporan telah diajukan dan dikirim ke pengembang."
+  },
+  "pages": {
+    "404": {
+      "status": "Kode 404 : TIDAK DITEMUKAN"
+    },
+    "languages": "Bahasa",
+    "home": {
+      "title": "Halaman Contoh",
+      "body": "Untuk mengedit halaman ini, kunjungi ./src/frontend/main/pages/Home.tsx",
+      "button": "Klik Saya",
+      "goAbout": "Pergi ke Tentang"
+    },
+    "about": {
+      "helmet": {
+        "title": "Tentang"
+      },
+      "description": "Tidak ada yang bisa dilihat di sini...",
+      "goHome": "Pergi ke Rumah"
+    }
+  }
+}

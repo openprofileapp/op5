@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "strict": true,
+    "sourceMap": false,
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "declarationMap": false,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": "/dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
+}

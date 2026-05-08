@@ -1,0 +1,20 @@
+{
+  "name": "openprofile",
+  "version": "5.0.300-beta-build-cfeeba0",
+  "description": "This is an example description",
+  "keywords": [
+    "example",
+    "keyword"
+  ],
+  "author": "OpenProfile",
+  "license": "OPPL",
+  "type": "module",
+  "main": "index.ts",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "minify": "npx esbuild \"dist/**/*.js\" --format=esm --minify --banner:js=\"/* This file is part of My App. Copyright (c) 2026 Example, LLC. All Rights Reserved. */\" --outdir=dist --allow-overwrite"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
