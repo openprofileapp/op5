@@ -6,9 +6,9 @@ import { I18nextProvider } from 'react-i18next'
 
 import i18n from '../_common/i18n.js'
 
-import "../_common/styles/app.css"
 import "../_common/styles/tailwind.css";
 import "../_common/styles/daisyui.css";
+import "../_common/styles/app.css"
 import "./scripts/main.js";
 
 import About from "./pages/About.js"
