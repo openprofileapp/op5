@@ -101,7 +101,8 @@ export const config = {
         assets: {
             logo: "/branding/logo.svg",
             icon: "/branding/icon.svg",
-            banner: "/branding/banner.png"
+            banner: "/branding/banner.svg",
+            wordmark: "/branding/wordmark.svg"
         },
 
         legal: {
