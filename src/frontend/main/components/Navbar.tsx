@@ -21,12 +21,14 @@ export default function Navbar({ dest }: NavbarProps) {
 
     return (
         <div className="navbar bg-base-100 shadow-sm border-b border-base-300 items-center gap-4 px-16">
-            <div className="flex flex-1 items-center gap-5">
-                <a className="btn-ghost text-xl">
-                    {config.metadata.name}
-                </a>
+            <div className="flex flex-1 items-center">
+                <Link className="cursor-pointer w-42" to="/">
+                    <img alt="OpenProfile wordmark"
+                        src={`https://${config.domains.cdn}${config.metadata.assets.wordmark}`} 
+                    />
+                </Link>
 
-                <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent">
+                <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
                     Beta
                     <div className="tooltip-content p-3">
                         <div className="font-bold">v5.0.237.2-beta</div>
@@ -34,20 +36,22 @@ export default function Navbar({ dest }: NavbarProps) {
                     </div>
                 </div>
 
-                <Link className="link link-hover" to={dest}>Home</Link>
-                <Link className="link link-hover" to={dest}>Characters</Link>
-                <Link className="link link-hover" to={dest}>Universes</Link>
-                <Link className="link link-hover" to={dest}>Users</Link>
-                <span>|</span>
-                <Link className="link link-hover" to={dest}>Dashboard</Link>
-                <Link className="link link-hover" to={dest}>My library</Link>
-                <span>|</span>
-                <Link className="link link-hover" to={dest}>Partner Portal</Link>
+                <div className="flex items-center gap-5 ml-10 text-sm">
+                    <Link className="link link-hover" to={dest}>Home</Link>
+                    <Link className="link link-hover" to={dest}>Characters</Link>
+                    <Link className="link link-hover" to={dest}>Universes</Link>
+                    <Link className="link link-hover" to={dest}>Users</Link>
+                    <span>|</span>
+                    <Link className="link link-hover" to={dest}>Dashboard</Link>
+                    <Link className="link link-hover" to={dest}>My library</Link>
+                    <span>|</span>
+                    <Link className="link link-hover" to={dest}>Partner Portal</Link>
+                </div>
             </div>
 
             <div className="flex items-center gap-5">
-                <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent">
-                    <span className="mr-2" style={{ fontFamily: "NerdFont" }}></span>
+                <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info ml-3 p-3.5 flex justify-center rounded-m bg-gradient-to-r from-[var(--color-premium)] to-[var(--color-precursor)]">
+                    <span className="font-nerdfont text-base mr-1"></span>
                     Lifetime Premium
                     <div className="tooltip-content p-3">
                         <div className="font-bold">You've got life-time premium!</div>
@@ -57,11 +61,11 @@ export default function Navbar({ dest }: NavbarProps) {
                 
                 <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
                     data-tip="Report">
-                    <span className="text-xl" style={{ fontFamily: "NerdFont" }}></span>
+                    <span className="font-nerdfont text-xl"></span>
                 </button>
 
                 <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
-                    <span className="text-xl" style={{ fontFamily: "NerdFont" }}>󰂚</span>
+                    <span className="font-nerdfont text-xl">󰂚</span>
                     <div className="tooltip-content p-3">
                         <div className="font-bold">Notifications</div>
                         <div className="text-xs">No new notifications!</div>
