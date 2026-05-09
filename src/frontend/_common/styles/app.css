@@ -1,9 +1,88 @@
 @font-face {
+    font-family: "Alexandria";
+    src: url("https://cdn.dev.openprofile.app/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
+}
+
+@font-face {
     font-family: "NerdFont";
     src: url("https://cdn.dev.openprofile.app/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
+}
+
+:root {
+    --color-base-100: #3b0707;
+    --color-base-200: #160202;
+    --color-base-300: #5f1717;
+    --color-base-content: #eaeaea;
+    --color-primary: #ce1616;
+    --color-primary-content: #ffffff;
+    --color-secondary: #5f1717;
+    --color-secondary-content: #eaeaea;
+    --color-accent: #ce1616;
+    --color-accent-content: #ffffff;
+    --color-neutral: #5f1717;
+    --color-neutral-content: #eaeaea;
+    --color-info: #efbe0b;
+    --color-info-content: #000000;
+    --color-success: #13a10e;
+    --color-success-content: #ffffff;
+    --color-warning: #c19c00;
+    --color-warning-content: #ffffff;
+    --color-error: #c50f1f;
+    --color-error-content: #ffffff;
+    --radius-selector: 16px;
+    --radius-field: 4px;
+    --radius-box: 8px;
+    --size-selector: 4px;
+    --size-field: 4px;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+
+    --color-precursor: #8515cf;
+    --color-premium: #efbe0b;
 }
 
 body {
     min-height: 100vh;
     background-color: #160202;
+    font-family: "Alexandria";
+}
+
+.badge {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: small;
+    text-align: center;
+    align-content: center;
+}
+
+.badge .tooltip {
+    text-transform: none;
+    font-weight: normal;
+}
+
+.badge .tooltip-content {
+    text-transform: none;
+    font-weight: normal;
+}
+
+.font-nerdfont {
+    font-family: "NerdFont";
+    font-weight: normal;
+}
+
+.bg-precursor {
+    background-color: var(--color-precursor);
+}
+
+.border-precursor {
+    border-color: var(--color-precursor);
+}
+
+.bg-premium {
+    background-color: var(--color-premium);
+}
+
+.border-premium {
+    border-color: var(--color-premium);
 }
