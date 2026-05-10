@@ -11,9 +11,9 @@ import "../_common/styles/daisyui.css";
 import "../_common/styles/app.css"
 import "./scripts/main.js";
 
-import About from "./pages/About.js"
 import Home from './pages/Home.js'
 import NotFound from './pages/NotFound.js'
+import Search from './pages/Search.js'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/about" element={<About />} />
+                        <Route path="/search" element={<Search />} />
                         
                         <Route path="/404" element={<NotFound />} />
                         <Route path="*" element={<Navigate to="/404" replace />} />
