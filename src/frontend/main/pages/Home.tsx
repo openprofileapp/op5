@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
+
 import { Metadata } from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
+import Footer from "../components/Footer.js";
 
 export default function Home() {
     const { t, ready } = useTranslation();
@@ -11,7 +13,7 @@ export default function Home() {
         <>  
             <Metadata />
             
-            <Navbar dest="/about" />
+            <Navbar />
 
             <div className="hero bg-base-200 h-150">
                 <div className="hero-content text-center px-4 md:px-16">
@@ -147,6 +149,8 @@ export default function Home() {
                     <button>close</button>
                 </form>
             </dialog>
+
+            <Footer />
         </>
     );
 }
