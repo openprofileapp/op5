@@ -124,3 +124,7 @@ body {
 .btn-disabled {
     opacity: 0.5;
 }
+
+.link {
+    color: var(--color-accent);
+}
