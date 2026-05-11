@@ -83,9 +83,20 @@ export const config = {
         // keywords are editable in ./src/assets/locales/*.json
         theme: "system", // dark | light | system
         locale: "en",
-        urls: [
-            "https://openprofile.app"
-        ],
+        urls: {
+            main: "https://openprofile.app",
+            github: "https://github.com/openprofileapp",
+            x: "https://x.com/openprofileapp",
+            bluesky: "https://bsky.app/profile/openprofile.app",
+            instagram: "https://instagram.com/openprofileapp",
+            facebook: "https://facebook.com/openprofileapp",
+            youtube: "https://youtube.com/@openprofile",
+            tiktok: "https://tiktok.com/@openprofileapp",
+            discord: {
+                main: "https://discord.gg/w6aV9gkz8g",
+                joinUpdateRoles: "https://discord.gg/pBrPZQTbsj"
+            } 
+        },
 
         version: {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -108,7 +119,7 @@ export const config = {
         legal: {
             owner: "OpenProfile", // Include suffix for registered entity
             license: {
-                text: "Copyright (c) 2017-2026 OpenProfile. All rights reserved.", // https://choosealicense.com
+                text: "Copyright © 2017-2026 OpenProfile™. All rights reserved.", // https://choosealicense.com
                 code: "OPPL", // https://choosealicense.com
             },
             trademarks: ["OpenProfile™"] // Include ™ or (TM) for trademarks, OR ® or (R) for registered trademarks
