@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
+
 import { Metadata } from "../../_common/components/Metadata.js";
+import Navbar from "../components/Navbar.js";
+import Footer from "../components/Footer.js";
 
 export default function NotFound() {
     const { t, ready } = useTranslation();
@@ -9,15 +12,24 @@ export default function NotFound() {
     return (
         <>
             <Metadata
-                title={t("pages.404.status")}
+                title="Not Found"
                 allowIndex="false"
             />
-            
-            <div className="bg-black flex items-center justify-center min-h-screen">
-                <div className="mr-50 ml-50">
-                    <pre><code>{t("pages.404.status")}</code></pre>
+
+            <Navbar />
+                        
+            <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+                <div className="rounded-full border border-base-300 flex flex-col items-center justify-center bg-base-100 w-100 h-100 text-center gap-4 text-2xl">
+
+                    <img className="rounded-full" width={192}
+                        src={`https://${window.config.domains.cdn}/graphics/alice-happy.svg`}
+                    />
+
+                    <span>404 - Not Found</span>
                 </div>
             </div>
+
+            <Footer />
         </>
     );
 }
