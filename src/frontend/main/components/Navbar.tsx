@@ -1,23 +1,12 @@
-import { Link, To } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-type NavbarProps = {
-    dest: To;
-};
-
-export default function Navbar({ dest }: NavbarProps) {
-    let linkName = "";
+export default function Navbar() {
     const config = window.config;
 
     const { t, ready } = useTranslation();
 
     if (!ready) return null;
-
-    if (dest === "/") {
-        linkName = t("pages.about.goHome");
-    } else {
-        linkName = t("pages.home.goAbout");
-    }
 
     return (
         <>
@@ -38,15 +27,15 @@ export default function Navbar({ dest }: NavbarProps) {
                     </div>
 
                     <div className="flex items-center gap-5 ml-10 text-sm">
-                        <Link className="link link-hover" to={dest}>Home</Link>
-                        <Link className="link link-hover" to={dest}>Characters</Link>
-                        <Link className="link link-hover" to={dest}>Universes</Link>
-                        <Link className="link link-hover" to={dest}>Users</Link>
+                        <Link className="link-hover" to="/">Home</Link>
+                        <Link className="link-hover" to="/profiles">Characters</Link>
+                        <Link className="link-hover" to="/universes">Universes</Link>
+                        <Link className="link-hover" to="/users">Users</Link>
                         <span>|</span>
-                        <Link className="link link-hover" to={dest}>Dashboard</Link>
-                        <Link className="link link-hover" to={dest}>My library</Link>
+                        <Link className="link-hover" to="/dashboard">Dashboard</Link>
+                        <Link className="link-hover" to="/library">My library</Link>
                         <span>|</span>
-                        <Link className="link link-hover" to={dest}>Partner Portal</Link>
+                        <Link className="link-hover" to="/partner">Partner Portal</Link>
                     </div>
                 </div>
 
@@ -95,7 +84,7 @@ export default function Navbar({ dest }: NavbarProps) {
                 <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" 
                     popover="auto" id="account-dropdown" style={{ positionAnchor: "--account-anchor" }}>
                     <li>
-                        <Link to={dest}>My Profile</Link>
+                        <Link to="/">My Profile</Link>
                     </li>
                     <li>
                         <a className="justify-between">
@@ -114,15 +103,15 @@ export default function Navbar({ dest }: NavbarProps) {
                             <span className="font-nerdfont text-2xl">󰍜</span>
                         </div>
                         <ul tabIndex={-1} className="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                            <Link className="link link-hover" to={dest}>Home</Link>
-                            <Link className="link link-hover" to={dest}>Characters</Link>
-                            <Link className="link link-hover" to={dest}>Universes</Link>
-                            <Link className="link link-hover" to={dest}>Users</Link>
+                            <Link className="link-hover" to="/">Home</Link>
+                            <Link className="link-hover" to="/profiles">Characters</Link>
+                            <Link className="link-hover" to="/universes">Universes</Link>
+                            <Link className="link-hover" to="/">Users</Link>
                             <br></br>
-                            <Link className="link link-hover" to={dest}>Dashboard</Link>
-                            <Link className="link link-hover" to={dest}>My library</Link>
+                            <Link className="link-hover" to="/">Dashboard</Link>
+                            <Link className="link-hover" to="/">My library</Link>
                             <br></br>
-                            <Link className="link link-hover" to={dest}>Partner Portal</Link>
+                            <Link className="link-hover" to="/">Partner Portal</Link>
                         </ul>
                     </div>
                 </div>
