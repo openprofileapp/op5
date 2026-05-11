@@ -12,8 +12,10 @@ import "../_common/styles/app.css"
 import "./scripts/main.js";
 
 import Home from './pages/Home.js'
+import SearchProfiles from './pages/SearchProfiles.js'
+import ComingSoon from './pages/ComingSoon.js'
+
 import NotFound from './pages/NotFound.js'
-import Search from './pages/Search.js'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
@@ -22,7 +24,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/search" element={<Search />} />
+                        <Route path="/profiles" element={<SearchProfiles />} />
+                        <Route path="/universes" element={<ComingSoon />} />
+                        <Route path="/library" element={<ComingSoon />} />
                         
                         <Route path="/404" element={<NotFound />} />
                         <Route path="*" element={<Navigate to="/404" replace />} />
