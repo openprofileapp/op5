@@ -6,7 +6,8 @@
     "branding": "images",
     "components": "react-components",
     "pages": "react-components",
-    "ws": "connection"
+    "ws": "connection",
+    "graphics": "images"
   },
   "material-icon-theme.files.associations": {
     "*.config.ts": "settings",
