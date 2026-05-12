@@ -35,19 +35,21 @@ export default function Navbar() {
                         <Link className="link-hover" to="/dashboard">Dashboard</Link>
                         <Link className="link-hover" to="/library">My library</Link>
                         <span>|</span>
-                        <Link className="link-hover" to="/partner">Partner Portal</Link>
+                        <Link className="link-hover" to="/partners">Partner Stats</Link>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-5">
-                    <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info p-3.5 flex justify-center rounded-m bg-premium">
-                        <span className="font-nerdfont text-base mr-1"></span>
-                        Lifetime Premium
-                        <div className="tooltip-content">
-                            <div className="font-bold">You've got life-time premium!</div>
-                            <div className="text-xs">Thanks for registering early</div>
+                    <Link to="/premium">
+                        <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info p-3.5 flex justify-center rounded-m bg-premium">
+                            <span className="font-nerdfont text-base mr-1"></span>
+                            Lifetime Premium
+                            <div className="tooltip-content">
+                                <div className="font-bold">You've got life-time premium!</div>
+                                <div className="text-xs">Thanks for registering early</div>
+                            </div>
                         </div>
-                    </div>
+                    </Link>
 
                     <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
                         data-tip="Create" onClick={()=>document.getElementById("create-asset").showModal()}>
@@ -111,7 +113,7 @@ export default function Navbar() {
                             <Link className="link-hover" to="/">Dashboard</Link>
                             <Link className="link-hover" to="/">My library</Link>
                             <br></br>
-                            <Link className="link-hover" to="/">Partner Portal</Link>
+                            <Link className="link-hover" to="/">Partner Stats</Link>
                         </ul>
                     </div>
                 </div>
@@ -136,7 +138,7 @@ export default function Navbar() {
                 </div>
             </div>
 
-            <div className="dock md:hidden border-t border-base-300">
+            <div className="dock md:hidden border-t border-base-300 z-999">
                 <button className="dock-active">
                     <div className="text-xl font-nerdfont text-white"></div>
                     <span className="dock-label text-white">Home</span>
