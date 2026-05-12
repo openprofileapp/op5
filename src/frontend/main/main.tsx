@@ -13,8 +13,10 @@ import "./scripts/main.js";
 
 import Home from './pages/Home.js'
 import SearchProfiles from './pages/SearchProfiles.js'
-import ComingSoon from './pages/ComingSoon.js'
+import Partners from './pages/Partners.js'
+import Premium from './pages/Premium.js'
 
+import ComingSoon from './pages/ComingSoon.js'
 import NotFound from './pages/NotFound.js'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -27,6 +29,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         <Route path="/profiles" element={<SearchProfiles />} />
                         <Route path="/universes" element={<ComingSoon />} />
                         <Route path="/library" element={<ComingSoon />} />
+                        <Route path="/partners" element={<Partners />} />
+                        <Route path="/premium" element={<Premium />} />
                         
                         <Route path="/404" element={<NotFound />} />
                         <Route path="*" element={<Navigate to="/404" replace />} />
