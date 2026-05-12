@@ -91,7 +91,7 @@ body {
     font-weight: normal;
 }
 
-.dropdown.menu, .dropdown-content, .modal-box {
+.dropdown.menu, .dropdown-content, .modal-box, .table, .guide {
     background-color: #111111;
     border: 1px solid #272727;
 }
@@ -117,6 +117,10 @@ body {
     border-color: var(--color-premium);
 }
 
+.text-premium {
+    color: var(--color-premium);
+}
+
 .dock-active::after {
     display: none;
 }
@@ -127,4 +131,12 @@ body {
 
 .link {
     color: var(--color-accent);
+}
+
+.bg-alt {
+    background-color: #111111;
+}
+
+.border-alt {
+    border-color: #272727;
 }
