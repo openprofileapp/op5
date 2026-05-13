@@ -9,42 +9,13 @@
 }
 
 :root {
-    --color-base-100: #3b0707;
-    --color-base-200: #160202;
-    --color-base-300: #5f1717;
-    --color-base-content: #eaeaea;
-    --color-primary: #ce1616;
-    --color-primary-content: #ffffff;
-    --color-secondary: #5f1717;
-    --color-secondary-content: #eaeaea;
-    --color-accent: #ce1616;
-    --color-accent-content: #ffffff;
-    --color-neutral: #5f1717;
-    --color-neutral-content: #eaeaea;
-    --color-info: #efbe0b;
-    --color-info-content: #000000;
-    --color-success: #13a10e;
-    --color-success-content: #ffffff;
-    --color-warning: #c19c00;
-    --color-warning-content: #ffffff;
-    --color-error: #c50f1f;
-    --color-error-content: #ffffff;
-    --radius-selector: 16px;
-    --radius-field: 4px;
-    --radius-box: 8px;
-    --size-selector: 4px;
-    --size-field: 4px;
-    --border: 1px;
-    --depth: 0;
-    --noise: 0;
-
     --color-precursor: #8515cf;
     --color-premium: #efbe0b;
 }
 
 * {
     scrollbar-width: thin;
-    scrollbar-color: #272727 #111111;
+    scrollbar-color: #222222 #111111;
     outline: none;
 }
 
@@ -63,6 +34,21 @@ body {
     min-height: 100vh;
     background-color: var(--color-base-200);
     font-family: "Alexandria";
+}
+
+.skeleton {
+    background-color: #0c0c0c;
+
+    background-image: linear-gradient(
+        105deg,
+        transparent 0%,
+        transparent 35%,
+        #15151525 45%,
+        #15151550 50%,
+        #15151525 55%,
+        transparent 65%,
+        transparent 100%
+    );
 }
 
 .badge {
@@ -93,7 +79,7 @@ body {
 
 .dropdown.menu, .dropdown-content, .modal-box, .table, .guide {
     background-color: #111111;
-    border: 1px solid #272727;
+    border: 1px solid #222222;
 }
 
 .font-nerdfont {
@@ -138,5 +124,9 @@ body {
 }
 
 .border-alt {
-    border-color: #272727;
+    border-color: #222222;
+}
+
+.text-black {
+    color: #080808
 }
