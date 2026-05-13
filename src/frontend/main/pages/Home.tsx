@@ -16,6 +16,29 @@ export default function Home() {
             <Navbar />
 
             <div className="hero bg-base-200 h-150">
+                <div
+                    className="absolute top-[64px] inset-0 bg-cover bg-center h-150"
+                    style={{
+                        backgroundImage: `url(https://${window.config.domains.cdn}/media/hero.png)`,
+                        opacity: 0.15
+                    }}
+                />
+
+                <div
+                    className="absolute inset-0 pointer-events-none top-[64px] h-150"
+                    style={{
+                        background: `
+                            linear-gradient(
+                                to bottom,
+                                #080808 0%,
+                                #00000000 25%,
+                                #00000000 75%,
+                                #111111 100%
+                            )
+                        `,
+                    }}
+                />
+
                 <div className="hero-content text-center px-4 md:px-16">
                     <div>
                         <h1 className="text-4xl font-bold">
