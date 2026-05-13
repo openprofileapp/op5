@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
     const config = window.config;
@@ -8,9 +9,42 @@ export default function Navbar() {
 
     if (!ready) return null;
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [scrolled, setScrolled] = useState(false);
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const location = useLocation();
+    const isHome = location.pathname === "/";
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+        if (!isHome) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setScrolled(true);
+            return;
+        }
+
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 16);
+        };
+
+        handleScroll();
+
+        window.addEventListener("scroll", handleScroll);
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [isHome]);
+
     return (
         <>
-            <div className="sticky top-0 z-9999 hidden md:flex navbar bg-base-100 shadow-sm border-b border-base-300 items-center gap-4 px-16">
+            <div className={`
+                    sticky top-0 z-9999 hidden md:flex navbar items-center gap-4 px-16
+                    ${
+                        scrolled
+                            ? "bg-base-100 shadow-sm border-b border-base-300"
+                            : "bg-gradient-to-b from-base-100 via-base-100 to-base-100 border-b border-base-100"
+                    }
+                `}>
                 <div className="flex flex-1 items-center">
                     <Link className="cursor-pointer w-42" to="/">
                         <img alt="OpenProfile wordmark"
@@ -28,14 +62,14 @@ export default function Navbar() {
 
                     <div className="flex items-center gap-5 ml-10 text-sm">
                         <Link className="link-hover" to="/">Home</Link>
-                        <Link className="link-hover" to="/profiles">Characters</Link>
-                        <Link className="link-hover" to="/universes">Universes</Link>
-                        <Link className="link-hover" to="/users">Users</Link>
-                        <span>|</span>
-                        <Link className="link-hover" to="/dashboard">Dashboard</Link>
-                        <Link className="link-hover" to="/library">My library</Link>
-                        <span>|</span>
-                        <Link className="link-hover" to="/partners">Partner Stats</Link>
+                            <Link className="link-hover" to="/search">Popular</Link>
+                            <Link className="link-hover" to="/search">Recently Updated</Link>
+                            <Link className="link-hover" to="/search">Search</Link>
+                            <span>|</span>
+                            <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
+                            <Link className="link-hover" to="/account/library">My library</Link>
+                            <span>|</span>
+                            <Link className="link-hover" to="/account/partners">Partner Stats</Link>
                     </div>
                 </div>
 
@@ -98,7 +132,14 @@ export default function Navbar() {
                 </ul>
             </div>
 
-            <div className="md:hidden sticky top-0 z-9999 navbar bg-base-100 border-b border-base-300 shadow-sm">
+            <div className={`md:hidden sticky top-0 z-9999 navbar
+
+                ${
+                    scrolled
+                        ? "bg-base-100 shadow-sm border-b border-base-300"
+                        : "bg-gradient-to-b from-base-100 via-base-100 to-base-100 border-b border-base-100"
+                }`}
+            >
                 <div className="navbar-start">
                     <div className="dropdown">
                         <div tabIndex={0} role="button" className="cursor-pointer ml-2">
@@ -106,14 +147,12 @@ export default function Navbar() {
                         </div>
                         <ul tabIndex={-1} className="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                             <Link className="link-hover" to="/">Home</Link>
-                            <Link className="link-hover" to="/profiles">Characters</Link>
-                            <Link className="link-hover" to="/universes">Universes</Link>
-                            <Link className="link-hover" to="/">Users</Link>
+                            <Link className="link-hover" to="/search">Search</Link>
                             <br></br>
-                            <Link className="link-hover" to="/">Dashboard</Link>
-                            <Link className="link-hover" to="/">My library</Link>
+                            <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
+                            <Link className="link-hover" to="/account/library">My library</Link>
                             <br></br>
-                            <Link className="link-hover" to="/">Partner Stats</Link>
+                            <Link className="link-hover" to="/account/partners">Partner Stats</Link>
                         </ul>
                     </div>
                 </div>
