@@ -11,7 +11,7 @@ import "../_common/styles/app.css"
 import "./scripts/main.js";
 
 import Home from './pages/Home.js'
-import SearchProfiles from './pages/SearchProfiles.js'
+import Search from './pages/Search.js'
 import Partners from './pages/Partners.js'
 import Premium from './pages/Premium.js'
 
@@ -25,7 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/profiles" element={<SearchProfiles />} />
+                        <Route path="/search" element={<Search />} />
                         <Route path="/universes" element={<ComingSoon />} />
                         <Route path="/library" element={<ComingSoon />} />
                         <Route path="/partners" element={<Partners />} />
