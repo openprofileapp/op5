@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Metadata } from "../../_common/components/Metadata.js";
+import Metadata from "../../_common/components/Metadata.js";
 
 export default function NotFound() {
     const { t, ready } = useTranslation();
