@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { Metadata } from "../../_common/components/Metadata.js";
+import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 
@@ -24,7 +24,7 @@ export default function Premium() {
 
             <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-16 md:pt-36 md:py-0">
                 <div className="flex flex-col md:flex-row gap-5">
-                    <div className="card w-96 h-min bg-alt border border-alt text-white z-1">
+                    <div className="card w-96 h-min bg-base-100 border border-alt text-white z-1">
                         <div className="card-body rounded-lg">
                             <div className="flex justify-between">
                                 <h2 className="text-3xl font-bold">Standard</h2>
@@ -50,7 +50,7 @@ export default function Premium() {
                         </div>
                     </div>
 
-                    <div className="card w-96 h-min bg-alt border border-alt text-white">
+                    <div className="card w-96 h-min bg-base-100 border border-alt text-white">
                         <div className="card-body rounded-lg">
                             <div className="flex justify-between">
                                 <h2 className="text-3xl font-bold">Premium</h2>
@@ -100,7 +100,7 @@ export default function Premium() {
                         </div>
                     </div>
 
-                    <div className="card w-96 h-min bg-alt border border-alt text-white z-1">
+                    <div className="card w-96 h-min bg-base-100 border border-alt text-white z-1">
                         <div className="card-body rounded-lg">
                             <div className="flex justify-between">
                                 <h2 className="text-3xl w-full text-center font-bold">Self-host</h2>
