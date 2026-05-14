@@ -62,19 +62,63 @@ export default function Navbar() {
 
                     <div className="flex items-center gap-5 ml-10 text-sm">
                         <Link className="link-hover" to="/">Home</Link>
-                            <Link className="link-hover" to="/search">Popular</Link>
-                            <Link className="link-hover" to="/search">Recently Updated</Link>
-                            <Link className="link-hover" to="/search">Search</Link>
-                            <span>|</span>
-                            <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
-                            <Link className="link-hover" to="/account/library">My library</Link>
-                            <span>|</span>
-                            <Link className="link-hover" to="/account/partners">Partner Stats</Link>
+                        <Link className="link-hover" to="/popular">Popular</Link>
+                        <Link className="link-hover" to="/trending">Trending</Link>
+                        <Link className="link-hover" to="/recent">New & Updated</Link>
+
+                        <div className="flex-none">
+                            <ul className="menu menu-horizontal p-0">
+                                <li
+                                    className="hover:bg-transparent"
+                                    onMouseEnter={(e) =>
+                                        e.currentTarget.querySelector("details").setAttribute("open", "")
+                                    }
+                                    onMouseLeave={(e) =>
+                                        e.currentTarget.querySelector("details").removeAttribute("open")
+                                    }
+                                >
+                                <details>
+                                    <summary className="hover:bg-transparent active:bg-transparent focus:bg-transparent pl-0">
+                                        Browse
+                                    </summary>
+
+                                    <ul className="bg-base-100 rounded-lg bg-alt border border-alt p-4 flex flex-col gap-3 w-50">
+                                        <Link className="link-hover" to="/browse/action">Action</Link>
+                                        <Link className="link-hover" to="/browse/adventure">Adventure</Link>
+                                        <Link className="link-hover" to="/browse/comedy">Comedy</Link>
+                                        <Link className="link-hover" to="/browse/crime">Crime</Link>
+                                        <Link className="link-hover" to="/browse/fantasy">Fantasy</Link>
+                                        <Link className="link-hover" to="/browse/historical">Historical</Link>
+                                        <Link className="link-hover" to="/browse/horror">Horror</Link>
+                                        <Link className="link-hover" to="/browse/mystery">Mystery</Link>
+                                        <Link className="link-hover" to="/browse/romance">Romance</Link>
+                                        <Link className="link-hover" to="/browse/sci-fi">Sci-Fi</Link>
+                                        <Link className="link-hover" to="/browse/sport">Sport</Link>
+                                        <Link className="link-hover" to="/browse/war">War</Link>
+                                    </ul>
+                                </details>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/*<span>|</span>
+                        <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
+                        <Link className="link-hover" to="/account/library">My library</Link>
+                        <Link className="link-hover" to="/account/partners">Partner Stats</Link>*/}
                     </div>
                 </div>
 
                 <div className="flex items-center gap-5">
-                    <Link to="/premium">
+
+                    <div className="flex flex-1 flex-col w-72">
+                        <label className="input w-full">
+                            <span className="font-nerdfont text-base mr-1"></span>
+                            <input type="search" required placeholder="Characters, franchises, topics..." />
+                        </label>
+                    </div>
+                    {/* While typing, auto forward to search and display results, on clear, return home */}
+                    
+                    {/*<Link to="/premium">
                         <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info p-3.5 flex justify-center rounded-m bg-premium">
                             <span className="font-nerdfont text-base mr-1"></span>
                             Lifetime Premium
@@ -83,7 +127,7 @@ export default function Navbar() {
                                 <div className="text-xs">Thanks for registering early</div>
                             </div>
                         </div>
-                    </Link>
+                    </Link>*/}
 
                     <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
                         data-tip="Create" onClick={()=>document.getElementById("create-asset").showModal()}>
@@ -107,7 +151,7 @@ export default function Navbar() {
                         <button className="avatar cursor-pointer" popoverTarget="account-dropdown" 
                         style={{ anchorName: "--account-anchor" }}>
                             <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
-                                <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+                                <img src="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/mp4vq9qxv51.png" />
                             </div>
                         </button>
                         <div className="tooltip-content text-left">
@@ -117,6 +161,7 @@ export default function Navbar() {
                     </div>
                 </div>
 
+                { /* Maybe this can be a menu-hoz like for links */}
                 <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" 
                     popover="auto" id="account-dropdown" style={{ positionAnchor: "--account-anchor" }}>
                     <li>
@@ -145,13 +190,12 @@ export default function Navbar() {
                         <div tabIndex={0} role="button" className="cursor-pointer ml-2">
                             <span className="font-nerdfont text-2xl">󰍜</span>
                         </div>
-                        <ul tabIndex={-1} className="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                        <ul tabIndex={-1} className="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow p-4 flex flex-col gap-3 w-50">
                             <Link className="link-hover" to="/">Home</Link>
                             <Link className="link-hover" to="/search">Search</Link>
-                            <br></br>
+                            <hr></hr>
                             <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
                             <Link className="link-hover" to="/account/library">My library</Link>
-                            <br></br>
                             <Link className="link-hover" to="/account/partners">Partner Stats</Link>
                         </ul>
                     </div>
@@ -219,38 +263,29 @@ export default function Navbar() {
                                 
                             </div>
                             <div className="text-left w-full">
-                                <div className="text-lg font-bold">Almanac (coming soon)</div>
-                                <div className="text-sm">Collection of various universes and profiles</div>
+                                <div className="text-lg font-bold">Collection (coming soon)</div>
+                                <div className="text-sm">Personal list of various characters</div>
                             </div>
                         </div>
 
                         <div className="btn btn-disabled py-10 bg-accent text-white gap-6 items-center">
                             <div className="ml-1 w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
-                                
+                                
                             </div>
                             <div className="text-left w-full">
-                                <div className="text-lg font-bold">Multiverse (coming soon)</div>
-                                <div className="text-sm">Collection and identity of your universes</div>
+                                <div className="text-lg font-bold">Project (coming soon)</div>
+                                <div className="text-sm">Official list and identity of characters</div>
                             </div>
                         </div>
 
-                        <div className="btn btn-disabled py-10 bg-accent text-white gap-6 items-center">
-                            <div className="ml-1 w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
-                                
-                            </div>
-                            <div className="text-left w-full">
-                                <div className="text-lg font-bold">Universe (coming soon)</div>
-                                <div className="text-sm">Collection and identity of your profiles</div>
-                            </div>
-                        </div>
 
                         <div className="btn py-10 bg-accent text-white gap-6 items-center">
                             <div className="ml-1 w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 󰈙
                             </div>
                             <div className="text-left w-full">
-                                <div className="text-lg font-bold">Profile</div>
-                                <div className="text-sm">Individual character profile identity</div>
+                                <div className="text-lg font-bold">Character</div>
+                                <div className="text-sm">Individual character identity</div>
                             </div>
                         </div>
                     </div>     
