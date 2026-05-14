@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { Metadata } from "../../_common/components/Metadata.js";
+import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 
@@ -55,7 +55,7 @@ export default function Partners() {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-5 items-end justify-center h-full m-4 md:m-16">
+                <div className="flex flex-col gap-5 items-end justify-center h-full m-4 md:m-14">
                     <div className="font-bold text-lg w-full text-center mt-8 md:mt-0">Registrations</div>
                     <div className="bg-alt overflow-x-auto w-full h-132 md:w-148 rounded-lg border border-alt">
                         <table className="table rounded-none">
