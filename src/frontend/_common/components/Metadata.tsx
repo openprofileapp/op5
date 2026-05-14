@@ -14,14 +14,14 @@ type Metadata = {
     allowIndex?: string
 }
 
-export const Metadata = ({ 
+export default function Metadata({ 
     title, 
     description, 
     keywords, 
     image,
     author,
     allowIndex = "true"
-}: Metadata ) => {
+}: Metadata ) {
     const location = useLocation();
     const { t, ready } = useTranslation();
     const url = new URL(window.location.origin + location.pathname);
