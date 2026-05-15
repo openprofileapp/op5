@@ -82,7 +82,7 @@ export default function Navbar() {
                                         Browse
                                     </summary>
 
-                                    <ul className="bg-base-100 rounded-lg bg-alt border border-alt p-4 flex flex-col gap-3 w-50">
+                                    <ul className="bg-base-100 rounded-lg bg-alt border border-alt p-4 flex flex-col gap-4 w-50">
                                         <Link className="link-hover" to="/browse/action">Action</Link>
                                         <Link className="link-hover" to="/browse/adventure">Adventure</Link>
                                         <Link className="link-hover" to="/browse/comedy">Comedy</Link>
