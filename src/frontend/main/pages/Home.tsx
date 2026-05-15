@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
+import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 
 export default function Home() {
     const { t, ready } = useTranslation();
@@ -69,47 +70,17 @@ export default function Home() {
             <div className="px-4 md:px-14">
                 <div className="text-lg pb-5">Popular Characters</div>
                 
-                <div className="flex gap-4 overflow-x-auto">
-                    <div className="card-tall">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
-                    <div className="card-tall skeleton">
-                        <img className="absolute top-1/2 left-1/2 w-25 object-cover opacity-8 -translate-x-1/2 -translate-y-1/2"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.logo}`}
-                        />
-                    </div>
+                <div className="flex gap-4 overflow-x-auto mb-8">
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
+                    <SkeletonCharacterCard />
                 </div>
             </div>
 
