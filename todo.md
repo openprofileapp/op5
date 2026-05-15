@@ -9,6 +9,21 @@ make the icon a circle or rounded rectangle
 add unlisted profile options
 instead of update tabs for all profiles, only those you liked will show a dot
 instead of verification per profile, it will be project based
+when hovering mentions, display an overview
+on profile click display popup, not visit url; copy html for url visit
+fix mention aura sharp snapback after 70 seconds
+
+MAKE AN INITIALS AVATAR GENERATION SCRIPT ON ASSET CREATION (LIKE GMAIL)
+const words = name.trim().split(" ");
+
+const initials =
+    words.length === 1
+        ? words[0].slice(0, 2).toUpperCase()
+        : words
+                .map(word => word[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
 
 [blacklisted urls]
 premium
