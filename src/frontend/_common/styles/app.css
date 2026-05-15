@@ -39,6 +39,7 @@ body {
 hr {
     border-top: 1px solid #222222;
     border-radius: 2px;
+    margin: 8px 0px;
 }
 
 .skeleton {
@@ -182,7 +183,60 @@ hr {
     background-size: 100%;
     animation: auraDance 6s linear infinite;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.08;
+}
+
+.mention {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background-color: var(--color-base-200);
+    padding: 0px 12px;
+    gap: 8px;
+    height: 26px;
+    width: fit-content;
+}
+
+.mention::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(
+        ellipse,
+        var(--aura-mention-start) 0%,
+        var(--color-base-100) 50%,
+        var(--aura-mention-end) 100%
+    );
+    background-size: 100%;
+    animation: auraDance 70s linear infinite;
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+
+.mention::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        ellipse,
+        var(--aura-mention-start) 0%,
+        var(--color-base-100) 50%,
+        var(--aura-mention-end) 100%
+    );
+    background-size: 100%;
+    animation: auraDance 70s linear infinite;
+    pointer-events: none;
+    opacity: 0.08;
 }
 
 @keyframes auraDance {
