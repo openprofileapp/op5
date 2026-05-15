@@ -91,6 +91,10 @@ export default function Premium() {
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
+                                    <span>Profiles become more visible in the algorithm</span>
+                                </li>
+                                <li>
+                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
                                     <span>Promote profiles and universes</span>
                                 </li>
                             </ul>
