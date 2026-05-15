@@ -56,7 +56,7 @@
     "http-proxy": "^1.18.1",
     "i18next": "^26.0.8",
     "i18next-http-backend": "^3.0.6",
-    "kage-library": "^1.0.15",
+    "kage-library": "^1.0.16",
     "luxon": "^3.7.2",
     "node-cron": "^4.2.1",
     "path": "^0.12.7",
