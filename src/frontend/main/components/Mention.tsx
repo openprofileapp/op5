@@ -4,8 +4,10 @@ import { useTranslation } from "react-i18next";
 type Asset = {
     id: string;
     aura?: {
-        start: string;
-        end: string;
+        isEnabled: boolean;
+        type?: string;
+        primary?: string;
+        secondary?: string;
     };
     avatar?: string;
     name?: string;
@@ -25,17 +27,23 @@ export default function Mention({
 
     if (!ready) return null;
 
-    const auraStyle = aura
-        ? {
-              ["--aura-mention-start" as string]:
-                  aura.start || "var(--color-accent)",
+    const auraStyle = aura?.isEnabled
+        ? 
+            {
+                ["--aura-mention-type" as string]:
+                    aura?.type || "flow",
 
-              ["--aura-mention-end" as string]:
-                  aura.end || "var(--color-accent)",
-          }
-        : {
-              border: "1px solid #222222",
-          };
+                ["--aura-mention-primary" as string]:
+                    aura.primary || "var(--color-accent)",
+
+                ["--aura-mention-secondary" as string]:
+                    aura.secondary || "var(--color-accent)",
+            }
+        : 
+            {
+                border: "1px solid #222222",
+            }
+        ;
 
     {/* Url for images are only cdn slugs, not the domain. Fix code below */}
 
