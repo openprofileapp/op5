@@ -173,6 +173,7 @@ export default function Navbar() {
                             <span className="badge badge-accent">New</span>
                         </a>
                     </li>
+                    <li><a>Become an Author</a></li>
                     <li><a>Logout</a></li>
                 </ul>
             </div>
