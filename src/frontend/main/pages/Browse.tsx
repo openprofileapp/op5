@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Metadata from "../../_common/components/Metadata.js";
@@ -5,9 +6,32 @@ import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import ProjectCard from "../components/ProjectCard.js";
+
+// DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
 export default function SearchProfiles() {
     const { t, ready } = useTranslation();
+
+    const [profiles, setProfiles] = useState<unknown[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfiles = async () => {
+            try {
+                const res = await fetch(`https://${window.config.domains.api}/v1/profiles?visibility=public`);
+                const data = await res.json();
+
+                setProfiles(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfiles();
+    }, []);
 
     if (!ready) return null;
     
@@ -28,63 +52,101 @@ export default function SearchProfiles() {
 
                 <div className="flex flex-wrap gap-4">
 
-                    {/*<CharacterCard
-                        id="6587823496323314"
-                        aura={{ start: "#e03c17", end: "#e03c17" }}
-                        avatar="https://cdn.openprofile.app/uploads/profiles/6587823496323314/6587823496323314.png"
-                        name="Mable Jackson"
-                        slug="eclipse"
-                        owner={{ aura: { start: "#76d1ff", end: "#76d1ff" }, id: "5019646586243236", slug: "dragonights", avatar: "https://cdn.dragonights.com/r/dragonights_logo_512_png.png", name: "Dragonights", verified: true }}
-                        overview="Mable Jackson, also known as Eclipse, is an American martial arts and hacking prodigy, associate nurse, and scientist specializing in dragonite research."
-                        interactions={{ views: { count: 275, interacted: true }, likes: { count: 2, interacted: true } }}
-                        notification={{ isActive: false, time: "5 minutes ago"}}
-                    />
+                    {loading && (
+                        <>
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                        </>
+                    )}
 
-                    <CharacterCard
-                        id="6690301862165288"
-                        aura={{ start: "#76d1ff", end: "#76d1ff" }}
-                        avatar="https://cdn.openprofile.app/uploads/profiles/6690301862165288/nBbkedwiGNmsTZIvD470x3TYsw67AbIO.png"
-                        name="AvatarKage"
-                        slug="avatarkage"
-                        owner={{ aura: { start: "#76d1ff", end: "#76d1ff" }, id: "5019646586243236", slug: "dragonights", avatar: "https://cdn.dragonights.com/r/dragonights_logo_512_png.png", name: "Dragonights", verified: true }}
-                        overview="AvatarKage, also known as Blue Knight, is an American digital jack-of-all-trades who specializes in community leadership, brand management, and AI development."
-                        interactions={{ views: { count: 200, interacted: true }, likes: { count: 2, interacted: true } }}
-                    />*/}
+                    {!loading && (
+                        <>
+                            <ProjectCard
+                                id="1655391085225720"
+                                aura={{ isEnabled: true, type: "flow", primary: "#76d1ff", secondary: "#76d1ff" }}
+                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
+                                name="Dragonights"
+                                slug="dragonights"
+                                owner={{ id: "5019646586243236", username: "j9studios", name: "J9 Studios", isVerified: true, type: "publisher" }}
+                                status="Follow to keep up with the J9 universe."
+                                about="Dragonights is an upcoming 3D-animated sci-fi action TV series set in the J9 Universe. Rated TV-14 for fantasy violence."
+                                interactions={{ views: { count: 481, interacted: true }, follows: { count: 6, interacted: true }, profiles: { count: 52, interacted: true } }}
+                            />
 
-                    <CharacterCard
-                        id="1655391085225720"
-                        aura={{ start: "#00a700", end: "#00a700" }}
-                        avatar="https://cdn.openprofile.app/uploads/profiles/1655391085225720/kPfDPqJDCQKsxdFiNxnzkMGdD3ctFzzi.png"
-                        name="Julia Anderson"
-                        slug="ash"
-                        owner={{ aura: { start: "#76d1ff", end: "#76d1ff" }, id: "5019646586243236", slug: "dragonights", avatar: "https://cdn.dragonights.com/r/dragonights_logo_512_png.png", name: "Dragonights", verified: true }}
-                        overview="Julia Anderson, also known as Ash, is an American alternative goth patrol officer who specializes in a variety of weapons and deadly martial arts."
-                        interactions={{ views: { count: 261, interacted: true }, likes: { count: 2, interacted: false } }}
-                    />
+                            <ProjectCard
+                                id="1655391085225720"
+                                aura={{ isEnabled: true, type: "flow", primary: "#7b22fd", secondary: "#e6d044" }}
+                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/pq_bookert@2xww.jpg"
+                                name="Portal Quest"
+                                slug="portalquest"
+                                owner={{ id: "5019646586243236", username: "1052", name: "1052 Productions", isVerified: true, type: "publisher" }}
+                                status="One of the oldest Minecraft animated films"
+                                about="Ermythia, a beautiful world where alien relics hold incredible powers and where legendary heroes once known as the Overseers protected the land from rising dangers alongside the Ender Knights. However, this is a different era, an era where wicked forces have stolen the relics from the tombs of the fallen heroes and are now threatening the remaining peace."
+                                interactions={{ views: { count: 124, interacted: true }, follows: { count: 4, interacted: false }, profiles: { count: 12, interacted: false } }}
+                            />
 
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
-                    <SkeletonCharacterCard />
+                            <ProjectCard
+                                id="1655391085225720"
+                                aura={{ isEnabled: true, type: "flow", primary: "#4c6369", secondary: "#151b2f" }}
+                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/card_preview.png"
+                                name="Urban Legends"
+                                slug="legends-of-urban"
+                                owner={{ id: "5019646586243236", username: "avatarkage", name: "AvatarKage", isVerified: true, type: "author" }}
+                                status="On hold since 2023"
+                                about="A work-in-progress video game revolving the world of martial arts."
+                                interactions={{ views: { count: 16, interacted: true }, follows: { count: 1, interacted: false }, profiles: { count: 1, interacted: true } }}
+                            />
+                        </>
+                    )}
+
+                    {!loading && profiles.map((p) => (
+                        <CharacterCard
+                            id={p.id}
+                            aura={{
+                                isEnabled: p.isAuraEnabled,
+                                type: p.auraType,
+                                primary: p.auraPrimary,
+                                secondary: p.auraSecondary
+                            }}
+                            avatar={`https://cdn.openprofile.app${p.avatar}`}
+                            name={p.displayName}
+                            slug={p.slug}
+                            owner={{
+                                id: p.owner.id,
+                                slug: p.owner.username,
+                                name: p.owner.displayName,
+                                isVerified: p.owner?.badges?.some(b => b.type === "verified"),
+                                type: p.owner.type
+                            }}
+                            about={p.about}
+                            interactions={{
+                                views: {
+                                    count: 0,
+                                    interacted: true
+                                },
+                                likes: {
+                                    count: 0,
+                                    interacted: false
+                                }
+                            }}
+                        />
+                    ))}
                 </div>
 
                 <div className="flex items-center justify-center mt-8 mb-6">
