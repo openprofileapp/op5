@@ -11,6 +11,7 @@
 :root {
     --color-precursor: #8515cf;
     --color-premium: #efbe0b;
+    --color-publisher: #aaaaaa;
 }
 
 * {
@@ -113,6 +114,10 @@ hr {
     color: var(--color-premium);
 }
 
+.text-publisher {
+    color: var(--color-publisher);
+}
+
 .dock-active::after {
     display: none;
 }
@@ -137,7 +142,7 @@ hr {
     color: #080808
 }
 
-.card-tall {
+.character-card {
     position: relative;
     height: 400px;
     width: 221px;
@@ -147,7 +152,7 @@ hr {
     background-color: var(--color-base-100);
 }
 
-.card-tall::before {
+.character-card::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -155,12 +160,12 @@ hr {
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-start) 0%,
+        var(--aura-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-end) 100%
+        var(--aura-primary) 100%
     );
     background-size: 100%;
-    animation: auraDance 8s linear infinite;
+    animation: var(--aura-type) 8s linear infinite;
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
@@ -169,19 +174,68 @@ hr {
     pointer-events: none;
 }
 
-.card-tall::after {
+.character-card::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-start) 0%,
+        var(--aura-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-end) 100%
+        var(--aura-primary) 100%
     );
     background-size: 100%;
-    animation: auraDance 6s linear infinite;
+    animation: var(--aura-type) 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.08;
+}
+
+.project-card {
+    position: relative;
+    height: 400px;
+    width: 458px;
+    flex-shrink: 0;
+    border-radius: var(--radius-box);
+    border: 1px solid var(--color-base-200);
+    background-color: var(--color-base-100);
+}
+
+.project-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(
+        ellipse,
+        var(--aura-secondary) 0%,
+        var(--color-base-100) 50%,
+        var(--aura-primary) 100%
+    );
+    background-size: 100%;
+    animation: var(--aura-type) 8s linear infinite;
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+
+.project-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        ellipse,
+        var(--aura-secondary) 0%,
+        var(--color-base-100) 50%,
+        var(--aura-primary) 100%
+    );
+    background-size: 100%;
+    animation: var(--aura-type) 8s linear infinite;
     pointer-events: none;
     opacity: 0.08;
 }
@@ -208,12 +262,12 @@ hr {
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-mention-start) 0%,
+        var(--aura-mention-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-mention-end) 100%
+        var(--aura-mention-primary) 100%
     );
     background-size: 100%;
-    animation: auraDance 70s linear infinite;
+    animation: var(--aura-mention-type) 70s linear infinite;
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
@@ -229,17 +283,17 @@ hr {
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-mention-start) 0%,
+        var(--aura-mention-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-mention-end) 100%
+        var(--aura-mention-primary) 100%
     );
     background-size: 100%;
-    animation: auraDance 70s linear infinite;
+    animation: var(--aura-mention-type) 70s linear infinite;
     pointer-events: none;
     opacity: 0.08;
 }
 
-@keyframes auraDance {
+@keyframes aura-flow-character {
     0% {
         background-position: 0px 0px;
     }
@@ -248,15 +302,47 @@ hr {
     }
 }
 
-.card-tall.skeleton {
+@keyframes aura-flow-project {
+    0% {
+        background-position: 0px 0px;
+    }
+    100% {
+        background-position: 458px 400px;
+    }
+}
+
+@keyframes pulse {
+    0% {
+    }
+    100% {
+        background-position: 0px -1200px;
+    }
+}
+
+@keyframes stable {
+    0%, 100% {
+        background-position: 100px 0px;
+    }
+    0% {
+        background-size: 100%;
+    }
+    50% {
+        background-size: 80%;
+    }
+    0% {
+        background-size: 100%;
+    }
+}
+
+.character-card.skeleton {
     background-color: #0c0c0c;
     border: 1px solid #0c0c0c;
 }
 
-.card-tall.skeleton::before {
+.character-card.skeleton::before {
     display: none;
 }
 
-.card-tall.skeleton::after {
+.character-card.skeleton::after {
     display: none;
 }
