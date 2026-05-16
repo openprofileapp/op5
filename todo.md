@@ -12,6 +12,20 @@ instead of verification per profile, it will be project based
 when hovering mentions, display an overview
 on profile click display popup, not visit url; copy html for url visit
 fix mention aura sharp snapback after 70 seconds
+add trash access to the dashboard
+when the account type is user, do not display dashboard of other author tools
+only show copy id if developer; developer get tools from both author and publisher
+force a popup on registration so person can customize their profile; during customization, profile is set to private until user finishes editing
+add a database of collected fanflaires
+ability to feature characters
+under manage dropdown, when managing badges, say if its hidden by user
+
+-- seperate promoted with a expiraion
+-- separate score
+
+-- score INTEGER DEFAULT 0,
+-- promoted INTEGER DEFAULT 0,
+
 
 MAKE AN INITIALS AVATAR GENERATION SCRIPT ON ASSET CREATION (LIKE GMAIL)
 const words = name.trim().split(" ");
