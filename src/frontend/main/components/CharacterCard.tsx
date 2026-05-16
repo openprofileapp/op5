@@ -5,24 +5,22 @@ import { formatNumber } from "kage-library/client"
 type Character = {
     id: string;
     aura?: {
-        start: string;
-        end: string;
+        isEnabled: boolean;
+        type?: string;
+        primary?: string;
+        secondary?: string;
     };
     avatar?: string;
     name?: string;
     slug?: string;
     owner: {
         id: string;
-        aura?: {
-            start: string;
-            end: string;
-        };
-        avatar?: string;
         name?: string;
         slug?: string;
-        verified?: boolean;
+        isVerified?: boolean;
+        type: string;
     };
-    overview?: string;
+    about?: string;
     interactions?: {
         views?: {
             count?: number,
@@ -48,7 +46,7 @@ export default function CharacterCard({
     name,
     slug,
     owner,
-    overview,
+    about,
     interactions,
     notification
 }: Character) {
@@ -58,17 +56,24 @@ export default function CharacterCard({
 
     index++
 
-    const auraStyle = aura
-        ? {
-              ["--aura-start" as string]:
-                  aura.start || "var(--color-accent)",
+    const auraStyle = aura?.isEnabled
+        ? 
+            {
+                ["--aura-type" as string]:
+                    // eslint-disable-next-line no-constant-binary-expression
+                    `aura-${aura?.type}-character` || "aura-flow-character",
 
-              ["--aura-end" as string]:
-                  aura.end || "var(--color-accent)",
-          }
-        : {
-              border: "1px solid #222222",
-          };
+                ["--aura-primary" as string]:
+                    aura.primary || "var(--color-accent)",
+
+                ["--aura-secondary" as string]:
+                    aura.secondary || "var(--color-accent)",
+            }
+        : 
+            {
+                border: "1px solid #222222",
+            }
+        ;
 
     {/* Url for images are only cdn slugs, not the domain. Fix code below */}
 
@@ -82,7 +87,7 @@ export default function CharacterCard({
 
     return (
         <div
-            className={`card-tall relative p-4 shadow-sm cursor-pointer z-${index}`}
+            className={`character-card relative p-4 shadow-sm cursor-pointer z-${index}`}
             style={auraStyle}
         >
             {
@@ -109,7 +114,7 @@ export default function CharacterCard({
             <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm cursor-default" 
                 popover="auto" id={`character-more-dropdown-${index}`} style={{ positionAnchor: `--character-more-anchor-${index}` }}>
                 <li>
-                    <Link className="justify-between text-info" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Edit Profile
                         <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -117,7 +122,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-info" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         View Analytics
                         <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
                             󰺓
@@ -126,7 +131,7 @@ export default function CharacterCard({
                 </li>
                 <hr></hr>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         View
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             󰈈
@@ -134,7 +139,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Read
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -143,7 +148,7 @@ export default function CharacterCard({
                 </li>
                 <hr></hr>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Follow
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -151,7 +156,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Unlike
                         <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -159,7 +164,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Unfavorite
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -167,7 +172,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Add to Collection
                         <span className="font-nerdfont text-base h-6 leading-none translate-y-[4px]">
                             
@@ -176,7 +181,7 @@ export default function CharacterCard({
                 </li>
                 <hr></hr>
                 <li>
-                    <Link className="justify-between text-accent" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Not Interested
                         <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
                             󰈉
@@ -184,7 +189,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Mute
                         <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
                             󰂛
@@ -192,7 +197,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Report
                         <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -201,7 +206,7 @@ export default function CharacterCard({
                 </li>
                 <hr></hr>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Share
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             󰒗
@@ -209,7 +214,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Copy ID
                         <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
                             󰅇
@@ -218,7 +223,7 @@ export default function CharacterCard({
                 </li>
                 <hr></hr>
                 <li>
-                    <Link className="justify-between text-warning" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Moderate
                         <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -226,7 +231,7 @@ export default function CharacterCard({
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-warning" to={`/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Manage
                         <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
                             
@@ -236,7 +241,7 @@ export default function CharacterCard({
             </ul>
 
             <img
-                className="absolute z-1 top-0 left-0 rounded-t-lg w-full object-cover"
+                className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
                 src={avatar}
                 alt="avatar"
                 style={{
@@ -291,11 +296,13 @@ export default function CharacterCard({
                                 {owner?.name || owner.slug || owner.id}
                             </span>
                         </div>
-                        {owner?.verified ?
+                        {owner?.isVerified ?
                             <div className="z-1 relative tooltip font-normal tooltip-top tooltip-accent" 
-                                data-tip="Official">
+                                data-tip={`Verified ${owner?.type === "author" ? "Author" : "Publisher"}`}>
                                 <a href={`https://${window.config.domains.support}/en-us/articles/verification`}>
-                                    <svg className="text-accent" width="18" height="18" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="#ffffff"/></svg>
+                                    <svg className={`text-${owner?.type === "author" ? "accent" : "publisher"}`} width="18" height="18" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" 
+                                        fill={owner?.type === "author" ? "#ffffff" : "#00000099"}/>
+                                    </svg>
                                 </a> 
                             </div>
 
@@ -304,7 +311,7 @@ export default function CharacterCard({
                     </div>
                 </div>
 
-                <div className="text-xs line-clamp-6 my-2">{overview || "This character does not have an overview."}</div>            
+                <div className="text-xs line-clamp-6 my-2">{about || "This character does not have an about."}</div>            
             </div>
 
             <div className="flex flex-row gap-8 justify-center w-full">
