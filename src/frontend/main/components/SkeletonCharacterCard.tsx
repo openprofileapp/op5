@@ -1,6 +1,6 @@
 export default function SkeletonCharacterCard() {
     return (
-        <div className="card-tall flex w-52 flex-col gap-4"
+        <div className="character-card flex w-52 flex-col gap-4"
             style={{ backgroundColor: "#00000000" }}    
         >
             <div className="skeleton h-55 w-full"></div>
