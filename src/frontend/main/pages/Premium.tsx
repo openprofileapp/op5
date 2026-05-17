@@ -32,12 +32,12 @@ export default function Premium() {
                             </div>
                             <ul className="mt-6 flex flex-col gap-2 text-xs">
                                 <li>
-                                    <span className="inline-block w-3 text-center font-nerdfont text-premium mr-2"></span>
-                                    <span>Up to 5 universes</span>
+                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
+                                    <span>Unlimited projects</span>
                                 </li>
                                 <li>
-                                    <span className="inline-block w-3 text-center font-nerdfont text-premium mr-2"></span>
-                                    <span>Up to 100 profiles</span>
+                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
+                                    <span>Unlimited profiles</span>
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
@@ -63,23 +63,11 @@ export default function Premium() {
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
-                                    <span>Unlimited universes</span>
-                                </li>
-                                <li>
-                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
-                                    <span>Unlimited profiles</span>
-                                </li>
-                                <li>
-                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
-                                    <span>Unlimited collaborators</span>
-                                </li>
-                                <li>
-                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
                                     <span>Custom themes</span>
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
-                                    <span>Custom urls</span>
+                                    <span>User, project, and profile auras</span>
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
@@ -95,7 +83,11 @@ export default function Premium() {
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
-                                    <span>Promote profiles and universes</span>
+                                    <span>Promote profiles and projects</span>
+                                </li>
+                                <li>
+                                    <span className="inline-block w-3 text-center font-nerdfont text-success mr-2"></span>
+                                    <span>Animated avatars on profiles</span>
                                 </li>
                             </ul>
                             <div className="mt-6">
