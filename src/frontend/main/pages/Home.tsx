@@ -4,6 +4,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import CharacterCard from "../components/CharacterCard.js";
 
 export default function Home() {
     const { t, ready } = useTranslation();
@@ -71,7 +72,28 @@ export default function Home() {
                 <div className="text-lg pb-5">Popular Characters</div>
                 
                 <div className="flex gap-4 overflow-x-auto mb-8">
-                    <SkeletonCharacterCard />
+                    <CharacterCard
+                        id="0"
+                        avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
+                        animatedAvatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/ezgif-3bddc376754c9ed9.gif`}
+                        name="AvatarKage"
+                        owner={{
+                            id: "0",
+                            name: "?",
+                            type: "user" // p.owner.type
+                        }}
+                        about="Testing how good GIFs would work."
+                        interactions={{
+                            views: {
+                                count: 0,
+                                interacted: true
+                            },
+                            likes: {
+                                count: 0,
+                                interacted: false
+                            }
+                        }}
+                    />
                     <SkeletonCharacterCard />
                     <SkeletonCharacterCard />
                     <SkeletonCharacterCard />
