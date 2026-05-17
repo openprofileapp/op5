@@ -54,6 +54,31 @@ export default function SearchProfiles() {
 
                     {loading && (
                         <>
+                            {/* Display max per page; 30? or 50 smth */}
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
+                            <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
@@ -86,7 +111,7 @@ export default function SearchProfiles() {
                                 owner={{ id: "5019646586243236", username: "j9studios", name: "J9 Studios", isVerified: true, type: "publisher" }}
                                 status="Follow to keep up with the J9 universe."
                                 about="Dragonights is an upcoming 3D-animated sci-fi action TV series set in the J9 Universe. Rated TV-14 for fantasy violence."
-                                interactions={{ views: { count: 481, interacted: true }, follows: { count: 6, interacted: true }, profiles: { count: 52, interacted: true } }}
+                                interactions={{ views: { count: 481, interacted: true }, follows: { count: 6, interacted: true }, profiles: { count: 52, interacted: true }, fanflairs: { count: 5 } }}
                             />
 
                             <ProjectCard
@@ -94,8 +119,8 @@ export default function SearchProfiles() {
                                 aura={{ isEnabled: true, type: "flow", primary: "#7b22fd", secondary: "#e6d044" }}
                                 banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/pq_bookert@2xww.jpg"
                                 name="Portal Quest"
-                                slug="portalquest"
-                                owner={{ id: "5019646586243236", username: "1052", name: "1052 Productions", isVerified: true, type: "publisher" }}
+                                slug="portalquestproject.com"
+                                owner={{ id: "5019646586243236", username: "1052", name: "1052 Productions", isVerified: false, type: "publisher" }}
                                 status="One of the oldest Minecraft animated films"
                                 about="Ermythia, a beautiful world where alien relics hold incredible powers and where legendary heroes once known as the Overseers protected the land from rising dangers alongside the Ender Knights. However, this is a different era, an era where wicked forces have stolen the relics from the tombs of the fallen heroes and are now threatening the remaining peace."
                                 interactions={{ views: { count: 124, interacted: true }, follows: { count: 4, interacted: false }, profiles: { count: 12, interacted: false } }}
@@ -132,7 +157,7 @@ export default function SearchProfiles() {
                                 slug: p.owner.username,
                                 name: p.owner.displayName,
                                 isVerified: p.owner?.badges?.some(b => b.type === "verified"),
-                                type: p.owner.type
+                                type: "user" // p.owner.type
                             }}
                             about={p.about}
                             interactions={{
