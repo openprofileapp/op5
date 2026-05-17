@@ -13,6 +13,8 @@ export default function getPublishedProfiles(visibility: string = "public") {
     const profiles = result.rows.map((d) => {
         const owner = getPublicUserById(d.owner);
 
+        // Check for project too
+
         return {
             ...d,
 
@@ -22,7 +24,7 @@ export default function getPublishedProfiles(visibility: string = "public") {
                     username: owner.username,
                     displayName: owner.displayName,
                     badges: owner.badges,
-                type: owner.type
+                    type: owner.type
                 }
                 : null
         };

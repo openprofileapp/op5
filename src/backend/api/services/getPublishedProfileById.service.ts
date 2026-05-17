@@ -13,6 +13,8 @@ export default function getPublishedProfileById(id?: string) {
     // CALL THE VISIBILITY FUNCTION TO DETERMINE IF THE USER CAN VIEW DATA
     // visibility: owner.visibility
 
+    // Check for project too
+
     return {
         ...profile,
         owner: owner
