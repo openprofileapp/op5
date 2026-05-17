@@ -19,6 +19,7 @@ force a popup on registration so person can customize their profile; during cust
 add a database of collected fanflaires
 ability to feature characters
 under manage dropdown, when managing badges, say if its hidden by user
+if comments are set to "followers", then only followers can see comments and comment
 
 -- seperate promoted with a expiraion
 -- separate score
