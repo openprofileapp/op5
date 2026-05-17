@@ -16,3 +16,15 @@ completion INTEGER NOT NULL DEFAULT 0
     CHECK (completion BETWEEN 0 AND 100),
 
     -- invited accounts with the read permission will bypass schedule
+
+
+
+
+    sendComments TEXT NOT NULL DEFAULT 'public'
+        CHECK (sendComments IN ('public', 'followers', 'private')), -- This will apply to new and existing profiles, but only when initially set. Profiles edited after will still get comments if enabled there
+
+
+
+        
+
+        UPDADE ALL "CHECK" TO RELY ON TS VALIDATION
