@@ -142,17 +142,21 @@ hr {
     color: #080808
 }
 
-.character-card {
+.mention {
+    display: flex;
     position: relative;
-    height: 400px;
-    width: 221px;
-    flex-shrink: 0;
-    border-radius: var(--radius-box);
-    border: 1px solid var(--color-base-200);
-    background-color: var(--color-base-100);
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background-color: var(--color-base-200);
+    padding: 0px 12px;
+    gap: 8px;
+    height: 26px;
+    width: fit-content;
 }
 
-.character-card::before {
+.mention::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -160,12 +164,12 @@ hr {
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-secondary) 0%,
+        var(--aura-mention-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-primary) 100%
+        var(--aura-mention-primary) 100%
     );
     background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
+    animation: var(--aura-mention-type) 8s linear infinite;
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
@@ -174,19 +178,19 @@ hr {
     pointer-events: none;
 }
 
-.character-card::after {
+.mention::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-secondary) 0%,
+        var(--aura-mention-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-primary) 100%
+        var(--aura-mention-primary) 100%
     );
     background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
+    animation: var(--aura-mention-type) 8s linear infinite;
     pointer-events: none;
     opacity: 0.08;
 }
@@ -240,21 +244,17 @@ hr {
     opacity: 0.08;
 }
 
-.mention {
-    display: flex;
+.character-card {
     position: relative;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    border: 1px solid transparent;
-    background-color: var(--color-base-200);
-    padding: 0px 12px;
-    gap: 8px;
-    height: 26px;
-    width: fit-content;
+    height: 400px;
+    width: 221px;
+    flex-shrink: 0;
+    border-radius: var(--radius-box);
+    border: 1px solid var(--color-base-200);
+    background-color: var(--color-base-100);
 }
 
-.mention::before {
+.character-card::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -262,12 +262,12 @@ hr {
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-mention-secondary) 0%,
+        var(--aura-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-mention-primary) 100%
+        var(--aura-primary) 100%
     );
     background-size: 100%;
-    animation: var(--aura-mention-type) 70s linear infinite;
+    animation: var(--aura-type) 8s linear infinite;
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
@@ -276,29 +276,29 @@ hr {
     pointer-events: none;
 }
 
-.mention::after {
+.character-card::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     background: radial-gradient(
         ellipse,
-        var(--aura-mention-secondary) 0%,
+        var(--aura-secondary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-mention-primary) 100%
+        var(--aura-primary) 100%
     );
     background-size: 100%;
-    animation: var(--aura-mention-type) 70s linear infinite;
+    animation: var(--aura-type) 8s linear infinite;
     pointer-events: none;
     opacity: 0.08;
 }
 
-@keyframes aura-flow-character {
+@keyframes aura-flow-mention {
     0% {
         background-position: 0px 0px;
     }
     100% {
-        background-position: 221px 400px;
+        background-position: 221px 26px;
     }
 }
 
@@ -308,6 +308,15 @@ hr {
     }
     100% {
         background-position: 458px 400px;
+    }
+}
+
+@keyframes aura-flow-character {
+    0% {
+        background-position: 0px 0px;
+    }
+    100% {
+        background-position: 221px 400px;
     }
 }
 
