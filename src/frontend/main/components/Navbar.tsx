@@ -1,9 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import ProjectCard from "./ProjectCard.js";
 
 export default function Navbar() {
     const config = window.config;
+
+    const [avatar, setAvatar] = useState(null);
+    const [banner, setBanner] = useState(null);
 
     const { t, ready } = useTranslation();
 
@@ -269,18 +273,28 @@ export default function Navbar() {
                             </div>
                         </div>
 
-                        <div className="btn btn-disabled py-10 bg-accent text-white gap-6 items-center">
+                        <div className="btn py-10 bg-accent text-white gap-6 items-center"
+                            onClick={() => {
+                                document.getElementById("create-asset")?.close();
+                                document.getElementById("create-project")?.showModal();
+                            }}
+                        >
                             <div className="ml-1 w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 
                             </div>
                             <div className="text-left w-full">
-                                <div className="text-lg font-bold">Project (coming soon)</div>
+                                <div className="text-lg font-bold">Project</div>
                                 <div className="text-sm">Official list and identity of characters</div>
                             </div>
                         </div>
 
 
-                        <div className="btn py-10 bg-accent text-white gap-6 items-center">
+                        <div className="btn btn-disabled py-10 bg-accent text-white gap-6 items-center"
+                            onClick={() => {
+                                // document.getElementById("create-asset")?.close();
+                                // document.getElementById("create-project")?.showModal();
+                            }}
+                        >
                             <div className="ml-1 w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 󰈙
                             </div>
@@ -294,6 +308,167 @@ export default function Navbar() {
                 <form method="dialog" className="modal-backdrop">
                     <button>close</button>
                 </form>
+            </dialog>
+
+            {/* create should only have avatar, banner, name, slug, and about; no tabs */}
+
+            {/* Move this out of this file as component */}
+            <dialog id="create-project" className="modal">
+                <div className="modal-box max-w-5xl">
+                    <form method="dialog">
+                        <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"
+                            onClick={() => {
+                                document.getElementById("create-project")?.close();
+                            }}>
+                        </button>
+                    </form>
+                    <h3 className="font-bold text-2xl text-center">Create New Project</h3>
+                    <p className="pt-2 pb-6 text-sm text-center opacity-60">You can edit everything again later</p>
+
+                    <div className="flex flex-row gap-6">
+                        <div className="tabs tabs-lift">
+                            <input type="radio" name="create-project-tabs" className="tab bg-base-200" aria-label="General" defaultChecked/>
+                                <div className="tab-content border-t-base-300 rounded-none overflow-x-hidden overflow-y-auto h-108">
+                                    <fieldset className="fieldset w-full">
+                                    <div className="flex gap-2">
+                                        <div className="w-32">
+                                            <label className="label mt-1 mb-1">Avatar</label>
+                                            <label className="cursor-pointer border-2 border-base-300 border-dashed rounded-box flex items-center justify-center overflow-hidden h-32 w-32">
+                                                {avatar ? (
+                                                    <img
+                                                        src={URL.createObjectURL(avatar)}
+                                                        alt="Avatar Preview"
+                                                        className="h-full w-full object-cover rounded-box"
+                                                    />
+                                                ) : (
+                                                    <span className="opacity-60">
+                                                        + {/* nerdfont circle plus icon */}
+                                                    </span>
+                                                )}
+
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        setAvatar(e.target.files[0]);
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <div className="w-full">
+                                            <label className="label mt-1 mb-1">Banner</label>
+                                            <label className="cursor-pointer border-2 border-base-300 border-dashed rounded-box flex items-center justify-center overflow-hidden h-32">
+                                                {banner ? (
+                                                    <img
+                                                        src={URL.createObjectURL(banner)}
+                                                        alt="Banner Preview"
+                                                        className="h-full w-full object-cover rounded-box"
+                                                    />
+                                                ) : (
+                                                    <span className="opacity-60">
+                                                        +
+                                                    </span>
+                                                )}
+
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        setBanner(e.target.files[0]);
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <label className="label mt-1">Name</label>
+                                    <input type="text" className="input w-full" placeholder="What is your project's name?" />
+
+                                    <label className="label mt-1">Slug</label>
+                                    <div className="relative w-full">
+                                        <span className="z-1 text-sm absolute left-3 top-1/2 -translate-y-1/2 text-base-content/60 pointer-events-none">
+                                            openprofile.app/
+                                        </span>
+
+                                        <input type="text" className="input w-full pl-32" placeholder="project-name"/>
+                                    </div>
+                    
+                                    <label className="label mt-1">About</label>
+                                    <textarea className="textarea h-21 w-full resize-none" placeholder="What is your project about?"></textarea>
+                                </fieldset>
+                            </div>
+
+                            <input type="radio" name="create-project-tabs" className="tab bg-base-200" aria-label="Media" />
+                            <div className="tab-content border-t-base-300 rounded-none overflow-x-hidden overflow-y-auto h-108">
+                                <fieldset className="fieldset w-full">
+                                    <label className="label mt-1">WIP</label>
+                                    <input type="text" className="input w-full" placeholder="WIP" />
+                                </fieldset>
+                            </div>
+
+                            <input type="radio" name="create-project-tabs" className="tab bg-base-200" aria-label="Links" />
+                            <div className="tab-content border-t-base-300 rounded-none overflow-x-hidden overflow-y-auto h-108">
+                                <fieldset className="fieldset w-full">
+                                    <label className="label mt-1">WIP</label>
+                                    <input type="text" className="input w-full" placeholder="WIP" />
+                                </fieldset>
+                            </div>
+
+                            <input type="radio" name="create-project-tabs" className="tab bg-base-200" aria-label="Collaborators" />
+                            <div className="tab-content border-t-base-300 rounded-none overflow-x-hidden overflow-y-auto h-108">
+                                <fieldset className="fieldset w-full">
+                                    <label className="label mt-1">WIP</label>
+                                    <input type="text" className="input w-full" placeholder="WIP" />
+                                </fieldset>
+                            </div>
+
+                            <input type="radio" name="create-project-tabs" className="md:hidden tab bg-base-200" aria-label="Preview" />
+                            <div className="md:hidden tab-content border-t-base-300 rounded-none overflow-x-hidden overflow-y-auto h-108">
+                                <br></br>
+                                {/* disable click to visit on preview */}
+                                <ProjectCard
+                                    id="1655391085225720"
+                                    aura={{ isEnabled: false, type: "flow", primary: "#4c6369", secondary: "#151b2f" }}
+                                    banner=""
+                                    name="I am a title"
+                                    slug="legends-of-urban"
+                                    owner={{ id: "5019646586243236", username: "avatarkage", name: "AvatarKage", isVerified: false }}
+                                    status=""
+                                    about="WIP"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="hidden md:block">
+                            <br></br>
+                            {/* disable click to visit on preview */}
+                            <ProjectCard
+                                id="1655391085225720"
+                                aura={{ isEnabled: false, type: "flow", primary: "#4c6369", secondary: "#151b2f" }}
+                                banner=""
+                                name="I am a title"
+                                slug="legends-of-urban"
+                                owner={{ id: "5019646586243236", username: "avatarkage", name: "AvatarKage", isVerified: false }}
+                                status=""
+                                about="WIP"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 flex-row w-full">
+                        <button className="btn btn-neutral mt-4 flex-1"
+                            onClick={() => {
+                                // Clear all fields on close
+                                document.getElementById("create-project")?.close();
+                            }}>
+                            Close
+                        </button>
+                        <button className="btn btn-accent mt-4 flex-4">Create</button>
+                    </div>
+                </div>
             </dialog>
         </>
     );
