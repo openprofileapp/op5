@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS published (
     slug TEXT,
     displayName TEXT,
     avatar TEXT,
+    animatedAvatar TEXT,
     banner TEXT,
     about TEXT,
     tags TEXT,
@@ -19,6 +20,8 @@ CREATE TABLE IF NOT EXISTS published (
         CHECK (explicit IN (0, 1)),
     visibility TEXT NOT NULL DEFAULT 'public'
         CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private')),
+    sendComments TEXT NOT NULL DEFAULT 'public'
+        CHECK (sendComments IN ('public', 'followers', 'friends', 'private')),
     isScheduled INTEGER NOT NULL DEFAULT 0
         CHECK (isScheduled IN (0, 1)), -- The scheduled conditions are in scheduled.sql
     updatedDate TEXT,

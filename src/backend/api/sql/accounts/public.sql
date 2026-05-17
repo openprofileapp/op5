@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS public (
     birthdate TEXT,
     birthdateVisibility TEXT NOT NULL DEFAULT 'private'
         CHECK (birthdateVisibility IN ('public', 'followers', 'friends', 'private')),
-    founded TEXT,
-    foundedVisibility TEXT NOT NULL DEFAULT 'public'
-        CHECK (foundedVisibility IN ('public', 'followers', 'friends', 'private')),
+    foundedDate TEXT,
+    foundedDateVisibility TEXT NOT NULL DEFAULT 'public'
+        CHECK (foundedDateVisibility IN ('public', 'followers', 'friends', 'private')),
     theme TEXT DEFAULT '4819203746571029',
     isAuraEnabled INTEGER NOT NULL DEFAULT 0
         CHECK (isAuraEnabled IN (0, 1)),
@@ -29,8 +29,10 @@ CREATE TABLE IF NOT EXISTS public (
         CHECK (explicit IN (0, 1)),
     visibility TEXT NOT NULL DEFAULT 'private'
         CHECK (visibility IN ('public', 'followers', 'friends', 'private')),
-    recieveMessages TEXT NOT NULL DEFAULT 'public'
-        CHECK (visibility IN ('public', 'followers', 'friends', 'private')),
+    sendMessages TEXT NOT NULL DEFAULT 'public'
+        CHECK (sendMessages IN ('public', 'followers', 'friends', 'private')),
+    sendComments TEXT NOT NULL DEFAULT 'public'
+        CHECK (sendComments IN ('public', 'followers', 'friends', 'private')),
     lastActive TEXT,
     lastActiveVisibility TEXT NOT NULL DEFAULT 'public'
         CHECK (lastActiveVisibility IN ('public', 'followers', 'friends', 'private')),
