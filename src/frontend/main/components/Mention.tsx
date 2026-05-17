@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 type Asset = {
     id: string;
     aura?: {
-        isEnabled: boolean;
+        isEnabled?: boolean;
         type?: string;
         primary?: string;
         secondary?: string;
@@ -31,7 +31,9 @@ export default function Mention({
         ? 
             {
                 ["--aura-mention-type" as string]:
-                    aura?.type || "flow",
+                    // eslint-disable-next-line no-constant-binary-expression
+                    `aura-${aura?.type}-mention` || "aura-flow-mention",
+
 
                 ["--aura-mention-primary" as string]:
                     aura.primary || "var(--color-accent)",
