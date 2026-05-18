@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
 
-type Character = {
+type Props = {
     id: string;
     aura?: {
         isEnabled: boolean;
@@ -51,7 +51,7 @@ export default function CharacterCard({
     about,
     interactions,
     notification
-}: Character) {
+}: Props) {
     const { ready } = useTranslation();
 
     if (!ready) return null;
@@ -345,7 +345,11 @@ export default function CharacterCard({
 
                         {owner?.isVerified ?
                             <div className="z-1 relative font-normal tooltip tooltip-top tooltip-accent">
-                                <a href={`https://${window.config.domains.support}/en-us/articles/verification`}>
+                                <a href={`https://${window.config.domains.support}/en-us/articles/verification`} target="_blank"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
                                     <svg className="text-accent" width="18" height="18" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" 
                                         fill="#ffffff"/>
                                     </svg>
