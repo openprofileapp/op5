@@ -27,6 +27,10 @@ if comments are set to "followers", then only followers can see comments and com
 -- score INTEGER DEFAULT 0,
 -- promoted INTEGER DEFAULT 0,
 
+make a code 503 page that is blank with 503 in the midde and a live user count?
+
+Store the theme in client session for guest and account for registered
+
 
 MAKE AN INITIALS AVATAR GENERATION SCRIPT ON ASSET CREATION (LIKE GMAIL)
 const words = name.trim().split(" ");
@@ -57,6 +61,7 @@ privacy-policy
 login
 register
 invite
+developers
 
 [RECCOMMENDATIONS]
 /admin
