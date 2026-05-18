@@ -11,7 +11,7 @@ export default function getPublishedProfiles(visibility: string = "public") {
     // visibility: owner.visibility
 
     const profiles = result.rows.map((d) => {
-        const owner = getPublicUserById(d.owner);
+        const owner = getPublicUserById(d.ownerId);
 
         // Check for project too
 

@@ -8,7 +8,7 @@ export default function getPublishedProfileById(id?: string) {
     if (result.rowCount < 1) return { message: "Profile not found" }
 
     const profile = result.rows[0];
-    const owner = getPublicUserById(profile.owner);
+    const owner = getPublicUserById(profile.ownerId);
 
     // CALL THE VISIBILITY FUNCTION TO DETERMINE IF THE USER CAN VIEW DATA
     // visibility: owner.visibility
