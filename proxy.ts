@@ -6,7 +6,8 @@ import cron from "node-cron";
 
 import { 
     Logger,
-    I18nService
+    I18nService,
+    backupService
 } from "kage-library";
 
 import { config } from "./app.config.js";
@@ -154,4 +155,5 @@ Scheduled events
 cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
     log.cleanLogs();
+    backupService(config.folders.data, config.folders.backups);
 });
