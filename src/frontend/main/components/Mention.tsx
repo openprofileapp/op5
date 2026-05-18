@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-type Asset = {
+type Props = {
     id: string;
     aura?: {
         isEnabled?: boolean;
@@ -22,7 +22,7 @@ export default function Mention({
     name,
     slug,
     verified
-}: Asset) {
+}: Props) {
     const { ready } = useTranslation();
 
     if (!ready) return null;
