@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS published (
     id TEXT PRIMARY KEY NOT NULL,
-    owner TEXT NOT NULL, -- User or project
+    ownerId TEXT NOT NULL, -- User or project
     slug TEXT,
     displayName TEXT,
     avatar TEXT,
@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS published (
         CHECK (auraType IN ('flow', 'pulse', 'stable')),
     auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    explicit INTEGER NOT NULL DEFAULT 0
-        CHECK (explicit IN (0, 1)),
+    isExplicit INTEGER NOT NULL DEFAULT 0
+        CHECK (isExplicit IN (0, 1)),
     visibility TEXT NOT NULL DEFAULT 'public'
-        CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private')),
+        CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private', 'hidden')),
     sendComments TEXT NOT NULL DEFAULT 'public'
         CHECK (sendComments IN ('public', 'followers', 'friends', 'private')),
     isScheduled INTEGER NOT NULL DEFAULT 0

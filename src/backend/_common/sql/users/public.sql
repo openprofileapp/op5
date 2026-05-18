@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS public (
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     type TEXT NOT NULL DEFAULT 'user'
         CHECK (type IN ('user', 'author', 'publisher', 'developer')),
-    explicit INTEGER NOT NULL DEFAULT 0
-        CHECK (explicit IN (0, 1)),
+    isExplicit INTEGER NOT NULL DEFAULT 0
+        CHECK (isExplicit IN (0, 1)),
     visibility TEXT NOT NULL DEFAULT 'private'
-        CHECK (visibility IN ('public', 'followers', 'friends', 'private')),
+        CHECK (visibility IN ('public', 'followers', 'friends', 'private', 'hidden')),
     sendMessages TEXT NOT NULL DEFAULT 'public'
         CHECK (sendMessages IN ('public', 'followers', 'friends', 'private')),
     sendComments TEXT NOT NULL DEFAULT 'public'
