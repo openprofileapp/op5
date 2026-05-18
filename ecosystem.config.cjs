@@ -34,6 +34,17 @@ module.exports = {
       }
     },
     {
+      name: "auth",
+      script: "./dist/src/backend/auth/server.js",
+      interpreter: "node",
+      autorestart: true,
+      max_memory_restart: "300M",
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "api",
       script: "./dist/src/backend/api/server.js",
       interpreter: "node",

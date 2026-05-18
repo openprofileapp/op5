@@ -8,7 +8,6 @@ import {
     Logger,
     Snowflake,
     WebClient,
-    backupService
 } from "kage-library";
 
 import { config } from '../../../app.config.js';
@@ -16,8 +15,8 @@ import getEnv from '../../_common/helpers/getEnv.js';
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
 import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
-import userRoutes from './routes/user.routes.js';
-import profileRoutes from './routes/profile.routes.js';
+import userRoute from './routes/user.route.js';
+import profileRoute from './routes/profile.route.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -28,7 +27,7 @@ Connect databases
 export const db = {
     metadata: new Database("data/databases/metadata.sqlite"),
     characters: new Database("data/databases/characters.sqlite"),
-    accounts: new Database("data/databases/accounts.sqlite"),
+    users: new Database("data/databases/users.sqlite"),
     badges: new Database("data/databases/badges.sqlite")
 };
 
@@ -40,8 +39,8 @@ db.characters.transaction(q => {
     if (!q("SELECT * FROM published LIMIT 1").success) { q(`${config.folders.sql}/characters/published.sql`); };
 });
 
-db.accounts.transaction(q => {
-    if (!q("SELECT * FROM public LIMIT 1").success) { q(`${config.folders.sql}/accounts/public.sql`); };
+db.users.transaction(q => {
+    if (!q("SELECT * FROM public LIMIT 1").success) { q(`${config.folders.sql}/users/public.sql`); };
 });
 
 db.badges.transaction(q => {
@@ -69,7 +68,7 @@ db.characters.transaction(q => {
         q(
             `INSERT INTO published (
                 id, 
-                owner, 
+                ownerId, 
                 slug,
                 displayName,
                 avatar,
@@ -82,7 +81,7 @@ db.characters.transaction(q => {
                 auraType,
                 auraPrimary,
                 auraSecondary,
-                explicit,
+                isExplicit,
                 visibility,
                 isScheduled,
                 updatedDate,
@@ -116,7 +115,7 @@ db.characters.transaction(q => {
 // accounts.db/public -> accounts.sqlite
 const mdbAccountsPublicData = mdb.accounts.query("SELECT * from public");
 
-db.accounts.transaction(q => {
+db.users.transaction(q => {
     if (!mdbAccountsPublicData.success) return;
 
     for (const d of mdbAccountsPublicData.rows) {
@@ -143,7 +142,7 @@ db.accounts.transaction(q => {
                 auraPrimary,
                 auraSecondary,
                 type,
-                explicit,
+                isExplicit,
                 visibility,
                 sendMessages,
                 lastActive,
@@ -255,8 +254,8 @@ Routes
 
 app.use('/v1', v1);
 
-v1.use('/users', userRoutes);
-v1.use('/profiles', profileRoutes);
+v1.use('/users', userRoute);
+v1.use('/profiles', profileRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -284,5 +283,4 @@ Scheduled events
 cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
     log.cleanLogs();
-    backupService(config.folders.data, config.folders.backups);
 });

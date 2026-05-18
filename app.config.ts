@@ -58,6 +58,7 @@ export const config = {
         logger: {
             main: false,
             status: false,
+            auth: false,
             api: false,
             cdn: false,
             support: false
@@ -144,6 +145,7 @@ export const config = {
         proxy: isProduction ? "100M" : "1G",
         main: isProduction ? "350M" : "1G",
         status: isProduction ? "100M" : "1G",
+        auth: isProduction ? "300M" : "1G",
         api: isProduction ? "300M" : "1G",
         cdn: isProduction ? "150M" : "1G",
         support: isProduction ? "350M" : "1G",
@@ -155,9 +157,10 @@ export const config = {
         // proxy is fixed at 443
         main: 10521,
         status: 10522,
-        api: 10523,
-        cdn: 10524,
-        support: 10525,
+        auth: 10523,
+        api: 10524,
+        cdn: 10525,
+        support: 10526,
         ws: {
             main: 39551,
             support: 39555
@@ -168,6 +171,7 @@ export const config = {
     ips: {
         main: isProduction ? "127.0.0.0" : "127.0.0.0",
         status: isProduction ? "127.0.0.0" : "127.0.0.0",
+        auth: isProduction ? "127.0.0.0" : "127.0.0.0",
         api: isProduction ? "127.0.0.0" : "127.0.0.0",
         cdn: isProduction ? "127.0.0.0" : "127.0.0.0",
         support: isProduction ? "127.0.0.0" : "127.0.0.0"
@@ -177,6 +181,7 @@ export const config = {
     domains: {
         main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
         status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
+        auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
         api: isProduction ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
         cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
         support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app"
@@ -229,7 +234,7 @@ export const config = {
         logs: resolve(dir, "logs"),
         data: resolve(dir, "data"),
         backups: resolve(dir, "backups"),
-        sql: resolve(dir, "src", "backend", "api", "sql"),
+        sql: resolve(dir, "src", "backend", "_common", "sql"),
         public: resolve(dir, "public"),
         commands: resolve(dir, "src", "integrations", "discord", "commands")
     }

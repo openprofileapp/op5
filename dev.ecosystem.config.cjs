@@ -64,6 +64,27 @@ module.exports = {
       }
     },
     {
+      name: "auth",
+      script: "./src/backend/auth/server.ts",
+      interpreter: "node",
+      node_args: "--import tsx",
+      autorestart: true,
+      max_memory_restart: "1G",
+      watch: [
+        "./app.config.ts",
+        "./src/backend/auth",
+        "./src/backend/_common",
+        "./src/_common"
+      ],
+      ignore_watch: [
+        "**/*.tsx"
+      ],
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "api",
       script: "./src/backend/api/server.ts",
       interpreter: "node",
