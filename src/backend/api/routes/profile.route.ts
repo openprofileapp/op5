@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { getProfiles } from '../controllers/profile.controller.js';
 
-const profileRoutes = Router();
+const profileRoute = Router();
 
-profileRoutes.get('/', getProfiles);
+profileRoute.get('/', getProfiles);
 
-export default profileRoutes;
+export default profileRoute;
