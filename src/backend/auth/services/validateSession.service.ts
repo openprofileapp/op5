@@ -2,14 +2,14 @@ import type { Request, Response } from 'express';
 import net from "node:net";
 import DeviceDetector from "node-device-detector";
 
-import { QueryResult, URL } from 'kage-library';
+import { AdvancedError, QueryResult, URL } from 'kage-library';
 
 import { config } from '../../../../app.config.js';
 import { db, log } from '../server.js';
 import { BotAccount } from '../../_common/types/queries/botAccount.type.js';
 import { UserAccount } from '../../_common/types/queries/userAccount.type.js';
+import PermissionsService from '../../_common/services/permissions.service.js';
 
-// Helpers
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
     const value = Array.isArray(ip) ? ip[0] : ip;
@@ -26,13 +26,9 @@ export function validateIp(req: Request): string | null {
     return null;
 }
 
-// Main
 export default async function validateSession(req: Request, res: Response) {
-    // Guard
-    // If more than the max users, return 503
-
-    // Bot
-    const authHeader = req.headers.authorizations as string || req.headers.Authorization as string;
+    // Bot account (MOVE THIS TO login())
+    const authHeader = req.headers.authorization as string || req.headers.Authorization as string;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
         const authToken = authHeader.split(" ")[1];
@@ -40,36 +36,49 @@ export default async function validateSession(req: Request, res: Response) {
         const botResult: QueryResult = db.accounts.query("SELECT * FROM bots WHERE token = ? LIMIT 1", [authToken]);
 
         if (botResult.success) {
-            if (botResult.rowCount < 1) return { code: 404, message: "Account not found" }
+            if (botResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
             const row = botResult.rows[0] as BotAccount;
 
-            if (row.isDeleted) return { code: 404, message: "Account not found" }
-            if (row.isSuspended) return { code: 403, message: "This account is suspended" }
+            if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
+            if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
 
             const userResult: QueryResult = db.accounts.query("SELECT * FROM users WHERE id = ? LIMIT 1", [row.ownerId]);
 
             if (userResult.success) {
-                if (userResult.rowCount < 1) return { code: 404, message: "Account not found" }
+                if (userResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
                 const row = userResult.rows[0] as UserAccount;
 
-                if (row.isDeleted) return { code: 404, message: "Account not found" }
-                if (row.isSuspended) return { code: 403, message: "This account is suspended" }
+                if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
+                if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
 
             } else {
-                log.db.error(userResult).save();
-                return { code: 500, message: "An error occurred while fetching account" };
+                throw new AdvancedError({ 
+                    code: 500, 
+                    message: userResult.error as string || "An error occurred while fetching account" 
+                });
             }
     
-            return row;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { token, isSuspended, isDeleted, ...rest } = row;
+            
+            return {
+                ...rest,
+                permissions: {
+                    value: rest.permissions,
+                    array: PermissionsService.decode(rest.permissions)
+                }
+            };
         } else {
-            log.db.error(botResult).save();
-            return { code: 500, message: "An error occurred while fetching account" };
+            throw new AdvancedError({ 
+                code: 500, 
+                message: botResult.error as string || "An error occurred while fetching account" 
+            });
         }
     }
 
-    // User
+    // User account
     // @ts-ignore
     const detector = new DeviceDetector();
     
@@ -89,11 +98,13 @@ export default async function validateSession(req: Request, res: Response) {
 
     const formattedUserAgent = {
         ...userAgentJSON,
-        bot: {
-            isBot: isUserAgentBot,
-            ...userAgentBotJSON
-        }
+        isBot: isUserAgentBot,
+        ...(isUserAgentBot && {
+            bot: userAgentBotJSON
+        })
     };
+
+    return formattedUserAgent;
 }
 
 
@@ -105,9 +116,9 @@ export default async function validateSession(req: Request, res: Response) {
 
 
 
-    
+    // log.network.info(req.headers).save();
 
-
+/*
 
         // Parse the agent, if a robot, limit access
         
@@ -404,3 +415,4 @@ export const iController = async (req: Request, res: Response) => {
 };
 
 
+*/
