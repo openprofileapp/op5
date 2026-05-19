@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS bots (
     id TEXT PRIMARY KEY NOT NULL,
-    token TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
     ownerId TEXT NOT NULL,
     displayName TEXT,
     about TEXT,
