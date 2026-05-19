@@ -58,7 +58,7 @@ export const mdb = {
     accounts: new Database("data/databases/v5.0.237/accounts.db")
 };
 
-// profiles.db/published -> characters.sqlite
+// profiles.db/published -> characters.sqlite/published
 const mdbProfilesPublishedData = mdb.profiles.query("SELECT * from published");
 
 db.characters.transaction(q => {
@@ -112,7 +112,7 @@ db.characters.transaction(q => {
     }
 });
 
-// accounts.db/public -> accounts.sqlite
+// accounts.db/public -> accounts.sqlite/public
 const mdbAccountsPublicData = mdb.accounts.query("SELECT * from public");
 
 db.users.transaction(q => {
@@ -182,7 +182,7 @@ db.users.transaction(q => {
     }
 });
 
-// accounts.db/badges -> badges.sqlite
+// accounts.db/badges -> badges.sqlite/badges
 const mdbAccountsBadgesData = mdb.accounts.query("SELECT * from badges");
 
 db.badges.transaction(q => {
