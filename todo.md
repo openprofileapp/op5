@@ -31,6 +31,20 @@ make a code 503 page that is blank with 503 in the midde and a live user count?
 
 Store the theme in client session for guest and account for registered
 
+in settings, have a place to view hidden/not interested assets
+
+if a country require a block, revoke "VIEW" permission
+
+if owner of profile doesn't have premium, but they invite someone to help manage it who has premium, that user can apply premium stuff to that profile
+
+if a keyword is blocked, tell author they can't use that
+
+add subowner to profiles
+eg: owner = project; subowner = user (ONLY ON PROJECTS)
+
+add folders inside projects to sort profile (producers can be assigned to folders)
+
+add gallary per assets and let the publisher select from the gallary to features images on overview
 
 MAKE AN INITIALS AVATAR GENERATION SCRIPT ON ASSET CREATION (LIKE GMAIL)
 const words = name.trim().split(" ");
