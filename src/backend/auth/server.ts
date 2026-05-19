@@ -15,7 +15,7 @@ import getEnv from '../../_common/helpers/getEnv.js';
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
 import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
-import sessionRoute from './routes/session.route.js';
+import sessionRoutes from './routes/session.routes.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -55,7 +55,80 @@ db.sessions.transaction(q => {
 });
 
 db.accounts.transaction(q => {
+    if (!q("SELECT * FROM users LIMIT 1").success) { q(`${config.folders.sql}/accounts/users.sql`); };
     if (!q("SELECT * FROM bots LIMIT 1").success) { q(`${config.folders.sql}/accounts/bots.sql`); };
+});
+
+/* 
+————————————————————————————————————————————————————————————————
+Migrade databases from v5.0.237 to v5.0.300
+———————————————————————————————————————————————————————————————— 
+*/
+
+export const mdb = {
+    accounts: new Database("data/databases/v5.0.237/accounts.db")
+};
+
+// accounts.db/users -> accounts.sqlite/users
+const mdbAccountsUsersData = mdb.accounts.query("SELECT * from private");
+
+db.accounts.transaction(q => {
+    if (!mdbAccountsUsersData.success) return;
+
+    for (const d of mdbAccountsUsersData.rows) {
+        q(
+            `INSERT INTO users (
+                id,
+                hasEmail,
+                permissions,
+                locale,
+                timezone,
+                isSuspended,
+                createdDate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                d.id,
+                d.email,
+                d.permissions,
+                d.locale,
+                d.timezone,
+                d.suspended,
+                d.created_date
+            ]
+        );
+    }
+});
+
+// accounts.db/bots -> accounts.sqlite/bots
+const mdbAccountsBotsData = mdb.accounts.query("SELECT * from bots");
+
+db.accounts.transaction(q => {
+    if (!mdbAccountsBotsData.success) return;
+
+    for (const d of mdbAccountsBotsData.rows) {
+        q(
+            `INSERT INTO bots (
+                id,
+                token,
+                ownerId,
+                displayName,
+                about,
+                permissions,
+                lastActive,
+                createdDate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                d.id,
+                d.token,
+                d.owner,
+                d.name,
+                d.about,
+                d.permissions,
+                d.last_active,
+                d.created_date
+            ]
+        );
+    }
 });
 
 /* 
@@ -77,7 +150,15 @@ Routes
 
 app.use('/', router);
 
-router.use('/session', sessionRoute);
+router.use('/login', sessionRoutes);
+
+
+// login = creates the session 
+//
+// login() -> create session and stuff then calls validate()
+// validate() -> checks if valid else calls login()
+//
+// validate/session = quickly checks if the cookie is valid 
 
 // OLD CODE
 /*server.auth.post("/v2/session", watchdog, rate_limit(240), async (req, res) => {
