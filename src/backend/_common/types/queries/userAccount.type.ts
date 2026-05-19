@@ -8,7 +8,7 @@ export type UserAccount = {
     permissions: string;
     locale: string;
     timezone: string;
-    earnedRevenue: number;
+    earnedRevenueUSD: number;
     hasReadTerms: boolean;
     lastActive: string;
     isSuspended: boolean;
