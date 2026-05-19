@@ -1,4 +1,10 @@
 {
+  "files.exclude": {
+    "**/*.sqlite-shm": true,
+    "**/*.sqlite-wal": true,
+    "**/*.db-shm": true,
+    "**/*.db-wal": true
+  },
   "material-icon-theme.folders.associations": {
     "cdn": "images",
     "status": "resolver",
