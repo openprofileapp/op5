@@ -42,7 +42,10 @@ if a keyword is blocked, tell author they can't use that
 add subowner to profiles
 eg: owner = project; subowner = user (ONLY ON PROJECTS)
 
-add folders inside projects to sort profile (producers can be assigned to folders)
+memories have a visibility as well
+asset memories can be a good place to share film snippets and comic pages while tagging the profiles inside; showing back a part of their adventure with a notification on top
+
+add folders inside projects to sort profile (admins can be assigned to folders)
 
 add gallary per assets and let the publisher select from the gallary to features images on overview
 
