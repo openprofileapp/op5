@@ -1,7 +1,9 @@
-import https from 'https';
+import https from "https";
 import express, { Router } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
+import path from "path";
+import maxmind, { CityResponse } from "maxmind";
 
 import { 
     Database,
@@ -10,12 +12,12 @@ import {
     WebClient,
 } from "kage-library";
 
-import { config } from '../../../app.config.js';
-import getEnv from '../../_common/helpers/getEnv.js';
+import { config } from "../../../app.config.js";
+import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
-import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
-import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
-import sessionRoutes from './routes/session.routes.js';
+import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
+import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
+import sessionRoutes from "./routes/session.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -24,7 +26,7 @@ Create instances
 */
 
 const app = express();
-app.set('json spaces', 2);
+app.set("json spaces", 2);
 const router = Router();
 
 export const log = new Logger({
@@ -38,6 +40,10 @@ export const wc = new WebClient({
     crawler: config.crawler,
     useSecureSSL: config.isProduction
 });
+
+export const geoip2 = await maxmind.open<CityResponse>(
+    path.resolve("data/databases/static/geoip2/cities.mmdb")
+);
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -148,9 +154,9 @@ Routes
 ———————————————————————————————————————————————————————————————— 
 */
 
-app.use('/', router);
+app.use("/", router);
 
-router.use('/login', sessionRoutes);
+router.use("/login", sessionRoutes);
 
 
 // login = creates the session 
