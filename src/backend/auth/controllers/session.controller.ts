@@ -18,6 +18,8 @@ if (COCURRENT_SESSIONS > config.maxSessions) {
 }
 */
 
+// Maybe change from /login (FOR PASSWORD/ENTRY ONLY) to /validate
+
 export const getSession = async (req: Request, res: Response) => {
     try {
         const response = await validateSession(req, res);
