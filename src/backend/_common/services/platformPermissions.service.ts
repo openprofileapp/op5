@@ -6,12 +6,6 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 const index = {
-    /* 
-    ————————————————————————————————————————————————————————————————
-    PLATFORM
-    ———————————————————————————————————————————————————————————————— 
-    */
-
     // Base
     VIEW: 0n, // View OpenProfile and authorized assets/users overview
     READ: 1n, // Read authorized assets beyond overview
@@ -29,85 +23,46 @@ const index = {
     BYPASS_EXTERNAL_ADS: 9n, // External ads will not render on client
     PREMIUM_ACCESS: 10n, // REQUIRES "WRITE"; Access premium perks (auras, create custom themes, promotion, animated avatars, etc.)
     USE_CUSTOM_THEMES: 11n, // REQUIRES "PREMIUM_ACCESS"; Use custom themes
-    CREATE_MEMORIES: 12n, // Create and manage posts on authorized assets that disappears after 24 hours
+    CREATE_MEMORIES: 12n, // REQUIRES "WRITE"; Create and manage posts on authorized assets that disappears after 24 hours
     VERIFIED_ACCESS: 13n, // ???
-    VOUCH_USER: 14n, // REQUIRES "VERIFIED_ACCESS"; Vouch a user towards earning the trusted artist badge
+    VOUCH_USER: 14n, // REQUIRES "VERIFIED_ACCESS" OR "PARTNER_ACCESS"; Vouch a user towards earning the trusted artist badge
+    EARN_REVENUE: 15n, // Earn revenue from ads or other means
     CASHOUT_REVENUE: 15n, // Cashout revenue to external app, bank, or in-app credits
     ARTIST_ACCESS: 16n, // ???
     PARTNER_ACCESS: 17n, // Access the partner stats page
     
     // Operations
-    REVIEW_TICKETS: 18n, // View, sort, accept, or deny user submitted tickets
-    MANAGE_SUBSCRIPTIONS: 65n, // Edit, cancel, or assign account subscriptions
-    REVIEW_REPORTS: 18n, // View, sort, accept, or deny user submitted reports
+    VIEW_ANALYTICS: 46n, // View and compare platform analytics (minus revenue) aganist its own data
+    VIEW_REVENUE: 46n,// REQUIRES "VIEW_ANALYTICS"; View and compare the platform revenue earned aganist its own data
     AUDIT_ACCESS: 55n, // Based on permissions, view and take action on changes performed by users
-    MANAGE_VISIBILITY: 77n, // Manage visibility on assets or user profiles and request changes
-    WARN_ACCOUNTS: 78n, // Warn accounts using pre-defined reasons
-    SUSPEND_ACCOUNTS: 79n, // Block accounts from accessing most of the platform
-    LOCK_ACCOUNTS: 80n, // Lock accounts to prevent login without further steps
-    REVIEW_APPEALS: 70n, // View, sort, accept, or deny user submitted moderation appeals
-    TERMINATE_SESSIONS: 81n, // Terminate active user sessions
-    MANAGE_ACCESS: 56n, // View and filter external connections, emails, phone numbers, and ips
-    MANAGE_AUTOMOD: 57n, // Manage blocked keyword filters and automatic actions on bypass
-    MANAGE_ASSETS: 7n, // Manage assets overview including assigning users and deletion
-    MANAGE_BOTS: 8n, // Manage bot accounts overview including resetting their tokens and deletion
-    MANAGE_ACCOUNTS: 64n, // Manage user profle overview including editing private data
-    TRANSFER_OWNERSHIP: 54n, // Transfer ownership of assets
-
-
-
-    
-    
-    VIEW_ANALYTICS: 46n, // View and compare analytics of asset
-    MANAGE_STAFFF: 40n,
-    MANAGE_BADGES: 40n,
-    // REVENUE
-    // MANAGE_SUPPORT_AGENTS
-    ADMIN: 57n, // COMPLETE CONTROL OF GRANTED ASSET
-    SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin 
-
-    /* 
-    ————————————————————————————————————————————————————————————————
-    COLLABORATIVE
-    ———————————————————————————————————————————————————————————————— 
-    */
-
-    // Collaborative (36n-75n)
-    // Seperate create from manage
-     // ASSET: If combined with MANAGE_PUBLICATIONS, apply auras and animated avatars to asset (priority) // ASSET: If combined with MANAGE_PROMOTIONS, promote asset (priority)
-    ASSET_VIEW: 0n, // APP: View OpenProfile and all public assets/users overview // ASSET: View asset overview (priority)
-    ASSET_READ: 1n, // APP: Read all public assets beyond overview // ASSET: Read asset beyond overview (priority)
-    ASSET_WRITE: 2n, // APP: Edit all values of owned assets // ASSET: Edit authorized values of asset (priority)
-    ASSET_INTERACT: 3n, // APP: Use interactions (follow, like, favorite, mute, block, hide, save, etc.)
-    ASSET_SEND_COMMENTS: 4n, // APP: Comment on assets with comments enabled // ASSET: Comment on asset (priority)
-    ASSET_MANAGE_MEDIA: 36n, // Manage illustrations and other media of asset
-    ASSET_REVIEW_CHANGES: 37n, // Accept or deny value and media edits for publishing or restore them via an auto-save or backup
-    ASSET_MANAGE_FIELDS: 38n, // Manage authorized fields of asset
-    ASSET_MANAGE_CATEGORIES: 39n, // Manage authorized categories of asset
-    ASSET_MANAGE_COLLECTIONS: 40n, // Manage authorized collections of asset
-    ASSET_MANAGE_FANFLAIRS: 41n, // Manage fanflairs of asset
-    ASSET_MANAGE_COMMENTS: 42n, // Manage comments on asset (delete/restore)
-    ASSET_MANAGE_INTERACTIONS: 43n, // Manage user interaction "INTERACT" access with asset by ristricting comments or blocking "VIEW" and "READ"
-    ASSET_MANAGE_AUTOMOD: 44n, // Manage blocked keywords and automatic actions on asset for comments and values
-    ASSET_MANAGE_PUBLICATIONS: 45n, // Manage overview of asset including badges, links, featured content, update-log, and publication state
-    ASSET_VIEW_ANALYTICS: 46n, // View and compare analytics of asset
-    ASSET_MANAGE_PROMOTIONS: 47n, // Manage promotions of asset using the admin set budget (CURRENTLY UNLIMITED AS PREMIUM; 2 ASSETS PER ACCOUNT)
-    ASSET_MANAGE_BACKUPS: 48n, // Manage backups and auto-saves of asset (create/restore/delete)
-    ASSET_UPDATE_URL: 49n, // Update custom URL of asset (projects only)
-    ASSET_MANAGE_AUTHORS: 50n, // Assign or revoke users as authors and manage which fields they can write // GRANTABLE PERMISSIONS: "WRITE"
-    ASSET_MANAGE_ILLUSTRATORS: 51n, // Assign or revoke users as illustrators // GRANTABLE PERMISSIONS: "MANAGE_MEDIA"
-    ASSET_MANAGE_EDITORS: 52n, // Assign or revoke users as editors and manage which categories they can edit or manage // GRANTABLE PERMISSIONS: "REVIEW_CHANGES", "MANAGE_FIELDS", "MANAGE_CATEGORIES"
-    ASSET_MANAGE_CURATORS: 53n, // Assign or revoke users as curators and manage which collections they can manage // GRANTABLE PERMISSIONS: "MANAGE_MEMORIES", "MANAGE_COLLECTIONS"
-    ASSET_MANAGE_MODERATORS: 54n, // Assign or revoke users as moderators and manage which assets they can moderate // GRANTABLE PERMISSIONS: "MANAGE_COMMENTS", "MANAGE_INTERACTIONS", "MANAGE_AUTOMOD", "AUDIT_ACCESS"
-    ASSET_AUDIT_ACCESS: 55n, // Based on permissions, view and rollback any changes on asset performed by users
-    ASSET_VIEW_REVENUE: 56n, // View monetized revenue
-    ASSET_ADMIN: 57n, // COMPLETE CONTROL OF GRANTED ASSET
-    ASSET_SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin 
+    REVIEW_TICKETS: 18n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted tickets
+    MANAGE_SUBSCRIPTIONS: 65n, // REQUIRES "WRITE"; Edit, cancel, or assign account subscriptions
+    REVIEW_REPORTS: 18n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted reports
+    MANAGE_VISIBILITY: 77n, // REQUIRES "WRITE"; Manage visibility on assets or user profiles incluing badges
+    REQUEST_CHANGES: 77n, // REQUIRES "WRITE"; Request changes on assets or user profiles
+    WARN_ACCOUNTS: 78n, // REQUIRES "WRITE"; Warn accounts using pre-defined reasons
+    SUSPEND_ACCOUNTS: 79n, // REQUIRES "WRITE"; Block accounts from accessing most of the platform
+    LOCK_ACCOUNTS: 80n, // REQUIRES "WRITE"; Lock accounts to prevent login without further steps
+    REVIEW_APPEALS: 70n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted moderation appeals
+    TERMINATE_SESSIONS: 81n, // REQUIRES "WRITE"; Terminate active user sessions
+    MANAGE_ACCESS: 56n, // REQUIRES "WRITE"; View and filter external connections, emails, phone numbers, and ips
+    MANAGE_AUTOMOD: 57n, // REQUIRES "WRITE"; Manage blocked keyword filters and automatic actions on bypass
+    MANAGE_ASSETS: 7n, // REQUIRES "WRITE"; Manage assets overview including assigning users and deletion
+    MANAGE_BOTS: 8n, // REQUIRES "WRITE"; Manage bot accounts overview including resetting their tokens and deletion
+    MANAGE_ACCOUNTS: 64n, // REQUIRES "WRITE"; Manage user profle overview including editing private data
+    TRANSFER_OWNERSHIP: 54n, // REQUIRES "WRITE"; Transfer ownership of assets
+    VERIFY_ACCOUNT: 40n, // REQUIRES "WRITE"; Verify user accounts as official
+    PROMOTE_ASSET: 40n, // REQUIRES "WRITE"; Promote assets to be more visible across the platform
+    MANAGE_STAFF: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "VIEW_ANALYTICS", "AUDIT_ACCESS"
+    MANAGE_PARTNERS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "PARTNER_ACCESS", "VOUCH_USER"
+    MANAGE_SUPPORT_AGENTS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
+    MANAGE_MODERATORS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "LOCK_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
+    ADMIN: 57n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
+    SUPER_ADMIN: 58n, // Grants all current and future permissions; complete control over the platform and can assign or revoke the following permissions: "ADMIN" 
 } as const;
 
 // Move this to a database if custom roles release
 const roles = {
-    // Platform
     robot: { name: "Robot", permissions: ["VIEW"] },
     guest: { name: "Guest", permissions: ["VIEW","READ"] },
     member: {
@@ -143,7 +98,16 @@ const roles = {
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
-            "CASHOUT_REVENUE", "PARTNER_ACCESS"
+            "CASHOUT_REVENUE", "PARTNER_ACCESS", "VOUCH_USER"
+        ]
+    },
+    staff: {
+        name: "Staff",
+        permissions: [
+            "VIEW", "READ", "WRITE", 
+            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
+            "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
         ]
     },
     supportAgent: {
@@ -152,7 +116,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS"
+            "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
         ]
     },
     moderator: {
@@ -161,7 +125,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS"
+            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "TERMINATE_SESSIONS"
         ]
     },
     seniorModerator: {
@@ -170,25 +134,16 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS",
+            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS",
             "LOCK_ACCOUNTS", "REVIEW_APPEALS"
         ]
     },
     admin: {
         name: "Administrator",
         permissions: [
-            "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
-            "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS",
-            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS",
-            "LOCK_ACCOUNTS", "REVIEW_APPEALS",
-            "TERMINATE_SESSIONS", "MANAGE_ACCESS", "MANAGE_AUTOMOD",
-            "MANAGE_ASSETS", "MANAGE_BOTS", "MANAGE_ACCOUNTS", "TRANSFER_OWNERSHIP"
+            "ADMIN"
         ]
     }
-
-    // Collaborative
 } satisfies Record<string, Role>;
 
 interface Role {
@@ -206,12 +161,10 @@ interface RoleResult {
 }
 
 /**
- * PermissionsService
- *
  * Handles encoding, decoding, checking, and updating permission bitmasks.
  * Permissions are stored as bigint bit flags based on a central index map.
  */
-export default class PermissionsService {
+export default class PlatformPermissionsService {
     public static permissions = index;
 
     private static bit(permission: PermissionName): bigint {
