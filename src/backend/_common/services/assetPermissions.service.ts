@@ -6,13 +6,11 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 const index = {
-    // Seperate create from manage
-    // ASSET: If combined with MANAGE_PUBLICATIONS, apply auras and animated avatars to asset (priority) // ASSET: If combined with MANAGE_PROMOTIONS, promote asset (priority)
-    VIEW: 0n, // APP: View OpenProfile and all public assets/users overview // ASSET: View asset overview (priority)
-    READ: 1n, // APP: Read all public assets beyond overview // ASSET: Read asset beyond overview (priority)
-    WRITE: 2n, // APP: Edit all values of owned assets // ASSET: Edit authorized values of asset (priority)
-    INTERACT: 3n, // APP: Use interactions (follow, like, favorite, mute, block, hide, save, etc.)
-    SEND_COMMENTS: 4n, // APP: Comment on assets with comments enabled // ASSET: Comment on asset (priority)
+    VIEW: 0n, // View asset overview
+    READ: 1n, // Read asset beyond overview
+    WRITE: 2n, // Edit authorized values of asset
+    INTERACT: 3n, // Use interactions (follow, like, favorite, mute, block, hide, save, etc.)
+    SEND_COMMENTS: 4n, // Comment on asset
     MANAGE_MEDIA: 36n, // Manage illustrations and other media of asset
     REVIEW_CHANGES: 37n, // Accept or deny value and media edits for publishing or restore them via an auto-save or backup
     MANAGE_FIELDS: 38n, // Manage authorized fields of asset
@@ -22,7 +20,7 @@ const index = {
     MANAGE_COMMENTS: 42n, // Manage comments on asset (delete/restore)
     MANAGE_INTERACTIONS: 43n, // Manage user interaction "INTERACT" access with asset by ristricting comments or blocking "VIEW" and "READ"
     MANAGE_AUTOMOD: 44n, // Manage blocked keywords and automatic actions on asset for comments and values
-    MANAGE_PUBLICATIONS: 45n, // Manage overview of asset including badges, links, featured content, update-log, and publication state
+    MANAGE_PUBLICATIONS: 45n, // Manage overview of asset including badges, links, featured content, update-log, and publication state // If combined with MANAGE_PUBLICATIONS, apply auras and animated avatars to asset // ASSET: If combined with MANAGE_PROMOTIONS, promote asset
     VIEW_ANALYTICS: 46n, // View and compare analytics of asset
     MANAGE_PROMOTIONS: 47n, // Manage promotions of asset using the admin set budget (CURRENTLY UNLIMITED AS PREMIUM; 2 ASSETS PER ACCOUNT)
     MANAGE_BACKUPS: 48n, // Manage backups and auto-saves of asset (create/restore/delete)
