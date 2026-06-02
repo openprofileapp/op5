@@ -1,13 +1,12 @@
 import type { Request, Response } from 'express';
 import net from "node:net";
 import DeviceDetector from "node-device-detector";
+import { DateTime } from "luxon"
 
-import { AdvancedError, QueryResult, URL } from 'kage-library';
+import { URL } from 'kage-library';
 
 import { config } from '../../../../app.config.js';
 import { db, log } from '../server.js';
-import { BotAccount } from '../../_common/types/queries/botAccount.type.js';
-import { UserAccount } from '../../_common/types/queries/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 import fetchGeoIp from '../helpers/fetchGeoIp.js';
 
@@ -28,67 +27,131 @@ export function validateIp(req: Request): string {
 }
 
 export default async function validateSession(req: Request, res: Response) {
-    // BOT ACCOUNT (MOVE THIS TO login())
-    const authHeader = req.headers.authorization as string || req.headers.Authorization as string;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        const authToken = authHeader.split(" ")[1];
-
-        const botResult: QueryResult = db.accounts.query("SELECT * FROM bots WHERE token = ? LIMIT 1", [authToken]);
-
-        if (botResult.success) {
-            if (botResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
-
-            const row = botResult.rows[0] as BotAccount;
-
-            if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
-            if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
-
-            const userResult: QueryResult = db.accounts.query("SELECT * FROM users WHERE id = ? LIMIT 1", [row.ownerId]);
-
-            if (userResult.success) {
-                if (userResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
-
-                const row = userResult.rows[0] as UserAccount;
-
-                if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
-                if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
-
-            } else {
-                throw new AdvancedError({ 
-                    code: 500, 
-                    message: userResult.error as string || "An error occurred while fetching account" 
-                });
-            }
-    
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { token, isSuspended, isDeleted, ...rest } = row;
-            
-            return {
-                ...rest,
-                permissions: {
-                    value: rest.permissions,
-                    array: PlatformPermissionsService.decode(rest.permissions)
-                }
-            };
-        } else {
-            throw new AdvancedError({ 
-                code: 500, 
-                message: botResult.error as string || "An error occurred while fetching account" 
-            });
-        }
-    }
-
-    // USER ACCOUNT
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
-    
+    const url = new URL(`https://${config.domains.main}`);
+
     const userAgent = req.get('User-Agent') || req.get('user-agent') || "unknown"
-    const inviteCode = req.query?.inviteCode || req.cookies?.inviteCode;
+    const inviteCode = req.query?.invite || req.cookies?.inviteCode;
+    let clientSocketId = req.cookies?.socketId;
     const clientToken = req.cookies?.token;
     const validatedIp = validateIp(req);
 
+    // If first visit, generate a socket id then save it
+    if (!clientSocketId) {
+        clientSocketId = crypto.randomUUID();
+
+        const result = db.sessions.query(
+            `INSERT INTO sessions (socketId) VALUES (?)`,
+            [clientSocketId]
+        );
+
+        if (!result.success) {
+            log.db.error(result.error).save();
+        }
+
+        res.cookie("socketId", clientSocketId, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+        });
+    }
+
+    // If invite is valid, save as cookie
+    if (req.query?.invite && req.query?.invite !== req.cookies?.inviteCode) {
+
+        // VALIDATE INVITE FROM BD
+
+        res.cookie("inviteCode", req.query.invite, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+        });
+    }
+
+    // If session is invalid or suspicious, terminate it, delete cookies, then recall validation
+    let sessionDatabaseResult;
+
+    if (clientToken) {
+        sessionDatabaseResult = db.sessions.query(
+            `SELECT * FROM sessions WHERE token = ? AND socketId = ?`,
+            [clientToken, clientSocketId]
+        );
+    } else {
+        sessionDatabaseResult = db.sessions.query(
+            `SELECT * FROM sessions WHERE socketId = ?`,
+            [clientSocketId]
+        );
+    }
+
+    if (
+        sessionDatabaseResult.success && 
+        sessionDatabaseResult.rowCount > 0 && 
+        !sessionDatabaseResult.rows[0]?.isTerminated
+    ) {
+        const geoIpLatestFetchOld = sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.geoIpLatestFetch
+        const geoIpLatestFetchNew = await fetchGeoIp(validatedIp);
+
+        // CHECK IF geoIpLatestFetchNew is within certain miles of geoIpLatestFetchOld else terminate
+        // score 100
+    } else if (
+        sessionDatabaseResult.success && sessionDatabaseResult.rowCount === 0 ||
+        sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.isTerminated
+        // score 100
+    ) {
+
+        res.clearCookie("socketId", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+        });
+
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+        });
+
+        if (true) { // score 100
+            // log.auth.warn(`Session for "${clientSocketId}" is terminated`).save();
+            // Send a notification to the user and create a watchdog report
+        } else {
+            log.auth.warn(`Session for "${clientSocketId}" is terminated`).save();
+        }
+
+        // INSTEAD OF REFRESHING, RETURN A JSON ACTION TELLING THE CONTROLLER TO REFRESH
+        return res.redirect(req.originalUrl || "/");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Proceed with validation
     const userAgentJSON = detector.detect(userAgent);
     const userAgentBotJSON = detector.parseBot?.(userAgent) || {};
 
@@ -99,6 +162,7 @@ export default async function validateSession(req: Request, res: Response) {
         .test(userAgent);
 
     const formattedUserAgent = {
+        string: userAgent,
         ...userAgentJSON,
         isBot: isUserAgentBot,
         ...(isUserAgentBot && {
@@ -107,11 +171,70 @@ export default async function validateSession(req: Request, res: Response) {
     };
 
     if (true) { // isUserAgentBot
-        const role = PlatformPermissionsService.getRole("robot")
+        const role = PlatformPermissionsService.getRole("robot");
+        const geoIpFirstFetch = sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.geoIpFirstFetch
+        const now = DateTime.now().toUTC().toISO();
+
+        // REPLACE WITH UPDATE WHERE ID AND TOKEN IF TOKEN IS VALID
+        const result = db.sessions.query(
+            `INSERT INTO sessions (
+                geoIpFirstFetch,
+                geoIpLatestFetch,
+                geoIpLatestFetchDate,
+                userAgent,
+                inviteCode,
+                socketId,
+                isConnected,
+                lastConnected
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(socketId) DO UPDATE SET
+                geoIpLatestFetch = excluded.geoIpLatestFetch,
+                geoIpLatestFetchDate = excluded.geoIpLatestFetchDate,
+                userAgent = excluded.userAgent,
+                inviteCode = excluded.inviteCode,
+                isConnected = excluded.isConnected,
+                lastConnected = excluded.lastConnected`,
+            [
+                geoIpFirstFetch || JSON.stringify(geoIpLatestFetchNew),
+                JSON.stringify(geoIpLatestFetchNew),
+                now,
+                JSON.stringify(formattedUserAgent),
+                inviteCode,
+                clientSocketId,
+                1,
+                now
+            ]
+        );
+
+        if (!result.success) {
+            log.db.error(result.error).save();
+        }
+
+        const crawlerMessages = [
+            "says hi while passing through",
+            "tried to be subtle, but left footprints",
+            "is poking around the pages",
+            "stopped by for a quick look",
+            "wandered in without making much noise",
+            "took a quick look around and paused briefly",
+            "is here for a short visit",
+            "dropped in to see what's going on",
+            "made a brief appearance",
+            "is checking things out casually",
+            "is doing a light pass over the content",
+            "came by, looked around, and lingered a bit"
+        ];
+
+        const msg = crawlerMessages[Math.floor(Math.random() * crawlerMessages.length)];
+
+        log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            geoIp: await fetchGeoIp(validatedIp), // Need a FIRST and LATEST to compare security
+            geoIpFirstFetch: geoIpFirstFetch ? JSON.parse(geoIpFirstFetch as string) : geoIpFirstFetch,
+            geoIpLatestFetch,
             userAgent: formattedUserAgent,
+            inviteCode,
+            socketId: clientSocketId,
             permissions: {
                 value: role.value,
                 array: role.array
@@ -121,6 +244,8 @@ export default async function validateSession(req: Request, res: Response) {
         // CHECK IF THE USER LIMIT IS MATCHED USING WEBSOCKET CLIENT COUNT
 
         // login(clientToken)
+
+        // THEN return the rest of the login with the geo and perms and stuff
     }
 
     // If bot, return agent info with BOT PERMISSIONS ROLE
@@ -132,29 +257,120 @@ export default async function validateSession(req: Request, res: Response) {
 
 
 
-    
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+CODE THIS SOMEWHERE HERE
+
+LET SCORE (if >= 100, terminate)
+Distance jump (50 miles) 10 score every 10 miles after
+New device TYPE (not mobile/desktop) fingerprint / 80 score
+New browser (new type) / 50 score
+
+ If you border a state or city where your IP may give random surrounding locations, 
+ it would log you out every new location (this is assuming the CURRENT LIVE system 
+ was working and not bugged). Now, that system will not log you out unless there is 
+ a certain radius difference. You could now travel with this new system as every 
+ action on the site is refreshing your data keeping the cords distance within a 
+ "safe" zone compared to say the token being sniped from across the country giving 
+ a large "unsafe" distance that would trigger a termination ensuring your account 
+ is safe.
+ */
+
+
+
+// when bot, log the bot name as temp page view    
+
+// update totalDuration when leaving the site
 
     // log.network.info(req.headers).save();
 
 /*
 
-        // Parse the agent, if a robot, limit access
-        
-        // Block robots from scraping
-        if (session.agent.bot) {
-            // Revoke some permissions then log the interaction in watchdog
-            session.account.private.permissions = { value: permissions.role("robot").value, array: permissions.role("robot").array}
-            session.geo.last = await geolocation(ip); // Fetch geolocation
-            const message = `Robot "${session.agent.name || "unknown"}" attempted to scrape`;
-            log("warning", "watchdog", message);
-            database.query("watchdog",`INSERT INTO authenticate (agent, ip, message) VALUES (?, ?, ?)`, [session.agent.string, session.geo.last.ip, message]);
-            return res.json(clean(session));
-        }
+db.sessions.query(
+    `INSERT INTO sessions (
+        userId TEXT NOT NULL,
+        geoIpFirstFetch TEXT,
+        geoIpLatestFetch TEXT,
+        geoIpLatestFetchDate TEXT,
+        userAgent TEXT,
+        inviteCode TEXT,
+        token TEXT UNIQUE,
+        socketId TEXT UNIQUE,
+        isTerminated INTEGER DEFAULT 0,
+        totalDuration INTEGER DEFAULT 0,
+        isConnected INTEGER DEFAULT 0,
+        firstConnected TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        lastConnected TEXT
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+        d.id,
+        d.token,
+        d.owner,
+        d.name,
+        d.about,
+        d.permissions,
+        d.last_active,
+        d.created_date
+    ]
+);
 
-        // If server is too busy, block new users, else allow access
-        if (guard.online.size >= guard.max) {return res.status(503).send("");}
+
 
         // If no existing session, create a new one
         if (!session.id) {
@@ -251,12 +467,6 @@ export default async function validateSession(req: Request, res: Response) {
             session.account.public.ghost = row.ghost; row.ghost = null; // Reformat JSON
             session.account.public.theme = row.theme; row.theme = null; // Reformat JSON
             Object.assign(session, clean(row));
-        }
-        
-        // If session is terminated, restart authentication
-        if (session.terminated) { 
-            log("warning", "authentication", `Session for "${session.account.public.ghost.name || "unknown"}" is terminated`);
-            return res.status(401).send("");
         }
 
         // Limit authentication if under maintenance
