@@ -29,6 +29,8 @@ if comments are set to "followers", then only followers can see comments and com
 
 make a code 503 page that is blank with 503 in the midde and a live user count?
 
+when support assign subscriptions, the user WILL need to accept it for it to go active
+
 Store the theme in client session for guest and account for registered
 
 in settings, have a place to view hidden/not interested assets
