@@ -59,11 +59,12 @@ export default async function fetchGeoIp(ip: string): Promise<object | null> {
         ip: address,
         latitude: geoData?.location?.latitude,
         longitude: geoData?.location?.longitude,
+        accuracy: geoData?.location?.accuracy_radius,
         locale: language,
         timezone: geoData?.location?.time_zone,
-        city: geoData?.city?.geoname_id,
-        state: geoData?.subdivisions[0]?.geoname_id,
-        country: geoData?.country?.geoname_id,
-        continent: geoData?.continent?.geoname_id,
+        city: geoData?.city?.names?.en,
+        state: geoData?.subdivisions[0]?.names?.en,
+        country: geoData?.country?.names?.en,
+        continent: geoData?.continent?.names?.en,
     };
 }
