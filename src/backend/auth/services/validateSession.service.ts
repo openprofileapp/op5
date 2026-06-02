@@ -8,7 +8,8 @@ import { config } from '../../../../app.config.js';
 import { db, log } from '../server.js';
 import { BotAccount } from '../../_common/types/queries/botAccount.type.js';
 import { UserAccount } from '../../_common/types/queries/userAccount.type.js';
-import PermissionsService from '../../_common/services/permissions.service.js';
+import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
+import fetchGeoIp from '../helpers/fetchGeoIp.js';
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
@@ -16,18 +17,18 @@ function normalizeIp(ip?: string | string[]) {
     return value.replace(/^::ffff:/, "");
 }
 
-export function validateIp(req: Request): string | null {
+export function validateIp(req: Request): string {
     const cfIP = normalizeIp(req.headers["cf-connecting-ip"] as string | string[] | undefined);
     const expressIP = normalizeIp(req.ip);
 
     if (cfIP && net.isIP(cfIP)) return cfIP;
     if (expressIP && net.isIP(expressIP)) return expressIP;
 
-    return null;
+    return "";
 }
 
 export default async function validateSession(req: Request, res: Response) {
-    // Bot account (MOVE THIS TO login())
+    // BOT ACCOUNT (MOVE THIS TO login())
     const authHeader = req.headers.authorization as string || req.headers.Authorization as string;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -67,7 +68,7 @@ export default async function validateSession(req: Request, res: Response) {
                 ...rest,
                 permissions: {
                     value: rest.permissions,
-                    array: PermissionsService.decode(rest.permissions)
+                    array: PlatformPermissionsService.decode(rest.permissions)
                 }
             };
         } else {
@@ -78,7 +79,8 @@ export default async function validateSession(req: Request, res: Response) {
         }
     }
 
-    // User account
+    // USER ACCOUNT
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
     
@@ -104,7 +106,25 @@ export default async function validateSession(req: Request, res: Response) {
         })
     };
 
-    return formattedUserAgent;
+    if (true) { // isUserAgentBot
+        const role = PlatformPermissionsService.getRole("robot")
+
+        return {
+            geoIp: await fetchGeoIp(validatedIp), // Need a FIRST and LATEST to compare security
+            userAgent: formattedUserAgent,
+            permissions: {
+                value: role.value,
+                array: role.array
+            }
+        };
+    } else {
+        // CHECK IF THE USER LIMIT IS MATCHED USING WEBSOCKET CLIENT COUNT
+
+        // login(clientToken)
+    }
+
+    // If bot, return agent info with BOT PERMISSIONS ROLE
+    // Else, call LOGIN(TOKEN) which returns the data and returns it to VALIDATESESSION();
 }
 
 
