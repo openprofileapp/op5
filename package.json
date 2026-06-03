@@ -58,6 +58,7 @@
     "fast-glob": "^3.3.3",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.3.4",
+    "haversine-distance": "^1.2.4",
     "http-proxy": "^1.18.1",
     "i18next": "^26.0.8",
     "i18next-http-backend": "^3.0.6",
