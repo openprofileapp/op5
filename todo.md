@@ -29,6 +29,8 @@ if comments are set to "followers", then only followers can see comments and com
 
 make a code 503 page that is blank with 503 in the midde and a live user count?
 
+block auth links from being seen in browser without an external call
+
 when support assign subscriptions, the user WILL need to accept it for it to go active
 
 Store the theme in client session for guest and account for registered
