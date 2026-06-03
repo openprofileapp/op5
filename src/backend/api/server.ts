@@ -28,7 +28,8 @@ export const db = {
     metadata: new Database("data/databases/metadata.sqlite"),
     characters: new Database("data/databases/characters.sqlite"),
     users: new Database("data/databases/users.sqlite"),
-    badges: new Database("data/databases/badges.sqlite")
+    badges: new Database("data/databases/badges.sqlite"),
+    invites: new Database("data/databases/invites.sqlite")
 };
 
 db.metadata.transaction(q => {
@@ -47,6 +48,11 @@ db.badges.transaction(q => {
     if (!q("SELECT * FROM badges LIMIT 1").success) { q(`${config.folders.sql}/badges.sql`); };
 });
 
+db.invites.transaction(q => {
+    if (!q("SELECT * FROM codes LIMIT 1").success) { q(`${config.folders.sql}/invites/codes.sql`); };
+    if (!q("SELECT * FROM uses LIMIT 1").success) { q(`${config.folders.sql}/invites/uses.sql`); };
+});
+
 /* 
 ————————————————————————————————————————————————————————————————
 Migrade databases from v5.0.237 to v5.0.300
@@ -55,7 +61,8 @@ Migrade databases from v5.0.237 to v5.0.300
 
 export const mdb = {
     profiles: new Database("data/databases/v5.0.237/profiles.db"),
-    accounts: new Database("data/databases/v5.0.237/accounts.db")
+    accounts: new Database("data/databases/v5.0.237/accounts.db"),
+    partners: new Database("data/databases/v5.0.237/partners.db")
 };
 
 // profiles.db/published -> characters.sqlite/published
@@ -206,6 +213,52 @@ db.badges.transaction(q => {
                 d.type,
                 d.text,
                 d.visibility,
+                d.date // UPDATE ALL DATES TO USE ISO ON ALL DB MIGRATIONS
+            ]
+        );
+    }
+});
+
+// partners.db/codes -> invites.sqlite/codes
+const mdbPartnersCodeData = mdb.partners.query("SELECT * from codes");
+
+db.invites.transaction(q => {
+    if (!mdbPartnersCodeData.success) return;
+
+    for (const d of mdbPartnersCodeData.rows) {
+        q(
+            `INSERT INTO codes (
+                owner,
+                code,
+                isUnlimited,
+                createdDate
+            ) VALUES (?, ?, ?, ?)`,
+            [
+                d.user,
+                d.code,
+                1,
+                d.date
+            ]
+        );
+    }
+});
+
+// partners.db/uses -> invites.sqlite/uses
+const mdbPartnersUsesData = mdb.partners.query("SELECT * from uses");
+
+db.invites.transaction(q => {
+    if (!mdbPartnersUsesData.success) return;
+
+    for (const d of mdbPartnersUsesData.rows) {
+        q(
+            `INSERT INTO uses (
+                user,
+                code,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.code,
                 d.date
             ]
         );
