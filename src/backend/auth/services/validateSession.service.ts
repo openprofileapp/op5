@@ -1,14 +1,15 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 import net from "node:net";
 import DeviceDetector from "node-device-detector";
 import { DateTime } from "luxon"
+import haversine from "haversine-distance"
 
-import { URL } from 'kage-library';
+import { AdvancedError, URL } from "kage-library";
 
-import { config } from '../../../../app.config.js';
-import { db, log } from '../server.js';
-import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
-import fetchGeoIp from '../helpers/fetchGeoIp.js';
+import { config } from "../../../../app.config.js";
+import { db, log } from "../server.js";
+import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
+import fetchGeoIp from "../helpers/fetchGeoIp.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
@@ -32,7 +33,7 @@ export default async function validateSession(req: Request, res: Response) {
     const detector = new DeviceDetector();
     const url = new URL(`https://${config.domains.main}`);
 
-    const userAgent = req.get('User-Agent') || req.get('user-agent') || "unknown"
+    const userAgent = req.get("User-Agent") || req.get("user-agent") || "unknown"
     const inviteCode = req.query?.invite || req.cookies?.inviteCode;
     let clientSocketId = req.cookies?.socketId;
     const clientToken = req.cookies?.token;
@@ -41,10 +42,11 @@ export default async function validateSession(req: Request, res: Response) {
     // If first visit, generate a socket id then save it
     if (!clientSocketId) {
         clientSocketId = crypto.randomUUID();
+        const geoIpFetch = await fetchGeoIp(validatedIp);
 
         const result = db.sessions.query(
-            `INSERT INTO sessions (socketId) VALUES (?)`,
-            [clientSocketId]
+            `INSERT INTO sessions (geoIpFirstFetch, geoIpLatestFetch, socketId) VALUES (?, ?, ?)`,
+            [JSON.stringify(geoIpFetch), JSON.stringify(geoIpFetch), clientSocketId]
         );
 
         if (!result.success) {
@@ -64,6 +66,7 @@ export default async function validateSession(req: Request, res: Response) {
     if (req.query?.invite && req.query?.invite !== req.cookies?.inviteCode) {
 
         // VALIDATE INVITE FROM BD
+        // CALL INVITES API HERE
 
         res.cookie("inviteCode", req.query.invite, {
             httpOnly: true,
@@ -76,6 +79,9 @@ export default async function validateSession(req: Request, res: Response) {
 
     // If session is invalid or suspicious, terminate it, delete cookies, then recall validation
     let sessionDatabaseResult;
+    let geoIpLatestFetchOld;
+    let geoIpLatestFetchNew;
+    let suspicionScore = 0;
 
     if (clientToken) {
         sessionDatabaseResult = db.sessions.query(
@@ -89,22 +95,42 @@ export default async function validateSession(req: Request, res: Response) {
         );
     }
 
+    if (!sessionDatabaseResult.success) throw new AdvancedError({
+        code: 500,
+        message: "An error occurred while validating session",
+    });
+
     if (
-        sessionDatabaseResult.success && 
         sessionDatabaseResult.rowCount > 0 && 
         !sessionDatabaseResult.rows[0]?.isTerminated
     ) {
-        const geoIpLatestFetchOld = sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.geoIpLatestFetch
-        const geoIpLatestFetchNew = await fetchGeoIp(validatedIp);
+        // Handle security checks
+        geoIpLatestFetchOld = JSON.parse(sessionDatabaseResult.rows[0]?.geoIpLatestFetch as string);
+        geoIpLatestFetchNew = await fetchGeoIp(validatedIp);
+        let distanceInMiles = 0;
+
+        if (
+            geoIpLatestFetchOld.latitude && 
+            geoIpLatestFetchOld.longitude &&
+            geoIpLatestFetchNew.latitude && 
+            geoIpLatestFetchNew.longitude
+        ) {
+            distanceInMiles = haversine(
+                { latitude: geoIpLatestFetchOld.latitude, longitude: geoIpLatestFetchOld.longitude },
+                { latitude: geoIpLatestFetchNew.latitude, longitude: geoIpLatestFetchNew.longitude }
+            ) / 1609.344;
+        }
+
+        suspicionScore = distanceInMiles;
 
         // CHECK IF geoIpLatestFetchNew is within certain miles of geoIpLatestFetchOld else terminate
-        // score 100
-    } else if (
-        sessionDatabaseResult.success && sessionDatabaseResult.rowCount === 0 ||
-        sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.isTerminated
-        // score 100
-    ) {
+    }
 
+    if (
+        sessionDatabaseResult.rowCount === 0 ||
+        sessionDatabaseResult.rows[0]?.isTerminated ||
+        suspicionScore >= 100
+    ) {
         res.clearCookie("socketId", {
             httpOnly: true,
             secure: true,
@@ -121,7 +147,7 @@ export default async function validateSession(req: Request, res: Response) {
             path: "/",
         });
 
-        if (true) { // score 100
+        if (suspicionScore >= 100) {
             // log.auth.warn(`Session for "${clientSocketId}" is terminated`).save();
             // Send a notification to the user and create a watchdog report
         } else {
@@ -148,7 +174,7 @@ export default async function validateSession(req: Request, res: Response) {
 
 
 
-
+// SAVE VISIT IN THE AUDIT DATABASE
 
 
     // Proceed with validation
@@ -172,37 +198,26 @@ export default async function validateSession(req: Request, res: Response) {
 
     if (true) { // isUserAgentBot
         const role = PlatformPermissionsService.getRole("robot");
-        const geoIpFirstFetch = sessionDatabaseResult.success && sessionDatabaseResult.rows[0]?.geoIpFirstFetch
         const now = DateTime.now().toUTC().toISO();
 
         // REPLACE WITH UPDATE WHERE ID AND TOKEN IF TOKEN IS VALID
         const result = db.sessions.query(
-            `INSERT INTO sessions (
-                geoIpFirstFetch,
-                geoIpLatestFetch,
-                geoIpLatestFetchDate,
-                userAgent,
-                inviteCode,
-                socketId,
-                isConnected,
-                lastConnected
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(socketId) DO UPDATE SET
-                geoIpLatestFetch = excluded.geoIpLatestFetch,
-                geoIpLatestFetchDate = excluded.geoIpLatestFetchDate,
-                userAgent = excluded.userAgent,
-                inviteCode = excluded.inviteCode,
-                isConnected = excluded.isConnected,
-                lastConnected = excluded.lastConnected`,
+            `UPDATE sessions SET
+                geoIpLatestFetch = ?,
+                geoIpLatestFetchDate = ?,
+                userAgent = ?,
+                inviteCode = ?,
+                isConnected = ?,
+                lastConnected = ?
+            WHERE socketId = ?`,
             [
-                geoIpFirstFetch || JSON.stringify(geoIpLatestFetchNew),
                 JSON.stringify(geoIpLatestFetchNew),
                 now,
                 JSON.stringify(formattedUserAgent),
                 inviteCode,
-                clientSocketId,
                 1,
-                now
+                now,
+                clientSocketId
             ]
         );
 
@@ -230,8 +245,8 @@ export default async function validateSession(req: Request, res: Response) {
         log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            geoIpFirstFetch: geoIpFirstFetch ? JSON.parse(geoIpFirstFetch as string) : geoIpFirstFetch,
-            geoIpLatestFetch,
+            geoIpFirstFetch: JSON.parse(sessionDatabaseResult.rows[0]?.geoIpFirstFetch as string),
+            geoIpLatestFetch: geoIpLatestFetchNew,
             userAgent: formattedUserAgent,
             inviteCode,
             socketId: clientSocketId,
@@ -355,7 +370,7 @@ db.sessions.query(
         isTerminated INTEGER DEFAULT 0,
         totalDuration INTEGER DEFAULT 0,
         isConnected INTEGER DEFAULT 0,
-        firstConnected TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        firstConnected TEXT DEFAULT (strftime("%Y-%m-%dT%H:%M:%fZ","now")),
         lastConnected TEXT
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -370,6 +385,7 @@ db.sessions.query(
     ]
 );
 
+// DISCONNECT SESSION USING WEBSOCKET
 
 
         // If no existing session, create a new one
