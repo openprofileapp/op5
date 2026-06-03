@@ -99,7 +99,7 @@ db.accounts.transaction(q => {
                 d.locale,
                 d.timezone,
                 d.suspended,
-                d.created_date
+                d.created_date // UPDATE ALL DATES TO USE ISO ON ALL DB MIGRATIONS
             ]
         );
     }
