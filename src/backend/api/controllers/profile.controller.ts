@@ -6,10 +6,12 @@ import getPublishedProfiles from '../services/getPublishedProfiles.service.js';
 export const getProfiles = (req: Request, res: Response) => {
     const { id, visibility } = req.query;
 
+    // MAYBE COMBIE FOR SMART FILTERING
+
     if (id) {
         if (typeof id !== 'string') {
             return res.status(400).json({
-                error: 'Invalid id'
+                error: 'Invalid profile id'
             });
         }
 
