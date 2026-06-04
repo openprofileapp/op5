@@ -9,6 +9,9 @@ export type ClientConfig = {
     theme: Config["theme"];
     metadata: Config["metadata"];
     domains: Config["domains"];
+    integrations: {
+        oauth2: Config["integrations"]["oauth2"]
+    }
 };
 
 declare global {
