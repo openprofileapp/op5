@@ -17,7 +17,8 @@ import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
-import sessionRoutes from "./routes/session.routes.js";
+import sessionRoute from "./routes/session.route.js";
+import loginRoutes from "./routes/login.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -35,7 +36,7 @@ export const log = new Logger({
     saveAllToFile: config.debug.logger.api
 });
 
-export const snowflake = new Snowflake(config.generation.epoch);
+export const snowflake = new Snowflake(config.generation.epoch, 0);
 export const wc = new WebClient({
     crawler: config.crawler,
     useSecureSSL: config.isProduction
@@ -156,8 +157,8 @@ Routes
 
 app.use("/", router);
 
-router.use("/login", sessionRoutes);
-
+router.use("/session", sessionRoute);
+router.use("/login", loginRoutes);
 
 // login = creates the session 
 //
