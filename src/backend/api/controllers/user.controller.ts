@@ -9,7 +9,7 @@ export const getUsers = (req: Request, res: Response) => {
     if (id) {
         if (typeof id !== 'string') {
             return res.status(400).json({
-                error: 'Invalid id'
+                error: 'Invalid user id'
             });
         }
 
