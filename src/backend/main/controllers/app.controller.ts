@@ -13,7 +13,10 @@ export const renderApp = async (req: Request, res: Response) => {
         useNerdFonts: config.useNerdFonts,
         theme: config.theme,
         metadata: config.metadata,
-        domains: config.domains
+        domains: config.domains,
+        integrations: {
+            oauth2: config.integrations.oauth2
+        }
     }
 
     try {
