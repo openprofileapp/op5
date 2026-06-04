@@ -7,7 +7,7 @@ import haversine from "haversine-distance"
 import { AdvancedError, URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
-import { db, log } from "../server.js";
+import { db, log, wc } from "../server.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
 
@@ -59,22 +59,29 @@ export default async function validateSession(req: Request, res: Response) {
             sameSite: "none",
             domain: `.${url.domain}`,
             path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
         });
     }
 
     // If invite is valid, save as cookie
     if (req.query?.invite && req.query?.invite !== req.cookies?.inviteCode) {
 
-        // VALIDATE INVITE FROM BD
-        // CALL INVITES API HERE
+        const inviteData = await wc.callAPI(
+            `https://${config.domains.api}/v2/invites?code=${req.query.invite}`
+        );
 
-        res.cookie("inviteCode", req.query.invite, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: `.${url.domain}`,
-            path: "/",
-        });
+        if ( // ADD A TYPE FOR THIS CALL BASED ON THE VERSION
+            !inviteData?.isSuspended && inviteData?.isUnlimited ||
+            !inviteData?.isSuspended && inviteData?.usesLeft > 0
+        ) {
+            res.cookie("inviteCode", req.query.invite, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+            });
+        }
     }
 
     // If session is invalid or suspicious, terminate it, delete cookies, then recall validation
@@ -121,9 +128,8 @@ export default async function validateSession(req: Request, res: Response) {
             ) / 1609.344;
         }
 
+        // COMBINE THIS WITH OS AND BROWSER
         suspicionScore = distanceInMiles;
-
-        // CHECK IF geoIpLatestFetchNew is within certain miles of geoIpLatestFetchOld else terminate
     }
 
     if (
@@ -196,7 +202,7 @@ export default async function validateSession(req: Request, res: Response) {
         })
     };
 
-    if (true) { // isUserAgentBot
+    if (true) { // isUserAgentBot (if bot, can't login/access account)
         const role = PlatformPermissionsService.getRole("robot");
         const now = DateTime.now().toUTC().toISO();
 
@@ -209,7 +215,8 @@ export default async function validateSession(req: Request, res: Response) {
                 inviteCode = ?,
                 isConnected = ?,
                 lastConnected = ?
-            WHERE socketId = ?`,
+            WHERE socketId = ?
+            LIMIT 1`,
             [
                 JSON.stringify(geoIpLatestFetchNew),
                 now,
@@ -245,20 +252,34 @@ export default async function validateSession(req: Request, res: Response) {
         log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            geoIpFirstFetch: JSON.parse(sessionDatabaseResult.rows[0]?.geoIpFirstFetch as string),
-            geoIpLatestFetch: geoIpLatestFetchNew,
-            userAgent: formattedUserAgent,
-            inviteCode,
-            socketId: clientSocketId,
+            // geoIpFirstFetch: JSON.parse(sessionDatabaseResult.rows[0]?.geoIpFirstFetch as string),
+            // geoIpLatestFetch: geoIpLatestFetchNew,
+            // userAgent: formattedUserAgent,
+            // inviteCode,
+            // socketId: clientSocketId,
             permissions: {
                 value: role.value,
                 array: role.array
             }
         };
     } else {
-        // CHECK IF THE USER LIMIT IS MATCHED USING WEBSOCKET CLIENT COUNT
+        // login({ userId });
 
-        // login(clientToken)
+        // IF THE USER LOGS IN AT LEAST ONCE IN THE LAST 15 DAYS AND SESSION IS SOFT-TERMINATION (BEGINS DAY 20), 
+        // REFRESH THE TOKEN INSTEAD OF EXPIRING IT IF WITHIN VALID SPACE COMPARED TO A HARD-TERMINATON
+
+        // res.cookie("token", clientTokenNew, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "none",
+        //     domain: `.${url.domain}`,
+        //     path: "/",
+        //     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+        // });
+
+        // EXTERNALLY IF ACCOUNT DOESN'T EXIST, CALL REGISTER ACCOUNT ELSE LOGIN
+        // login({ method: "google", id: externalId });
+        // registerAccount(clientToken);
 
         // THEN return the rest of the login with the geo and perms and stuff
     }
