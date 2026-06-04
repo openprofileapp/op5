@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS uses (
-    user TEXT PRIMARY KEY,
+    userId TEXT PRIMARY KEY,
     code TEXT NOT NULL,
     date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
