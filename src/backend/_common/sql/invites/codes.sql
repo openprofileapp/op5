@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS codes (
-    owner TEXT NOT NULL,
+    ownerId TEXT NOT NULL,
     code TEXT PRIMARY KEY,
     usesLeft INTEGER DEFAULT 0,
     isUnlimited INTEGER NOT NULL DEFAULT 0
