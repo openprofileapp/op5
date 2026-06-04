@@ -189,6 +189,16 @@ export const config = {
 
     // Third-party applications
     integrations: {
+        oauth2: {
+            google: "173110862947-3jrkouleg7m08eu8qe5rqr2sp355bdn2.apps.googleusercontent.com",
+            microsoft: "03fe61da-efa0-454b-afad-773fafd71239",
+            apple: "",
+            x: "eUQweG5FWjdDMFV2NUhTTUFwSDE6MTpjaQ",
+            facebook: "835575549270309",
+            reddit: "",
+            discord: "895502984363003946",
+            github: "Ov23liCcfxitn4zDGE7c"
+        },
         discord: {
             presence: {
                 status: "online", // online | idle | dnd | invisible
