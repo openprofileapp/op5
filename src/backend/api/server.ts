@@ -17,6 +17,7 @@ import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
 import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
 import userRoute from './routes/user.route.js';
 import profileRoute from './routes/profile.route.js';
+import inviteRoute from './routes/invite.route.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -228,7 +229,7 @@ db.invites.transaction(q => {
     for (const d of mdbPartnersCodeData.rows) {
         q(
             `INSERT INTO codes (
-                owner,
+                ownerId,
                 code,
                 isUnlimited,
                 createdDate
@@ -252,7 +253,7 @@ db.invites.transaction(q => {
     for (const d of mdbPartnersUsesData.rows) {
         q(
             `INSERT INTO uses (
-                user,
+                userId,
                 code,
                 date
             ) VALUES (?, ?, ?)`,
@@ -273,7 +274,7 @@ Create instances
 
 const app = express();
 app.set('json spaces', 2);
-const v1 = Router();
+const v2 = Router();
 
 export const log = new Logger({
     path: "/logs/api",
@@ -281,7 +282,7 @@ export const log = new Logger({
     saveAllToFile: config.debug.logger.api
 });
 
-export const snowflake = new Snowflake(config.generation.epoch);
+export const snowflake = new Snowflake(config.generation.epoch, 1);
 export const wc = new WebClient({
     crawler: config.crawler,
     database: db.metadata,
@@ -305,10 +306,11 @@ Routes
 ———————————————————————————————————————————————————————————————— 
 */
 
-app.use('/v1', v1);
+app.use('/v2', v2);
 
-v1.use('/users', userRoute);
-v1.use('/profiles', profileRoute);
+v2.use('/users', userRoute);
+v2.use('/profiles', profileRoute);
+v2.use('/invites', inviteRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————
