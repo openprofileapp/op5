@@ -9,7 +9,7 @@ Features here are subject to change as development progresses and may release so
 
 | Feature | Description | Status |
 | - | - | - |
-| Release Ready | Ports the backend to TypeScript and polishes everything so its release-ready with tighter security measures. The UI is ported to React and Tailwind using daisyUI for a smoother experience with more modern visuals, animations, and complete moble support. It also updates the versioning system from `BASE.0.DAY.PATCH-RELEASE` (v5.0.237.2-beta) to `BASE.MAJOR.MINOR.PATCH-RELEASE` (v5.1.0-beta). | In-progress |
+| Release Ready | Ports the backend to TypeScript and polishes everything so its release-ready with tighter security measures. The UI is ported to React and Tailwind using daisyUI for a smoother experience with more modern visuals, animations, and complete moble support. It also updates the versioning system from `5.0.DAY.PATCH-RELEASE` (v5.0.237.2-beta) to `5.MAJOR.MINOR.PATCH-RELEASE` (v5.1.0-beta). | In-progress |
 | Better Search | Adds categories, more filters, and a better search page. | In-progress |
 | Profile Tabs | The profile editor and viewer gets completely redone to support categorized main and sub tabs instead of infinite scrolling with jump-points. | Planned |
 | Collections | Formerly "almanacs", a collection can be used to make official or unofficial groups of profiles and projects. Automatic "Likes" and "Favorites" collections will be updated based on your interactions with assets. Collections can be followed. | Planned |
