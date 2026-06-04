@@ -43,6 +43,8 @@ if owner of profile doesn't have premium, but they invite someone to help manage
 
 if a keyword is blocked, tell author they can't use that
 
+add ratelimit
+
 add subowner to profiles
 eg: owner = project; subowner = user (ONLY ON PROJECTS)
 
