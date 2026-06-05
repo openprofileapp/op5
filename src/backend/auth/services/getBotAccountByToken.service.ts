@@ -25,7 +25,6 @@ export default function getBotAccountByToken(token: string) {
 
             if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
             if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
-
         } else {
             throw new AdvancedError({ 
                 code: 500, 
