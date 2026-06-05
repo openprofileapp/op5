@@ -5,6 +5,8 @@ import { AdvancedError } from 'kage-library';
 import { log, wc } from '../server.js';
 import getEnv from '../../../_common/helpers/getEnv.js';
 import { config } from '../../../../app.config.js';
+import getUserAccountByExternalId from '../services/getUserAccountByExternalId.service.js';
+import getUserAccountByEmail from '../services/getUserAccountByEmail.service.js';
 
 type GoogleTokenResponse = {
     access_token: string;
@@ -26,6 +28,14 @@ type GoogleAccountResponse = {
 
 export const googleLogin = async (req: Request, res: Response) => {
     const { code } = req.query;
+    let googleAccount: GoogleAccountResponse = {
+        sub: "",
+        name: "",
+        given_name: "",
+        picture: "",
+        email: "",
+        email_verified: false
+    };
 
     if (typeof code !== "string") {
         throw new AdvancedError({ code: 400, message: "Invalid authorization code" });
@@ -53,24 +63,52 @@ export const googleLogin = async (req: Request, res: Response) => {
         );
 
         // Fetch external account
-        const googleAccount: GoogleAccountResponse = await wc.callAPI(
+        googleAccount = await wc.callAPI(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             { auth: `Bearer ${token.access_token}` }
         )
 
-        // Login or register account
-
-
-        // const account = getUserAccountByExternalId("google", googleAccount.sub);
-        // if no account: const account = registerUserAccountByExternalId("google", googleAccount);
-        // ^ calls getUserAccountByExternalId inside of it after register
+        // Fetch account
+        const account = getUserAccountByExternalId("google", googleAccount.sub);
 
         return res.status(200).json({
-            googleAccount
+            // SET COOKIES INSTEAD OF SENDING DATA AND RETURN TO HOME PAGE BASED ON THE REDIRECT
+            account
         });
 
     } catch (error) {
         if (error instanceof AdvancedError) {
+            // Email fallback if Google connection id is invalid
+            if (googleAccount.email_verified && error.code === 404) {
+                try {
+                    const account = getUserAccountByEmail(googleAccount.email);
+
+                    return res.redirect(`https://${config.domains.main}/account/onboarding`);
+                    // SET COOKIES INSTEAD OF SENDING DATA AND RETURN TO HOME PAGE BASED ON THE REDIRECT
+                    // account
+                } catch (fallbackError) {
+                    if (fallbackError instanceof AdvancedError) {
+
+                        // IF DELETED, RESTORE ACCOUNT AFTER CLIENT PROMPT, ELSE REGISTER A NEW ONE
+
+                        // Login or register account
+
+                        // if no account: const account = registerUserAccountByExternalId("google", { displayName: googleAccount.name });
+                        // ^ calls getUserAccountByExternalId inside of it after register
+
+                        // CALL logAudit() or smth on connection
+
+                        // SET COOKIES INSTEAD OF AND RETURN TO ACCOUNT/ONBORDING THEN BASED ON THE REDIRECT GO
+                        // IF ONBOARDING COMPLETE, ON PAGE VISIT, GO TO account/settings. If not completed onboarding, force back there
+
+                        log.db.error(fallbackError.stack).save();
+                        return res.status(fallbackError.code).json(fallbackError.message);
+                    } else {
+                        console.log("Unknown error:", fallbackError);
+                    }
+                }
+            }
+
             log.db.error(error.stack).save();
             return res.status(error.code).json(error.message);
         } else {
