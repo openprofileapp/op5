@@ -42,7 +42,7 @@ db.characters.transaction(q => {
 });
 
 db.users.transaction(q => {
-    if (!q("SELECT * FROM public LIMIT 1").success) { q(`${config.folders.sql}/users/public.sql`); };
+    if (!q("SELECT * FROM users LIMIT 1").success) { q(`${config.folders.sql}/users/users.sql`); };
 });
 
 db.badges.transaction(q => {
@@ -128,7 +128,7 @@ db.users.transaction(q => {
 
     for (const d of mdbAccountsPublicData.rows) {
         q(
-            `INSERT INTO public (
+            `INSERT INTO users (
                 id,
                 username,
                 usernameOld,
