@@ -26,7 +26,7 @@ export default function LoginModal() {
                 <form method="dialog">
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
-                <h3 className="font-bold text-2xl text-center">Register an Account</h3>
+                <h3 className="font-bold text-2xl text-center">Login / Register</h3>
                 <p className="pb-5 py-4 text-sm text-center">Become a next generation author with OpenProfile!</p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
