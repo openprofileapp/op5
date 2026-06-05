@@ -10,6 +10,7 @@ export type UserAccount = {
     timezone: string;
     earnedRevenueUSD: number;
     hasReadTerms: boolean;
+    hasCompletedOnboarding: boolean;
     lastActive: string;
     isSuspended: boolean;
     isDeleted: boolean;
