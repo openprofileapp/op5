@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     earnedRevenueUSD INTEGER DEFAULT 0,
     hasReadTerms INTEGER NOT NULL DEFAULT 0
         CHECK (hasReadTerms IN (0, 1)),
+    hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0
+        CHECK (hasCompletedOnboarding IN (0, 1)),
     isSuspended INTEGER NOT NULL DEFAULT 0
         CHECK (isSuspended IN (0, 1)),
     isDeleted INTEGER NOT NULL DEFAULT 0
