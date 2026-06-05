@@ -7,19 +7,38 @@ import Footer from "../components/Footer.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import ProjectCard from "../components/ProjectCard.js";
+import UserCard from "../components/UserCard.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
 export default function SearchProfiles() {
     const { t, ready } = useTranslation();
 
+    const [users, setUsers] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const res = await fetch(`https://${window.config.domains.api}/v2/users`);
+                const data = await res.json();
+
+                setUsers(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    useEffect(() => {
         const fetchProfiles = async () => {
             try {
-                const res = await fetch(`https://${window.config.domains.api}/v1/profiles?visibility=public`);
+                const res = await fetch(`https://${window.config.domains.api}/v2/profiles`);
                 const data = await res.json();
 
                 setProfiles(data);
@@ -109,7 +128,7 @@ export default function SearchProfiles() {
                                 name="Dragonights"
                                 slug="dragonights"
                                 owner={{ id: "5019646586243236", username: "j9studios", name: "J9 Studios", isVerified: true, type: "publisher" }}
-                                status="Follow to keep up with the J9 universe."
+                                status="Follow to keep up with the J9 universe. Follow to keep up with the J9 universe."
                                 about="Dragonights is an upcoming 3D-animated sci-fi action TV series set in the J9 Universe. Rated TV-14 for fantasy violence."
                                 interactions={{ views: { count: 481, interacted: true }, follows: { count: 6, interacted: true }, profiles: { count: 52, interacted: true }, fanflairs: { count: 5 } }}
                             />
@@ -140,26 +159,56 @@ export default function SearchProfiles() {
                         </>
                     )}
 
-                    {!loading && profiles.map((p) => (
-                        <CharacterCard
-                            id={p.id}
+                    {!loading && users.map((d) => (
+                        <UserCard
+                            id={d.id}
                             aura={{
-                                isEnabled: p.isAuraEnabled,
-                                type: p.auraType,
-                                primary: p.auraPrimary,
-                                secondary: p.auraSecondary
+                                isEnabled: d.isAuraEnabled,
+                                type: d.auraType,
+                                primary: d.auraPrimary,
+                                secondary: d.auraSecondary
                             }}
-                            avatar={`https://cdn.openprofile.app${p.avatar}`}
-                            name={p.displayName}
-                            slug={p.slug}
+                            avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
+                            banner={d.banner ? `https://cdn.openprofile.app${d.banner}` : ""}
+                            name={d.displayName}
+                            username={d.username}
+                            status={d.status}
+                            about={d.about}
+                            isExplicit={d.isExplicit}
+                            visibility={d.visibility}
+                            interactions={{
+                                views: {
+                                    count: 0,
+                                    interacted: true
+                                },
+                                likes: {
+                                    count: 0,
+                                    interacted: false
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {!loading && profiles.map((d) => (
+                        <CharacterCard
+                            id={d.id}
+                            aura={{
+                                isEnabled: d.isAuraEnabled,
+                                type: d.auraType,
+                                primary: d.auraPrimary,
+                                secondary: d.auraSecondary
+                            }}
+                            avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
+                            name={d.displayName}
+                            slug={d.slug}
                             owner={{
-                                id: p.owner.id,
-                                slug: p.owner.username,
-                                name: p.owner.displayName,
-                                isVerified: p.owner?.badges?.some(b => b.type === "verified"),
+                                id: d.owner.id,
+                                slug: d.owner.username,
+                                name: d.owner.displayName,
+                                isVerified: d.owner?.badges?.some(b => b.type === "verified"),
                                 type: "user" // p.owner.type
                             }}
-                            about={p.about}
+                            about={d.about}
                             interactions={{
                                 views: {
                                     count: 0,
