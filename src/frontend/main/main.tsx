@@ -16,6 +16,8 @@ import Browse from "./pages/Browse.js"
 import Partners from "./pages/Partners.js"
 import Premium from "./pages/Premium.js"
 
+import Onboarding from "./pages/account/Onboarding.js"
+
 import ComingSoon from "./pages/ComingSoon.js"
 import NotFound from "./pages/NotFound.js"
 
@@ -32,6 +34,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                         <Route path="/partners" element={<Partners />} />
                         <Route path="/premium" element={<Premium />} />
                         <Route path="/popular" element={<Browse />} />
+
+                        <Route path="/account/onboarding" element={<Onboarding />} />
                         
                         <Route path="/404" element={<NotFound />} />
                         <Route path="*" element={<Navigate to="/404" replace />} />
