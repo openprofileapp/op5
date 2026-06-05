@@ -338,7 +338,7 @@ export default function CharacterCard({
                 <div className="relative top-45 flex flex-col h-46 w-full z-2">
                     <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                         <div className="flex min-w-0 items-center overflow-hidden">
-                            <span className="font-bold text-center truncate w-full truncate leading-snug">
+                            <span className="font-bold text-center w-full truncate leading-snug">
                                 {name || slug || id}
                             </span>
                         </div>
