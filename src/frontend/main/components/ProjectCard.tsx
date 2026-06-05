@@ -252,7 +252,6 @@ export default function ProjectCard({
                             </Link>
                         </li>
                     </ul>
-                    : ""
                 </>
             )}
 
@@ -304,7 +303,7 @@ export default function ProjectCard({
                 }
 
                 { status ? 
-                    <div className="absolute glass bg-[#00000085] rounded p-3 max-w-[394px] z-1">
+                    <div className="absolute glass bg-[#00000085] rounded p-2 max-w-[394px] z-1">
                         <div className="text-white text-xs line-clamp-3">
                             { status }
                         </div>
@@ -320,7 +319,7 @@ export default function ProjectCard({
                     <div className="flex items-center justify-center w-full">
                         <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                             <div className="flex min-w-0 items-center overflow-hidden">
-                                <span className="font-bold text-center truncate w-full truncate leading-snug">
+                                <span className="font-bold text-center w-full truncate leading-snug">
                                     {name || slug || id}
                                 </span>
                             </div>
