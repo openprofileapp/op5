@@ -1,15 +1,8 @@
 CREATE TABLE IF NOT EXISTS connections (
-    user TEXT NOT NULL,
-    name TEXT NOT NULL,
-    text TEXT,
-    id TEXT NOT NULL, -- Connection ID can be a website URL for custom links
-    verified INTEGER DEFAULT 0,
-    visibility TEXT DEFAULT 'public',
-    mfa_enabled INTEGER DEFAULT 0,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP
+    userId TEXT NOT NULL,
+    connectionId TEXT PRIMARY KEY NOT NULL,
+    connectionName TEXT NOT NULL,
+    isMfa INTEGER NOT NULL DEFAULT 0
+        CHECK (isMfa IN (0, 1)),
+    connectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
-
--- IF VERIFIED; MOVE TO PRVATE ACCUNTS/CONNECTIONS
--- IF NOT VERIFIED; MOVE TO PUBLIC USERS/LINKS
-
--- CHECK .OLD FOR DATA
