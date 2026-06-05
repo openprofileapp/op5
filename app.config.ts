@@ -27,7 +27,7 @@ QUICK CONFIG
 const isProduction = false;
 
 // version name is editable in ./src/assets/locales/*.json
-const semver = "5.0.300"; // major.minor.patch
+const semver = "5.1.0"; // 5.major.minor.patch
 const stage = "beta"; // prealpha | alpha | beta | rc | release
 const build = "build-28954ec"; // DO NOT TOUCH, AUTO-GENERATED
 const buildDate = "2026-05-08T02:44:10.654Z"; // DO NOT TOUCH, AUTO-GENERATED
