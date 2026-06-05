@@ -19,6 +19,7 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import sessionRoute from "./routes/session.route.js";
 import loginRoutes from "./routes/login.routes.js";
+import PlatformPermissionsService from "../_common/services/platformPermissions.service.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -64,6 +65,8 @@ db.sessions.transaction(q => {
 db.accounts.transaction(q => {
     if (!q("SELECT * FROM users LIMIT 1").success) { q(`${config.folders.sql}/accounts/users.sql`); };
     if (!q("SELECT * FROM bots LIMIT 1").success) { q(`${config.folders.sql}/accounts/bots.sql`); };
+    if (!q("SELECT * FROM connections LIMIT 1").success) { q(`${config.folders.sql}/accounts/connections.sql`); };
+    if (!q("SELECT * FROM emails LIMIT 1").success) { q(`${config.folders.sql}/accounts/emails.sql`); };
 });
 
 /* 
@@ -96,7 +99,7 @@ db.accounts.transaction(q => {
             [
                 d.id,
                 d.email,
-                d.permissions,
+                PlatformPermissionsService.getRole("member").value,
                 d.locale,
                 d.timezone,
                 d.suspended,
@@ -138,6 +141,64 @@ db.accounts.transaction(q => {
     }
 });
 
+// accounts.db/connections -> accounts.sqlite/connections
+const mdbAccountsConnectionsData = mdb.accounts.query("SELECT * from connections");
+
+db.accounts.transaction(q => {
+    if (!mdbAccountsConnectionsData.success) return;
+
+    for (const d of mdbAccountsConnectionsData.rows) {
+        if (!d.verified) continue;
+
+        q(
+            `INSERT INTO connections (
+                userId,
+                connectionId,
+                connectionName,
+                isMfa,
+                connectedDate
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                d.user,
+                d.id,
+                d.name,
+                d.mfa_enabled,
+                d.date
+            ]
+        );
+    }
+});
+
+// accounts.db/emails -> accounts.sqlite/emails
+const mdbAccountsEmailsData = mdb.accounts.query("SELECT * from emails");
+
+db.accounts.transaction(q => {
+    if (!mdbAccountsEmailsData.success) return;
+
+    for (const d of mdbAccountsEmailsData.rows) {
+        q(
+            `INSERT INTO emails (
+                userId,
+                email,
+                isConfirmed,
+                isMfa,
+                isSubscribedToNewsletters,
+                isSubscribedToAccountNotifications,
+                isSubscribedToPromotionalMaterial
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                d.user,
+                d.email,
+                d.confirmed,
+                d.mfa_enabled,
+                d.newsletter_updates,
+                d.newsletter_notifications,
+                d.newsletter_promotional
+            ]
+        );
+    }
+});
+
 /* 
 ————————————————————————————————————————————————————————————————
 Middlewares
@@ -158,7 +219,7 @@ Routes
 app.use("/", router);
 
 router.use("/session", sessionRoute);
-router.use("/login", loginRoutes);
+router.use("/login", loginRoutes); // ADD hcaptcha REACT TO LOGIN
 
 // login = creates the session 
 //
