@@ -225,11 +225,11 @@ add a unique green scheme for bug hunters
 Clicking card will show a popup before reading it showing more information, same info shown when visiting the lander page
 
 alice's accont can't be logged-into
-
+ensure all types end with Type at the end of the var, fix all
 prevent bots from creating a lot of profiles without a verification; anti-AI
 
 if a profile is "in-progress" and no update has been done for 30 days, update it to "incomplete"
-
+add a visibility called "visible" (moderator force visibility public)
 have a blacklist function on the backend to check for blacklisted words on all profile saves
 
 have a copylink option in the share popup
