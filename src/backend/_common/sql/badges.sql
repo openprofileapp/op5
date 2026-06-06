@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS badges (
     id TEXT NOT NULL, -- User or project id
-    type TEXT NOT NULL
-        CHECK (type IN ('official', 'staff', 'verified', 'contributor', 'entomologist', 'precursor', 'premium', 'promoted')),
+    type TEXT NOT NULL,
     comment TEXT, -- The reason or milestone that earned the badge
     visibility TEXT NOT NULL DEFAULT 'public'
         CHECK (visibility IN ('public', 'followers', 'friends', 'private', 'hidden')),
