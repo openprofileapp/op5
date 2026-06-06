@@ -159,6 +159,8 @@ export default function SearchProfiles() {
                         </>
                     )}
 
+                    {/* Fix the inputs; eg: name -> displayName */}
+
                     {!loading && users.map((d) => (
                         <UserCard
                             id={d.id}
@@ -173,6 +175,7 @@ export default function SearchProfiles() {
                             name={d.displayName}
                             username={d.username}
                             status={d.status}
+                            badges={d.badges}
                             about={d.about}
                             isExplicit={d.isExplicit}
                             visibility={d.visibility}
