@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 
-import getPublicUserById from '../services/getPublicUserById.service.js';
+import getPublicUserByIdOrUsername from '../services/getPublicUserByIdOrUsername.service.js';
 import getAllUsers from '../services/getAllUsers.service.js';
 
 export const getUsers = (req: Request, res: Response) => {
@@ -14,7 +14,7 @@ export const getUsers = (req: Request, res: Response) => {
         }
 
         res.json({
-            ...getPublicUserById(id)
+            ...getPublicUserByIdOrUsername(id)
         });
     } else  {
         res.json(getAllUsers());
