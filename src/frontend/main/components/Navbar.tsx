@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
-;
 
-export default function Navbar() {
+type Props = {
+    isBannerPage?: boolean;
+};
+
+export default function Navbar({ isBannerPage = false }: Props) {
     const config = window.config;
 
     const { t, ready } = useTranslation();
@@ -15,14 +18,10 @@ export default function Navbar() {
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [scrolled, setScrolled] = useState(false);
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const location = useLocation();
-    const isHome = location.pathname === "/";
-
+    
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
-        if (!isHome) {
+        if (!isBannerPage) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setScrolled(true);
             return;
@@ -37,7 +36,7 @@ export default function Navbar() {
         window.addEventListener("scroll", handleScroll);
 
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [isHome]);
+    }, [isBannerPage]);
 
     return (
         <>
