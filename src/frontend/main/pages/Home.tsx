@@ -15,7 +15,7 @@ export default function Home() {
         <>  
             <Metadata />
             
-            <Navbar />
+            <Navbar isBannerPage={true} />
 
             <div className="hero bg-base-200 h-150">
                 <div
