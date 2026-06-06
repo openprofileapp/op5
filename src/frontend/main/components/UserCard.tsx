@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
+import Badges from "./Badges.js";
 
 type Props = {
     isPreview?: boolean;
@@ -16,6 +17,7 @@ type Props = {
     name?: string;
     username?: string;
     status?: string;
+    badges?: string[];
     about?: string;
     isExplicit?: boolean;
     visibility?: string;
@@ -54,6 +56,7 @@ export default function UserCard({
     name,
     username,
     status,
+    badges,
     about,
     isExplicit,
     visibility,
@@ -228,7 +231,7 @@ export default function UserCard({
                 </>
             )}
 
-            <Component to={`/${username || id}`}>
+            <Component to={`/user/${username || id}`}>
                 { banner ?
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover"
@@ -284,7 +287,7 @@ export default function UserCard({
                 }
 
                 <div 
-                    className="absolute bg-success rounded-full h-6 w-6 top-19 left-19 border-4 border-base-100 z-1 tooltip tooltip-top"
+                    className="absolute bg-success rounded-full h-6 w-6 top-19 left-19 border-4 border-base-100 z-2 tooltip tooltip-top"
                     data-tip="Online"
                 />
 
@@ -296,9 +299,9 @@ export default function UserCard({
                     </div>
                     : ""
                 }
-            
+
                 <div className="relative top-22 flex flex-col h-46 w-full z-2">
-                    <div className="flex gap-2">
+                    <div className="flex justify-between gap-2">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold truncate leading-snug">
                                 {name || username || id} 
@@ -383,17 +386,21 @@ export default function UserCard({
                             </button>
                             : ""
                         }*/}
+
+                        <div className="ml-auto flex shrink-0">
+                            <Badges badges={badges} />
+                        </div>
                     </div>
 
                     <div className="flex min-w-0 mt-1 items-center overflow-hidden">
                         <span className="truncate text-xs leading-snug">
-                            @{ username } • {formatNumber(interactions?.follows?.count || 0).short} Followers
+                            @{username} • {formatNumber(interactions?.follows?.count || 0).short} Followers
                         </span>
                     </div>
 
                     <div className="text-xs line-clamp-3 my-2">
                         {formattedAbout}
-                    </div>            
+                    </div>
                 </div>
             </Component>
         </div>
