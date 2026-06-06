@@ -190,15 +190,28 @@ db.users.transaction(q => {
     }
 });
 
-// accounts.db/badges -> badges.sqlite/badges
 const mdbAccountsBadgesData = mdb.accounts.query("SELECT * from badges");
 
 db.badges.transaction(q => {
     if (!mdbAccountsBadgesData.success) return;
 
-    for (const d of mdbAccountsBadgesData.rows) {
+    let presursorCount = 0;
+
+    const rows = [...mdbAccountsBadgesData.rows].sort(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    for (const d of rows) {
         if (d.type === "admin" || d.type === "moderator") {
             d.type = "staff";
+        }
+
+        if (d.type === "precursor") {
+            presursorCount++;
+
+            d.text = `Registration #${presursorCount}`;
         }
 
         q(
@@ -213,8 +226,8 @@ db.badges.transaction(q => {
                 d.user,
                 d.type,
                 d.text,
-                d.visibility,
-                d.date // UPDATE ALL DATES TO USE ISO ON ALL DB MIGRATIONS
+                d.visibility || "public",
+                d.date
             ]
         );
     }
