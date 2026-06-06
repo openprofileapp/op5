@@ -1,5 +1,5 @@
 import { db } from "../server.js";
-import getPublicUserById from "./getPublicUserById.service.js";
+import getPublicUserById from "./getPublicUserByIdOrUsername.service.js";
 
 export default function getPublishedProfiles(visibility: string = "public") {
     const result = db.characters.query("SELECT * FROM published WHERE visibility = ?", [visibility]);
