@@ -356,7 +356,9 @@ export default function ProjectCard({
                         </div>
                     </div>
 
-                    <div className="text-xs line-clamp-6 my-2">{about || "This project does not have a description."}</div>            
+                    <div className="text-xs line-clamp-6 my-2">
+                        {about || "This project does not have a description."}
+                    </div>            
                 </div>
 
                 <div className="flex flex-row gap-8 justify-center w-full">
