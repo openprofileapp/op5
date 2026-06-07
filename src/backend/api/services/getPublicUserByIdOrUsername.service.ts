@@ -10,8 +10,15 @@ export default function getPublicUserByIdOrUsername(id?: string) {
 
     if (!badgesResult.success) return { message: "An error occurred while fetching badges" }
 
+    const linksResult = db.links.query("SELECT * FROM links WHERE id = ?", [userResult.rows[0].id]);
+
+    if (!linksResult.success) return { message: "An error occurred while fetching links" }
+
     return {
         ...userResult.rows[0],
-        badges: badgesResult.rows
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        badges: badgesResult.rows.map(({ id, ...badge }) => badge),
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        links: linksResult.rows.map(({ id, ...link }) => link),
     };
 }
