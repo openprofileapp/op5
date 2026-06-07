@@ -62,9 +62,7 @@ export default function SearchProfiles() {
             />
             
             <Navbar />
-
-            {/* use border: 1px solid base300 smth on non-aura; */}
-
+            
             <div className="px-4 py-4 md:px-14">
 
                 <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
