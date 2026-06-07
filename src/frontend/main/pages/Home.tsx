@@ -33,9 +33,9 @@ export default function Home() {
                             linear-gradient(
                                 to bottom,
                                 #080808 0%,
-                                #00000000 25%,
-                                #00000000 75%,
-                                #111111 100%
+                                transparent 25%,
+                                transparent 75%,
+                                var(--color-base-200) 100%
                             )
                         `,
                     }}
