@@ -30,7 +30,8 @@ export const db = {
     characters: new Database("data/databases/characters.sqlite"),
     users: new Database("data/databases/users.sqlite"),
     badges: new Database("data/databases/badges.sqlite"),
-    invites: new Database("data/databases/invites.sqlite")
+    invites: new Database("data/databases/invites.sqlite"),
+    links: new Database("data/databases/links.sqlite")
 };
 
 db.metadata.transaction(q => {
@@ -52,6 +53,10 @@ db.badges.transaction(q => {
 db.invites.transaction(q => {
     if (!q("SELECT * FROM codes LIMIT 1").success) { q(`${config.folders.sql}/invites/codes.sql`); };
     if (!q("SELECT * FROM uses LIMIT 1").success) { q(`${config.folders.sql}/invites/uses.sql`); };
+});
+
+db.links.transaction(q => {
+    if (!q("SELECT * FROM links LIMIT 1").success) { q(`${config.folders.sql}/links.sql`); };
 });
 
 /* 
@@ -273,6 +278,36 @@ db.invites.transaction(q => {
             [
                 d.user,
                 d.code,
+                d.date
+            ]
+        );
+    }
+});
+
+// accounts.db/connections -> users.sqlite/links
+const mdbAccountsConnectionsData = mdb.accounts.query("SELECT * from connections");
+
+db.links.transaction(q => {
+    if (!mdbAccountsConnectionsData.success) return;
+
+    for (const d of mdbAccountsConnectionsData.rows) {
+        if (d.verified) continue;
+
+        q(
+            `INSERT INTO links (
+                id,
+                url,
+                name,
+                previewText,
+                visibility,
+                date
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                d.user,
+                d.id,
+                d.name,
+                d.text,
+                d.visibility || "public",
                 d.date
             ]
         );
