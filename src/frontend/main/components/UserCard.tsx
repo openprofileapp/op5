@@ -294,7 +294,7 @@ export default function UserCard({
                 { status ? 
                     <div className="absolute glass bg-[#00000085] rounded p-2 left-30 max-w-[289px] z-1">
                         <div className="text-white text-xs line-clamp-3">
-                            { status }
+                            {status}
                         </div>
                     </div>
                     : ""
@@ -334,10 +334,10 @@ export default function UserCard({
                         */}
                         {visibility !== "friends" && (
                             <button
-                                className="flex gap-2 h-5 p-3 text-xs btn btn-base-200 border-base-300 uppercase"
+                                className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
                                 onClick={() => { closeCreateProjectModal() }}
                             >
-                                <span className="text-sm font-nerdfont">
+                                <span className="text-base font-nerdfont w-3">
                                     {visibility === "public" ? "" : ""}
                                 </span>
                                 {visibility === "public" ? "Follow" : "Request Follow"}
@@ -346,10 +346,10 @@ export default function UserCard({
 
                         {visibility === "friends" && (
                             <button
-                                className="flex gap-2 h-5 p-3 text-xs btn btn-base-200 border-base-300 uppercase"
+                                className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
                                 onClick={() => { closeCreateProjectModal() }}
                             >
-                                <span className="text-sm font-nerdfont">
+                                <span className="text-sm font-nerdfont w-3">
                                     
                                 </span>
                                 Request Friend
@@ -357,17 +357,17 @@ export default function UserCard({
                         )}
 
                         {/*<button
-                            className="flex gap-2 h-5 p-3 text-xs btn btn-success border-success uppercase"
+                            className="flex gap-2 h-7 px-3 text-xs btn btn-success border-success uppercase"
                             onClick={() => { closeCreateProjectModal() }}
                         >
-                            <span className="text-sm font-nerdfont">
+                            <span className="text-sm font-nerdfont w-3">
                                 
                             </span>
                             {visibility === "friends" ? "Request Friend" : "Friends"}
                         </button>*/}
 
                         { isExplicit ? 
-                            <button className="flex gap-2 h-5 p-3 text-xs btn btn-accent border-accent uppercase"
+                            <button className="flex gap-2 h-7 px-3 text-xs btn btn-accent border-accent uppercase"
                                 onClick={() => { closeCreateProjectModal() }}>
                                 <span className="text-sm">
                                     18+
@@ -377,9 +377,9 @@ export default function UserCard({
                         }
 
                         {/*{ visibility !== "public" ? 
-                            <button className="flex gap-2 h-5 p-3 text-xs btn btn-base-200 border-base-300 uppercase"
+                            <button className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
                                 onClick={() => { closeCreateProjectModal() }}>
-                                <span className="text-sm font-nerdfont">
+                                <span className="text-sm font-nerdfont w-3">
                                     
                                 </span>
                                 Private
