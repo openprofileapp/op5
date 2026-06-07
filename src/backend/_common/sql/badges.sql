@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS badges (
         CHECK (visibility IN ('public', 'followers', 'friends', 'private', 'hidden')),
     date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 
-    UNIQUE (id, type) -- Ensure users do not have multiple of the same badges
+    UNIQUE (id, type) -- Ensure users/assets do not have multiple of the same badges
 );
