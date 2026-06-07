@@ -72,6 +72,7 @@
     "pm2": "^6.0.14",
     "react": "^19.2.5",
     "react-advanced-cropper": "^0.20.1",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.2.5",
     "react-helmet-async": "^3.0.0",
     "react-i18next": "^17.0.6",
