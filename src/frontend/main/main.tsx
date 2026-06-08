@@ -22,6 +22,8 @@ import ComingSoon from "./pages/ComingSoon.js"
 import NotFound from "./pages/NotFound.js"
 import UserProfile from "./pages/UserProfile.js"
 
+import Template from "./pages/Template.js"
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
         <HelmetProvider>
@@ -38,7 +40,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
                         <Route path="/account/onboarding" element={<Onboarding />} />
 
-                        <Route path="user/:id" element={<UserProfile />} />
+                        <Route path="old/user/:id" element={<UserProfile />} />
+                        <Route path="user/:id" element={<Template />} />
                         {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
 
                         <Route path="/404" element={<NotFound />} />
