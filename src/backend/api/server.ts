@@ -208,6 +208,13 @@ db.badges.transaction(q => {
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
+    rows.push({
+        user: "8057185762390040",
+        type: "staff",
+        text: "Social Media Manager",
+        date: "2026-05-08T01:53:00Z"
+    });
+
     for (const d of rows) {
         if (d.type === "admin" || d.type === "moderator") {
             d.type = "staff";
@@ -218,6 +225,8 @@ db.badges.transaction(q => {
 
             d.text = `Registration #${presursorCount}`;
         }
+
+        if (d.user === "0000000000000000" && d.type === "staff") continue;
 
         q(
             `INSERT INTO badges (
