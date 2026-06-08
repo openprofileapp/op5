@@ -146,6 +146,10 @@ hr {
     color: #080808
 }
 
+.text-sub {
+    color: #aaaaaa
+}
+
 .mention {
     display: flex;
     position: relative;
@@ -435,7 +439,7 @@ hr {
         background-position: 0px 0px;
     }
     100% {
-        background-position: 100% 320px;
+        background-position: 320px 100%;
     }
 }
 
