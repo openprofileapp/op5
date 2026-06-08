@@ -184,7 +184,8 @@ export const config = {
         auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
         api: isProduction ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
         cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
-        support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app"
+        support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
+        nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app"
     },
 
     // Third-party applications
