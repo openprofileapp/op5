@@ -13,7 +13,7 @@ import {
 } from "../../scripts/oauth2.js";
 
 export default function LoginModal() {
-    const { ready } = useTranslation();
+    const { t, ready } = useTranslation();
 
     if (!ready) return null;
 
@@ -27,7 +27,7 @@ export default function LoginModal() {
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
                 <h3 className="font-bold text-2xl text-center">Login / Register</h3>
-                <p className="pb-5 py-4 text-sm text-center">Become a next generation author with OpenProfile!</p>
+                <p className="pb-5 py-4 text-sub text-sm text-center">Become a next generation author with OpenProfile!</p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
@@ -58,7 +58,7 @@ export default function LoginModal() {
                     </div>
                 </div>
 
-                <p className="pt-2 text-sm">Select a third-party account provider to register with:</p>
+                <p className="pt-2 text-sub text-sm">Select a third-party account provider to register with:</p>
 
                 <div className="pt-2 flex gap-2 flex-row relative">
                     {/* Google */}
