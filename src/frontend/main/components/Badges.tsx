@@ -33,9 +33,31 @@ export default function Badges({
         premium: 10
     };
 
+    const formatDate = (date: string | number | Date) => {
+        const now = new Date();
+        const past = new Date(date);
+
+        const diffMs = now.getTime() - past.getTime();
+
+        const seconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(months / 12);
+
+        if (years > 0) return `${years} year${years !== 1 ? "s" : ""} ago`;
+        if (months > 0) return `${months} month${months !== 1 ? "s" : ""} ago`;
+        if (days > 0) return `${days} day${days !== 1 ? "s" : ""} ago`;
+        if (hours > 0) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+        if (minutes > 0) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+
+        return "just now";
+    };
+
     const excludedTypes = ["trusted", "contributor", "entomologist", "precursor"];
 
-    const sortedBadges = badges
+    let sortedBadges = badges
         .filter((badge) => !excludedTypes.includes(badge.type))
         .sort(
             (a, b) =>
@@ -43,13 +65,30 @@ export default function Badges({
                 (badgeOrder[b.type] ?? 999)
         );
 
+    sortedBadges = sortedBadges.map((badge) => {
+        if (badge.type === "premium" && badge.date) {
+            return {
+                ...badge,
+                comment: formatDate(badge.date),
+            };
+        }
+        return badge;
+    });
+
     {/* Display a link for centain badges */}
 
     return (
         <div className={`flex gap-2 h-7 px-2 text-xs font-normal ${hasBackground ? "bg-base-200 border border-base-300 rounded" : ""}`}>
             {sortedBadges.map((b) => (
-                <span className="relative grid place-items-center tooltip tooltip-accent tooltip-top">
-                    <div className="tooltip-content">
+                <span className="relative grid place-items-center tooltip tooltip-top">
+                    <div className="tooltip-content tooltip-display">
+                        <div className="flex justify-center w-full">
+                            <img
+                                className="h-32 w-32 object-contain"
+                                src={`https://${window.config.domains.cdn}/uploads/${b.type}.png`}
+                                alt="avatar"
+                            />
+                        </div>
                         <div className="font-bold">
                             {(() => {
                                 // VERIFY THE IDS ARE CORRECT
@@ -108,7 +147,7 @@ export default function Badges({
                             case "promoted":
                                 return <span className="text-base font-nerdfont leading-none text[var(--color-premium)]"></span>;
                             case "verified":
-                                return <svg className="text-accent" width="17" height="17" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="var(--color-base-200)"/></svg>;
+                                return <svg className="text-accent" width="17" height="17" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="var(--color-base-100)"/></svg>;
                             case "trusted":
                                 return <span className="text-base font-nerdfont leading-none text-accent">󰏘</span>;
                             case "contributor":
