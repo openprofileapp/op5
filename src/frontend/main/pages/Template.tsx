@@ -12,7 +12,7 @@ import Footer from "../components/Footer.js";
 import ProjectCard from "../components/ProjectCard.js";
 import Badges from "../components/Badges.js";
 import { toast } from "../scripts/toast.js";
-import RistrictModal from "../components/modals/RistrictModal.js";
+import RestrictModal from "../components/modals/RestrictModal.js";
 import BlockModal from "../components/modals/BlockModal.js";
 
 export default function NotFound() {
@@ -200,7 +200,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                 allowIndex="false"
             />
 
-            <RistrictModal userId={user.id} displayName={user.displayName || user.username || user.id} />
+            <RestrictModal userId={user.id} displayName={user.displayName || user.username || user.id} />
             <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} />
 
             <Navbar isBannerPage={true} />
@@ -348,10 +348,10 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                             <div 
                                                 className="justify-between text-accent"
                                                 onClick={() => {
-                                                    document.getElementById("ristrict")?.showModal();
+                                                    document.getElementById("restrict")?.showModal();
                                                 }}
                                             >
-                                                Ristrict
+                                                Restrict
                                                 <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>

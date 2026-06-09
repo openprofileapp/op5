@@ -18,7 +18,7 @@ const index = {
     MANAGE_COLLECTIONS: 40n, // Manage authorized collections of asset
     MANAGE_FANFLAIRS: 41n, // Manage fanflairs of asset
     MANAGE_COMMENTS: 42n, // Manage comments on asset (delete/restore)
-    MANAGE_INTERACTIONS: 43n, // Manage user interaction "INTERACT" access with asset by ristricting comments or blocking "VIEW" and "READ"
+    MANAGE_INTERACTIONS: 43n, // Manage user interaction "INTERACT" access with asset by restricting comments or blocking "VIEW" and "READ"
     MANAGE_AUTOMOD: 44n, // Manage blocked keywords and automatic actions on asset for comments and values
     MANAGE_PUBLICATIONS: 45n, // Manage overview of asset including badges, links, featured content, update-log, and publication state // If combined with MANAGE_PUBLICATIONS, apply auras and animated avatars to asset // ASSET: If combined with MANAGE_PROMOTIONS, promote asset
     VIEW_ANALYTICS: 46n, // View and compare analytics of asset

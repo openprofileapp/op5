@@ -15,12 +15,12 @@ export default function RestrictModal({
     if (!ready) return null;
 
     return (
-        <dialog id="ristrict" className="modal">
+        <dialog id="restrict" className="modal">
             <div className="modal-box">
                 <form method="dialog">
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
-                <h3 className="font-bold text-2xl text-center">Ristrict {displayName}</h3>
+                <h3 className="font-bold text-2xl text-center">Restrict {displayName}</h3>
                 <p className="pb-5 py-4 text-sub text-sm text-center">{displayName} will not be able to:</p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
@@ -77,7 +77,7 @@ export default function RestrictModal({
                     <button 
                         className="btn flex-1 bg-base-300 text-white border-[var(--color-base-300)]" 
                         onClick={() => {
-                            (document.getElementById("ristrict") as HTMLDialogElement)?.close();
+                            (document.getElementById("restrict") as HTMLDialogElement)?.close();
                         }}
                     >
                         Close
@@ -87,11 +87,11 @@ export default function RestrictModal({
                     <button
                         className={`btn flex-1 bg-accent text-white border-accent`}
                         onClick={() => {
-                            (document.getElementById("ristrict") as HTMLDialogElement)?.close();
-                            toast.show(`You ristricted ${displayName}`, { icon: "", type: "error" });
+                            (document.getElementById("restrict") as HTMLDialogElement)?.close();
+                            toast.show(`You restricted ${displayName}`, { icon: "", type: "error" });
                         }}
                     >
-                        Ristrict {displayName}
+                        Restrict {displayName}
                     </button>
                 </div>
             </div>
