@@ -10,6 +10,8 @@ import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
 import "./scripts/main.js";
 
+import ToastContainer from "./components/ToastContainer.js"
+
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
 import Browse from "./pages/Browse.js"
@@ -29,6 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <HelmetProvider>
             <I18nextProvider i18n={i18n}>
                 <BrowserRouter>
+                    <ToastContainer />
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/search" element={<Search />} />
