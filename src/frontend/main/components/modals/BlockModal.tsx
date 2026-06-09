@@ -57,7 +57,7 @@ export default function BlockModal({
                         <div>
                             View your account or pubications logged out
                             <br/>
-                            <span className="text-sub text-xs">Set your account to "private" or "friends" to revoke this.</span>
+                            <span className="text-sub text-xs">Set your account to "private" or "friends" to prevent this.</span>
                         </div>
                     </div>
                 </div>
