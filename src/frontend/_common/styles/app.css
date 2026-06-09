@@ -10,7 +10,7 @@
 
 :root {
     --color-precursor: #8515cf;
-    --color-premium: #efbe0b;
+    --color-premium: #ffd700;
     --color-sub: #0c0c0c;
 }
 
@@ -81,6 +81,16 @@ hr {
 
 .tooltip-content {
     padding: 8px 12px;
+}
+
+.tooltip-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background-color: #111111;
+    border: 1px solid #222222;
+    max-width: 280px;
 }
 
 .badge .tooltip-content {
