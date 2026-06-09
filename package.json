@@ -57,6 +57,7 @@
     "esbuild": "^0.28.0",
     "express": "^5.2.1",
     "fast-glob": "^3.3.3",
+    "framer-motion": "^12.40.0",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.3.4",
     "haversine-distance": "^1.2.4",
