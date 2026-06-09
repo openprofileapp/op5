@@ -33,8 +33,10 @@ CREATE TABLE IF NOT EXISTS users (
         CHECK (sendMessages IN ('public', 'followers', 'friends', 'private')),
     sendComments TEXT NOT NULL DEFAULT 'public'
         CHECK (sendComments IN ('public', 'followers', 'friends', 'private')),
+    presence TEXT NOT NULL DEFAULT 'offline'
+        CHECK (presence IN ('online', 'idle', 'dnd', 'offline')),
+    presenceVisibility TEXT NOT NULL DEFAULT 'public'
+        CHECK (presenceVisibility IN ('public', 'followers', 'friends', 'private')),
     lastActive TEXT,
-    lastActiveVisibility TEXT NOT NULL DEFAULT 'public'
-        CHECK (lastActiveVisibility IN ('public', 'followers', 'friends', 'private')),
     createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
