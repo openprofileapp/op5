@@ -161,9 +161,13 @@ export const config = {
         api: 10524,
         cdn: 10525,
         support: 10526,
+        nightly: 10527,
+        gateway: 10528,
         ws: {
             main: 39551,
-            support: 39555
+            support: 39552,
+            nightly: 39553,
+            gateway: 39554,
         }
     },
 
@@ -174,7 +178,9 @@ export const config = {
         auth: isProduction ? "127.0.0.0" : "127.0.0.0",
         api: isProduction ? "127.0.0.0" : "127.0.0.0",
         cdn: isProduction ? "127.0.0.0" : "127.0.0.0",
-        support: isProduction ? "127.0.0.0" : "127.0.0.0"
+        support: isProduction ? "127.0.0.0" : "127.0.0.0",
+        nightly: isProduction ? "127.0.0.0" : "127.0.0.0",
+        gateway: isProduction ? "127.0.0.0" : "127.0.0.0"
     },
 
     // Domains assigned to each server
@@ -185,11 +191,13 @@ export const config = {
         api: isProduction ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
         cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
         support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
-        nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app"
+        nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
+        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app"
     },
 
     // Third-party applications
     integrations: {
+        hcaptcha: "7fb2b75a-fdb6-4fe8-a4e4-6000ef8e7464",
         oauth2: {
             google: "173110862947-3jrkouleg7m08eu8qe5rqr2sp355bdn2.apps.googleusercontent.com",
             microsoft: "03fe61da-efa0-454b-afad-773fafd71239",
