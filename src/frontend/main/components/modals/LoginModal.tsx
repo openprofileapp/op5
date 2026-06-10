@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { toast } from "../../scripts/toast.js";
+import { showCaptcha } from "../CaptchaPortal.js";
+
 import { 
-    loginWithApple,
     loginWithDiscord, 
-    loginWithFacebook, 
     loginWithGitHub, 
     loginWithGoogle, 
-    loginWithMicrosoft,
-    loginWithReddit,
     loginWithX
 } from "../../scripts/oauth2.js";
 
@@ -31,7 +30,7 @@ export default function LoginModal() {
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
                         <div>
@@ -40,7 +39,7 @@ export default function LoginModal() {
                     </div>
 
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
                         <div>
@@ -49,7 +48,7 @@ export default function LoginModal() {
                     </div>
 
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             󰉋
                         </div>
                         <div>
@@ -58,16 +57,29 @@ export default function LoginModal() {
                     </div>
                 </div>
 
-                <p className="pt-2 text-sub text-sm">Select a third-party account provider to register with:</p>
+                <p className="pt-2 text-sub text-sm">
+                    Select a third-party account provider to register with:
+                </p>
 
                 <div className="pt-2 flex gap-2 flex-row relative">
                     {/* Google */}
                     <button 
-                        className="btn h-12 w-12 flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
+                        className="btn flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
                         data-tip="Google"
-                        onClick={() => {
-                            setLoading("google");
-                            loginWithGoogle();
+                        onClick={async () => {
+                            try {
+                                setLoading("google");
+                                (document.getElementById("login") as HTMLDialogElement)?.close();
+                                const { token } = await showCaptcha();
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+
+                                const response = await loginWithGoogle(token);
+                                if (!response?.ok) throw new Error();
+                            } catch {
+                                setLoading(null);
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+                                toast.show("CAPTCHA failed! Please try again.", { icon: "󰚩", type: "error" });
+                            }
                         }}
                     >
                         <div className={`${loading === "google" ? "loading" : ""}`}>
@@ -77,11 +89,10 @@ export default function LoginModal() {
 
                     {/* Microsoft */}
                     <button 
-                        className="btn btn-disabled hidden h-12 w-12 flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
+                        className="btn btn-disabled hidden flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
                         data-tip="Microsoft"
                         onClick={() => {
-                            setLoading("microsoft");
-                            loginWithMicrosoft();
+                            setLoading("google");
                         }}
                     >
                         <div className={`${loading === "microsoft" ? "loading" : ""}`}>
@@ -91,11 +102,10 @@ export default function LoginModal() {
 
                     {/* Apple */}
                     <button 
-                        className="btn btn-disabled hidden h-12 w-12 flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
+                        className="btn btn-disabled hidden flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
                         data-tip="Apple"
                         onClick={() => {
                             setLoading("apple");
-                            loginWithApple();
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "apple" ? "loading" : ""}`}>
@@ -107,11 +117,22 @@ export default function LoginModal() {
                 <div className="pt-2 flex gap-2 flex-row relative">
                     {/* X */}
                     <button 
-                        className="btn h-12 w-12 flex-1 bg-black font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
+                        className="btn flex-1 bg-black font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
                         data-tip="X"
-                        onClick={() => {
-                            setLoading("x");
-                            loginWithX();
+                        onClick={async () => {
+                            try {
+                                setLoading("x");
+                                (document.getElementById("login") as HTMLDialogElement)?.close();
+                                const { token } = await showCaptcha();
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+
+                                const response = await loginWithX(token);
+                                if (!response?.ok) throw new Error();
+                            } catch {
+                                setLoading(null);
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+                                toast.show("CAPTCHA failed! Please try again.", { icon: "󰚩", type: "error" });
+                            }
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "x" ? "loading" : ""}`}>
@@ -121,11 +142,10 @@ export default function LoginModal() {
 
                     {/* Facebook */}
                     <button
-                        className="btn btn-disabled hidden h-12 w-12 flex-1 font-normal bg-[#1A77F2] text-white border-[#1A77F2] tooltip tooltip-top"
+                        className="btn btn-disabled hidden flex-1 font-normal bg-[#1A77F2] text-white border-[#1A77F2] tooltip tooltip-top"
                         data-tip="Facebook"
                         onClick={() => {
                             setLoading("facebook");
-                            loginWithFacebook();
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "facebook" ? "loading" : ""}`}>
@@ -135,11 +155,10 @@ export default function LoginModal() {
 
                     {/* Reddit */}
                     <button
-                        className="btn btn-disabled hidden h-12 w-12 flex-1 font-normal bg-[#FF4500] text-white border-[#FF4500] tooltip tooltip-top"
+                        className="btn btn-disabled hidden flex-1 font-normal bg-[#FF4500] text-white border-[#FF4500] tooltip tooltip-top"
                         data-tip="Reddit"
                         onClick={() => {
                             setLoading("reddit");
-                            loginWithReddit();
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "reddit" ? "loading" : ""}`}>
@@ -149,11 +168,22 @@ export default function LoginModal() {
 
                     {/* Discord */}
                     <button
-                        className="btn h-12 w-12 flex-1 font-normal bg-[#5865F2] text-white border-[#5865F2] tooltip tooltip-top"
+                        className="btn flex-1 font-normal bg-[#5865F2] text-white border-[#5865F2] tooltip tooltip-top"
                         data-tip="Discord"
-                        onClick={() => {
-                            setLoading("discord");
-                            loginWithDiscord();
+                        onClick={async () => {
+                            try {
+                                setLoading("discord");
+                                (document.getElementById("login") as HTMLDialogElement)?.close();
+                                const { token } = await showCaptcha();
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+
+                                const response = await loginWithDiscord(token);
+                                if (!response?.ok) throw new Error();
+                            } catch {
+                                setLoading(null);
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+                                toast.show("CAPTCHA failed! Please try again.", { icon: "󰚩", type: "error" });
+                            }
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "discord" ? "loading" : ""}`}>
@@ -163,7 +193,7 @@ export default function LoginModal() {
                     
                     {/* Bluesky */}
                     <button 
-                        className="btn btn-disabled hidden h-12 w-12 flex-1 font-normal bg-[#1185FE] text-white border-[#1185FE] tooltip tooltip-top" 
+                        className="btn btn-disabled hidden flex-1 font-normal bg-[#1185FE] text-white border-[#1185FE] tooltip tooltip-top" 
                         data-tip="BlueSky"
                         onClick={() => {
                             setLoading("bluesky");
@@ -176,11 +206,22 @@ export default function LoginModal() {
 
                     {/* GitHub */}
                     <button 
-                        className="btn h-12 w-12 flex-1 font-normal bg-[#6e5494] text-white border-[#6e5494] tooltip tooltip-top" 
+                        className="btn flex-1 font-normal bg-[#6e5494] text-white border-[#6e5494] tooltip tooltip-top" 
                         data-tip="GitHub"
-                        onClick={() => {
-                            setLoading("github");
-                            loginWithGitHub();
+                        onClick={async () => {
+                            try {
+                                setLoading("github");
+                                (document.getElementById("login") as HTMLDialogElement)?.close();
+                                const { token } = await showCaptcha();
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+
+                                const response = await loginWithGitHub(token);
+                                if (!response?.ok) throw new Error();
+                            } catch {
+                                setLoading(null);
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+                                toast.show("CAPTCHA failed! Please try again.", { icon: "󰚩", type: "error" });
+                            }
                         }}
                     >
                         <div className={`text-2xl font-nerdfont ${loading === "github" ? "loading" : ""}`}>
