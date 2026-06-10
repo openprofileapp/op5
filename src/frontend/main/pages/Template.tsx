@@ -14,6 +14,7 @@ import Badges from "../components/Badges.js";
 import { toast } from "../scripts/toast.js";
 import RestrictModal from "../components/modals/RestrictModal.js";
 import BlockModal from "../components/modals/BlockModal.js";
+import MuteModal from "../components/modals/MuteModal.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -191,6 +192,8 @@ const SpotifyEmbed = ({ url }: { url: string }) => {
 I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
 `.trim();
 
+    const isStaff = user.badges?.some(badge => badge.type === "staff") ?? false;
+
     if (!ready || loading) return null;
 
     return (
@@ -200,8 +203,9 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                 allowIndex="false"
             />
 
-            <RestrictModal userId={user.id} displayName={user.displayName || user.username || user.id} />
-            <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} />
+            <MuteModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
+            <RestrictModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
+            <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
 
             <Navbar isBannerPage={true} />
 
@@ -291,7 +295,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                 setTimeout(() => {
                                                     setLoadingFollow(false);
                                                     setFollowing(true);
-                                                    toast.show(`You followed ${user.displayName}`, { icon: "" });
+                                                    toast.show(`You followed ${user.displayName}`, { icon: "", type: "success" });
                                                 }, 500);
                                             }}
                                         >
@@ -311,12 +315,21 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link className="justify-between" to={`/${user.username || user.id}`}>
+                                            <div 
+                                                className="justify-between"
+                                                onClick={() => {
+                                                    // Immediatly, then update loading state so if its reopened it will display the state
+                                                    document.getElementById("user-more-dropdown")?.hidePopover();
+
+                                                    // Toast on API success
+                                                    toast.show(`You sent a friend request to ${user.displayName}`, { icon: "", type: "success" });
+                                                }}
+                                            >
                                                 Add Friend
                                                 <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
-                                            </Link>
+                                            </div>
                                         </li>
                                         <hr></hr>
                                         <li>
@@ -329,30 +342,44 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                         </li>
                                         <hr></hr>
                                         <li>
-                                            <Link className="justify-between text-accent" to={`/${user.username || user.id}`}>
+                                            <div 
+                                                className="justify-between text-error"
+                                                onClick={() => {
+                                                    // Immediatly, then update loading state so if its reopened it will display the state
+                                                    document.getElementById("user-more-dropdown")?.hidePopover();
+
+                                                    // Toast on API success
+                                                    toast.show(`We will show less of ${user.displayName} to you`, { icon: "󰈉", type: "error" });
+                                                }}
+                                            >
                                                 Not Interested
                                                 <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
                                                     󰈉
                                                 </span>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link className="justify-between text-accent" to={`/${user.username || user.id}`}>
-                                                Mute
-                                                <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
-                                                    󰂛
-                                                </span>
-                                            </Link>
+                                            </div>
                                         </li>
                                         <li>
                                             <div 
-                                                className="justify-between text-accent"
+                                                className="justify-between text-error"
+                                                onClick={() => {
+                                                    document.getElementById("mute")?.showModal();
+                                                }}
+                                            >
+                                                Mute {/* Maybe "Manage Mute" if already and interaction */}
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
+                                                    󰂛
+                                                </span>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div 
+                                                className="justify-between text-error"
                                                 onClick={() => {
                                                     document.getElementById("restrict")?.showModal();
                                                 }}
                                             >
                                                 Restrict
-                                                <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
                                             </div>
@@ -360,13 +387,13 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
 
                                         <li>
                                             <div 
-                                                className="justify-between text-accent"
+                                                className="justify-between text-error"
                                                 onClick={() => {
                                                     document.getElementById("block")?.showModal();
                                                 }}
                                             >
                                                 Block
-                                                <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
                                             </div>
@@ -387,15 +414,15 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                         >
                                             <div className="justify-between text-error">
                                                 {!blocked ? `${user.visibility === "public" ? "Block" : "Request Follow"}` : "Unblock"}
-                                                <span className={`flex items-center justify-center w-4 h-6 "text-error text-lg font-nerdfont leading-none shrink-0 ${loadingBlock ? "loading" : ""}`}>
+                                                <span className={`flex items-center justify-center w-4 h-6 "text-lg font-nerdfont leading-none shrink-0 ${loadingBlock ? "loading" : ""}`}>
                                                     {!blocked ? "" : ""}
                                                 </span>
                                             </div>
                                         </li>*/}
                                         <li>
-                                            <Link className="justify-between text-accent" to={`/${user.username || user.id}`}>
+                                            <Link className="justify-between text-error" to={`/${user.username || user.id}`}>
                                                 Report
-                                                <span className="flex items-center justify-center w-4 h-6 text-error text-lg font-nerdfont leading-none shrink-0">
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
                                             </Link>
@@ -421,7 +448,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                         <li>
                                             <Link className="justify-between text-warning" to={`/${user.username || user.id}`}>
                                                 Moderate
-                                                <span className="flex items-center justify-center w-4 h-6 text-warning text-lg font-nerdfont leading-none shrink-0">
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
                                             </Link>
@@ -429,7 +456,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                         <li>
                                             <Link className="justify-between text-warning" to={`/${user.username || user.id}`}>
                                                 Manage
-                                                <span className="flex items-center justify-center w-4 h-6 text-warning text-lg font-nerdfont leading-none shrink-0">
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
                                             </Link>
@@ -536,7 +563,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                             {user.username === "avatarkage" && (
                                                 <button
                                                     className="flex gap-2 w-full h-8 px-3 text-sm btn btn-base-200 border-base-300"
-                                                    onClick={() => { toast.show("Alan", { icon: "" }) }}
+                                                    onClick={() => { toast.show("NAME: Ready to publish the new character?", { icon: "" }) }}
                                                 >
                                                     <span className="text-base font-nerdfont w-4">
                                                         
@@ -557,7 +584,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                         setTimeout(() => {
                                                             setLoadingFollow(false);
                                                             setFollowing(true);
-                                                            toast.show(`You followed ${user.displayName}`, { icon: "" });
+                                                            toast.show(`You followed ${user.displayName}`, { icon: "", type: "success" });
                                                         }, 500);
                                                     }}
                                                 >
