@@ -31,7 +31,8 @@ export const db = {
     users: new Database("data/databases/users.sqlite"),
     badges: new Database("data/databases/badges.sqlite"),
     invites: new Database("data/databases/invites.sqlite"),
-    links: new Database("data/databases/links.sqlite")
+    links: new Database("data/databases/links.sqlite"),
+    interactions: new Database("data/databases/interactions.sqlite")
 };
 
 db.metadata.transaction(q => {
@@ -59,6 +60,10 @@ db.links.transaction(q => {
     if (!q("SELECT * FROM links LIMIT 1").success) { q(`${config.folders.sql}/links.sql`); };
 });
 
+db.interactions.transaction(q => {
+    if (!q("SELECT * FROM follows LIMIT 1").success) { q(`${config.folders.sql}/interactions/follows.sql`); };
+});
+
 /* 
 ————————————————————————————————————————————————————————————————
 Migrade databases from v5.0.237 to v5.0.300
@@ -68,7 +73,8 @@ Migrade databases from v5.0.237 to v5.0.300
 export const mdb = {
     profiles: new Database("data/databases/v5.0.237/profiles.db"),
     accounts: new Database("data/databases/v5.0.237/accounts.db"),
-    partners: new Database("data/databases/v5.0.237/partners.db")
+    partners: new Database("data/databases/v5.0.237/partners.db"),
+    interactions: new Database("data/databases/v5.0.237/interactions.db")
 };
 
 // profiles.db/published -> characters.sqlite/published
@@ -323,6 +329,28 @@ db.links.transaction(q => {
     }
 });
 
+// interactions.db/follows -> interactions.sqlite/follows
+const mdbInteractionsFollowsData = mdb.interactions.query("SELECT * from follows");
+
+db.interactions.transaction(q => {
+    if (!mdbInteractionsFollowsData.success) return;
+
+    for (const d of mdbInteractionsFollowsData.rows) {
+        q(
+            `INSERT INTO follows (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.interaction,
+                d.date
+            ]
+        );
+    }
+});
+
 /* 
 ————————————————————————————————————————————————————————————————
 Create instances 
@@ -368,6 +396,10 @@ app.use('/v2', v2);
 v2.use('/users', userRoute);
 v2.use('/profiles', profileRoute);
 v2.use('/invites', inviteRoute);
+
+// https://api.openprofile.app/v2/interactions/follows?sourceId=5719552362357773&page=2
+// https://api.openprofile.app/v2/interactions/follows?targetId=5019646586243236&page=2
+// https://api.openprofile.app/v2/interactions/follows -> body: { targetId: "5019646586243236" }
 
 /* 
 ————————————————————————————————————————————————————————————————
