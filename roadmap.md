@@ -15,7 +15,7 @@ Features here are subject to change as development progresses and may release so
 | Collections | Formerly "almanacs", a collection can be used to make official or unofficial groups of profiles and projects. Automatic "Likes" and "Favorites" collections will be updated based on your interactions with assets. Collections can be followed. | Planned |
 | Projects | Formerly "universes", projects provides a space where authors can formally group characters using collections, and display relevant links (books, films, stores) in one location. It also gives fans the opportunity to follow projects so they can be notified of new characters and franchises releases. | In-progress |
 | Permissions | A better permissions system enabling collaborations at a later update. | In-progress |
-| Social | Adds comments, friends, blocking, and activity visibility. | Planned |
+| Social | Adds comments, friends, blocking, and activity visibility. | In-progress |
 | Settings | Access your account settings to manage notifications, email subscriptions, login methods, blocked list, friends list, and hidden list, and delete your account. | Planned | 
 | Trash | Access and manage your profiles and projects sent to trash within dashboard. | Planned |
 | Share Graphics| Click the share button to generate graphics and a text with hastags for posting on social media including full support for Instagram. | In-progress |
