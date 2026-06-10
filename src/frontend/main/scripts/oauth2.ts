@@ -1,4 +1,9 @@
-export function loginWithGoogle() {
+import { verifyCaptcha } from "./verifyCaptcha.js";
+
+export async function loginWithGoogle(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.google;
     const redirect_uri = `https://${window.config.domains.auth}/login/google`;
     const scope = "openid email profile";
@@ -11,9 +16,14 @@ export function loginWithGoogle() {
         "&scope=" + encodeURIComponent(scope);
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithMicrosoft() {
+export async function loginWithMicrosoft(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.microsoft;
     const redirect_uri = `https://${window.config.domains.auth}/login/microsoft`;
     const scope = "openid profile email User.Read";
@@ -26,9 +36,14 @@ export function loginWithMicrosoft() {
         "&scope=" + encodeURIComponent(scope);
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithApple() {
+export async function loginWithApple(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.apple;
     const redirect_uri = `https://${window.config.domains.auth}/login/apple`;
     const scope = "name email";
@@ -42,9 +57,14 @@ export function loginWithApple() {
         "&scope=" + encodeURIComponent(scope);
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export async function loginWithX() {
+export async function loginWithX(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.x;
     const redirect_uri = `https://${window.config.domains.auth}/login/x`;
     const scope = "users.read";
@@ -76,9 +96,14 @@ export async function loginWithX() {
         "&code_challenge_method=S256";
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithFacebook() {
+export async function loginWithFacebook(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.facebook;
     const redirect_uri = `https://${window.config.domains.auth}/login/facebook`;
     const scope = "email,public_profile";
@@ -91,9 +116,14 @@ export function loginWithFacebook() {
         `&scope=${scope}`;
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithReddit() {
+export async function loginWithReddit(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.reddit;
     const redirect_uri = `https://${window.config.domains.auth}/login/reddit`;
     const scope = "identity";
@@ -109,9 +139,14 @@ export function loginWithReddit() {
         `&scope=${scope}`;
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithDiscord() {
+export async function loginWithDiscord(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.discord;
     const redirect_uri = `https://${window.config.domains.auth}/login/discord`;
     const scope = "identify email";
@@ -124,9 +159,14 @@ export function loginWithDiscord() {
         "&scope=" + encodeURIComponent(scope);
 
     window.location.href = url;
+
+    return { ok: true };
 }
 
-export function loginWithGitHub() {
+export async function loginWithGitHub(token: string) {
+    const isCaptchaValid = await verifyCaptcha(token);
+    if (!isCaptchaValid) return { ok: false };
+
     const client_id = window.config.integrations.oauth2.github;
     const redirect_uri = `https://${window.config.domains.auth}/login/github`;
     const scope = "read:user user:email";
@@ -139,4 +179,6 @@ export function loginWithGitHub() {
         "&allow_signup=true";
 
     window.location.href = url;
+
+    return { ok: true };
 }
