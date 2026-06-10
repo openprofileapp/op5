@@ -20,6 +20,7 @@ import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middle
 import sessionRoute from "./routes/session.route.js";
 import loginRoutes from "./routes/login.routes.js";
 import PlatformPermissionsService from "../_common/services/platformPermissions.service.js";
+import captchaRoute from "./routes/captcha.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -218,6 +219,7 @@ Routes
 
 app.use("/", router);
 
+router.use("/captcha", captchaRoute);
 router.use("/session", sessionRoute);
 router.use("/login", loginRoutes); // ADD hcaptcha REACT TO LOGIN
 
