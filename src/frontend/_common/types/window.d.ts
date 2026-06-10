@@ -10,6 +10,7 @@ export type ClientConfig = {
     metadata: Config["metadata"];
     domains: Config["domains"];
     integrations: {
+        hcaptcha: Config["integrations"]["hcaptcha"]
         oauth2: Config["integrations"]["oauth2"]
     }
 };
