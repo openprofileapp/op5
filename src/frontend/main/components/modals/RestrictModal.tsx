@@ -4,11 +4,13 @@ import { toast } from "../../scripts/toast.js";
 type Props = {
     userId: string;
     displayName: string;
+    isStaff: boolean
 };
 
 export default function RestrictModal({ 
-    userId, 
-    displayName 
+    userId,
+    displayName,
+    isStaff
 }: Props) {
     const { t, ready } = useTranslation();
 
@@ -25,18 +27,18 @@ export default function RestrictModal({
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
                         <div>
-                            Comment on your pubications.
+                            Comment on your publications.
                             <br/>
                             <span className="text-sub text-xs">This will not remove existing comments.</span>
                         </div>
                     </div>
 
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             󱙍
                         </div>
                         <div>
@@ -47,11 +49,11 @@ export default function RestrictModal({
                     </div>
 
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
                         <div>
-                            Send you new friend requests.
+                            Send you friend requests.
                             <br/>
                             <span className="text-sub text-xs">If already friends, the connection will not be removed.</span>
                         </div>
@@ -62,15 +64,39 @@ export default function RestrictModal({
                 
                 <div className="flex gap-5 pb-8 pt-2 flex-col">
                     <div className="flex gap-6 flex-row items-center">
-                        <div className="w-4 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                        <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
                         <div>
-                            Comment on your shared drafts and pubications.
+                            Comment on your shared drafts and publications.
                             <br/>
                             <span className="text-sub text-xs">Remove "Send Comments" permission to revoke this.</span>
                         </div>
                     </div>
+                    {isStaff && (
+                        <div className="flex gap-6 flex-row items-center">
+                            <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
+                                
+                            </div>
+                            <div>
+                                Respond to your reports and tickets.
+                                <br/>
+                                <span className="text-sub text-xs">Staff members can still interact with you for platform support.</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="pt-2 flex gap-2 flex-row relative">
+                    <button 
+                        className="btn flex-1 bg-base-300 text-white border-[var(--color-base-300)]" 
+                        onClick={() => {
+                            (document.getElementById("restrict") as HTMLDialogElement)?.close();
+                            (document.getElementById("block") as HTMLDialogElement)?.show();
+                        }}
+                    >
+                        Not Enough? Try Blocking Instead!
+                    </button>
                 </div>
 
                 <div className="pt-2 flex gap-2 flex-row relative">
