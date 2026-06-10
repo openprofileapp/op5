@@ -50,7 +50,7 @@ export const googleLogin = async (req: Request, res: Response) => {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
-                data: new URLSearchParams({
+                body: new URLSearchParams({
                     client_id: getEnv("INTEGRATION_GOOGLE_AUTH_CLIENT"),
                     client_secret: getEnv("INTEGRATION_GOOGLE_AUTH_SECRET"),
                     grant_type: "authorization_code",
