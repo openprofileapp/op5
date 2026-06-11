@@ -2,10 +2,10 @@ import { db } from "../server.js";
 
 export default function getInviteCode(code?: string) {
     const codeResult = db.invites.query("SELECT * FROM codes WHERE code = ?", [code]);
-    if (!codeResult.success) return { message: "An error occurred while fetching invite code" }
-    if (codeResult.rowCount < 1) return { message: "Code not found" }
+    if (!codeResult.success) return { error: "An error occurred while fetching invite code" }
+    if (codeResult.rowCount < 1) return { error: "Code not found" }
     const usesResult = db.invites.query("SELECT * FROM uses WHERE code = ?", [code]);
-    if (!usesResult.success) return { message: "An error occurred while fetching invite uses" }
+    if (!usesResult.success) return { error: "An error occurred while fetching invite uses" }
 
     // ONLY SHOW USES IF OWNER
 

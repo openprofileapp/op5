@@ -4,8 +4,8 @@ import getPublicUserById from "./getPublicUserByIdOrUsername.service.js";
 export default function getPublishedProfileById(id?: string) {
     const result = db.characters.query("SELECT * FROM published WHERE id = ?", [id]);
 
-    if (!result.success) return { message: "An error occurred while fetching profile" }
-    if (result.rowCount < 1) return { message: "Profile not found" }
+    if (!result.success) return { error: "An error occurred while fetching profile" }
+    if (result.rowCount < 1) return { error: "Profile not found" }
 
     const profile = result.rows[0];
     const owner = getPublicUserById(profile.ownerId);
