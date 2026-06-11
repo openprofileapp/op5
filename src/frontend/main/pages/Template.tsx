@@ -334,6 +334,14 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                         <hr></hr>
                                         <li>
                                             <Link className="justify-between " to={`/${user.username || user.id}`}>
+                                                Submit Fanart
+                                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
+                                                    
+                                                </span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link className="justify-between " to={`/${user.username || user.id}`}>
                                                 Gift Premium
                                                 <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
@@ -542,11 +550,8 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
 
                                         <div className="flex items-center justify-center gap-2 w-full">
                                             <div className="truncate text-sm text-center text-sub">
-                                                @{user.username}
+                                                @{user.username}{user.pronouns ? ` • ${user.pronouns}` : ""}
                                             </div>
-                                            {/*<div className="relative top-0.25 badge bg-base-200 border border-base-300 text-sm text-center">
-                                                TOP 50 GENRE
-                                            </div>*/}
                                         </div>
 
                                         <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
