@@ -13,10 +13,10 @@ export const getUsers = (req: Request, res: Response) => {
             });
         }
 
-        res.json({
+        res.status(200).json({
             ...getPublicUserByIdOrUsername(id)
         });
     } else  {
-        res.json(getAllUsers());
+        res.status(200).json(getAllUsers());
     }
 };

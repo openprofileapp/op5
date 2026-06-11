@@ -13,7 +13,7 @@ export const getInvites = (req: Request, res: Response) => {
             });
         }
 
-        res.json({
+        res.status(200).json({
             ...getInviteCodeByOwner(owner)
         });
     } else if (code) {
@@ -23,7 +23,7 @@ export const getInvites = (req: Request, res: Response) => {
             });
         }
 
-        res.json({
+        res.status(200).json({
             ...getInviteCode(code)
         });
     }

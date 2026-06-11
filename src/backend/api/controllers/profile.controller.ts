@@ -15,7 +15,7 @@ export const getProfiles = (req: Request, res: Response) => {
             });
         }
 
-        res.json({
+        res.status(200).json({
             ...getPublishedProfileById(id)
         });
     } else if (visibility) {
@@ -25,6 +25,6 @@ export const getProfiles = (req: Request, res: Response) => {
             });
         }
 
-        res.json(getPublishedProfiles(visibility));
+        res.status(200).json(getPublishedProfiles(visibility));
     }
 };
