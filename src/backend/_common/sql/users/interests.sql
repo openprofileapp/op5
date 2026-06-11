@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS interests (
+    userId TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    score INTEGER DEFAULT 0
+);
