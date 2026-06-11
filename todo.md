@@ -245,3 +245,7 @@ Create `status.openprofile.app` using the status database then fetch and display
 add backlisted emails and phonenumbers to automod database (already removed from reg sql)
 
 add updates from GitHub prompts on updates
+
+REMOVE ALL CHECKS DUE TO ALTER-TABLE NOT SUPPORTING THEM; use code validation instead
+   visibility TEXT NOT NULL DEFAULT 'public'
+        CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private', 'hidden')),
