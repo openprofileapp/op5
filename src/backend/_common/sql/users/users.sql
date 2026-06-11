@@ -10,12 +10,11 @@ CREATE TABLE IF NOT EXISTS users (
     status TEXT,
     about TEXT,
     tags TEXT,
+    pronouns TEXT,
     birthdate TEXT,
-    birthdateVisibility TEXT NOT NULL DEFAULT 'private'
-        CHECK (birthdateVisibility IN ('public', 'followers', 'friends', 'private')),
+    birthdateVisibility TEXT NOT NULL DEFAULT 'private',
     foundedDate TEXT,
-    foundedDateVisibility TEXT NOT NULL DEFAULT 'public'
-        CHECK (foundedDateVisibility IN ('public', 'followers', 'friends', 'private')),
+    foundedDateVisibility TEXT NOT NULL DEFAULT 'public',
     theme TEXT DEFAULT '4819203746571029',
     isAuraEnabled INTEGER NOT NULL DEFAULT 0
         CHECK (isAuraEnabled IN (0, 1)),
@@ -27,16 +26,11 @@ CREATE TABLE IF NOT EXISTS users (
         CHECK (type IN ('user', 'author', 'publisher', 'developer')),
     isExplicit INTEGER NOT NULL DEFAULT 0
         CHECK (isExplicit IN (0, 1)),
-    visibility TEXT NOT NULL DEFAULT 'private'
-        CHECK (visibility IN ('public', 'followers', 'friends', 'private', 'hidden')),
-    sendMessages TEXT NOT NULL DEFAULT 'public'
-        CHECK (sendMessages IN ('public', 'followers', 'friends', 'private')),
-    sendComments TEXT NOT NULL DEFAULT 'public'
-        CHECK (sendComments IN ('public', 'followers', 'friends', 'private')),
-    presence TEXT NOT NULL DEFAULT 'offline'
-        CHECK (presence IN ('online', 'idle', 'dnd', 'offline')),
-    presenceVisibility TEXT NOT NULL DEFAULT 'public'
-        CHECK (presenceVisibility IN ('public', 'followers', 'friends', 'private')),
+    visibility TEXT NOT NULL DEFAULT 'private',
+    sendMessages TEXT NOT NULL DEFAULT 'public',
+    sendComments TEXT NOT NULL DEFAULT 'public',
+    presence TEXT NOT NULL DEFAULT 'offline',
+    presenceVisibility TEXT NOT NULL DEFAULT 'public',
     lastActive TEXT,
     createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
