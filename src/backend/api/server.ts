@@ -18,6 +18,7 @@ import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middle
 import userRoute from './routes/user.route.js';
 import profileRoute from './routes/profile.route.js';
 import inviteRoute from './routes/invite.route.js';
+import interactionRoutes from './routes/interaction.routes.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -26,6 +27,7 @@ Connect databases
 */
 
 export const db = {
+    audits: new Database("data/databases/audits.sqlite"),
     metadata: new Database("data/databases/metadata.sqlite"),
     characters: new Database("data/databases/characters.sqlite"),
     users: new Database("data/databases/users.sqlite"),
@@ -34,6 +36,17 @@ export const db = {
     links: new Database("data/databases/links.sqlite"),
     interactions: new Database("data/databases/interactions.sqlite")
 };
+
+db.audits.transaction(q => {
+    if (!q("SELECT * FROM blocks LIMIT 1").success) { q(`${config.folders.sql}/audits/blocks.sql`); };
+    if (!q("SELECT * FROM follows LIMIT 1").success) { q(`${config.folders.sql}/audits/follows.sql`); };
+    if (!q("SELECT * FROM friends LIMIT 1").success) { q(`${config.folders.sql}/audits/friends.sql`); };
+    if (!q("SELECT * FROM likes LIMIT 1").success) { q(`${config.folders.sql}/audits/likes.sql`); };
+    if (!q("SELECT * FROM mutes LIMIT 1").success) { q(`${config.folders.sql}/audits/mutes.sql`); };
+    if (!q("SELECT * FROM restricts LIMIT 1").success) { q(`${config.folders.sql}/audits/restricts.sql`); };
+    if (!q("SELECT * FROM shares LIMIT 1").success) { q(`${config.folders.sql}/audits/shares.sql`); };
+    if (!q("SELECT * FROM views LIMIT 1").success) { q(`${config.folders.sql}/audits/views.sql`); };
+});
 
 db.metadata.transaction(q => {
     if (!q("SELECT * FROM metadata LIMIT 1").success) { q(`${config.folders.sql}/metadata.sql`); };
@@ -61,7 +74,15 @@ db.links.transaction(q => {
 });
 
 db.interactions.transaction(q => {
+    if (!q("SELECT * FROM blocks LIMIT 1").success) { q(`${config.folders.sql}/interactions/blocks.sql`); };
     if (!q("SELECT * FROM follows LIMIT 1").success) { q(`${config.folders.sql}/interactions/follows.sql`); };
+    if (!q("SELECT * FROM friends LIMIT 1").success) { q(`${config.folders.sql}/interactions/friends.sql`); };
+    if (!q("SELECT * FROM likes LIMIT 1").success) { q(`${config.folders.sql}/interactions/likes.sql`); };
+    if (!q("SELECT * FROM mutes LIMIT 1").success) { q(`${config.folders.sql}/interactions/mutes.sql`); };
+    if (!q("SELECT * FROM reads LIMIT 1").success) { q(`${config.folders.sql}/interactions/reads.sql`); };
+    if (!q("SELECT * FROM restricts LIMIT 1").success) { q(`${config.folders.sql}/interactions/restricts.sql`); };
+    if (!q("SELECT * FROM shares LIMIT 1").success) { q(`${config.folders.sql}/interactions/shares.sql`); };
+    if (!q("SELECT * FROM views LIMIT 1").success) { q(`${config.folders.sql}/interactions/views.sql`); };
 });
 
 /* 
@@ -69,6 +90,8 @@ db.interactions.transaction(q => {
 Migrade databases from v5.0.237 to v5.0.300
 ———————————————————————————————————————————————————————————————— 
 */
+
+export const tempSnowflake = new Snowflake(config.generation.epoch, 1);
 
 export const mdb = {
     profiles: new Database("data/databases/v5.0.237/profiles.db"),
@@ -138,7 +161,7 @@ db.users.transaction(q => {
     if (!mdbAccountsPublicData.success) return;
 
     for (const d of mdbAccountsPublicData.rows) {
-        q(
+        const r = q(
             `INSERT INTO users (
                 id,
                 username,
@@ -165,7 +188,7 @@ db.users.transaction(q => {
                 visibility,
                 sendMessages,
                 lastActive,
-                lastActiveVisibility,
+                presenceVisibility,
                 createdDate
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -198,6 +221,8 @@ db.users.transaction(q => {
                 d.created_date
             ]
         );
+
+        console.log(r)
     }
 });
 
@@ -329,7 +354,7 @@ db.links.transaction(q => {
     }
 });
 
-// interactions.db/follows -> interactions.sqlite/follows
+// interactions.db/follows -> interactions.sqlite/follows & audits.sqlite/follows 
 const mdbInteractionsFollowsData = mdb.interactions.query("SELECT * from follows");
 
 db.interactions.transaction(q => {
@@ -350,6 +375,227 @@ db.interactions.transaction(q => {
         );
     }
 });
+
+db.audits.transaction(q => {
+    if (!mdbInteractionsFollowsData.success) return;
+
+    for (const d of mdbInteractionsFollowsData.rows) {
+        q(
+            `INSERT INTO follows (
+                logId,
+                sourceId,
+                targetId,
+                action,
+                date
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.user,
+                d.interaction,
+                "FOLLOW",
+                d.date
+            ]
+        );
+    }
+});
+
+// interactions.db/friends -> interactions.sqlite/friends & audits.sqlite/friends 
+const mdbInteractionsFriendsData = mdb.interactions.query("SELECT * from friends");
+
+db.interactions.transaction(q => {
+    if (!mdbInteractionsFriendsData.success) return;
+
+    for (const d of mdbInteractionsFriendsData.rows) {
+        q(
+            `INSERT INTO friends (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.interaction,
+                d.date
+            ]
+        );
+    }
+});
+
+db.audits.transaction(q => {
+    if (!mdbInteractionsFriendsData.success) return;
+
+    for (const d of mdbInteractionsFriendsData.rows) {
+        q(
+            `INSERT INTO friends (
+                logId,
+                sourceId,
+                targetId,
+                action,
+                date
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.user,
+                d.interaction,
+                "ACCEPT",
+                d.date
+            ]
+        );
+    }
+});
+
+// interactions.db/likes -> interactions.sqlite/likes & audits.sqlite/likes 
+const mdbInteractionsLikesData = mdb.interactions.query("SELECT * from likes");
+
+db.interactions.transaction(q => {
+    if (!mdbInteractionsLikesData.success) return;
+
+    for (const d of mdbInteractionsLikesData.rows) {
+        q(
+            `INSERT INTO likes (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.interaction,
+                d.date
+            ]
+        );
+    }
+});
+
+db.audits.transaction(q => {
+    if (!mdbInteractionsLikesData.success) return;
+
+    for (const d of mdbInteractionsLikesData.rows) {
+        q(
+            `INSERT INTO likes (
+                logId,
+                sourceId,
+                targetId,
+                action,
+                date
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.user,
+                d.interaction,
+                "LIKE",
+                d.date
+            ]
+        );
+    }
+});
+
+// interactions.db/reads -> interactions.sqlite/reads & audits.sqlite/views 
+const mdbInteractionsReadsData = mdb.interactions.query("SELECT * from reads");
+
+db.interactions.transaction(q => {
+    if (!mdbInteractionsReadsData.success) return;
+
+    for (const d of mdbInteractionsReadsData.rows) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (d.user && d.user.includes(".")) d.user = "unknown";
+
+        q(
+            `INSERT INTO reads (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.interaction,
+                d.date
+            ]
+        );
+    }
+});
+
+db.audits.transaction(q => {
+    if (!mdbInteractionsReadsData.success) return;
+
+    for (const d of mdbInteractionsReadsData.rows) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (d.user && d.user.includes(".")) d.user = "unknown";
+
+        q(
+            `INSERT INTO views (
+                logId,
+                sourceId,
+                targetId,
+                action,
+                disconnectedDate
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.user,
+                d.interaction,
+                "READ",
+                d.date
+            ]
+        );
+    }
+});
+
+// interactions.db/views -> interactions.sqlite/views & audits.sqlite/views 
+const mdbInteractionsViewsData = mdb.interactions.query("SELECT * from views");
+
+db.interactions.transaction(q => {
+    if (!mdbInteractionsViewsData.success) return;
+
+    for (const d of mdbInteractionsViewsData.rows) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (d.user && d.user.includes(".")) d.user = "unknown";
+
+        q(
+            `INSERT INTO views (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.user,
+                d.interaction,
+                d.date
+            ]
+        );
+    }
+});
+
+db.audits.transaction(q => {
+    if (!mdbInteractionsViewsData.success) return;
+
+    for (const d of mdbInteractionsViewsData.rows) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (d.user && d.user.includes(".")) d.user = "unknown";
+
+        q(
+            `INSERT INTO views (
+                logId,
+                sourceId,
+                targetIdOrUrl,
+                action,
+                disconnectedDate
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.user,
+                d.interaction,
+                "VIEW",
+                d.date
+            ]
+        );
+    }
+});
+
+// NOTE MOVE ALL FAVS INTO A FAV COLLECTION "My Favorites"
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -396,10 +642,7 @@ app.use('/v2', v2);
 v2.use('/users', userRoute);
 v2.use('/profiles', profileRoute);
 v2.use('/invites', inviteRoute);
-
-// https://api.openprofile.app/v2/interactions/follows?sourceId=5719552362357773&page=2
-// https://api.openprofile.app/v2/interactions/follows?targetId=5019646586243236&page=2
-// https://api.openprofile.app/v2/interactions/follows -> body: { targetId: "5019646586243236" }
+v2.use('/interactions', interactionRoutes);
 
 /* 
 ————————————————————————————————————————————————————————————————
