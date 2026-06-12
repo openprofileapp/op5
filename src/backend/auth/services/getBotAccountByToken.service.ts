@@ -1,8 +1,8 @@
 import { AdvancedError } from 'kage-library';
 
 import { db } from '../server.js';
-import { BotAccount } from '../../_common/types/queries/botAccount.type.js';
-import { UserAccount } from '../../_common/types/queries/userAccount.type.js';
+import { BotAccountType } from '../../_common/types/queries/botAccount.type.js';
+import { UserAccountType } from '../../_common/types/queries/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 
 export default function getBotAccountByToken(token: string) {
@@ -11,7 +11,7 @@ export default function getBotAccountByToken(token: string) {
     if (botResult.success) {
         if (botResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
-        const row = botResult.rows[0] as BotAccount;
+        const row = botResult.rows[0] as BotAccountType;
 
         if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
         if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
@@ -21,7 +21,7 @@ export default function getBotAccountByToken(token: string) {
         if (userResult.success) {
             if (userResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
-            const row = userResult.rows[0] as UserAccount;
+            const row = userResult.rows[0] as UserAccountType;
 
             if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
             if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
