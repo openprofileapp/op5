@@ -17,8 +17,9 @@ import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
 import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
 import userRoute from './routes/user.route.js';
 import profileRoute from './routes/profile.route.js';
-import inviteRoute from './routes/invite.route.js';
-import interactionRoutes from './routes/interaction.routes.js';
+import inviteRoutes from './routes/invite.routes.js';
+import interactionRoutes from './routes/interactions.routes.js';
+import statisticsRoute from './routes/statistics.route.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -161,7 +162,7 @@ db.users.transaction(q => {
     if (!mdbAccountsPublicData.success) return;
 
     for (const d of mdbAccountsPublicData.rows) {
-        const r = q(
+        q(
             `INSERT INTO users (
                 id,
                 username,
@@ -221,8 +222,6 @@ db.users.transaction(q => {
                 d.created_date
             ]
         );
-
-        console.log(r)
     }
 });
 
@@ -418,6 +417,19 @@ db.interactions.transaction(q => {
                 d.date
             ]
         );
+
+        q(
+            `INSERT INTO friends (
+                sourceId,
+                targetId,
+                date
+            ) VALUES (?, ?, ?)`,
+            [
+                d.interaction,
+                d.user,
+                d.date
+            ]
+        );
     }
 });
 
@@ -437,6 +449,23 @@ db.audits.transaction(q => {
                 tempSnowflake.gen(),
                 d.user,
                 d.interaction,
+                "ACCEPT",
+                d.date
+            ]
+        );
+
+        q(
+            `INSERT INTO friends (
+                logId,
+                sourceId,
+                targetId,
+                action,
+                date
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                tempSnowflake.gen(),
+                d.interaction,
+                d.user,
                 "ACCEPT",
                 d.date
             ]
@@ -641,8 +670,9 @@ app.use('/v2', v2);
 
 v2.use('/users', userRoute);
 v2.use('/profiles', profileRoute);
-v2.use('/invites', inviteRoute);
+v2.use('/invites', inviteRoutes);
 v2.use('/interactions', interactionRoutes);
+v2.use('/statistics', statisticsRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————
