@@ -1,30 +1,82 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import getInviteCodeByOwner from '../services/getInviteCodeByOwner.service.js';
-import getInviteCode from '../services/getInviteCode.service.js';
+import getInviteByOwner from "../services/getInviteByOwner.service.js";
+import getInviteByCode from "../services/getInviteByCode.service.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 
-export const getInvites = (req: Request, res: Response) => {
-    const { owner, code } = req.query;
+export const getInvitesController = (req: Request, res: Response) => {
+    // If admin, display all invites
+    const authHeader = req.headers.authorization;
 
-    if (owner) {
-        if (typeof owner !== 'string') {
-            return res.status(400).json({
-                error: 'Invalid owner id'
-            });
-        }
+    if (!authHeader) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
 
-        res.status(200).json({
-            ...getInviteCodeByOwner(owner)
-        });
-    } else if (code) {
-        if (typeof code !== 'string') {
-            return res.status(400).json({
-                error: 'Invalid invite code'
-            });
-        }
+    const authToken = authHeader.split(" ")[1];
 
-        res.status(200).json({
-            ...getInviteCode(code)
+    if (authToken !== getEnv("API_SECRET")) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    return res.status(400).json({
+        error: "Invalid parameter"
+    });
+};
+
+export const getInviteByCodeController = (req: Request, res: Response) => {
+    const { inviteCode } = req.params;
+
+    if (!inviteCode || typeof inviteCode !== "string") {
+        return res.status(400).json({
+            error: "Invalid parameter"
         });
     }
+
+    // Only display if owner or admin
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const authToken = authHeader.split(" ")[1];
+
+    if (authToken !== getEnv("API_SECRET")) {
+        return res.status(401).json({
+            error: "Unauthorized"
+        });
+    }
+
+    res.status(200).json({
+        ...getInviteByCode(inviteCode)
+    });
+};
+
+export const getInvitesByOwnerController = (req: Request, res: Response) => {
+    const { ownerId } = req.params;
+
+    // Only display if owner or admin
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const authToken = authHeader.split(" ")[1];
+
+    if (authToken !== getEnv("API_SECRET")) {
+        return res.status(401).json({
+            error: "Unauthorized"
+        });
+    }
+
+    if (!ownerId || typeof ownerId !== "string") {
+        return res.status(400).json({
+            error: "Invalid parameter"
+        });
+    }
+
+    res.status(200).json({
+        ...getInviteByOwner(ownerId)
+    });
 };
