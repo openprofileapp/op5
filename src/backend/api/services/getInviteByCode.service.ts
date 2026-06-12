@@ -1,6 +1,6 @@
 import { db } from "../server.js";
 
-export default function getInviteCode(code?: string) {
+export default function getInviteByCode(code?: string) {
     const codeResult = db.invites.query("SELECT * FROM codes WHERE code = ?", [code]);
     if (!codeResult.success) return { error: "An error occurred while fetching invite code" }
     if (codeResult.rowCount < 1) return { error: "Code not found" }

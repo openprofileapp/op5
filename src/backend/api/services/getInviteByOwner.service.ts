@@ -1,6 +1,6 @@
 import { db } from "../server.js";
 
-export default function getInviteCodeByOwner(id?: string) {
+export default function getInviteByOwner(id?: string) {
     const codeResult = db.invites.query("SELECT * FROM codes WHERE ownerId = ?", [id]);
     if (!codeResult.success) return { error: "An error occurred while fetching invite code" }
     if (codeResult.rowCount < 1) return { error: "Code not found" }
