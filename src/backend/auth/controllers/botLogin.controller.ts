@@ -7,8 +7,15 @@ import { log } from '../server.js';
 
 export const botLogin = async (req: Request, res: Response) => {
     try {
-        const authHeader = req.headers.authorization as string || req.headers.Authorization as string;
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader) {
+            return res.status(401).json({ error: "Missing Authorization header" });
+        }
+
         const authToken = authHeader.split(" ")[1];
+
+        // REJECT IF DOESN'T INCLUDE BEARER
 
         const response = getBotAccountByToken(authToken);
 
