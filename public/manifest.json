@@ -3,7 +3,7 @@
   "short_name": "OpenProfile",
   "start_url": "/?client=pwa",
   "display": "standalone",
-  "background_color": "#080808",
+  "background_color": "#160202",
   "theme_color": "#ce1616",
   "icons": [
     {

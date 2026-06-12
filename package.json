@@ -1,6 +1,6 @@
 {
   "name": "openprofile",
-  "version": "5.0.300-beta-build-cfeeba0",
+  "version": "5.1.0-beta-build-28954ec",
   "description": "This is an example description",
   "keywords": [
     "example",
@@ -20,7 +20,7 @@
     "clean": "rimraf dist && rimraf logs",
     "sync": "tsx dev/syncConfig.ts",
     "translate": "tsx dev/translateLocales.ts",
-    "minify": "npx esbuild \"dist/**/*.js\" --format=esm --minify --banner:js=\"/* This file is part of OpenProfile. Copyright (c) 2017-2026 OpenProfile. All rights reserved. */\" --outdir=dist --allow-overwrite",
+    "minify": "npx esbuild \"dist/**/*.js\" --format=esm --minify --banner:js=\"/* This file is part of OpenProfile. Copyright © 2017-2026 OpenProfile™. All rights reserved. */\" --outdir=dist --allow-overwrite",
     "copy:ssl": "cpx ssl/**/* dist/ssl",
     "copy:public": "cpx public/**/* dist/public",
     "copy:package": "cpx package.json dist",
