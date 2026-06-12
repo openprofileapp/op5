@@ -10,6 +10,11 @@ import { config } from "../../../../app.config.js";
 import { db, log, wc } from "../server.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
+import { InviteType } from "../../_common/types/queries/invite.type.js";
+import { GeoIpType } from "../../_common/types/queries/geoIp.type.js";
+import { UserAgentType } from "../../_common/types/queries/userAgent.type.js";
+import { SessionType } from "../../_common/types/queries/session.type.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
@@ -66,11 +71,12 @@ export default async function validateSession(req: Request, res: Response) {
     // If invite is valid, save as cookie
     if (req.query?.invite && req.query?.invite !== req.cookies?.inviteCode) {
 
-        const inviteData = await wc.callAPI(
-            `https://${config.domains.api}/v2/invites?code=${req.query.invite}`
+        const inviteData: InviteType = await wc.callAPI(
+            `https://${config.domains.api}/v2/invites/code/${req.query.invite}`,
+            { auth: `Bearer ${getEnv("API_SECRET")}` }
         );
 
-        if ( // ADD A TYPE FOR THIS CALL BASED ON THE VERSION
+        if (
             !inviteData?.isSuspended && inviteData?.isUnlimited ||
             !inviteData?.isSuspended && inviteData?.usesLeft > 0
         ) {
@@ -85,56 +91,121 @@ export default async function validateSession(req: Request, res: Response) {
     }
 
     // If session is invalid or suspicious, terminate it, delete cookies, then recall validation
-    let sessionDatabaseResult;
-    let geoIpLatestFetchOld;
-    let geoIpLatestFetchNew;
+    let oldSessionResult;
     let suspicionScore = 0;
 
+    const userAgentJSON = detector.detect(userAgent);
+    const userAgentBotJSON = detector.parseBot?.(userAgent) || {};
+
+    const isUserAgentBot =
+        Object.keys(userAgentBotJSON || {}).length > 0 ||
+        // Additional wildcards not caught by detector.parseBot
+        /(axios|bot|crawl|spider|scraper|fetcher|monitor|validator|node)/i
+        .test(userAgent);
+
+    const formattedUserAgent: UserAgentType = {
+        string: userAgent,
+        ...userAgentJSON,
+        isBot: isUserAgentBot,
+        ...(isUserAgentBot && {
+            bot: userAgentBotJSON
+        })
+    };
+
     if (clientToken) {
-        sessionDatabaseResult = db.sessions.query(
-            `SELECT * FROM sessions WHERE token = ? AND socketId = ?`,
+        oldSessionResult = db.sessions.query(
+            `SELECT geoIpLatestFetch FROM sessions WHERE token = ? AND socketId = ?`,
             [clientToken, clientSocketId]
         );
     } else {
-        sessionDatabaseResult = db.sessions.query(
-            `SELECT * FROM sessions WHERE socketId = ?`,
+        oldSessionResult = db.sessions.query(
+            `SELECT geoIpLatestFetch FROM sessions WHERE socketId = ?`,
             [clientSocketId]
         );
     }
 
-    if (!sessionDatabaseResult.success) throw new AdvancedError({
+    if (!oldSessionResult.success) throw new AdvancedError({
         code: 500,
-        message: "An error occurred while validating session",
+        message: "An error occurred while fetching session",
     });
 
+    const oldGeoIpLatestFetch: GeoIpType = JSON.parse(oldSessionResult.rows[0]?.geoIpLatestFetch as string);
+    const newGeoIpLatestFetch: GeoIpType = await fetchGeoIp(validatedIp);
+
     if (
-        sessionDatabaseResult.rowCount > 0 && 
-        !sessionDatabaseResult.rows[0]?.isTerminated
+        oldSessionResult.rowCount > 0 && 
+        !oldSessionResult.rows[0]?.isTerminated
     ) {
         // Handle security checks
-        geoIpLatestFetchOld = JSON.parse(sessionDatabaseResult.rows[0]?.geoIpLatestFetch as string);
-        geoIpLatestFetchNew = await fetchGeoIp(validatedIp);
+        const oldSessionRow = oldSessionResult.rows[0] as SessionType;
         let distanceInMiles = 0;
 
         if (
-            geoIpLatestFetchOld.latitude && 
-            geoIpLatestFetchOld.longitude &&
-            geoIpLatestFetchNew.latitude && 
-            geoIpLatestFetchNew.longitude
+            oldGeoIpLatestFetch.latitude && 
+            oldGeoIpLatestFetch.longitude &&
+            newGeoIpLatestFetch.latitude && 
+            newGeoIpLatestFetch.longitude
         ) {
             distanceInMiles = haversine(
-                { latitude: geoIpLatestFetchOld.latitude, longitude: geoIpLatestFetchOld.longitude },
-                { latitude: geoIpLatestFetchNew.latitude, longitude: geoIpLatestFetchNew.longitude }
+                { latitude: oldGeoIpLatestFetch.latitude, longitude: oldGeoIpLatestFetch.longitude },
+                { latitude: newGeoIpLatestFetch.latitude, longitude: newGeoIpLatestFetch.longitude }
             ) / 1609.344;
         }
 
-        // COMBINE THIS WITH OS AND BROWSER
-        suspicionScore = distanceInMiles;
+        suspicionScore = suspicionScore + distanceInMiles;
+
+        if (formattedUserAgent.isBot) {
+            suspicionScore = suspicionScore * 4
+        }
+
+        if (distanceInMiles < 25) {
+            if (oldGeoIpLatestFetch?.timezone !== newGeoIpLatestFetch?.timezone) {
+                suspicionScore = suspicionScore * 2
+            }
+
+            if (oldGeoIpLatestFetch?.country !== newGeoIpLatestFetch?.country) {
+                suspicionScore = suspicionScore * 2
+            }
+
+            if (oldGeoIpLatestFetch?.continent !== newGeoIpLatestFetch?.continent) {
+                suspicionScore = suspicionScore * 4
+            }
+
+            if (oldSessionRow?.userAgent?.os?.family !== formattedUserAgent?.os?.family) {
+                suspicionScore = suspicionScore * 2
+            }
+
+            if (oldSessionRow?.userAgent?.client?.family !== formattedUserAgent?.client?.family) {
+                suspicionScore = suspicionScore * 2
+            }
+        }
     }
 
+    // Save attempt to watchdog (auth database)
+    db.accounts.query(
+        `INSERT INTO emails (
+            userId,
+            email,
+            isConfirmed,
+            isMfa,
+            isSubscribedToNewsletters,
+            isSubscribedToAccountNotifications,
+            isSubscribedToPromotionalMaterial
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+            d.user,
+            d.email,
+            d.confirmed,
+            d.mfa_enabled,
+            d.newsletter_updates,
+            d.newsletter_notifications,
+            d.newsletter_promotional
+        ]
+    );
+
     if (
-        sessionDatabaseResult.rowCount === 0 ||
-        sessionDatabaseResult.rows[0]?.isTerminated ||
+        oldSessionResult.rowCount === 0 ||
+        oldSessionResult.rows[0]?.isTerminated ||
         suspicionScore >= 100
     ) {
         res.clearCookie("socketId", {
@@ -184,29 +255,11 @@ export default async function validateSession(req: Request, res: Response) {
 
 
     // Proceed with validation
-    const userAgentJSON = detector.detect(userAgent);
-    const userAgentBotJSON = detector.parseBot?.(userAgent) || {};
-
-    const isUserAgentBot =
-        Object.keys(userAgentBotJSON || {}).length > 0 ||
-        // Additional wildcards not caught by detector.parseBot
-        /(axios|bot|crawl|spider|scraper|fetcher|monitor|validator|node)/i
-        .test(userAgent);
-
-    const formattedUserAgent = {
-        string: userAgent,
-        ...userAgentJSON,
-        isBot: isUserAgentBot,
-        ...(isUserAgentBot && {
-            bot: userAgentBotJSON
-        })
-    };
 
     if (true) { // isUserAgentBot (if bot, can't login/access account)
         const role = PlatformPermissionsService.getRole("robot");
         const now = DateTime.now().toUTC().toISO();
 
-        // REPLACE WITH UPDATE WHERE ID AND TOKEN IF TOKEN IS VALID
         const result = db.sessions.query(
             `UPDATE sessions SET
                 geoIpLatestFetch = ?,
@@ -216,15 +269,17 @@ export default async function validateSession(req: Request, res: Response) {
                 isConnected = ?,
                 lastConnected = ?
             WHERE socketId = ?
+            ${clientToken ? "AND token = ?" : ""}
             LIMIT 1`,
             [
-                JSON.stringify(geoIpLatestFetchNew),
+                JSON.stringify(newGeoIpLatestFetch),
                 now,
                 JSON.stringify(formattedUserAgent),
                 inviteCode,
                 1,
                 now,
-                clientSocketId
+                clientSocketId,
+                ...(clientToken ? [clientToken] : [])
             ]
         );
 
@@ -252,11 +307,10 @@ export default async function validateSession(req: Request, res: Response) {
         log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            // geoIpFirstFetch: JSON.parse(sessionDatabaseResult.rows[0]?.geoIpFirstFetch as string),
-            // geoIpLatestFetch: geoIpLatestFetchNew,
-            // userAgent: formattedUserAgent,
-            // inviteCode,
-            // socketId: clientSocketId,
+            geoIp: newGeoIpLatestFetch,
+            userAgent: formattedUserAgent,
+            inviteCode,
+            socketId: clientSocketId,
             permissions: {
                 value: role.value,
                 array: role.array
