@@ -221,7 +221,7 @@ app.use("/", router);
 
 router.use("/captcha", captchaRoute);
 router.use("/session", sessionRoute);
-router.use("/login", loginRoutes); // ADD hcaptcha REACT TO LOGIN
+router.use("/login", loginRoutes);
 
 // login = creates the session 
 //
