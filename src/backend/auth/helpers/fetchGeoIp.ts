@@ -2,27 +2,28 @@ import CountryLanguage from '@ladjs/country-language';
 
 import { wc, geoip2, log } from "../server.js";
 import { config } from '../../../../app.config.js';
+import { GeoIpType } from '../../_common/types/queries/geoIp.type.js';
 
-type GeoIp = {
-    ip?: string;
-    latitude?: number;
-    longitude?: number;
-    accuracy?: number;
-    locale?: string;
-    timezone?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    continent?: string;
-}
+const empty = { 
+    ip: "",
+    latitude: 0,
+    longitude: 0,
+    accuracy: 0,
+    locale: "",
+    timezone: "",
+    city: "",
+    state: "",
+    country: "",
+    continent: ""
+};
 
 /**
  * Fetches the geolocation info based of an IP address
  * @param {string} ip - The ip to fetch the geolocation of (required)
  * @returns {object} The geolocation object
 */
-export default async function fetchGeoIp(ip: string): Promise<GeoIp> {
-    if (!ip) return {};
+export default async function fetchGeoIp(ip: string): Promise<GeoIpType> {
+    if (!ip) return empty;
 
     // Validate IP
     let address = ip.trim();
@@ -54,7 +55,7 @@ export default async function fetchGeoIp(ip: string): Promise<GeoIp> {
 
     // Format geoData
     const geoData = geoip2.get(address);
-    if (!geoData || ! geoData?.subdivisions) return {}
+    if (!geoData || !geoData?.subdivisions) return empty;
 
     let language = config.metadata.locale as string;
 
