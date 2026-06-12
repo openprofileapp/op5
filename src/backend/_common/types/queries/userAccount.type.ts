@@ -1,4 +1,4 @@
-export type UserAccount = {
+export type UserAccountType = {
     id: string;
     hasEmail: boolean;
     hasPhoneNumber: boolean;

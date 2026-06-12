@@ -1,4 +1,4 @@
-export type AccountEmail = {
+export type AccountEmailType = {
     userId: string;
     email: string;
     isConfirmed: boolean;

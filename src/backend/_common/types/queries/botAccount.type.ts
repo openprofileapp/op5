@@ -1,4 +1,4 @@
-export type BotAccount = {
+export type BotAccountType = {
     id: string;
     token: string;
     ownerId: string;
