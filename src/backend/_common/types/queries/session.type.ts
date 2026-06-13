@@ -8,11 +8,14 @@ export type SessionType = {
     geoIpLatestFetchDate: string;
     userAgent: UserAgentType;
     inviteCode: string;
-    token: string;
-    socketId: string;
+    sessionId: string;
+    accessToken: string;
+    sessionToken: string;
+    accessTokenExpireDate: string;
+    sessionTokenExpireDate: string;
     isTerminated: boolean;
     totalDuration: number;
     isConnected: boolean;
-    firstConnected: string;
-    lastConnected: string;
+    firstConnectedDate: string;
+    lastConnectedDate: string;
 }
