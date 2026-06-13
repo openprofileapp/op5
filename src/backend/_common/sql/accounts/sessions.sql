@@ -5,11 +5,14 @@ CREATE TABLE IF NOT EXISTS sessions (
     geoIpLatestFetchDate TEXT,
     userAgent TEXT,
     inviteCode TEXT,
-    token TEXT UNIQUE,
-    socketId TEXT UNIQUE,
+    sessionId TEXT PRIMARY KEY,
+    accessToken TEXT UNIQUE,
+    sessionToken TEXT UNIQUE,
+    accessTokenExpireDate TEXT,
+    sessionTokenExpireDate TEXT,
     isTerminated INTEGER DEFAULT 0,
     totalDuration INTEGER DEFAULT 0,
     isConnected INTEGER DEFAULT 0,
-    firstConnected TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    lastConnected TEXT
+    firstConnectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    lastConnectedDate TEXT
 );
