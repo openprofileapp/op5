@@ -7,6 +7,7 @@ import maxmind, { CityResponse } from "maxmind";
 
 import { 
     Database,
+    Identifier,
     Logger,
     Snowflake,
     WebClient,
@@ -21,6 +22,7 @@ import sessionRoute from "./routes/session.route.js";
 import loginRoutes from "./routes/login.routes.js";
 import PlatformPermissionsService from "../_common/services/platformPermissions.service.js";
 import captchaRoute from "./routes/captcha.route.js";
+import tokenRoute from "./routes/token.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -44,6 +46,11 @@ export const wc = new WebClient({
     useSecureSSL: config.isProduction
 });
 
+export const id = new Identifier({
+    HASH: { regex: /[a-f0-9]/, length: 32 },
+    TOKEN: { regex: /[A-Za-z0-9]/, length: 64 }
+});
+
 export const geoip2 = await maxmind.open<CityResponse>(
     path.resolve("data/databases/static/geoip2/cities.mmdb")
 );
@@ -55,15 +62,11 @@ Connect databases
 */
 
 export const db = {
-    sessions: new Database("data/databases/sessions.sqlite"),
     accounts: new Database("data/databases/accounts.sqlite"),
 };
 
-db.sessions.transaction(q => {
-    if (!q("SELECT * FROM sessions LIMIT 1").success) { q(`${config.folders.sql}/sessions.sql`); };
-});
-
 db.accounts.transaction(q => {
+    if (!q("SELECT * FROM sessions LIMIT 1").success) { q(`${config.folders.sql}/accounts/sessions.sql`); };
     if (!q("SELECT * FROM users LIMIT 1").success) { q(`${config.folders.sql}/accounts/users.sql`); };
     if (!q("SELECT * FROM bots LIMIT 1").success) { q(`${config.folders.sql}/accounts/bots.sql`); };
     if (!q("SELECT * FROM connections LIMIT 1").success) { q(`${config.folders.sql}/accounts/connections.sql`); };
@@ -220,6 +223,7 @@ Routes
 app.use("/", router);
 
 router.use("/captcha", captchaRoute);
+router.use("/token", tokenRoute);
 router.use("/session", sessionRoute);
 router.use("/login", loginRoutes);
 
