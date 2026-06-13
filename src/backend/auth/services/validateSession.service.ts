@@ -1,20 +1,19 @@
-import type { Request, Response } from "express";
+import type { CookieOptions, Request, Response } from "express";
 import net from "node:net";
 import DeviceDetector from "node-device-detector";
-import { DateTime } from "luxon"
+import { DateTime } from "luxon";
 import haversine from "haversine-distance"
+import crypto from "crypto";
 
 import { AdvancedError, URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
-import { db, log, wc } from "../server.js";
+import { db, id, log, wc } from "../server.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
 import { InviteType } from "../../_common/types/queries/invite.type.js";
-import { GeoIpType } from "../../_common/types/queries/geoIp.type.js";
 import { UserAgentType } from "../../_common/types/queries/userAgent.type.js";
 import { SessionType } from "../../_common/types/queries/session.type.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
@@ -39,26 +38,78 @@ export default async function validateSession(req: Request, res: Response) {
     const url = new URL(`https://${config.domains.main}`);
 
     const userAgent = req.get("User-Agent") || req.get("user-agent") || "unknown"
+
     const inviteCode = req.query?.invite || req.cookies?.inviteCode;
-    let clientSocketId = req.cookies?.socketId;
-    const clientToken = req.cookies?.token;
-    const validatedIp = validateIp(req);
+    let sessionId = req.cookies?.sessionId;
+    let accessToken = req.cookies?.accessToken;
+    let sessionToken = req.cookies?.sessionToken;
 
-    // If first visit, generate a socket id then save it
-    if (!clientSocketId) {
-        clientSocketId = crypto.randomUUID();
-        const geoIpFetch = await fetchGeoIp(validatedIp);
+    const cookieOptions: CookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        domain: `.${url.domain}`,
+        path: "/",
+    }
 
-        const result = db.sessions.query(
-            `INSERT INTO sessions (geoIpFirstFetch, geoIpLatestFetch, socketId) VALUES (?, ?, ?)`,
-            [JSON.stringify(geoIpFetch), JSON.stringify(geoIpFetch), clientSocketId]
+    const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
+    const now = DateTime.now().toUTC().toISO();
+
+    // If first visit, generate a device token then save it
+    if (!sessionId) {
+        sessionId = id.gen("HASH");
+
+        accessToken = id.gen("TOKEN");
+
+        const hashedAccessToken = crypto.createHash("sha256").update(accessToken).digest("hex");
+
+        const result = db.accounts.query(
+            `INSERT INTO sessions (
+                geoIpFirstFetch, 
+                geoIpLatestFetch, 
+                sessionId,
+                accessToken,
+                firstConnectedDate, 
+                lastConnectedDate
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                JSON.stringify(newGeoIpLatestFetch), 
+                JSON.stringify(newGeoIpLatestFetch), 
+                sessionId,
+                hashedAccessToken,
+                now, 
+                now
+            ]
         );
 
         if (!result.success) {
-            log.db.error(result.error).save();
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while saving session",
+                details: result.error
+            })
         }
 
-        res.cookie("socketId", clientSocketId, {
+        res.cookie("sessionId", sessionId, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+        });
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 5, // 5 minutes
+        });
+    } else {
+        // Refesh the cookie so it doesn't expire
+        res.cookie("sessionId", sessionId, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
@@ -68,31 +119,41 @@ export default async function validateSession(req: Request, res: Response) {
         });
     }
 
-    // If invite is valid, save as cookie
-    if (req.query?.invite && req.query?.invite !== req.cookies?.inviteCode) {
+    const result = db.accounts.query<SessionType>(
+        `SELECT * FROM sessions WHERE sessionId = ? LIMIT 1`,
+        [sessionId]
+    );
 
-        const inviteData: InviteType = await wc.callAPI(
-            `https://${config.domains.api}/v2/invites/code/${req.query.invite}`,
-            { auth: `Bearer ${getEnv("API_SECRET")}` }
-        );
-
-        if (
-            !inviteData?.isSuspended && inviteData?.isUnlimited ||
-            !inviteData?.isSuspended && inviteData?.usesLeft > 0
-        ) {
-            res.cookie("inviteCode", req.query.invite, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-            });
-        }
+    if (!result.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while fetching session",
+            details: result.error
+        })
     }
 
-    // If session is invalid or suspicious, terminate it, delete cookies, then recall validation
-    let oldSessionResult;
-    let suspicionScore = 0;
+    // If invalid session, clear cookies and restart
+    if (result.rowCount < 1) {
+        res.clearCookie("sessionId", cookieOptions);
+        res.clearCookie("accessToken", cookieOptions);
+        res.clearCookie("sessionToken", cookieOptions);
+
+        return { action: "REFRESH_PAGE" };
+    }
+
+    const row = result.rows[0];
+
+    const isSessionVoid =
+        row.isTerminated ||
+        row.sessionTokenExpireDate && new Date(row.sessionTokenExpireDate as string) < new Date();
+
+    if (isSessionVoid) {
+        res.clearCookie("sessionId", cookieOptions);
+        res.clearCookie("accessToken", cookieOptions);
+        res.clearCookie("sessionToken", cookieOptions);
+
+        return { action: "REFRESH_PAGE" };
+    };
 
     const userAgentJSON = detector.detect(userAgent);
     const userAgentBotJSON = detector.parseBot?.(userAgent) || {};
@@ -112,179 +173,38 @@ export default async function validateSession(req: Request, res: Response) {
         })
     };
 
-    if (clientToken) {
-        oldSessionResult = db.sessions.query(
-            `SELECT geoIpLatestFetch FROM sessions WHERE token = ? AND socketId = ?`,
-            [clientToken, clientSocketId]
-        );
-    } else {
-        oldSessionResult = db.sessions.query(
-            `SELECT geoIpLatestFetch FROM sessions WHERE socketId = ?`,
-            [clientSocketId]
-        );
-    }
+    // If bot, return session here
+    if (isUserAgentBot) {
+        // FILE A WATCH DOG REPORT
 
-    if (!oldSessionResult.success) throw new AdvancedError({
-        code: 500,
-        message: "An error occurred while fetching session",
-    });
-
-    const oldGeoIpLatestFetch: GeoIpType = JSON.parse(oldSessionResult.rows[0]?.geoIpLatestFetch as string);
-    const newGeoIpLatestFetch: GeoIpType = await fetchGeoIp(validatedIp);
-
-    if (
-        oldSessionResult.rowCount > 0 && 
-        !oldSessionResult.rows[0]?.isTerminated
-    ) {
-        // Handle security checks
-        const oldSessionRow = oldSessionResult.rows[0] as SessionType;
-        let distanceInMiles = 0;
-
-        if (
-            oldGeoIpLatestFetch.latitude && 
-            oldGeoIpLatestFetch.longitude &&
-            newGeoIpLatestFetch.latitude && 
-            newGeoIpLatestFetch.longitude
-        ) {
-            distanceInMiles = haversine(
-                { latitude: oldGeoIpLatestFetch.latitude, longitude: oldGeoIpLatestFetch.longitude },
-                { latitude: newGeoIpLatestFetch.latitude, longitude: newGeoIpLatestFetch.longitude }
-            ) / 1609.344;
-        }
-
-        suspicionScore = suspicionScore + distanceInMiles;
-
-        if (formattedUserAgent.isBot) {
-            suspicionScore = suspicionScore * 4
-        }
-
-        if (distanceInMiles < 25) {
-            if (oldGeoIpLatestFetch?.timezone !== newGeoIpLatestFetch?.timezone) {
-                suspicionScore = suspicionScore * 2
-            }
-
-            if (oldGeoIpLatestFetch?.country !== newGeoIpLatestFetch?.country) {
-                suspicionScore = suspicionScore * 2
-            }
-
-            if (oldGeoIpLatestFetch?.continent !== newGeoIpLatestFetch?.continent) {
-                suspicionScore = suspicionScore * 4
-            }
-
-            if (oldSessionRow?.userAgent?.os?.family !== formattedUserAgent?.os?.family) {
-                suspicionScore = suspicionScore * 2
-            }
-
-            if (oldSessionRow?.userAgent?.client?.family !== formattedUserAgent?.client?.family) {
-                suspicionScore = suspicionScore * 2
-            }
-        }
-    }
-
-    // Save attempt to watchdog (auth database)
-    db.accounts.query(
-        `INSERT INTO emails (
-            userId,
-            email,
-            isConfirmed,
-            isMfa,
-            isSubscribedToNewsletters,
-            isSubscribedToAccountNotifications,
-            isSubscribedToPromotionalMaterial
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            d.user,
-            d.email,
-            d.confirmed,
-            d.mfa_enabled,
-            d.newsletter_updates,
-            d.newsletter_notifications,
-            d.newsletter_promotional
-        ]
-    );
-
-    if (
-        oldSessionResult.rowCount === 0 ||
-        oldSessionResult.rows[0]?.isTerminated ||
-        suspicionScore >= 100
-    ) {
-        res.clearCookie("socketId", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: `.${url.domain}`,
-            path: "/",
-        });
-
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: `.${url.domain}`,
-            path: "/",
-        });
-
-        if (suspicionScore >= 100) {
-            // log.auth.warn(`Session for "${clientSocketId}" is terminated`).save();
-            // Send a notification to the user and create a watchdog report
-        } else {
-            log.auth.warn(`Session for "${clientSocketId}" is terminated`).save();
-        }
-
-        // INSTEAD OF REFRESHING, RETURN A JSON ACTION TELLING THE CONTROLLER TO REFRESH
-        return res.redirect(req.originalUrl || "/");
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// SAVE VISIT IN THE AUDIT DATABASE
-
-
-    // Proceed with validation
-
-    if (true) { // isUserAgentBot (if bot, can't login/access account)
         const role = PlatformPermissionsService.getRole("robot");
-        const now = DateTime.now().toUTC().toISO();
 
-        const result = db.sessions.query(
+        // Update the session row
+        const updatedBotSessionResult = db.accounts.query(
             `UPDATE sessions SET
                 geoIpLatestFetch = ?,
                 geoIpLatestFetchDate = ?,
                 userAgent = ?,
-                inviteCode = ?,
                 isConnected = ?,
-                lastConnected = ?
-            WHERE socketId = ?
-            ${clientToken ? "AND token = ?" : ""}
+                lastConnectedDate = ?
+            WHERE sessionId = ?
             LIMIT 1`,
             [
                 JSON.stringify(newGeoIpLatestFetch),
                 now,
                 JSON.stringify(formattedUserAgent),
-                inviteCode,
                 1,
                 now,
-                clientSocketId,
-                ...(clientToken ? [clientToken] : [])
+                sessionId
             ]
         );
 
-        if (!result.success) {
-            log.db.error(result.error).save();
+        if (!updatedBotSessionResult.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while updating session",
+                details: updatedBotSessionResult.error
+            })
         }
 
         const crawlerMessages = [
@@ -307,39 +227,287 @@ export default async function validateSession(req: Request, res: Response) {
         log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            geoIp: newGeoIpLatestFetch,
-            userAgent: formattedUserAgent,
-            inviteCode,
-            socketId: clientSocketId,
+            userId: row.userId,
             permissions: {
                 value: role.value,
                 array: role.array
             }
         };
-    } else {
-        // login({ userId });
-
-        // IF THE USER LOGS IN AT LEAST ONCE IN THE LAST 15 DAYS AND SESSION IS SOFT-TERMINATION (BEGINS DAY 20), 
-        // REFRESH THE TOKEN INSTEAD OF EXPIRING IT IF WITHIN VALID SPACE COMPARED TO A HARD-TERMINATON
-
-        // res.cookie("token", clientTokenNew, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "none",
-        //     domain: `.${url.domain}`,
-        //     path: "/",
-        //     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-        // });
-
-        // EXTERNALLY IF ACCOUNT DOESN'T EXIST, CALL REGISTER ACCOUNT ELSE LOGIN
-        // login({ method: "google", id: externalId });
-        // registerAccount(clientToken);
-
-        // THEN return the rest of the login with the geo and perms and stuff
     }
 
-    // If bot, return agent info with BOT PERMISSIONS ROLE
-    // Else, call LOGIN(TOKEN) which returns the data and returns it to VALIDATESESSION();
+    // If session is suspicious, delete session, clear cookies, and restart
+    let suspicionScore = 0;
+    let distanceInMiles = 0;
+
+    if (
+        row.geoIpLatestFetch.latitude && 
+        row.geoIpLatestFetch.longitude &&
+        newGeoIpLatestFetch.latitude && 
+        newGeoIpLatestFetch.longitude
+    ) {
+        distanceInMiles = haversine(
+            { latitude: row.geoIpLatestFetch.latitude, longitude: row.geoIpLatestFetch.longitude },
+            { latitude: newGeoIpLatestFetch.latitude, longitude: newGeoIpLatestFetch.longitude }
+        ) / 1609.344;
+    }
+
+    suspicionScore = suspicionScore + distanceInMiles;
+
+    if (formattedUserAgent.isBot) {
+        suspicionScore = suspicionScore * 4
+    }
+
+    if (distanceInMiles < 25) {
+        if (row.geoIpLatestFetch?.timezone !== newGeoIpLatestFetch?.timezone) {
+            suspicionScore = suspicionScore * 2
+        }
+
+        if (row.geoIpLatestFetch?.country !== newGeoIpLatestFetch?.country) {
+            suspicionScore = suspicionScore * 2
+        }
+
+        if (row.geoIpLatestFetch?.continent !== newGeoIpLatestFetch?.continent) {
+            suspicionScore = suspicionScore * 4
+        }
+
+        if (row.userAgent?.os?.family !== formattedUserAgent?.os?.family) {
+            suspicionScore = suspicionScore * 2
+        }
+
+        if (row.userAgent?.client?.family !== formattedUserAgent?.client?.family) {
+            suspicionScore = suspicionScore * 2
+        }
+    }
+
+    if (suspicionScore >= 100) {
+        // SEND A SECURITY NOTIFICTION TO ROW.USER IF VALID AND CREATE A WATCHDOG REPORT
+
+        const result = db.accounts.query(
+            `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+            [sessionId]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while deleting session",
+                details: result.error
+            })
+        }
+
+        res.clearCookie("sessionId", cookieOptions);
+        res.clearCookie("accessToken", cookieOptions);
+        res.clearCookie("sessionToken", cookieOptions);
+
+        return { action: "REFRESH_PAGE" };
+    };
+
+    // If modified session token, delete session, clear cookies, and restart
+    if (sessionToken) {
+        if (crypto.createHash("sha256").update(sessionToken).digest("hex") !== row.sessionToken) {
+            // CREATE AN TAMPER REPORT AUDIT
+
+            const result = db.accounts.query(
+                `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+                [sessionId]
+            );
+
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while deleting session",
+                    details: result.error
+                })
+            }
+
+            res.clearCookie("sessionId", cookieOptions);
+            res.clearCookie("accessToken", cookieOptions);
+            res.clearCookie("sessionToken", cookieOptions);
+
+            return { action: "REFRESH_PAGE" };
+        } else if (
+            row.sessionTokenExpireDate &&
+            DateTime.fromISO(row.sessionTokenExpireDate) < DateTime.now().toUTC().plus({ days: 10 })
+        ) {
+            // If session token expires in 10 or less days, generate a new rotation
+            const in30Days = DateTime.now().toUTC().plus({ days: 30 }).toISO();
+            sessionToken = id.gen("TOKEN");
+
+            const hashedSessionToken = crypto.createHash("sha256").update(sessionToken).digest("hex");
+
+            const result = db.accounts.query(
+                `UPDATE sessions SET 
+                    sessionToken = ?, 
+                    sessionTokenExpireDate = ?
+                    WHERE sessionId = ? LIMIT 1`,
+                [
+                    hashedSessionToken,
+                    in30Days,
+                    sessionId,
+                ]
+            );
+
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while rotating session token",
+                    details: result.error
+                })
+            }
+
+            res.cookie("sessionToken", sessionToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            });
+        }
+    }
+
+    // If modified access token, delete session, clear cookies, and restart
+    if (
+        accessToken &&
+        crypto.createHash("sha256").update(accessToken).digest("hex") !== row.accessToken
+    ) {
+        // CREATE AN TAMPER REPORT AUDIT
+
+        const result = db.accounts.query(
+            `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+            [sessionId]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while deleting session",
+                details: result.error
+            })
+        }
+
+        const options: CookieOptions  = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+        }
+
+        res.clearCookie("sessionId", options);
+        res.clearCookie("accessToken", options);
+        res.clearCookie("sessionToken", options);
+
+        return { action: "REFRESH_PAGE" };
+    } else if (
+        !accessToken ||
+        new Date(row.accessTokenExpireDate as string) < new Date()
+    ) {
+        // If expired access token, generate a new rotation
+        const in5Minutes = DateTime.now().toUTC().plus({ minutes: 5 }).toISO();
+        accessToken = id.gen("TOKEN");
+
+        const hashedAccessToken = crypto.createHash("sha256").update(accessToken).digest("hex");
+
+        const result = db.accounts.query(
+            `UPDATE sessions SET 
+                accessToken = ?, 
+                accessTokenExpireDate = ?
+                WHERE sessionId = ? LIMIT 1`,
+            [
+                hashedAccessToken,
+                in5Minutes,
+                sessionId,
+            ]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while rotating access token",
+                details: result.error
+            })
+        }
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 5, // 5 minutes
+        });
+    }
+
+    // If invite is valid, save as cookie
+    if (inviteCode !== row.inviteCode) {
+        const inviteData: InviteType = await wc.callAPI(
+            `https://${config.domains.api}/v2/invites/code/${inviteCode}`,
+            { auth: `Bearer ${accessToken}` }
+        );
+
+        if (
+            !inviteData?.isSuspended && inviteData?.isUnlimited ||
+            !inviteData?.isSuspended && inviteData?.usesLeft > 0
+        ) {
+            res.cookie("inviteCode", inviteCode, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+            });
+        }
+    } else {
+        // Refesh the cookie so it doesn't expire
+        res.cookie("inviteCode", inviteCode, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+        });
+    }
+
+    // Update the session row
+    const updatedUserSessionResult = db.accounts.query(
+        `UPDATE sessions SET
+            geoIpLatestFetch = ?,
+            geoIpLatestFetchDate = ?,
+            userAgent = ?,
+            inviteCode = ?,
+            isConnected = ?,
+            lastConnectedDate = ?
+        WHERE sessionId = ?
+        LIMIT 1`,
+        [
+            JSON.stringify(newGeoIpLatestFetch),
+            now,
+            JSON.stringify(formattedUserAgent),
+            inviteCode,
+            1,
+            now,
+            sessionId
+        ]
+    );
+
+    if (!updatedUserSessionResult.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while updating session",
+            details: updatedUserSessionResult.error
+        })
+    }
+
+    // SAVE VISIT IN THE AUDIT DATABASE
+
+    // Return session data // ADD PERMISSIONS
+    return {
+        userId: row.userId,
+        expireDate: row.sessionTokenExpireDate
+    };
 }
 
 
@@ -376,6 +544,68 @@ export default async function validateSession(req: Request, res: Response) {
 
 
 
+/* 
+
+   } else {
+        // login({ userId });
+
+        // IF THE USER LOGS IN AT LEAST ONCE IN THE LAST 15 DAYS AND SESSION IS SOFT-TERMINATION (BEGINS DAY 20), 
+        // REFRESH THE TOKEN INSTEAD OF EXPIRING IT IF WITHIN VALID SPACE COMPARED TO A HARD-TERMINATON
+
+        // res.cookie("token", sessionTokenNew, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "none",
+        //     domain: `.${url.domain}`,
+        //     path: "/",
+        //     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+        // });
+
+        // EXTERNALLY IF ACCOUNT DOESN'T EXIST, CALL REGISTER ACCOUNT ELSE LOGIN
+        // login({ method: "google", id: externalId });
+        // registerAccount(sessionToken);
+
+        // THEN return the rest of the login with the geo and perms and stuff
+    }
+
+    // If bot, return agent info with BOT PERMISSIONS ROLE
+    // Else, call LOGIN(TOKEN) which returns the data and returns it to VALIDATESESSION();
+}
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -405,34 +635,13 @@ export default async function validateSession(req: Request, res: Response) {
 
 
 /*
-CODE THIS SOMEWHERE HERE
-
-LET SCORE (if >= 100, terminate)
-Distance jump (50 miles) 10 score every 10 miles after
-New device TYPE (not mobile/desktop) fingerprint / 80 score
-New browser (new type) / 50 score
-
- If you border a state or city where your IP may give random surrounding locations, 
- it would log you out every new location (this is assuming the CURRENT LIVE system 
- was working and not bugged). Now, that system will not log you out unless there is 
- a certain radius difference. You could now travel with this new system as every 
- action on the site is refreshing your data keeping the cords distance within a 
- "safe" zone compared to say the token being sniped from across the country giving 
- a large "unsafe" distance that would trigger a termination ensuring your account 
- is safe.
- */
-
-
-
-// when bot, log the bot name as temp page view    
-
 // update totalDuration when leaving the site
 
     // log.network.info(req.headers).save();
 
 /*
 
-db.sessions.query(
+db.accounts.query(
     `INSERT INTO sessions (
         userId TEXT NOT NULL,
         geoIpFirstFetch TEXT,
@@ -441,7 +650,7 @@ db.sessions.query(
         userAgent TEXT,
         inviteCode TEXT,
         token TEXT UNIQUE,
-        socketId TEXT UNIQUE,
+        sessionId TEXT UNIQUE,
         isTerminated INTEGER DEFAULT 0,
         totalDuration INTEGER DEFAULT 0,
         isConnected INTEGER DEFAULT 0,
@@ -737,3 +946,32 @@ export const iController = async (req: Request, res: Response) => {
 
 
 */
+
+
+
+
+
+
+
+
+
+
+
+/* // CRON TO DELETE EXPIRED OR TERMINATED SESSIONS
+        const result = db.accounts.query(
+            `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+            [sessionId]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while deleting session",
+                details: result.error
+            })
+        }
+        */
+
+
+
+
