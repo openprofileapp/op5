@@ -6,22 +6,22 @@ import { UserAccountType } from '../../_common/types/queries/userAccount.type.js
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 
 export default function getBotAccountByToken(token: string) {
-    const botResult = db.accounts.query("SELECT * FROM bots WHERE token = ? LIMIT 1", [token]);
+    const botResult = db.accounts.query<BotAccountType>("SELECT * FROM bots WHERE token = ? LIMIT 1", [token]);
 
     if (botResult.success) {
         if (botResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
-        const row = botResult.rows[0] as BotAccountType;
+        const row = botResult.rows[0]
 
         if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
         if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
 
-        const userResult = db.accounts.query("SELECT * FROM users WHERE id = ? LIMIT 1", [row.ownerId]);
+        const userResult = db.accounts.query<UserAccountType>("SELECT * FROM users WHERE id = ? LIMIT 1", [row.ownerId]);
 
         if (userResult.success) {
             if (userResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Account not found" });
 
-            const row = userResult.rows[0] as UserAccountType;
+            const row = userResult.rows[0];
 
             if (row.isDeleted) throw new AdvancedError({ code: 404, message: "Account not found" });
             if (row.isSuspended) throw new AdvancedError({ code: 403, message: "This account is suspended" });
