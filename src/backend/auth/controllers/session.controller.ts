@@ -18,22 +18,35 @@ if (COCURRENT_SESSIONS > config.maxSessions) {
 }
 */
 
-// Maybe change from /login (FOR PASSWORD/ENTRY ONLY) to /validate
-
 export const getSession = async (req: Request, res: Response) => {
     try {
         const response = await validateSession(req, res);
 
-        return res.status(200).json({
-            ...response
-        });
-
+        if (response.action) {
+            switch (response.action) {
+                case "REFRESH_PAGE":
+                    return res.redirect(
+                        req.originalUrl || "/"
+                    );
+                default: 
+                    return res.status(200).json(
+                        {...response}
+                    );
+            }
+        } else {
+            return res.status(200).json({
+                ...response
+            });
+        }
     } catch (error) {
         if (error instanceof AdvancedError) {
-            log.db.error(error.stack).save();
-            return res.status(error.code).json(error.message);
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
         } else {
-            console.log("Unknown error:", error);
+            log.unknown.error("Unknown error:", error).save();
         }
-    }
+    } 
 };
