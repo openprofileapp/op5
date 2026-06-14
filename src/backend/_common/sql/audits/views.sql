@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS views (
-    logId TEXT PRIMARY KEY NOT NULL,
-    sourceId TEXT NOT NULL, -- User or socket id
-    targetIdOrUrl TEXT NOT NULL, -- User or asset id or URL
-    action TEXT NOT NULL, -- VIEW, READ
-    referer TEXT NOT NULL DEFAULT 'unknown',
-    duration INTEGER NOT NULL DEFAULT 0,
-    disconnectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    id TEXT PRIMARY KEY NOT NULL,
+    source TEXT NOT NULL, -- User/asset/etc. id
+    target TEXT, -- User/asset/etc. id  
+    action TEXT NOT NULL, -- ACTION_NAME, 
+    changes TEXT, -- JSON showing old and new { old: { ... }, new: { ... } }
+    origin TEXT NOT NULL DEFAULT 'unknown',
+    date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 
-    UNIQUE (sourceId, targetIdOrUrl, action, disconnectedDate) -- Ensure audit do not have multiple of the same logs
+    UNIQUE (source, action, date) -- Ensure audit do not have multiple of the same logs
 );
