@@ -10,6 +10,9 @@ import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
 import "./scripts/main.js";
 
+// Have a display 503 scripts that re-renders the full page when recieving
+// { action: "DISPLAY_503" }
+
 import ToastContainer from "./components/ToastContainer.js"
 import CaptchaPortal from "./components/CaptchaPortal.js"
 
