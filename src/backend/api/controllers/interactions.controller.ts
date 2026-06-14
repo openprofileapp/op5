@@ -21,7 +21,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Following
     const userProfileFollowingResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE sourceId = ?`, 
+        `SELECT COUNT(*) AS count FROM follows WHERE source = ?`, 
         [userId]
     );
 
@@ -31,7 +31,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Followers
     const userProfileFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM follows WHERE target = ?`, 
         [userId]
     );
 
@@ -41,7 +41,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Shares
     const userProfileSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM shares WHERE target = ?`, 
         [userId]
     );
 
@@ -51,7 +51,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Views
     const userProfileViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM views WHERE target = ?`, 
         [userId]
     );
 
@@ -78,7 +78,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
     
     // Followers
     const contentFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM follows WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -90,7 +90,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Likes
     const contentLikesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM likes WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM likes WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -102,7 +102,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Reads
     const contentReadsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM reads WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM reads WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -114,7 +114,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Shares
     const contentSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM shares WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -128,7 +128,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
     // Views
     const contentViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM views WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -198,13 +198,13 @@ export const getFollowing = (req: Request, res: Response) => {
     // hasPermissionsToView()??
     // ^ isBlocked(); built-in
 
-    const result = db.interactions.query(`SELECT * FROM follows WHERE sourceId = ?`, [userId]);
+    const result = db.interactions.query(`SELECT * FROM follows WHERE source = ?`, [userId]);
 
     if (!result.success) return res.status(500).json({ error: "An error occurred while fetching following" });
     if (result.rowCount < 1) return res.status(404).json({ error: "Interaction not found" });
 
     const following = result.rows.map((row) => ({ // Type goes at row
-        userId: row.targetId,
+        userId: row.target,
         date: row.date
     }));
 
@@ -222,13 +222,13 @@ export const getFollowers = (req: Request, res: Response) => {
     // hasPermissionsToView()??
     // ^ isBlocked(); built-in
 
-    const result = db.interactions.query(`SELECT * FROM follows WHERE targetId = ?`, [userId]);
+    const result = db.interactions.query(`SELECT * FROM follows WHERE target = ?`, [userId]);
 
     if (!result.success) return res.status(500).json({ error: "An error occurred while fetching interaction" });
     if (result.rowCount < 1) return res.status(404).json({ error: "Interaction not found" });
 
     const followers = result.rows.map((row) => ({ // Type goes at row
-        userId: row.targetId,
+        userId: row.target,
         date: row.date
     }));
 
@@ -249,12 +249,12 @@ export const getRelationship = (req: Request, res: Response) => {
     // ^ isBlocked(); built-in
 
     const followsResult = db.interactions.query(
-        `SELECT * FROM follows WHERE sourceId = ? AND targetId = ?`, 
+        `SELECT * FROM follows WHERE source = ? AND target = ?`, 
         [sourceUserId, targetUserId]
     );
 
     const friendsResult = db.interactions.query(
-        `SELECT * FROM friends WHERE sourceId = ? AND targetId = ?`, 
+        `SELECT * FROM friends WHERE source = ? AND target = ?`, 
         [sourceUserId, targetUserId]
     );
 
@@ -281,4 +281,4 @@ export const getRelationship = (req: Request, res: Response) => {
 export const postInteraction = (req: Request, res: Response) => {};
 
 // update this controller to take each path individually
-// https://api.openprofile.app/v2/interactions/follows -> body: { targetId: "5019646586243236" }
+// https://api.openprofile.app/v2/interactions/follows -> body: { target: "5019646586243236" }
