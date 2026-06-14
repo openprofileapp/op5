@@ -21,7 +21,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Following
     const userProfileFollowingResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE sourceId = ?`, 
+        `SELECT COUNT(*) AS count FROM follows WHERE source = ?`, 
         [id]
     );
 
@@ -31,7 +31,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Followers
     const userProfileFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM follows WHERE target = ?`, 
         [id]
     );
 
@@ -41,7 +41,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Shares
     const userProfileSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM shares WHERE target = ?`, 
         [id]
     );
 
@@ -51,7 +51,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Views
     const userProfileViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE targetId = ?`, 
+        `SELECT COUNT(*) AS count FROM views WHERE target = ?`, 
         [id]
     );
 
@@ -78,7 +78,7 @@ export const getStatistics = (req: Request, res: Response) => {
     
     // Followers
     const contentFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM follows WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -90,7 +90,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Likes
     const contentLikesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM likes WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM likes WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -102,7 +102,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Reads
     const contentReadsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM reads WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM reads WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -114,7 +114,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Shares
     const contentSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM shares WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
@@ -128,7 +128,7 @@ export const getStatistics = (req: Request, res: Response) => {
 
     // Views
     const contentViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE targetId IN (
+        `SELECT COUNT(*) AS count FROM views WHERE target IN (
             ${characterIds.map(() => "?").join(",")}
         )`, 
         characterIds
