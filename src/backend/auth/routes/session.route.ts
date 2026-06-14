@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { getSession } from '../controllers/session.controller.js';
+import { Router } from "express";
+import { authenticateSession } from "../controllers/session.controller.js";
 
 const sessionRoute = Router();
 
-sessionRoute.get('/', getSession);
+sessionRoute.get("/", authenticateSession);
 
 export default sessionRoute;
 
