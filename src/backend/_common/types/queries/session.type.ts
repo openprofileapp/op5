@@ -5,13 +5,13 @@ export type SessionType = {
     userId: string;
     geoIpFirstFetch: GeoIpType;
     geoIpLatestFetch: GeoIpType;
-    geoIpLatestFetchDate: string;
+    geoIpLatestFetchExpireDate: string;
     userAgent: UserAgentType;
     inviteCode: string;
     sessionId: string;
     accessToken: string;
-    sessionToken: string;
     accessTokenExpireDate: string;
+    sessionToken: string;
     sessionTokenExpireDate: string;
     isTerminated: boolean;
     totalDuration: number;
