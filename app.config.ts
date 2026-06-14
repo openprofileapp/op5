@@ -26,7 +26,7 @@ QUICK CONFIG
 // Disables Vite, unsafe SSL, and dev domains
 const isProduction = false;
 
-// version name is editable in ./src/assets/locales/*.json
+// Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
 const stage = "beta"; // prealpha | alpha | beta | rc | release
 const build = "build-e1ffd75"; // DO NOT TOUCH, AUTO-GENERATED
@@ -63,6 +63,12 @@ export const config = {
             cdn: false,
             support: false
         }
+    },
+
+    // Sets limits to prevent server or storage overload
+    limits: {
+        softConnectedSessions: 500,
+        hardConnectedSessions: 650
     },
 
     // Displays the maintenance landing
