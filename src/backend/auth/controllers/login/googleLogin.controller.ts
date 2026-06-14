@@ -2,11 +2,11 @@ import type { Request, Response } from 'express';
 
 import { AdvancedError } from 'kage-library';
 
-import { log, wc } from '../server.js';
-import getEnv from '../../../_common/helpers/getEnv.js';
-import { config } from '../../../../app.config.js';
-import getUserAccountByExternalId from '../services/getUserAccountByExternalId.service.js';
-import getUserAccountByEmail from '../services/getUserAccountByEmail.service.js';
+import { log, wc } from '../../server.js';
+import getEnv from '../../../../_common/helpers/getEnv.js';
+import { config } from '../../../../../app.config.js';
+import getUserAccountByExternalId from '../../services/getUserAccountByExternalId.service.js';
+import getUserAccountByEmail from '../../services/getUserAccountByEmail.service.js';
 
 type GoogleTokenResponse = {
     access_token: string;
@@ -70,6 +70,8 @@ export const googleLogin = async (req: Request, res: Response) => {
 
         // Fetch account
         const account = getUserAccountByExternalId("google", googleAccount.sub);
+
+        // loginOrRegisterAccount({ username, email, etc. });
 
         return res.status(200).json({
             // SET COOKIES INSTEAD OF SENDING DATA AND RETURN TO HOME PAGE BASED ON THE REDIRECT
