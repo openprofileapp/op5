@@ -10,25 +10,34 @@ import getEnv from "../../../_common/helpers/getEnv.js";
  * @returns `true` if the header contains a valid Bearer token; otherwise `false`.
  */
 export default async function isBearerTokenAuthorized(authHeader?: string): Promise<boolean> {
-    if (!authHeader?.startsWith("Bearer ")) {
+    if (
+        !authHeader?.startsWith("ApiSecret ") &&
+        !authHeader?.startsWith("Bearer ")
+    ) {
         return false;
     }
 
     const token = authHeader.split(" ")[1];
 
-    if (token === getEnv("API_SECRET")) return true;
+    if (authHeader?.startsWith("ApiSecret ")) {
+        return token === getEnv("API_SECRET");
+    };
 
-    const wc = new WebClient({
-        crawler: config.crawler,
-        useSecureSSL: config.isProduction
-    });
+    if (authHeader?.startsWith("Bearer ")) {
+        const wc = new WebClient({
+            crawler: config.crawler,
+            useSecureSSL: config.isProduction
+        });
 
-    // API call returns true or false
-    return await wc.callAPI(
-        `https://${config.domains.auth}/tokens/access`,
-        { 
-            auth: `Bearer ${getEnv("API_SECRET")}`,
-            body: { token }
-        }
-    );
+        // API call returns true or false
+        return await wc.callAPI(
+            `https://${config.domains.auth}/tokens/access`,
+            { 
+                auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                body: { token }
+            }
+        );
+    };
+
+    return false;
 }
