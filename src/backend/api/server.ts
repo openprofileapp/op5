@@ -20,6 +20,7 @@ import profileRoute from './routes/profile.route.js';
 import inviteRoutes from './routes/invite.routes.js';
 import interactionRoutes from './routes/interactions.routes.js';
 import statisticsRoute from './routes/statistics.route.js';
+import auditRoute from './routes/audit.route.js';
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -39,6 +40,8 @@ export const db = {
 };
 
 db.audits.transaction(q => {
+    if (!q("SELECT * FROM authentications LIMIT 1").success) { q(`${config.folders.sql}/audits/security/authentications.sql`); };
+
     if (!q("SELECT * FROM blocks LIMIT 1").success) { q(`${config.folders.sql}/audits/blocks.sql`); };
     if (!q("SELECT * FROM follows LIMIT 1").success) { q(`${config.folders.sql}/audits/follows.sql`); };
     if (!q("SELECT * FROM friends LIMIT 1").success) { q(`${config.folders.sql}/audits/friends.sql`); };
@@ -362,8 +365,8 @@ db.interactions.transaction(q => {
     for (const d of mdbInteractionsFollowsData.rows) {
         q(
             `INSERT INTO follows (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -381,9 +384,9 @@ db.audits.transaction(q => {
     for (const d of mdbInteractionsFollowsData.rows) {
         q(
             `INSERT INTO follows (
-                logId,
-                sourceId,
-                targetId,
+                id,
+                source,
+                target,
                 action,
                 date
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -407,8 +410,8 @@ db.interactions.transaction(q => {
     for (const d of mdbInteractionsFriendsData.rows) {
         q(
             `INSERT INTO friends (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -420,8 +423,8 @@ db.interactions.transaction(q => {
 
         q(
             `INSERT INTO friends (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -439,9 +442,9 @@ db.audits.transaction(q => {
     for (const d of mdbInteractionsFriendsData.rows) {
         q(
             `INSERT INTO friends (
-                logId,
-                sourceId,
-                targetId,
+                id,
+                source,
+                target,
                 action,
                 date
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -456,9 +459,9 @@ db.audits.transaction(q => {
 
         q(
             `INSERT INTO friends (
-                logId,
-                sourceId,
-                targetId,
+                id,
+                source,
+                target,
                 action,
                 date
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -482,8 +485,8 @@ db.interactions.transaction(q => {
     for (const d of mdbInteractionsLikesData.rows) {
         q(
             `INSERT INTO likes (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -501,9 +504,9 @@ db.audits.transaction(q => {
     for (const d of mdbInteractionsLikesData.rows) {
         q(
             `INSERT INTO likes (
-                logId,
-                sourceId,
-                targetId,
+                id,
+                source,
+                target,
                 action,
                 date
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -531,8 +534,8 @@ db.interactions.transaction(q => {
 
         q(
             `INSERT INTO reads (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -554,9 +557,9 @@ db.audits.transaction(q => {
 
         q(
             `INSERT INTO views (
-                logId,
-                sourceId,
-                targetId,
+                id,
+                source,
+                target,
                 action,
                 disconnectedDate
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -584,8 +587,8 @@ db.interactions.transaction(q => {
 
         q(
             `INSERT INTO views (
-                sourceId,
-                targetId,
+                source,
+                target,
                 date
             ) VALUES (?, ?, ?)`,
             [
@@ -607,9 +610,9 @@ db.audits.transaction(q => {
 
         q(
             `INSERT INTO views (
-                logId,
-                sourceId,
-                targetIdOrUrl,
+                id,
+                source,
+                targetOrUrl,
                 action,
                 disconnectedDate
             ) VALUES (?, ?, ?, ?, ?)`,
@@ -673,6 +676,8 @@ v2.use('/profiles', profileRoute);
 v2.use('/invites', inviteRoutes);
 v2.use('/interactions', interactionRoutes);
 v2.use('/statistics', statisticsRoute);
+// v2.use('/audits', ); // For fetching audits
+v2.use('/audit', auditRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————
