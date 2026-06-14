@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { botLogin } from "../controllers/botLogin.controller.js";
-import { googleLogin } from "../controllers/googleLogin.controller.js";
+import { googleLogin } from "../controllers/login/googleLogin.controller.js";
 
 const loginRoutes = Router();
 
