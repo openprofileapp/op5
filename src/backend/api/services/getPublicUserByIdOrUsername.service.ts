@@ -14,8 +14,8 @@ export default function getPublicUserByIdOrUsername(id?: string) {
 
     if (!linksResult.success) return { error: "An error occurred while fetching links" }
 
-    const followingResult = db.interactions.query("SELECT * FROM follows WHERE sourceId = ?", [userResult.rows[0].id]);
-    const followersResult = db.interactions.query("SELECT * FROM follows WHERE targetId = ?", [userResult.rows[0].id]);
+    const followingResult = db.interactions.query("SELECT * FROM follows WHERE source = ?", [userResult.rows[0].id]);
+    const followersResult = db.interactions.query("SELECT * FROM follows WHERE target = ?", [userResult.rows[0].id]);
 
     if (!followingResult.success || !followersResult.success) return { error: "An error occurred while fetching follows" }
 
@@ -27,9 +27,9 @@ export default function getPublicUserByIdOrUsername(id?: string) {
         links: linksResult.rows.map(({ id, ...link }) => link),
         interactions: {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            following: followingResult.rows.map(({ sourceId, ...follow }) => follow),
+            following: followingResult.rows.map(({ source, ...follow }) => follow),
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            followers: followersResult.rows.map(({ targetId, ...follower }) => follower),
+            followers: followersResult.rows.map(({ target, ...follower }) => follower),
         }
 
         // Get the count somewhere, but not as var, but count directly from the query
