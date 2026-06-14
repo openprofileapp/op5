@@ -249,3 +249,5 @@ add updates from GitHub prompts on updates
 REMOVE ALL CHECKS DUE TO ALTER-TABLE NOT SUPPORTING THEM; use code validation instead
    visibility TEXT NOT NULL DEFAULT 'public'
         CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private', 'hidden')),
+
+        ON SERVER RESTART; ENSURE ALL CONNECTED SESSIONS ARE SET TO 0
