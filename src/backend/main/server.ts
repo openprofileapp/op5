@@ -106,6 +106,9 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
 
     connectedClients.set(clientId, ws);
 
+    // SAVE VISIT IN THE AUDIT DATABASE
+    // on action or changes in url, log a visit
+
     ws.on("message", (message: WebSocket.RawData) => {
         let data;
 
@@ -126,6 +129,13 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     ws.on("close", () => {
         connectedClients.delete(clientId);
         log.ws.info("Client disconnected:", ws.id);
+
+        // update totalDuration when leaving the site
+        // update is connection to false
+
+        // Requires an API: https://auth.openprofile.app/disconnect;
+        // Its similair to: https://auth.openprofile.app/logout
+
     });
 
     ws.on("error", () => {
