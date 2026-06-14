@@ -275,6 +275,27 @@ cron.schedule("0 0 * * *", () => {
 
 
 
+
+
+
+
+
+/* 
+// CRON TO DELETE EXPIRED OR TERMINATED SESSIONS
+const result = db.accounts.query(
+    `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+    [sessionId]
+);
+
+if (!result.success) {
+    throw new AdvancedError({
+        code: 500,
+        message: "An error occurred while deleting session",
+        details: result.error
+    })
+}
+*/
+
 // PORT ACCOUNTS/USERS AND SESSION MANAGEMENT
 
 // Session management only applies to auth, all servers check-in with /session
