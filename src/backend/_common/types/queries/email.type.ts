@@ -1,7 +1,7 @@
-export type AccountEmailType = {
+export type EmailType = {
     userId: string;
     email: string;
-    isConfirmed: boolean;
+    isVerified: boolean;
     isMfa: boolean;
     isSubscribedToNewsletters: boolean;
     isSubscribedToAccountNotifications: boolean;
