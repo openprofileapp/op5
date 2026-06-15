@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express';
 
-import { AdvancedError } from 'kage-library';
+import { AdvancedError, URL } from 'kage-library';
 
 import { log, wc } from '../../server.js';
 import getEnv from '../../../../_common/helpers/getEnv.js';
 import { config } from '../../../../../app.config.js';
-import getUserAccountByExternalId from '../../services/getUserAccountByExternalId.service.js';
 import getUserAccountByEmail from '../../services/getUserAccountByEmail.service.js';
+import loginOrRegisterAccount from '../../services/loginOrRegisterAccount.service.js';
+import validateSession from '../../services/validateSession.service.js';
 
 type GoogleTokenResponse = {
     access_token: string;
@@ -41,6 +42,8 @@ export const googleLogin = async (req: Request, res: Response) => {
         throw new AdvancedError({ code: 400, message: "Invalid authorization code" });
     }
 
+    // REQUIRES A BEARER OR BOT BEARER; IF BOT, LOGIN TO BOT
+
     try {
         // Fetch token
         const token: GoogleTokenResponse = await wc.callAPI(
@@ -69,52 +72,53 @@ export const googleLogin = async (req: Request, res: Response) => {
         )
 
         // Fetch account
-        const account = getUserAccountByExternalId("google", googleAccount.sub);
+        // I NEED EXTERNAL ID AND GET BY EMAIL ALL HERE IN ONE SPACE (MAYBE)
+        const currentSession = await validateSession(req, res);
 
-        // loginOrRegisterAccount({ username, email, etc. });
+        if (!currentSession.sessionId) {
+            throw new AdvancedError({ code: 400, message: "Invalid session id" });
+        }
 
-        return res.status(200).json({
-            // SET COOKIES INSTEAD OF SENDING DATA AND RETURN TO HOME PAGE BASED ON THE REDIRECT
-            account
+        // SINCE FETCH/CALL HAPPENS INSIDE, MAYBE DO NOT CALL EMAIL GET ON ERROR
+
+        // NOTE; ON CLIENT SIDE, const theme = localStorage.getItem("theme") ?? "dark";
+
+        const sessionToken = loginOrRegisterAccount({
+            sessionId: currentSession.sessionId,
+            email: googleAccount.email,
+            isEmailVerified: googleAccount.email_verified,
+            locale: currentSession.locale,
+            timezone: currentSession.timezone,
+            username: googleAccount.email.replace("@gmail.com", ""),
+            displayName: googleAccount.name,
+            avatar: googleAccount.picture,
+            // theme: theme
+            externalConnectionName: "google",
+            externalConnectionId: googleAccount.sub,
+            externalConnectionText: googleAccount.email
         });
 
+        const url = new URL(`https://${config.domains.main}`);
+
+        res.cookie("sessionToken", sessionToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+        });
+
+        return res.redirect(`https://${config.domains.main}`); // ?redirect=LINK OR /onboarding thing
     } catch (error) {
         if (error instanceof AdvancedError) {
-            // Email fallback if Google connection id is invalid
-            if (googleAccount.email_verified && error.code === 404) {
-                try {
-                    const account = getUserAccountByEmail(googleAccount.email);
-
-                    return res.redirect(`https://${config.domains.main}/account/onboarding`);
-                    // SET COOKIES INSTEAD OF SENDING DATA AND RETURN TO HOME PAGE BASED ON THE REDIRECT
-                    // account
-                } catch (fallbackError) {
-                    if (fallbackError instanceof AdvancedError) {
-
-                        // IF DELETED, RESTORE ACCOUNT AFTER CLIENT PROMPT, ELSE REGISTER A NEW ONE
-
-                        // Login or register account
-
-                        // if no account: const account = registerUserAccountByExternalId("google", { displayName: googleAccount.name });
-                        // ^ calls getUserAccountByExternalId inside of it after register
-
-                        // CALL logAudit() or smth on connection
-
-                        // SET COOKIES INSTEAD OF AND RETURN TO ACCOUNT/ONBORDING THEN BASED ON THE REDIRECT GO
-                        // IF ONBOARDING COMPLETE, ON PAGE VISIT, GO TO account/settings. If not completed onboarding, force back there
-
-                        log.db.error(fallbackError.stack).save();
-                        return res.status(fallbackError.code).json(fallbackError.message);
-                    } else {
-                        console.log("Unknown error:", fallbackError);
-                    }
-                }
-            }
-
-            log.db.error(error.stack).save();
-            return res.status(error.code).json(error.message);
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
         } else {
-            console.log("Unknown error:", error);
+            log.unknown.error("Unknown error:", error).save();
         }
-    }
+    } 
 };
