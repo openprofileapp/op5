@@ -184,7 +184,7 @@ db.accounts.transaction(q => {
             `INSERT INTO emails (
                 userId,
                 email,
-                isConfirmed,
+                isVerified,
                 isMfa,
                 isSubscribedToNewsletters,
                 isSubscribedToAccountNotifications,
@@ -282,6 +282,7 @@ cron.schedule("0 0 * * *", () => {
 
 /* 
 // CRON TO DELETE EXPIRED OR TERMINATED SESSIONS
+// CRON TO UNPREMIUM BADGE AND PERMS WHEN USER IS NO LONGER SUBSCRIBED (IF DATE EXISTS, ELSE SKIP)
 const result = db.accounts.query(
     `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
     [sessionId]
