@@ -25,7 +25,7 @@ const index = {
     USE_CUSTOM_THEMES: 11n, // REQUIRES "PREMIUM_ACCESS"; Use custom themes
     CREATE_MEMORIES: 12n, // REQUIRES "WRITE"; Create and manage posts on authorized assets that disappears after 24 hours
     VERIFIED_ACCESS: 13n, // ???
-    VOUCH_USER: 14n, // REQUIRES "VERIFIED_ACCESS" OR "PARTNER_ACCESS"; Vouch a user towards earning the trusted artist badge
+    EMPTY_PERMISSION: 14n, // ??? PREVIOUS VOUCH_USER
     EARN_REVENUE: 15n, // Earn revenue from ads or other means
     CASHOUT_REVENUE: 15n, // Cashout revenue to external app, bank, or in-app credits
     ARTIST_ACCESS: 16n, // ???
@@ -54,7 +54,7 @@ const index = {
     VERIFY_ACCOUNT: 40n, // REQUIRES "WRITE"; Verify user accounts as official
     PROMOTE_ASSET: 40n, // REQUIRES "WRITE"; Promote assets to be more visible across the platform
     MANAGE_STAFF: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "VIEW_ANALYTICS", "AUDIT_ACCESS"
-    MANAGE_PARTNERS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "PARTNER_ACCESS", "VOUCH_USER"
+    MANAGE_PARTNERS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "PARTNER_ACCESS"
     MANAGE_SUPPORT_AGENTS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
     MANAGE_MODERATORS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "LOCK_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
     ADMIN: 57n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
@@ -88,7 +88,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "CREATE_MEMORIES", "VERIFIED_ACCESS", "VOUCH_USER"
+            "CREATE_MEMORIES", "VERIFIED_ACCESS"
         ]
     },
     partner: {
@@ -98,7 +98,7 @@ const roles = {
             "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
-            "CASHOUT_REVENUE", "PARTNER_ACCESS", "VOUCH_USER"
+            "CASHOUT_REVENUE", "PARTNER_ACCESS"
         ]
     },
     staff: {
