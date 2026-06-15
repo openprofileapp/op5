@@ -16,16 +16,12 @@ CREATE TABLE IF NOT EXISTS users (
     foundedDate TEXT,
     foundedDateVisibility TEXT NOT NULL DEFAULT 'public',
     theme TEXT DEFAULT '4819203746571029',
-    isAuraEnabled INTEGER NOT NULL DEFAULT 0
-        CHECK (isAuraEnabled IN (0, 1)),
-    auraType TEXT NOT NULL DEFAULT 'flow'
-        CHECK (auraType IN ('flow', 'pulse', 'stable')),
+    isAuraEnabled INTEGER NOT NULL DEFAULT 0,
+    auraType TEXT NOT NULL DEFAULT 'flow',
     auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    type TEXT NOT NULL DEFAULT 'user'
-        CHECK (type IN ('user', 'author', 'publisher', 'developer')),
-    isExplicit INTEGER NOT NULL DEFAULT 0
-        CHECK (isExplicit IN (0, 1)),
+    type TEXT NOT NULL DEFAULT 'user',
+    isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'private',
     sendMessages TEXT NOT NULL DEFAULT 'public',
     sendComments TEXT NOT NULL DEFAULT 'public',

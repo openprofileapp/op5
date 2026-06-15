@@ -1,9 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
-    hasEmail INTEGER NOT NULL DEFAULT 0
-        CHECK (hasEmail IN (0, 1)),
-    hasPhoneNumber INTEGER NOT NULL DEFAULT 0
-        CHECK (hasPhoneNumber IN (0, 1)),
+    hasEmail INTEGER NOT NULL DEFAULT 0,
+    hasPhoneNumber INTEGER NOT NULL DEFAULT 0,
     password TEXT,
     birthdate TEXT,
     mfaSecret TEXT,
@@ -11,13 +9,9 @@ CREATE TABLE IF NOT EXISTS users (
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
     earnedRevenueUSD INTEGER DEFAULT 0,
-    hasReadTerms INTEGER NOT NULL DEFAULT 0
-        CHECK (hasReadTerms IN (0, 1)),
-    hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0
-        CHECK (hasCompletedOnboarding IN (0, 1)),
-    isSuspended INTEGER NOT NULL DEFAULT 0
-        CHECK (isSuspended IN (0, 1)),
-    isDeleted INTEGER NOT NULL DEFAULT 0
-        CHECK (isDeleted IN (0, 1)),
+    hasReadTerms INTEGER NOT NULL DEFAULT 0,
+    hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0,
+    isSuspended INTEGER NOT NULL DEFAULT 0,
+    isDeleted INTEGER NOT NULL DEFAULT 0,
     createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
