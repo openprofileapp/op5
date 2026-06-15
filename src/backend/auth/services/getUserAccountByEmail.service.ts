@@ -1,7 +1,7 @@
 import { AdvancedError } from 'kage-library';
 
 import { db } from '../server.js';
-import { AccountEmailType } from '../../_common/types/queries/accountEmail.type.js';
+import { EmailType } from '../../_common/types/queries/email.type.js';
 import { UserAccountType } from '../../_common/types/queries/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 
@@ -11,9 +11,9 @@ export default function getUserAccountByEmail(email: string) {
     if (emailResult.success) {
         if (emailResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Email not found" });
 
-        const row = emailResult.rows[0] as AccountEmailType;
+        const row = emailResult.rows[0] as EmailType;
 
-        // In the future, if a password system is implemented, ensure (row.isConfirmed === true)
+        // In the future, if a password system is implemented, ensure (row.isVerified === true)
 
         const userResult = db.accounts.query("SELECT * FROM users WHERE id = ? LIMIT 1", [row.userId]);
 
