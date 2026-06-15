@@ -18,6 +18,18 @@ import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../_common/types/queries/audit.type.js";
 import { GeoIpType } from "../../_common/types/queries/geoIp.type.js";
 
+type Props = {
+    sessionId?: string;
+    userId?: string;
+    permissions?: {
+        value: string;
+        array: string[];
+    };
+    locale?: string;
+    timezone?: string;
+    action?: string;
+};
+
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
     const value = Array.isArray(ip) ? ip[0] : ip;
@@ -34,7 +46,7 @@ export function validateIp(req: Request): string {
     return "";
 }
 
-export default async function validateSession(req: Request, res: Response) {
+export default async function validateSession(req: Request, res: Response): Promise<Props> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
@@ -160,7 +172,8 @@ export default async function validateSession(req: Request, res: Response) {
 
         return { action: "REFRESH_PAGE" };
     };
-
+    
+    const rowGeoIpJSON: GeoIpType = JSON.parse(row.geoIpLatestFetch as unknown as string);
     const userAgentJSON = detector.detect(userAgent);
     const userAgentBotJSON = detector.parseBot?.(userAgent) || {};
 
@@ -270,11 +283,13 @@ export default async function validateSession(req: Request, res: Response) {
         log.auth.warn(`Crawler: "${formattedUserAgent.client.name}" ${msg}`).save();
 
         return {
-            userId: row.userId,
+            sessionId,
             permissions: {
                 value: role.value,
                 array: role.array
-            }
+            },
+            locale: rowGeoIpJSON.locale,
+            timezone: rowGeoIpJSON.timezone
         };
     }
 
@@ -288,7 +303,6 @@ export default async function validateSession(req: Request, res: Response) {
         let distanceInMiles = 0;
         
         const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
-        const rowGeoIpJSON: GeoIpType = JSON.parse(row.geoIpLatestFetch as unknown as string);
         const rowUserAgentJSON = JSON.parse(row.userAgent as unknown as string);
 
         if (
@@ -539,8 +553,8 @@ export default async function validateSession(req: Request, res: Response) {
         new Date(row.accessTokenExpireDate as string) < new Date()
     ) {
         // If expired access token, generate a new rotation
-        const in5Minutes = DateTime.now().toUTC().plus({ minutes: 5 }).toISO();
         accessToken = id.gen("TOKEN");
+        const in5Minutes = DateTime.now().toUTC().plus({ minutes: 5 }).toISO();
 
         const hashedAccessToken = crypto.createHash("sha256").update(accessToken).digest("hex");
 
@@ -637,11 +651,13 @@ export default async function validateSession(req: Request, res: Response) {
 
     // Return session data
     return {
+        sessionId,
         userId: row.userId,
         permissions: {
             value: role.value,
             array: role.array
         },
-        expireDate: row.sessionTokenExpireDate
+        locale: rowGeoIpJSON.locale,
+        timezone: rowGeoIpJSON.timezone
     };
 }
