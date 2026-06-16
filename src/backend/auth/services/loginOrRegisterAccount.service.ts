@@ -10,6 +10,7 @@ import getEnv from "../../../_common/helpers/getEnv.js";
 import getUserAccountByExternalId from "./getUserAccountByExternalId.service.js";
 import getUserAccountByEmail from "./getUserAccountByEmail.service.js";
 import { ReservedAccountType } from "../../_common/types/queries/reservedAccount.type.js";
+import { createMfaChallenge } from '../helpers/createMfaChallenge.js';
 
 type Props = {
     sessionId: string;
@@ -33,7 +34,12 @@ type Props = {
     externalConnectionText?: string;
 }
 
-function updateSession(userId: string, sessionId: string) {
+type InternalTokenType = {
+    type: string;
+    value: string;
+}
+
+function updateSessionToken(userId: string, sessionId: string) {
     const sessionToken = id.gen("TOKEN");
     const in30Days = DateTime.now().toUTC().plus({ days: 30 }).toISO();
 
@@ -61,7 +67,10 @@ function updateSession(userId: string, sessionId: string) {
         })
     }
 
-    return sessionToken;
+    return {
+        type: "session",
+        value: sessionToken
+    };
 }
 
 export default function loginOrRegisterAccount({
@@ -84,7 +93,7 @@ export default function loginOrRegisterAccount({
     externalConnectionName,
     externalConnectionId,
     externalConnectionText
- }: Props) {
+ }: Props): InternalTokenType {
     let userAccount;
 
     if (!email) {
@@ -135,25 +144,16 @@ export default function loginOrRegisterAccount({
             })
         }
 
-        /*// MAKE A FUNCTION TO UPDATE ACTIVE SESSION AND SEND COOKIE
-        // Using sessionId as what to update
-
-        // IF MFA; GIVE A TEMP TOKEN TO VALIDATE MFA BEFORE SESSION TOKEN
-        // ADD MFA_TOKEN TO SESSIONS AND AN EXPIRE AFTER 15 MINUTES
-
-        {
-            "challenge_id": "abc123",
-            "user_id": 42,
-            "status": "PENDING_MFA",
-            "expires_at": "now + 5–15 min",
-            "attempts": 0,
-            "device_fingerprint": "...optional..."
+        // Return session or mfa token
+        if (userAccount.isMfaEnabled) {
+            return createMfaChallenge(
+                userAccount.mfaSecret, 
+                userAccount.id, 
+                sessionId
+            );
+        } else {
+            return updateSessionToken(userAccount.id, sessionId);
         }
-
-        // ADD AWAITING MFA ON SESSION OR SMTH*/
-
-        // Return session token
-        return updateSession(userAccount.id, sessionId);
     }
 
     // If Google, check email for valid account and attempt to fix broken ids
@@ -165,12 +165,20 @@ export default function loginOrRegisterAccount({
     }
 
     // If email is valid, return
-    if (userAccount?.id) {
+    if (userAccount && userAccount.id) {
         // Update incase Google have issues with their ids
         // updateUserAccountExternalId(COMMON_VARIABES_HERE_INCLUDING_ID)
-        return {
-            // UPDATE_SESSION_FUNCTION
-        };
+
+        // Return session or mfa token
+        if (userAccount.mfaSecret) {
+            return createMfaChallenge(
+                userAccount.mfaSecret, 
+                userAccount.id, 
+                sessionId
+            );
+        } else {
+            return updateSessionToken(userAccount.id, sessionId);
+        }
     }
   
     /* 
