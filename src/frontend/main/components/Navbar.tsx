@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
+import MfaModal from "./modals/MfaModal.js";
 
 type Props = {
     isBannerPage?: boolean;
@@ -35,13 +36,16 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
         window.addEventListener("scroll", handleScroll);
 
+        // DELETE LATER
+        document.getElementById("mfa")?.showModal();
+
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
 
     return (
         <>
             <LoginModal />
-            
+            <MfaModal />
             <CreateProjectModal />
 
             <div className={`
