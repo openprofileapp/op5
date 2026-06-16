@@ -227,6 +227,62 @@ router.use("/token", tokenRoute);
 router.use("/session", sessionRoute);
 router.use("/login", loginRoutes);
 
+
+
+
+
+router.get("/mfa/methods", async (req, res) => {
+    const methods = [];
+
+    const user = {
+        totpEnabled: true,
+        hasPasskey: true,
+        backupCodes: []
+    }
+
+    if (user.totpEnabled) methods.push("totp");
+    if (user.hasPasskey) methods.push("biometric");
+    if (user.backupCodes?.length) methods.push("backup");
+
+    res.json({ methods });
+});
+
+import crypto from "crypto"; // DELETE LATER
+// IMPORTANT NOTE; FOR ANY API OR AUTH CALLS, FIRST CALL VERIFY SESSION USING
+// "req.session" TO STORE ITS INFO
+
+
+router.get("/mfa/webauthn/options", (req, res) => {
+    const challenge = crypto.randomBytes(32).toString("base64");
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    req.session = {}
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    req.session.webauthnChallenge = challenge;
+        
+    res.json({
+        challenge: challenge,
+
+        // Must match the frontend origin
+        rpId: config.domains.main,
+
+        userVerification: "required",
+        timeout: 60000
+    });
+});
+
+router.post("/mfa/webauthn/verify", (req, res) => {
+    console.log("WebAuthn:", req.body);
+
+    res.json({
+        success: true
+    });
+});
+
+
 // login = creates the session 
 //
 // login() -> create session and stuff then calls validate()
