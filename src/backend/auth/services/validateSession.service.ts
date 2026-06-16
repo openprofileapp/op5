@@ -18,7 +18,7 @@ import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../_common/types/queries/audit.type.js";
 import { GeoIpType } from "../../_common/types/queries/geoIp.type.js";
 
-type Props = {
+type SessionData = {
     sessionId?: string;
     userId?: string;
     permissions?: {
@@ -46,7 +46,11 @@ export function validateIp(req: Request): string {
     return "";
 }
 
-export default async function validateSession(req: Request, res: Response): Promise<Props> {
+export default async function validateSession(
+    req: Request, 
+    res: Response,
+    returnMfaToken: boolean = false
+): Promise<SessionData> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
@@ -413,6 +417,8 @@ export default async function validateSession(req: Request, res: Response): Prom
         }
     }
 
+    // CREATE A MFA TOKEN CHECK HERE
+
     // If modified session token, delete session, clear cookies, and restart
     if (sessionToken) {
         if (crypto.createHash("sha256").update(sessionToken).digest("hex") !== row.sessionToken) {
@@ -658,6 +664,7 @@ export default async function validateSession(req: Request, res: Response): Prom
             array: role.array
         },
         locale: rowGeoIpJSON.locale,
-        timezone: rowGeoIpJSON.timezone
+        timezone: rowGeoIpJSON.timezone,
+        ...(returnMfaToken === true && { mfaToken })
     };
 }
