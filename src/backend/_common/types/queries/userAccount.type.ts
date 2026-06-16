@@ -4,6 +4,7 @@ export type UserAccountType = {
     hasPhoneNumber: boolean;
     password: string;
     birthdate: string;
+    isMfaEnabled: boolean;
     mfaSecret: string;
     permissions: string;
     locale: string;

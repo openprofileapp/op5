@@ -2,15 +2,17 @@ import { GeoIpType } from "./geoIp.type.js";
 import { UserAgentType } from "./userAgent.type.js";
 
 export type SessionType = {
+    sessionId: string;
     userId: string;
     geoIpFirstFetch: GeoIpType;
     geoIpLatestFetch: GeoIpType;
     geoIpLatestFetchExpireDate: string;
     userAgent: UserAgentType;
     inviteCode: string;
-    sessionId: string;
     accessToken: string;
     accessTokenExpireDate: string;
+    mfaToken: string;
+    mfaTokenExpireDate: string;
     sessionToken: string;
     sessionTokenExpireDate: string;
     isTerminated: boolean;
