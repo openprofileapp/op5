@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     hasPhoneNumber INTEGER NOT NULL DEFAULT 0,
     password TEXT,
     birthdate TEXT,
+    isMfaEnabled INTEGER DEFAULT 0,
     mfaSecret TEXT,
     permissions TEXT NOT NULL,
     locale TEXT DEFAULT 'en-us',
