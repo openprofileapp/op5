@@ -42,11 +42,9 @@ export const googleLogin = async (req: Request, res: Response) => {
         throw new AdvancedError({ code: 400, message: "Invalid authorization code" });
     }
 
-    // REQUIRES A BEARER OR BOT BEARER; IF BOT, LOGIN TO BOT
-
     try {
-        // Fetch token
-        const token: GoogleTokenResponse = await wc.callAPI(
+        // Fetch external token and external account
+        const externalToken: GoogleTokenResponse = await wc.callAPI(
             "https://oauth2.googleapis.com/token",
             {
                 method: "POST",
@@ -65,25 +63,19 @@ export const googleLogin = async (req: Request, res: Response) => {
             }
         );
 
-        // Fetch external account
         googleAccount = await wc.callAPI(
             "https://www.googleapis.com/oauth2/v3/userinfo",
-            { auth: `Bearer ${token.access_token}` }
+            { auth: `Bearer ${externalToken.access_token}` }
         )
 
-        // Fetch account
-        // I NEED EXTERNAL ID AND GET BY EMAIL ALL HERE IN ONE SPACE (MAYBE)
+        // Fetch session and internal account
         const currentSession = await validateSession(req, res);
 
         if (!currentSession.sessionId) {
-            throw new AdvancedError({ code: 400, message: "Invalid session id" });
+            throw new AdvancedError({ code: 400, message: "Invalid session" });
         }
 
-        // SINCE FETCH/CALL HAPPENS INSIDE, MAYBE DO NOT CALL EMAIL GET ON ERROR
-
-        // NOTE; ON CLIENT SIDE, const theme = localStorage.getItem("theme") ?? "dark";
-
-        const sessionToken = loginOrRegisterAccount({
+        const internalToken = loginOrRegisterAccount({
             sessionId: currentSession.sessionId,
             email: googleAccount.email,
             isEmailVerified: googleAccount.email_verified,
@@ -92,7 +84,7 @@ export const googleLogin = async (req: Request, res: Response) => {
             username: googleAccount.email.replace("@gmail.com", ""),
             displayName: googleAccount.name,
             avatar: googleAccount.picture,
-            // theme: theme
+            // theme: CLIENT SIDE CODE `const theme = localStorage.getItem("theme") ?? "dark";`
             externalConnectionName: "google",
             externalConnectionId: googleAccount.sub,
             externalConnectionText: googleAccount.email
@@ -100,16 +92,55 @@ export const googleLogin = async (req: Request, res: Response) => {
 
         const url = new URL(`https://${config.domains.main}`);
 
-        res.cookie("sessionToken", sessionToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: `.${url.domain}`,
-            path: "/",
-            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-        });
+        if (internalToken.type === "mfa") {
+            res.cookie("mfaToken", internalToken.value, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 15 // 15 minutes
+            });
 
-        return res.redirect(`https://${config.domains.main}`); // ?redirect=LINK OR /onboarding thing
+            return res.status(200).json({
+                action: "DISPLAY_MFA"
+            });
+        } else {
+            // ALSO ADD AUDIT LOGGING FOR A SUCESSFUL LOGIN
+
+            res.cookie("sessionToken", internalToken.value, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            });
+
+            // RETURN HERE
+        }
+
+        if (internalToken.type === "mfa") {
+            return res.redirect(
+                `https://${config.domains.main}/mfa`
+            );
+        } else {
+            // CREATE BACKUP CODES SQL AND TYPE
+            // getBackupCodesByUserId();
+            // MARK AS USED ON USE, DO NOT DELETE UNLESS USER REGENERATED THEM
+
+            // validateSesson(req, res, true);
+
+            // ON SUCCESS CALL mfa/verify; IF VALID, UPDATE THE MFA CHALLENGE DATA TO SESSION DATA/SETTING COOKIES
+            // CHECK IF EXPIRED AND IF SO REQUEST NEW LOGIN // BACKUP CODES ALWAYS PASSES body { code, backupCode }
+            // ON MFA SUBMIT, CALL VALIDATE SESSION JUST TO VERIFY ALL IS GOOD
+            // ON EVERY CALL, IT INCREASES THE ATTEMPTS AND BLOCKES YOU AFTER 5 BY KILLING THE SESSION AND MFA AND LOGGING AUDIT
+            // CREATE getSessionBySessionId(); WHICH RETURNS THE SESSION FULL; USEFUL FOR AUDIT LOGGING
+
+            return res.redirect(
+                `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
+            );
+        }
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
