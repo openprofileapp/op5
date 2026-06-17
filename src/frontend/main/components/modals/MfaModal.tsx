@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "../../scripts/toast.js";
+import { generateQrCode } from "../../scripts/generateQrCode.js";
 
 type MfaMethod =
     | "menu"
@@ -48,10 +50,12 @@ export default function MfaModal() {
     const { ready } = useTranslation();
 
     const [loading, setLoading] = useState(false);
+    const [loadingConnection, setLoadingConnection] = useState<string | null>(null);
     const [screen, setScreen] = useState<MfaMethod>("menu");
     const [methods, setMethods] = useState<AvailableMethod[]>([]);
     const [isSingleMethod, setIsSingleMethod] = useState(false);
     const [totp, setTotp] = useState<string[]>(Array(6).fill(""));
+    const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
     const [totpCode, setTotpCode] = useState("");
     const [backupCode, setBackupCode] = useState("");
@@ -86,6 +90,14 @@ export default function MfaModal() {
 
         loadMethods();
     }, []);
+
+    useEffect(() => {
+        if (!loading && screen === "qr") {
+            generateQrCode("https://auth.openprofile.app/mfa/verify/HnE55Kepsy66DZka1h4CHzsoSvGlfb3ZwotqUMq4wNceuiuLhxSjeypKRZQZpLPf").then((url) => {
+                if (url) setQrCodeUrl(url);
+            });
+        }
+    }, [loading, screen]);
 
     function go(method: AvailableMethod) {
         if (method === "totp") setScreen("totp");
@@ -309,6 +321,7 @@ export default function MfaModal() {
                             <div className="flex gap-3 justify-center">
                                 {totp.map((digit, i) => (
                                     <input
+                                        className="w-14 h-16 text-center text-3xl font-bold input input-bordered"
                                         key={i}
                                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                         // @ts-ignore
@@ -320,7 +333,6 @@ export default function MfaModal() {
                                         onKeyDown={(e) => handleKeyDown(e, i)}
                                         maxLength={1}
                                         inputMode="numeric"
-                                        className="w-14 h-16 text-center text-3xl font-bold input input-bordered"
                                     />
                                 ))}
                             </div>
@@ -332,15 +344,21 @@ export default function MfaModal() {
                     )}
 
                     {!loading && screen === "backup" && (
-                        <div className="flex flex-col gap-4">
-                            <input
-                                className="input input-bordered"
-                                placeholder="Backup code"
-                                value={backupCode}
-                                onChange={(e) =>
-                                    setBackupCode(e.target.value)
-                                }
-                            />
+                        <div className="flex flex-col items-center gap-6">
+                            <div className="flex gap-3 justify-center w-full">
+                                <input
+                                    className="input input-bordered"
+                                    placeholder="Backup code"
+                                    value={backupCode}
+                                    onChange={(e) =>
+                                        setBackupCode(e.target.value)
+                                    }
+                                />
+                            </div>
+
+                            <div className="text-sub text-sm text-center">
+                                Enter your recovery code
+                            </div>
                         </div>
                     )}
 
@@ -366,19 +384,89 @@ export default function MfaModal() {
                     )}
 
                     {!loading && screen === "connection" && (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 relative">
                             {methods
                                 .filter((m) => m === "connection")
                                 .map(() => (
                                     <>
-                                        <button
-                                            className="btn"
-                                            onClick={() =>
-                                                (window.location.href =
-                                                    "https://${window.config.domains.auth}/mfa/login/google")
-                                            }
+                                        {/* Google */}
+                                        <button 
+                                            className="btn bg-white font-normal text-black border-white tooltip tooltip-top" 
+                                            data-tip="Google"
+                                            onClick={async () => {
+                                                try {
+                                                    setLoadingConnection("google");
+                                                    const response = await loginWithGoogleMfa(); // https://auth.openprofile.app/mfa/login/google
+                                                    if (!response?.ok) throw new Error();
+                                                } catch {
+                                                    setLoadingConnection(null);
+                                                    toast.show("Login failed! Please try again.", { icon: "", type: "error" });
+                                                }
+                                            }}
                                         >
-                                            Continue with Google
+                                            <div className={`${loadingConnection === "google" ? "loading" : ""}`}>
+                                                <svg className={`${loadingConnection === "google" ? "hidden" : ""}`} height="30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g><path d="m0 0H512V512H0" fill="#fff"></path><path fill="#34a853" d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"></path><path fill="#4285f4" d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"></path><path fill="#fbbc02" d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"></path><path fill="#ea4335" d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"></path></g></svg>
+                                            </div>
+                                        </button>
+
+                                        {/* X */}
+                                        <button 
+                                            className="btn bg-black font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
+                                            data-tip="X"
+                                            onClick={async () => {
+                                                try {
+                                                    setLoadingConnection("x");                    
+                                                    const response = await loginWithXMfa();
+                                                    if (!response?.ok) throw new Error();
+                                                } catch {
+                                                    setLoadingConnection(null);
+                                                    toast.show("Login failed! Please try again.", { icon: "", type: "error" });
+                                                }
+                                            }}
+                                        >
+                                            <div className={`text-2xl font-nerdfont ${loading === "x" ? "loading" : ""}`}>
+                                                
+                                            </div>
+                                        </button>
+
+                                        {/* Discord */}
+                                        <button
+                                            className="btn font-normal bg-[#5865F2] text-white border-[#5865F2] tooltip tooltip-top"
+                                            data-tip="Discord"
+                                            onClick={async () => {
+                                                try {
+                                                    setLoadingConnection("discord");                    
+                                                    const response = await loginWithDiscordMfa();
+                                                    if (!response?.ok) throw new Error();
+                                                } catch {
+                                                    setLoadingConnection(null);
+                                                    toast.show("Login failed! Please try again.", { icon: "", type: "error" });
+                                                }
+                                            }}
+                                        >
+                                            <div className={`text-2xl font-nerdfont ${loading === "discord" ? "loading" : ""}`}>
+                                                
+                                            </div>
+                                        </button>
+              
+                                        {/* GitHub */}
+                                        <button 
+                                            className="btn font-normal bg-[#6e5494] text-white border-[#6e5494] tooltip tooltip-top" 
+                                            data-tip="GitHub"
+                                            onClick={async () => {
+                                                try {
+                                                    setLoadingConnection("github");
+                                                    const response = await loginWithGitHubMfa();
+                                                    if (!response?.ok) throw new Error();
+                                                } catch {
+                                                    setLoadingConnection(null);
+                                                    toast.show("Login failed! Please try again.", { icon: "", type: "error" });
+                                                }
+                                            }}
+                                        >
+                                            <div className={`text-2xl font-nerdfont ${loading === "github" ? "loading" : ""}`}>
+                                                󰊤
+                                            </div>
                                         </button>
                                     </>
                                 ))}
@@ -386,9 +474,25 @@ export default function MfaModal() {
                     )}
 
                     {!loading && screen === "qr" && (
-                        <div className="text-center">
-                            Scan QR from another device
-                        </div>
+                        <>
+                            <div className="flex items-center justify-center">
+                                {qrCodeUrl && (
+                                    <img
+                                        className="rounded border border-base-300 w-92 h-92 mt-28 md:mt-0"
+                                        src={qrCodeUrl}
+                                        alt="QR Code"
+                                    />
+                                )}
+
+                                {loading && (
+                                    <span className="loading w-16 h-16"></span>
+                                )}
+                            </div>
+
+                            <div className="text-sub text-sm text-center mt-8">
+                                Scan from another device
+                            </div>
+                        </>
                     )}
                 </div>
 
@@ -403,7 +507,7 @@ export default function MfaModal() {
 
                 {screen === "backup" && (
                     <button
-                        className="btn btn-primary mt-4"
+                        className="absolute bottom-6 left-6 right-6 md:relative md:bottom-0 md:right-0 md:left-0 md:mt-4 btn btn-accent"
                         onClick={verifyBackupCode}
                     >
                         Continue
