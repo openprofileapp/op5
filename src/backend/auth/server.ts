@@ -237,11 +237,15 @@ router.get("/mfa/methods", async (req, res) => {
     const user = {
         totpEnabled: true,
         hasPasskey: true,
-        backupCodes: []
+        hasConnection: true,
+        hasLoggedInDevice: true,
+        backupCodes: ["123"]
     }
 
     if (user.totpEnabled) methods.push("totp");
     if (user.hasPasskey) methods.push("biometric");
+    if (user.hasConnection) methods.push("connection");
+    if (user.hasLoggedInDevice) methods.push("qr");
     if (user.backupCodes?.length) methods.push("backup");
 
     res.json({ methods });
