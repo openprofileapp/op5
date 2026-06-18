@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
-import getBotAccountByToken from '../services/getBotAccountByToken.service.js';
+import type { Request, Response } from "express";
+import getBotAccountByToken from "../../services/getBotAccountByToken.service.js";
 
-import { AdvancedError } from 'kage-library';
+import { AdvancedError } from "kage-library";
 
-import { log } from '../server.js';
+import { log } from "../../instances.js";
 
 export const botLogin = async (req: Request, res: Response) => {
     try {
