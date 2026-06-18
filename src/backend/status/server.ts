@@ -14,6 +14,8 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import appRoute from "./routes/app.route.js";
+import statusRoute from "./routes/status.route.js";
+import path from "path";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -54,9 +56,19 @@ Routes
 ———————————————————————————————————————————————————————————————— 
 */
 
+if (!vite) app.use(express.static(path.join(config.folders.root, "src", "frontend")));
+
 app.use("/", router);
 
+router.use("/check", statusRoute); // Must remain prioritized to prevent React controlling the path
 router.use("/", appRoute);
+
+// AUTO-CREATE INCIDENTS BASED ON LATENCY AND LOG THEM TO A DATABASE
+// WITH IDS FOR THE INCIDENTS
+
+// AUTO REPORT TO THE DISCORD SERVER
+
+// SEND BANNER REPORTS TO THE WEB APP IS SERVICES ARE SLOW
 
 /* 
 ————————————————————————————————————————————————————————————————
