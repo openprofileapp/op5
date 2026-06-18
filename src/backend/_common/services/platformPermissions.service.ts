@@ -245,14 +245,16 @@ export default class PlatformPermissionsService {
     }
 
     /**
-     * Checks whether a permission set satisfies required permissions.
+     * Checks whether a permission value satisfies required permissions array.
      *
      * @example
-     * PermissionsService.can("1", ["VIEW"]);
+     * PermissionsService.has("1", ["VIEW", "READ"]); // all (default)
+     * PermissionsService.has("1", ["VIEW", "READ"], "any");
      */
-    public static can(
+    public static has(
         input: string,
-        compare: PermissionName | PermissionName[]
+        compare: PermissionName | PermissionName[],
+        mode: "all" | "any" = "all"
     ): boolean {
         const decoded = this.decode(input);
 
@@ -264,13 +266,9 @@ export default class PlatformPermissionsService {
             return true;
         }
 
-        if (decoded.includes("ADMIN")) {
-            return !permissions.includes("SUPER_ADMIN");
-        }
-
-        return permissions.every((permission) =>
-            decoded.includes(permission)
-        );
+        return mode === "all"
+            ? permissions.every(permission => decoded.includes(permission))
+            : permissions.some(permission => decoded.includes(permission));
     }
 
     /**
