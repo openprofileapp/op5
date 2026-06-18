@@ -99,6 +99,16 @@ export default function MfaModal() {
         }
     }, [loading, screen]);
 
+    useEffect(() => {
+        socket.on("mfa_loading", () => {
+            setLoading(true);
+        });
+
+        return () => {
+            socket.off("mfa_loading");
+        };
+    }, []);
+
     function go(method: AvailableMethod) {
         if (method === "totp") setScreen("totp");
         else if (method === "biometric") setScreen("biometric");
@@ -281,7 +291,7 @@ export default function MfaModal() {
                 </div>
 
                 <div>
-                    {loading && screen !== "biometric" && (
+                    {loading && screen !== "biometric" && screen !== "qr" && (
                         <div className="flex justify-center py-10">
                             <span className="loading loading-spinner" />
                         </div>
@@ -473,20 +483,27 @@ export default function MfaModal() {
                         </div>
                     )}
 
-                    {!loading && screen === "qr" && (
+                    {screen === "qr" && (
                         <>
                             <div className="flex items-center justify-center">
-                                {qrCodeUrl && (
-                                    <img
-                                        className="rounded border border-base-300 w-92 h-92 mt-28 md:mt-0"
-                                        src={qrCodeUrl}
-                                        alt="QR Code"
-                                    />
-                                )}
+                                <div className="flex items-center justify-center rounded border bg-base-100 border-base-300 w-92 h-92 mt-28 md:mt-0">
+                                    {!loading && qrCodeUrl && (
+                                        <img
+                                            src={qrCodeUrl}
+                                            alt="QR Code"
+                                            onClick={() => {setLoading(true)}}
+                                        />
+                                    )}
 
-                                {loading && (
-                                    <span className="loading w-16 h-16"></span>
-                                )}
+                                    {/* 
+                                        DEV: AS SOON AS THE SCAN HAPPENS; 
+                                        MARK AS LOADING FROM THE BACKEND 
+                                    */}
+
+                                    {loading && (
+                                        <span className="loading w-16 h-16"></span>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="text-sub text-sm text-center mt-8">
