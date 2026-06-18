@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS follows (
     id TEXT PRIMARY KEY NOT NULL,
     source TEXT NOT NULL, -- User/asset/etc. id
-    target TEXT, -- User/asset/etc. id  
+    target TEXT, -- User/asset/etc. id
     action TEXT NOT NULL, -- ACTION_NAME, 
     changes TEXT, -- JSON showing old and new { old: { ... }, new: { ... } }
     origin TEXT NOT NULL DEFAULT 'unknown',
