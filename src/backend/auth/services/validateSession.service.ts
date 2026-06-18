@@ -8,40 +8,40 @@ import crypto from "crypto";
 import { AdvancedError, URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
-import { db, id, log, wc } from "../server.js";
+import { db } from "../databases/db.js";
+import { wc, id, log } from "../instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
 import { InviteType } from "../../_common/types/queries/invite.type.js";
-import { UserAgentType } from "../../_common/types/queries/userAgent.type.js";
-import { SessionType } from "../../_common/types/queries/session.type.js";
+import { UserAgentType } from "../types/userAgent.type.js";
+import { SessionType } from "../types/session.type.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../_common/types/queries/audit.type.js";
-import { GeoIpType } from "../../_common/types/queries/geoIp.type.js";
-
-type SessionData = {
-    sessionId?: string;
-    userId?: string;
-    permissions?: {
-        value: string;
-        array: string[];
-    };
-    locale?: string;
-    timezone?: string;
-    action?: string;
-};
+import { GeoIpType } from "../types/geoIp.type.js";
+import { ValidSessionType } from "../../_common/types/validSession.type.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
     const value = Array.isArray(ip) ? ip[0] : ip;
-    return value.replace(/^::ffff:/, "");
+    return value?.replace(/^::ffff:/, "").trim();
 }
 
 export function validateIp(req: Request): string {
-    const cfIP = normalizeIp(req.headers["cf-connecting-ip"] as string | string[] | undefined);
+    const cfIP = normalizeIp(req.headers["cf-connecting-ip"]);
+    const xff = normalizeIp(req.headers["x-forwarded-for"]);
     const expressIP = normalizeIp(req.ip);
+    const socketIP = normalizeIp(req.socket?.remoteAddress);
 
     if (cfIP && net.isIP(cfIP)) return cfIP;
+
+    if (xff) {
+        const firstXff = xff.split(",")[0].trim();
+        if (net.isIP(firstXff)) return firstXff;
+    }
+
     if (expressIP && net.isIP(expressIP)) return expressIP;
+
+    if (socketIP && net.isIP(socketIP)) return socketIP;
 
     return "";
 }
@@ -50,7 +50,7 @@ export default async function validateSession(
     req: Request, 
     res: Response,
     returnMfaToken: boolean = false
-): Promise<SessionData> {
+): Promise<ValidSessionType> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
@@ -211,7 +211,7 @@ export default async function validateSession(
         })
     }
 
-    if (sessionsResult.rowCount >= config.limits.softConnectedSessions) {
+    if (Number(sessionsResult.rows[0]?.count ?? 0) >= config.limits.softConnectedSessions) {
         log.client.warn(
             `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
         ).save()
@@ -665,6 +665,6 @@ export default async function validateSession(
         },
         locale: rowGeoIpJSON.locale,
         timezone: rowGeoIpJSON.timezone,
-        ...(returnMfaToken === true && { mfaToken })
+        // ...(returnMfaToken === true && { mfaToken })
     };
 }
