@@ -87,7 +87,11 @@ const local = https.createServer(
                 secure: config.isProduction,
                 changeOrigin: false,
                 headers: {
-                    host: hostname as string
+                    host: hostname as string,
+                    "x-forwarded-for": req.headers["x-forwarded-for"] 
+                        ? `${req.headers["x-forwarded-for"]}, ${req.socket.remoteAddress}`
+                        : req.socket.remoteAddress || "",
+                    "x-real-ip": req.socket.remoteAddress || ""
                 }
             },
             async (error: Error) => {
@@ -124,7 +128,11 @@ local.on(
             target,
             secure: config.isProduction,
             headers: {
-                host: hostname as string
+                host: hostname as string,
+                "x-forwarded-for": req.headers["x-forwarded-for"]
+                    ? `${req.headers["x-forwarded-for"]}, ${socket.remoteAddress}`
+                    : socket.remoteAddress || "",
+                "x-real-ip": socket.remoteAddress || ""
             }
         });
     }
