@@ -43,6 +43,7 @@ Middlewares
 
 app.use(express.json());
 app.use(cookieParser());
+if (vite) app.use(vite.middlewares);
 app.use(corsMiddleware);
 app.use(maintenanceMiddleware);
 app.use(rateLimitMiddleware(240));
