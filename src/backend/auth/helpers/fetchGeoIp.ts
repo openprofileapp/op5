@@ -1,6 +1,7 @@
 import CountryLanguage from '@ladjs/country-language';
 
-import { geoip2, log , wc } from "../instances.js";
+import { log } from "../instances.js";
+import { geoip2, wc } from "../../_common/instances.js";
 import { config } from '../../../../app.config.js';
 import { GeoIpType } from '../types/geoIp.type.js';
 

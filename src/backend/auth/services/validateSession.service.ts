@@ -9,7 +9,8 @@ import { AdvancedError, URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
 import { db } from "../databases/db.js";
-import { wc, id, log } from "../instances.js";
+import { log } from "../instances.js";
+import { wc, id } from "../../_common/instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
 import { InviteType } from "../../_common/types/queries/invite.type.js";
@@ -72,6 +73,8 @@ export default async function validateSession(
     }
 
     const now = DateTime.now().toUTC().toISO();
+
+    // SOMEWHERE HERE HAVE AN IP BLACKLIST CHECK
 
     // If first visit, generate a device token then save it
     if (!sessionId) {

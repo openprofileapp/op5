@@ -5,7 +5,8 @@ import crypto from "crypto";
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import { id, snowflake, } from "../instances.js";
+import { snowflake, } from "../instances.js";
+import { id, } from "../../_common/instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import getUserAccountByExternalId from "./getUserAccountByExternalId.service.js";

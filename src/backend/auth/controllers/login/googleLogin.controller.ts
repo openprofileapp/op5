@@ -2,7 +2,8 @@ import type { Request, Response } from "express";
 
 import { AdvancedError, URL } from "kage-library";
 
-import { log, wc } from "../../instances.js";
+import { log } from "../../instances.js";
+import { wc } from "../../../_common/instances.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
 import { config } from "../../../../../app.config.js";
 import loginOrRegisterAccount from "../../services/loginOrRegisterAccount.service.js";

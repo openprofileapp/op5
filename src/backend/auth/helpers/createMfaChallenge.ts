@@ -4,7 +4,7 @@ import crypto from "crypto"
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import { id } from "../instances.js";
+import { id } from "../../_common/instances.js";
 
 export function createMfaChallenge(secret: string, userId: string, sessionId: string) {
     const mfaToken = id.gen("TOKEN");
