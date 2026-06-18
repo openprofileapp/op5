@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { db } from '../server.js';
+import { db } from "../databases/db.js";
 
 export const getStatistics = (req: Request, res: Response) => {
     const { id } = req.params;

@@ -1,13 +1,12 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { AdvancedError, URL } from 'kage-library';
+import { AdvancedError, URL } from "kage-library";
 
-import { log, wc } from '../../server.js';
-import getEnv from '../../../../_common/helpers/getEnv.js';
-import { config } from '../../../../../app.config.js';
-import getUserAccountByEmail from '../../services/getUserAccountByEmail.service.js';
-import loginOrRegisterAccount from '../../services/loginOrRegisterAccount.service.js';
-import validateSession from '../../services/validateSession.service.js';
+import { log, wc } from "../../instances.js";
+import getEnv from "../../../../_common/helpers/getEnv.js";
+import { config } from "../../../../../app.config.js";
+import loginOrRegisterAccount from "../../services/loginOrRegisterAccount.service.js";
+import validateSession from "../../services/validateSession.service.js";
 
 type GoogleTokenResponse = {
     access_token: string;

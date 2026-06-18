@@ -1,4 +1,4 @@
-import { db } from "../server.js";
+import { db } from "../databases/db.js";
 import getPublicUserById from "./getPublicUserByIdOrUsername.service.js";
 
 export default function getPublishedProfileByOwner(id?: string) {

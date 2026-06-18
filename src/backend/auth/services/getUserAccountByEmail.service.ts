@@ -1,8 +1,8 @@
 import { AdvancedError } from 'kage-library';
 
-import { db } from '../server.js';
-import { EmailType } from '../../_common/types/queries/email.type.js';
-import { UserAccountType } from '../../_common/types/queries/userAccount.type.js';
+import { db } from '../databases/db.js';
+import { EmailType } from '../types/email.type.js';
+import { UserAccountType } from '../types/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 
 export default function getUserAccountByEmail(email: string) {

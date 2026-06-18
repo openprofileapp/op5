@@ -1,4 +1,4 @@
-import { db } from "../server.js";
+import { db } from "../databases/db.js";
 
 // Add an offset
 export default function getAllUsers() {

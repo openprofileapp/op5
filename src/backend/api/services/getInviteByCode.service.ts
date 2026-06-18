@@ -1,4 +1,4 @@
-import { db } from "../server.js";
+import { db } from "../databases/db.js";
 
 export default function getInviteByCode(code?: string) {
     const codeResult = db.invites.query("SELECT * FROM codes WHERE code = ?", [code]);

@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { AdvancedError } from 'kage-library';
+import { AdvancedError } from "kage-library";
 
-import { log, wc } from '../server.js';
-import getEnv from '../../../_common/helpers/getEnv.js';
+import { log, wc } from "../instances.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 
 type Hcaptcha = {
     success: boolean;

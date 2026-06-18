@@ -1,8 +1,8 @@
 import { AdvancedError } from 'kage-library';
 
-import { db } from '../server.js';
-import { LoginConnectionType } from '../../_common/types/queries/loginConnection.type.js';
-import { UserAccountType } from '../../_common/types/queries/userAccount.type.js';
+import { db } from '../databases/db.js';
+import { LoginConnectionType } from '../types/loginConnection.type.js';
+import { UserAccountType } from '../types/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
 
 export default function getUserAccountByExternalId(service: string, id: string) {

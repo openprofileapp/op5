@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { db } from '../server.js';
+import { db } from "../databases/db.js";
 
 export const getInteractionsCount = (req: Request, res: Response) => {
     const { userId } = req.params;

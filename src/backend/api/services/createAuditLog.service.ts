@@ -1,6 +1,7 @@
 import { AdvancedError } from "kage-library";
 
-import { db, snowflake } from "../server.js";
+import { db } from "../databases/db.js";
+import { snowflake } from "../instances.js";
 
 type Props = {
     type: string;

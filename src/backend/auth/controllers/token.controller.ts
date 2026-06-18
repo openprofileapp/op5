@@ -1,10 +1,11 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { AdvancedError } from 'kage-library';
+import { AdvancedError } from "kage-library";
 
-import { db, log } from '../server.js';
-import { SessionType } from '../../_common/types/queries/session.type.js';
-import isBearerTokenAuthorized from '../../api/helpers/isBearerTokenAuthorized.js';
+import { db } from "../databases/db.js";
+import { log } from "../instances.js";
+import { SessionType } from "../types/session.type.js";
+import isBearerTokenAuthorized from "../../api/helpers/isBearerTokenAuthorized.js";
 
 export const isAccessTokenValid = async (req: Request, res: Response) => {
     try {

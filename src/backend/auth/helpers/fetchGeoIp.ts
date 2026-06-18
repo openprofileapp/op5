@@ -1,8 +1,8 @@
 import CountryLanguage from '@ladjs/country-language';
 
-import { wc, geoip2, log } from "../server.js";
+import { geoip2, log , wc } from "../instances.js";
 import { config } from '../../../../app.config.js';
-import { GeoIpType } from '../../_common/types/queries/geoIp.type.js';
+import { GeoIpType } from '../types/geoIp.type.js';
 
 const empty = { 
     ip: "",

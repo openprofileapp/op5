@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 
 import isBearerTokenAuthorized from "../helpers/isBearerTokenAuthorized.js";
 import createAuditLog from "../services/createAuditLog.service.js";
-import { log } from "../server.js";
+import { log } from "../instances.js";
 
 export const createAuditLogController = async (req: Request, res: Response) => {
     try {

@@ -1,4 +1,4 @@
-import { db } from "../server.js";
+import { db } from "../databases/db.js";
 
 export default function getPublicUserByIdOrUsername(id?: string) {
     const userResult = db.users.query("SELECT * FROM users WHERE id = ? OR username = ? OR usernameOld = ?", [id, id, id]);

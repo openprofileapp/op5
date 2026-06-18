@@ -4,12 +4,13 @@ import crypto from "crypto";
 
 import { AdvancedError } from "kage-library";
 
-import { db, id, snowflake, } from "../server.js";
+import { db } from "../databases/db.js";
+import { id, snowflake, } from "../instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import getUserAccountByExternalId from "./getUserAccountByExternalId.service.js";
 import getUserAccountByEmail from "./getUserAccountByEmail.service.js";
-import { ReservedAccountType } from "../../_common/types/queries/reservedAccount.type.js";
+import { ReservedAccountType } from "../types/reservedAccount.type.js";
 import { createMfaChallenge } from '../helpers/createMfaChallenge.js';
 
 type Props = {
