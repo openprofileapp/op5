@@ -13,7 +13,7 @@ import createViteServer from "../_common/helpers/createViteServer.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
-import statusRoute from "./routes/status.route.js";
+import appRoute from "./routes/app.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -56,7 +56,7 @@ Routes
 
 app.use("/", router);
 
-router.use("/", statusRoute);
+router.use("/", appRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————
