@@ -172,10 +172,10 @@ export const config = {
         gateway: 10528,
         ws: {
             main: 39551,
-            status: 39553,
-            support: 39554,
-            nightly: 39555,
-            gateway: 39556
+            status: 39552,
+            support: 39556,
+            nightly: 39557,
+            gateway: 39558
         }
     },
 
