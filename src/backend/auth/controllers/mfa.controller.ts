@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
-import getMfaMethods from '../services/getMfaMethods.service.js';
+import type { Request, Response } from "express";
+import getMfaMethods from "../services/getMfaMethods.service.js";
 
-import { AdvancedError } from 'kage-library';
+import { AdvancedError } from "kage-library";
 
-import { log } from '../instances.js';
+import { log } from "../instances.js";
 
 export const getMfaMethodsController = async (req: Request, res: Response) => {
     try {

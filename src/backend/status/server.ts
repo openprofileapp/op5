@@ -1,15 +1,15 @@
-import https from 'https';
+import https from "https";
 import express, { Router } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
 
-import { config } from '../../../app.config.js';
-import { log } from './instances.js';
-import getEnv from '../../_common/helpers/getEnv.js';
+import { config } from "../../../app.config.js";
+import { log } from "./instances.js";
+import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
-import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
-import { maintenanceMiddleware } from '../_common/middlewares/maintenance.middleware.js';
-import statusRoute from './routes/status.route.js';
+import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
+import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
+import statusRoute from "./routes/status.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -19,7 +19,7 @@ Create server
 
 const app = express();
 app.set("trust proxy", 1);
-app.set('json spaces', 2);
+app.set("json spaces", 2);
 const router = Router();
 
 /* 
@@ -39,9 +39,9 @@ Routes
 ———————————————————————————————————————————————————————————————— 
 */
 
-app.use('/', router);
+app.use("/", router);
 
-router.use('/', statusRoute);
+router.use("/", statusRoute);
 
 /* 
 ————————————————————————————————————————————————————————————————

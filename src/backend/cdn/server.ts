@@ -1,14 +1,14 @@
-import path from 'path';
-import https from 'https';
+import path from "path";
+import https from "https";
 import express, { Response } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
 
-import { config } from '../../../app.config.js';
-import { log } from './instances.js';
-import getEnv from '../../_common/helpers/getEnv.js';
+import { config } from "../../../app.config.js";
+import { log } from "./instances.js";
+import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
-import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
+import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -18,7 +18,7 @@ Create instances
 
 const app = express();
 app.set("trust proxy", 1);
-app.set('json spaces', 2);
+app.set("json spaces", 2);
 
 /* 
 ————————————————————————————————————————————————————————————————
