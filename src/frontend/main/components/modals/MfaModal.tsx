@@ -99,7 +99,7 @@ export default function MfaModal() {
         }
     }, [loading, screen]);
 
-    useEffect(() => {
+    /*useEffect(() => {
         socket.on("mfa_loading", () => {
             setLoading(true);
         });
@@ -107,7 +107,7 @@ export default function MfaModal() {
         return () => {
             socket.off("mfa_loading");
         };
-    }, []);
+    }, []);*/
 
     function go(method: AvailableMethod) {
         if (method === "totp") setScreen("totp");
