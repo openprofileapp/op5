@@ -10,6 +10,7 @@ import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import statusRoute from "./routes/status.route.js";
+import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(corsMiddleware);
 app.use(maintenanceMiddleware);
+app.use(rateLimitMiddleware(240));
 
 /* 
 ————————————————————————————————————————————————————————————————

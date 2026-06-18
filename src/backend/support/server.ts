@@ -15,6 +15,7 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import appRoute from "./routes/app.route.js";
 import commonRoutes from "../_common/routes/common.routes.js";
+import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -47,6 +48,7 @@ app.use(cookieParser());
 if (vite) app.use(vite.middlewares);
 app.use(corsMiddleware);
 app.use(maintenanceMiddleware);
+app.use(rateLimitMiddleware(240));
 
 /* 
 ————————————————————————————————————————————————————————————————

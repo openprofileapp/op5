@@ -9,6 +9,7 @@ import { log } from "./instances.js";
 import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
+import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -29,6 +30,7 @@ Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(corsMiddleware);
+app.use(rateLimitMiddleware(240));
 
 /* 
 ————————————————————————————————————————————————————————————————
