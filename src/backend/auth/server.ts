@@ -16,6 +16,7 @@ import captchaRoute from "./routes/captcha.route.js";
 import tokenRoute from "./routes/token.route.js";
 import mfaRoutes from "./routes/mfa.routes.js";
 import { validateSessionMiddleware } from "./middlewares/validateSession.middleware.js";
+import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -47,11 +48,11 @@ Routes
 
 app.use("/", router);
 
-router.use("/captcha", validateSessionMiddleware, captchaRoute);
-router.use("/token", validateSessionMiddleware, tokenRoute);
-router.use("/session", validateSessionMiddleware, sessionRoute);
-router.use("/login", validateSessionMiddleware, loginRoutes);
-router.use("/mfa", validateSessionMiddleware, mfaRoutes);
+router.use("/captcha", validateSessionMiddleware, rateLimitMiddleware(60), captchaRoute);
+router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenRoute);
+router.use("/session", validateSessionMiddleware, rateLimitMiddleware(240), sessionRoute);
+router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
+router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
 
 
 
