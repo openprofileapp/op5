@@ -17,6 +17,7 @@ import tokenRoute from "./routes/token.route.js";
 import mfaRoutes from "./routes/mfa.routes.js";
 import { validateSessionMiddleware } from "./middlewares/validateSession.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
+import healthRoute from "../_common/routes/health.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -45,6 +46,7 @@ app.use(maintenanceMiddleware);
 Routes
 ———————————————————————————————————————————————————————————————— 
 */
+router.use("/health", healthRoute);
 
 app.use("/", router);
 
@@ -53,9 +55,6 @@ router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenR
 router.use("/session", validateSessionMiddleware, rateLimitMiddleware(240), sessionRoute);
 router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
 router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
-
-
-
 
 
 

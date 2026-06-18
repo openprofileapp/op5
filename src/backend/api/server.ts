@@ -16,6 +16,7 @@ import inviteRoutes from "./routes/invite.routes.js";
 import interactionRoutes from "./routes/interactions.routes.js";
 import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
+import healthRoute from "../_common/routes/health.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -44,6 +45,8 @@ app.use(maintenanceMiddleware);
 Routes
 ———————————————————————————————————————————————————————————————— 
 */
+
+app.use("/health", healthRoute);
 
 app.use("/v2", v2);
 

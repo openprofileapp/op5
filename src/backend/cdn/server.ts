@@ -10,6 +10,7 @@ import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
+import healthRoute from "../_common/routes/health.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -37,6 +38,8 @@ app.use(rateLimitMiddleware(240));
 Routes
 ———————————————————————————————————————————————————————————————— 
 */
+
+app.use("/health", healthRoute);
 
 app.use("/", express.static(path.join(config.folders.public), 
     {
