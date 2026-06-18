@@ -6,11 +6,8 @@ import { IncomingMessage } from "http";
 import cron from "node-cron";
 import path from "path";
 
-import { 
-    Logger,
-} from "kage-library";
-
 import { config } from "../../../app.config.js";
+import { log } from "./instances.js";
 import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import createViteServer from "../_common/helpers/createViteServer.js";
@@ -21,11 +18,12 @@ import commonRoutes from "../_common/routes/common.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
-Create instances 
+Create servers 
 ———————————————————————————————————————————————————————————————— 
 */
 
 const app = express();
+app.set("trust proxy", 1);
 app.set("json spaces", 2);
 const router = Router();
 
@@ -36,12 +34,6 @@ export const vite = await createViteServer({
     port: vitePort,
     ssl: getEnv("SSL"),
     root: "src/frontend",
-});
-
-export const log = new Logger({
-    path: "/logs/main",
-    useNerdFonts: config.useNerdFonts,
-    saveAllToFile: config.debug.logger.main
 });
 
 /* 
@@ -111,6 +103,9 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
 
     ws.on("message", (message: WebSocket.RawData) => {
         let data;
+
+        // CLIENT AUTH POLLS EVERY FEW MS AWAITING DB RESPONSE ON MFA_STATUS
+        // USING WS FUNCTION
 
         try {
             data = JSON.parse(message.toString());

@@ -4,11 +4,8 @@ import express, { Response } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
 
-import { 
-    Logger,
-} from "kage-library";
-
 import { config } from '../../../app.config.js';
+import { log } from './instances.js';
 import getEnv from '../../_common/helpers/getEnv.js';
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from '../_common/middlewares/cors.middleware.js';
@@ -20,13 +17,8 @@ Create instances
 */
 
 const app = express();
+app.set("trust proxy", 1);
 app.set('json spaces', 2);
-
-export const log = new Logger({
-    path: "/logs/cdn",
-    useNerdFonts: config.useNerdFonts,
-    saveAllToFile: config.debug.logger.cdn
-});
 
 /* 
 ————————————————————————————————————————————————————————————————
