@@ -6,7 +6,7 @@ import { getReqUrl } from "kage-library";
 
 import { config } from "../../../../app.config.js"
 import { vite } from "../server.js"
-import { log } from "../server.js"
+import { log } from "../instances.js"
 
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {

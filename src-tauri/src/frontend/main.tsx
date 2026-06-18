@@ -5,7 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import platform from "platform";
 
 import "../../../src/frontend/_common/styles/tailwind.css";
-import "../../../src/frontend/_common/styles/daisyui.css";
+import "../../../src/frontend/_common/styles/app.css";
 
 import Home from "./desktop/pages/Home.js";
 
