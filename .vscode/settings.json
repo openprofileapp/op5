@@ -56,6 +56,12 @@
       "fileExtensions": ["hook.ts", "hook.js"]
     },
     {
+      "name": "middleware",
+      "base": "controller",
+      "color": "#5c6bc0",
+      "fileExtensions": ["middleware.ts", "middleware.js"]
+    },
+    {
       "name": "migration",
       "base": "database",
       "color": "#ec407a",
