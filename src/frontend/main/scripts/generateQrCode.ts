@@ -17,7 +17,7 @@ export async function generateQrCode(
     const upscale = 1;
     const targetSize = 1024;
     const highResSize = targetSize * upscale;
-    const margin = 60 * upscale;
+    const margin = 30 * upscale;
 
     const dotsColor = "#ffffff";
     const bgColor = transparent ? "#00000000" : "#080808";
