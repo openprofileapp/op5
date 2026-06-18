@@ -57,6 +57,7 @@
     "dotenv": "^16.6.1",
     "esbuild": "^0.28.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "fast-glob": "^3.3.3",
     "framer-motion": "^12.40.0",
     "fs": "^0.0.1-security",

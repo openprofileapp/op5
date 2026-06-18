@@ -67,6 +67,7 @@ export const config = {
 
     // Sets limits to prevent server or storage overload
     limits: {
+        rateLimit: 240,
         softConnectedSessions: 500,
         hardConnectedSessions: 650
     },
