@@ -1,4 +1,6 @@
 # Todo
+MOVE ALL INTERACTIONS FAVS INTO A FAV COLLECTION "My Favorites"
+MOVE CHARACTER LICENSE INTO THE LICENSE TABLE
 release a self-host version
 add the remaining pages
 move ids from id.gen() to snowflake.gen()
