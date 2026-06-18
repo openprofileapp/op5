@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     accessTokenExpireDate TEXT,
     mfaToken TEXT UNIQUE,
     mfaTokenExpireDate TEXT,
+    mfaStatus TEXT,
     sessionToken TEXT UNIQUE,
     sessionTokenExpireDate TEXT,
     isTerminated INTEGER DEFAULT 0,

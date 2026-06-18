@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS restricts (
     origin TEXT NOT NULL DEFAULT 'unknown',
     date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 
-    UNIQUE (source, action, date) -- Ensure audit do not have multiple of the same logs
+    UNIQUE (source, target, action, date) -- Ensure audit do not have multiple of the same logs
 );

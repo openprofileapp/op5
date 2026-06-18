@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS metadata (
+    url TEXT PRIMARY KEY,
+    title TEXT,
+    banner TEXT,
+    next_fetch DATETIME DEFAULT CURRENT_TIMESTAMP
+);

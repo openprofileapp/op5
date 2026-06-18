@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT,
     birthdate TEXT,
     isMfaEnabled INTEGER DEFAULT 0,
-    mfaSecret TEXT,
+    totpSecret TEXT,
     permissions TEXT NOT NULL,
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
