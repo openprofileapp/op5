@@ -259,7 +259,10 @@ export const config = {
         logs: resolve(dir, "logs"),
         data: resolve(dir, "data"),
         backups: resolve(dir, "backups"),
-        sql: resolve(dir, "src", "backend", "_common", "sql"),
+        sql: {
+            auth: resolve(dir, "src", "backend", "auth", "databases", "sql"),
+            api: resolve(dir, "src", "backend", "api", "databases", "sql")
+        },
         public: resolve(dir, "public"),
         commands: resolve(dir, "src", "integrations", "discord", "commands")
     }
