@@ -24,7 +24,9 @@
     "package-lock.json": "lock",
     "vite.config.web.ts": "vite",
     "vite.config.app.ts": "vite",
-    "*.iss": "disc"
+    "*.iss": "disc",
+    "server.ts": "nodejs_alt",
+    "proxy.ts": "nodejs_alt"
   },
   "material-icon-theme.folders.customClones": [
     {
@@ -52,6 +54,12 @@
       "base": "controller",
       "color": "#7e57c2",
       "fileExtensions": ["hook.ts", "hook.js"]
+    },
+    {
+      "name": "migration",
+      "base": "database",
+      "color": "#ec407a",
+      "fileExtensions": ["db.migration.ts", "db.migration.js"]
     }
   ],
   "editor.tokenColorCustomizations": {
