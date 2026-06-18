@@ -13,6 +13,7 @@ export type SessionType = {
     accessTokenExpireDate: string;
     mfaToken: string;
     mfaTokenExpireDate: string;
+    mfaStatus: string;
     sessionToken: string;
     sessionTokenExpireDate: string;
     isTerminated: boolean;

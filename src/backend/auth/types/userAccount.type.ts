@@ -5,7 +5,7 @@ export type UserAccountType = {
     password: string;
     birthdate: string;
     isMfaEnabled: boolean;
-    mfaSecret: string;
+    totpSecret: string;
     permissions: string;
     locale: string;
     timezone: string;
