@@ -242,6 +242,8 @@ function UptimeBar({ name }: { name: string}) {
                         </div>
 
                         <div
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
                             className={`h-8 w-full flex-1 ${colorMap[d.status]}`}
                         />
                     </div>
