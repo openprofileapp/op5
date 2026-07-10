@@ -149,7 +149,7 @@ export const googleLogin = async (req: Request, res: Response) => {
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error:", error).save();
+            log.unknown.error("Unknown error (googleLogin.controller.ts):", error).save();
         }
     } 
 };

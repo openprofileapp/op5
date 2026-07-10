@@ -28,7 +28,7 @@ export const botLogin = async (req: Request, res: Response) => {
             log.db.error(error.stack).save();
             return res.status(error.code).json(error.message);
         } else {
-            console.log("Unknown error:", error);
+            console.log("Unknown error (botLogin.controller.ts):", error);
         }
     }
 };

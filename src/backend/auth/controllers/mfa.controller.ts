@@ -23,7 +23,7 @@ export const getMfaMethodsController = async (req: Request, res: Response) => {
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error:", error).save();
+            log.unknown.error("Unknown error (mfa.controller.ts):", error).save();
         }
     } 
 };
