@@ -16,10 +16,10 @@ export default function getEnv(key: string): any {
     if (key === "SSL") {
         return {
             cert: fs.readFileSync(
-                path.join(config.folders.root, value as string, `${config.isProduction ? "prod" : "dev"}.crt`)
+                path.join(config.folders.root, value as string, `${config.isProduction ? "openprofile" : "openprofile"}.crt`)
             ),
             key: fs.readFileSync(
-                path.join(config.folders.root, value as string, `${config.isProduction ? "prod" : "dev"}.key`)
+                path.join(config.folders.root, value as string, `${config.isProduction ? "openprofile" : "openprofile"}.key`)
             )
         }
     }
