@@ -15,7 +15,7 @@
     "stop": "pm2 stop all && pm2 kill",
     "sandbox": "tsx sandbox/%npm_config_name%.test.ts",
     "backup": "tsx dev/backup.ts",
-    "update": "npm update && cd src-tauri && cargo update && cd ../",
+    "update": "npm update --force && cd src-tauri && cargo update && cd ../",
     "build": "tsx dev/node/buildApp.mts",
     "clean": "rimraf dist && rimraf logs",
     "sync": "tsx dev/syncConfig.ts",
@@ -31,7 +31,7 @@
     "dev:app": "tauri dev",
     "build:app:windows": "tauri build --target x86_64-pc-windows-msvc --no-bundle",
     "package:app:windows": "cmd /c \"\"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe\" inno.iss\"",
-    "init": "npm install && npm install -g pm2 && shx cp .env.example .env && shx mv ssl/dev.crt.example ssl/dev.crt && shx mv ssl/dev.key.example ssl/dev.key && shx mv ssl/prod.crt.example ssl/prod.crt && shx mv ssl/prod.key.example ssl/prod.key && rimraf --glob \"**/DELETE_ME\" && npm run update"
+    "init": "npm install --force && npm install -g pm2 && shx cp .env.example .env && shx mv ssl/dev.crt.example ssl/dev.crt && shx mv ssl/dev.key.example ssl/dev.key && shx mv ssl/prod.crt.example ssl/prod.crt && shx mv ssl/prod.key.example ssl/prod.key && rimraf --glob \"**/DELETE_ME\" && npm run update"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
