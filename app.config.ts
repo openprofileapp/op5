@@ -162,6 +162,7 @@ export const config = {
     // Port numbers on localhost (default: 1052* and 3955*)
     ports: {
         // proxy is fixed at 443
+        gateway: 444,
         main: 10521,
         status: 10522,
         auth: 10523,
@@ -169,18 +170,17 @@ export const config = {
         cdn: 10525,
         support: 10526,
         nightly: 10527,
-        gateway: 10528,
         ws: {
             main: 39551,
             status: 39552,
             support: 39556,
-            nightly: 39557,
-            gateway: 39558
+            nightly: 39557
         }
     },
 
     // IP addresses assigned to each server
     ips: {
+        gateway: isProduction ? "127.0.0.0" : "127.0.0.0",
         main: isProduction ? "127.0.0.0" : "127.0.0.0",
         status: isProduction ? "127.0.0.0" : "127.0.0.0",
         auth: isProduction ? "127.0.0.0" : "127.0.0.0",
@@ -188,11 +188,11 @@ export const config = {
         cdn: isProduction ? "127.0.0.0" : "127.0.0.0",
         support: isProduction ? "127.0.0.0" : "127.0.0.0",
         nightly: isProduction ? "127.0.0.0" : "127.0.0.0",
-        gateway: isProduction ? "127.0.0.0" : "127.0.0.0"
     },
 
     // Domains assigned to each server
     domains: {
+        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
         main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
         status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
         auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
@@ -200,7 +200,6 @@ export const config = {
         cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
         support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
         nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
-        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app"
     },
 
     // Third-party applications

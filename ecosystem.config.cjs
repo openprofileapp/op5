@@ -12,6 +12,17 @@ module.exports = {
       }
     },
     {
+      name: "gateway",
+      script: "./dist/gateway.js",
+      interpreter: "node",
+      autorestart: true,
+      max_memory_restart: "100M",
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "main",
       script: "./dist/src/backend/main/server.js",
       interpreter: "node",

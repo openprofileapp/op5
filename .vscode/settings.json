@@ -26,7 +26,8 @@
     "vite.config.app.ts": "vite",
     "*.iss": "disc",
     "server.ts": "nodejs_alt",
-    "proxy.ts": "nodejs_alt"
+    "proxy.ts": "nodejs_alt",
+    "gateway.ts": "nodejs_alt"
   },
   "material-icon-theme.folders.customClones": [
     {

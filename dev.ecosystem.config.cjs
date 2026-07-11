@@ -22,6 +22,27 @@ module.exports = {
       }
     },
     {
+      name: "gateway",
+      script: "./gateway.ts",
+      interpreter: "node",
+      node_args: "--import tsx",
+      autorestart: true,
+      max_memory_restart: "1G",
+      watch: [
+        "./app.config.ts",
+        "./gateway.ts",
+        "./src/backend/_common",
+        "./src/_common"
+      ],
+      ignore_watch: [
+        "**/*.tsx"
+      ],
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "main",
       script: "./src/backend/main/server.ts",
       interpreter: "node",
