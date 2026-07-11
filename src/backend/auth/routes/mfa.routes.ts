@@ -13,14 +13,6 @@ mfaRoutes.get("/methods", getMfaMethodsController);
 export default mfaRoutes;
 
 
-// OPTIONS
-//
-// CHECK DB IS MFA IS ENABLED
-//
-// For totop; check the ACCOUNTS/USER TOTP SECRET
-// For backup codes; CHECK BACKUP CODES TABLE
-// FOR LOGIN; CHECK LOGIN CONNECTIONS TABLE
-
 
 
 
@@ -28,26 +20,6 @@ export default mfaRoutes;
 
 
 /*
-router.get("/mfa/methods", async (req, res) => {
-    const methods = [];
-
-    const user = {
-       - totpEnabled: true,
-        hasPasskey: true,
-       - hasConnection: true,
-       - hasLoggedInDevice: true,
-       - backupCodes: ["123"]
-    }
-
-    if (user.totpEnabled) methods.push("totp");
-    if (user.hasPasskey) methods.push("biometric");
-    if (user.hasConnection) methods.push("connection");
-    if (user.hasLoggedInDevice) methods.push("qr");
-    if (user.backupCodes?.length) methods.push("backup");
-
-    res.json({ methods });
-});
-
 import crypto from "crypto"; // DELETE LATER
 // IMPORTANT NOTE; FOR ANY API OR AUTH CALLS, FIRST CALL VERIFY SESSION USING
 // "req.session" TO STORE ITS INFO
