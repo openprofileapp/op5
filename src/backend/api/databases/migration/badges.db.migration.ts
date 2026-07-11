@@ -23,9 +23,24 @@ db.badges.transaction(q => {
         date: "2026-05-08T01:53:00Z"
     });
 
+    rows.push({
+        user: "3912544802938547",
+        type: "staff",
+        text: "Graphics Designer",
+        date: "2026-06-12T00:17:00Z"
+    });
+
     for (const d of rows) {
         if (d.type === "admin" || d.type === "moderator") {
             d.type = "staff";
+        }
+
+        if (d.type === "admin") {
+            d.text = "Administrator";
+        }
+
+        if (d.type === "moderator") {
+            d.text = "Moderator";
         }
 
         if (d.type === "precursor") {
