@@ -4,15 +4,23 @@ import { db } from '../databases/db.js';
 import { LoginConnectionType } from '../types/loginConnection.type.js';
 import { UserAccountType } from '../types/userAccount.type.js';
 import PlatformPermissionsService from '../../_common/services/platformPermissions.service.js';
+import getUserAccountByEmail from './getUserAccountByEmail.service.js';
 
-export default function getUserAccountByExternalId(service: string, id: string) {
+export default function getUserAccountByExternalId(service: string, id: string, email?: string) {
     const connectionResult = db.accounts.query<LoginConnectionType>(
         "SELECT * FROM connections WHERE connectionName = ? AND connectionId = ? LIMIT 1", 
         [service, id]
     );
 
     if (connectionResult.success) {
-        if (connectionResult.rowCount < 1) throw new AdvancedError({ code: 404, message: "Connection not found" });
+        if (connectionResult.rowCount < 1) {
+            // If Google, fallback to email
+            if (service === "google" && email) {
+                return getUserAccountByEmail(email);
+            }
+
+            throw new AdvancedError({ code: 404, message: "Connection not found" });
+        }
 
         const row = connectionResult.rows[0];
 
