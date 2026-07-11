@@ -2,6 +2,8 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
 
+import isGateway from "./helpers/isGateway.js";
+
 const config = window.config;
 
 const initialLocale = (
@@ -12,8 +14,6 @@ const initialLocale = (
 
 const baseLocale = initialLocale.split("-")[0];
 const defaultLocale = config.metadata.locale.toLowerCase();
-
-const isGateway = window.location.hostname === window.config.domains.gateway;
 
 i18n
     .use(HttpBackend)
@@ -28,7 +28,7 @@ i18n
         ],
 
         backend: {
-            loadPath: `https://${isGateway ? window.config.domains.gateway : window.config.domains.cdn}${isGateway ? "/cdn" : ""}/locales/{{lng}}.json?v=${config.metadata.version.full}`,
+            loadPath: `https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/locales/{{lng}}.json?v=${config.metadata.version.full}`,
         },
 
         interpolation: {

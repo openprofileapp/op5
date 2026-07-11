@@ -5,6 +5,8 @@ import { URL } from "kage-library/client";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import isGateway from '../helpers/isGateway.js';
+
 type Metadata = {
     title?: string,
     description?: string,
@@ -25,7 +27,6 @@ export default function Metadata({
     const location = useLocation();
     const { t, ready } = useTranslation();
     const url = new URL(window.location.origin + location.pathname);
-    const isGateway = window.location.hostname === window.config.domains.gateway;
 
     if (!ready) return null;
 
@@ -34,13 +35,13 @@ export default function Metadata({
         : `${window.config.metadata.name}${t("metadata.tagline") ? " | " : ""}${t("metadata.tagline")}`;
     const formattedDescription = description || t("metadata.description") ;
     const formattedKeywords = [t("metadata.keywords"), keywords].filter(Boolean).join(", ");
-    const formattedImage = `https://${isGateway ? window.config.domains.gateway : window.config.domains.cdn}${isGateway ? "/cdn" : ""}${
+    const formattedImage = `https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${
             image ||
             window.config.metadata.assets.banner ||
             window.config.metadata.assets.icon ||
             window.config.metadata.assets.logo
         }`;
-    const formattedIcon = `https://${isGateway ? window.config.domains.gateway : window.config.domains.cdn}${isGateway ? "/cdn" : ""}${window.config.metadata.assets.icon}`;
+    const formattedIcon = `https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${window.config.metadata.assets.icon}`;
     const formattedAuthor = window.config.metadata.legal.owner || author
     const formattedUrl = `${url.protocol}://${url.subdomain ?? ""}${url.subdomain ? "." : ""}${url.domain}${url.path}`;
     const formattedVersion = `${window.config.metadata.version.semver}-${window.config.metadata.version.stage}-${window.config.metadata.version.build}`;
