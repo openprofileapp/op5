@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "../../scripts/toast.js";
 import { generateQrCode } from "../../scripts/generateQrCode.js";
 
-type MfaMethod =
+type MfaScreen =
     | "menu"
     | "totp"
     | "biometric"
@@ -11,7 +11,7 @@ type MfaMethod =
     | "qr"
     | "backup";
 
-type AvailableMethod =
+type MfaMethod =
     | "totp"
     | "biometric"
     | "connection"
@@ -51,8 +51,8 @@ export default function MfaModal() {
 
     const [loading, setLoading] = useState(false);
     const [loadingConnection, setLoadingConnection] = useState<string | null>(null);
-    const [screen, setScreen] = useState<MfaMethod>("menu");
-    const [methods, setMethods] = useState<AvailableMethod[]>([]);
+    const [screen, setScreen] = useState<MfaScreen>("menu");
+    const [methods, setMethods] = useState<MfaMethod[]>([]);
     const [isSingleMethod, setIsSingleMethod] = useState(false);
     const [totp, setTotp] = useState<string[]>(Array(6).fill(""));
     const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -61,7 +61,8 @@ export default function MfaModal() {
     const [backupCode, setBackupCode] = useState("");
 
     const inputs = useRef<Array<HTMLInputElement | null>>([]);
-
+    const modalRef = useRef<HTMLDialogElement | null>(null);
+    
     useEffect(() => {
         async function loadMethods() {
             try {
@@ -73,13 +74,13 @@ export default function MfaModal() {
                 );
 
                 const json = await response.json();
-                const availableMethods = json.methods ?? [];
+                const MfaMethods = json.methods ?? [];
 
-                setMethods(availableMethods);
+                setMethods(MfaMethods);
 
-                if (availableMethods.length === 1) {
+                if (MfaMethods.length === 1) {
                     setIsSingleMethod(true);
-                    setScreen(availableMethods[0]);
+                    setScreen(MfaMethods[0]);
                 }
             } catch (err) {
                 console.error(err);
@@ -90,6 +91,12 @@ export default function MfaModal() {
 
         loadMethods();
     }, []);
+
+    useEffect(() => {
+        if (!loading && methods.length === 0) {
+            modalRef.current?.close();
+        }
+    }, [loading, methods]);
 
     useEffect(() => {
         if (!loading && screen === "qr") {
@@ -109,7 +116,7 @@ export default function MfaModal() {
         };
     }, []);*/
 
-    function go(method: AvailableMethod) {
+    function go(method: MfaMethod) {
         if (method === "totp") setScreen("totp");
         else if (method === "biometric") setScreen("biometric");
         else if (method === "connection") setScreen("connection");
@@ -248,7 +255,7 @@ export default function MfaModal() {
     if (!ready) return null;
 
     return (
-        <dialog id="mfa" className="modal">
+        <dialog ref={modalRef} id="mfa" className="modal">
             <div className="modal-box flex flex-col">
 
                 <form method="dialog">
