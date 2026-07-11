@@ -8,10 +8,12 @@ const initialLocale = (
     localStorage.getItem("locale") || 
     navigator.language || 
     config.metadata.locale
-).toLowerCase()
+).toLowerCase();
 
 const baseLocale = initialLocale.split("-")[0];
 const defaultLocale = config.metadata.locale.toLowerCase();
+
+const isGateway = window.location.hostname === window.config.domains.gateway;
 
 i18n
     .use(HttpBackend)
@@ -26,7 +28,7 @@ i18n
         ],
 
         backend: {
-            loadPath: `https://${config.domains.cdn}/locales/{{lng}}.json?v=${config.metadata.version.full}`,
+            loadPath: `https://${isGateway ? window.config.domains.gateway : window.config.domains.cdn}${isGateway ? "/cdn" : ""}/locales/{{lng}}.json?v=${config.metadata.version.full}`,
         },
 
         interpolation: {
