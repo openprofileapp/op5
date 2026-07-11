@@ -1,13 +1,3 @@
-@font-face {
-    font-family: "Alexandria";
-    src: url("https://cdn.dev.openprofile.app/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
-}
-
-@font-face {
-    font-family: "NerdFont";
-    src: url("https://cdn.dev.openprofile.app/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
-}
-
 :root {
     --color-precursor: #8515cf;
     --color-premium: #ffd700;
