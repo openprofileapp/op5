@@ -223,6 +223,16 @@ hr {
     opacity: 0.08;
 }
 
+.title-card {
+    position: relative;
+    height: 320px;
+    width: 213px;
+    flex-shrink: 0;
+    border-radius: var(--radius-box);
+    border: 1px solid var(--color-base-300);
+    background-color: var(--color-base-100);
+}
+
 .user-card {
     position: relative;
     height: 221px;

@@ -21,6 +21,7 @@ import ExternalLinks from "../components/ExternalLinks.js";
 import CharacterCard from "../components/CharacterCard.js";
 import Mention from "../components/Mention.js";
 import React from "react";
+import TitleCard from "../components/TitleCard.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -876,15 +877,15 @@ Check out my character: <@6773794953695671>
 
                                         <button
                                             className={`tab flex-1 ${
-                                                activeTab === "projects"
+                                                activeTab === "universes"
                                                     ? "tab-active"
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setTab("projects")
+                                                setTab("universes")
                                             }
                                         >
-                                            Projects
+                                            Universes
                                         </button>
 
                                         <button
@@ -911,6 +912,19 @@ Check out my character: <@6773794953695671>
                                             }
                                         >
                                             Collaborations
+                                        </button>
+
+                                        <button
+                                            className={`tab flex-1 ${
+                                                activeTab === "titles"
+                                                    ? "tab-active"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                setTab("titles")
+                                            }
+                                        >
+                                            Titles
                                         </button>
 
                                         <button
@@ -1050,6 +1064,11 @@ Check out my character: <@6773794953695671>
                                                     },
                                                 }}
                                             />
+                                        </div>
+                                    )}
+
+                                    {activeTab === "universes" && (
+                                        <div className="flex flex-wrap gap-4">
 
                                             <ProjectCard
                                                 id="1655391085225720"
@@ -1089,13 +1108,6 @@ Check out my character: <@6773794953695671>
                                                     },
                                                 }}
                                             />
-
-                                        </div>
-                                    )}
-
-                                    {activeTab === "projects" && (
-                                        <div>
-                                            Projects content...
                                         </div>
                                     )}
 
@@ -1147,6 +1159,16 @@ Check out my character: <@6773794953695671>
                                     {activeTab === "collaborations" && (
                                         <div>
                                             Collaborations content...
+                                        </div>
+                                    )}
+
+                                    {activeTab === "titles" && (
+                                        <div className="flex flex-wrap gap-4">
+                                            <TitleCard
+                                                key="0"
+                                                id="0"
+                                                avatar="https://play.google.com/books/publisher/content/images/frontcover/5JlREQAAQBAJ?fife=w480-h690"
+                                            />
                                         </div>
                                     )}
 
