@@ -9,8 +9,7 @@ export default function getPublishedProfileByOwner(id?: string) {
     if (!result.success) return { error: "An error occurred while fetching profile" }
     if (result.rowCount < 1) return { error: "Profile not found" }
 
-    const profile = result.rows[0];
-    const owner = getPublicUserById(profile.ownerId);
+    const owner = getPublicUserById(result.rows[0].ownerId);
 
     // CALL THE VISIBILITY FUNCTION TO DETERMINE IF THE USER CAN VIEW DATA
     // visibility: owner.visibility
@@ -18,7 +17,6 @@ export default function getPublishedProfileByOwner(id?: string) {
     // Check for project too
 
     return {
-        ...profile,
         owner: owner
             ? {
                 id: owner.id,
@@ -27,6 +25,7 @@ export default function getPublishedProfileByOwner(id?: string) {
                 badges: owner.badges,
                 type: owner.type
             }
-            : null
+            : null,
+        profiles: result.rows
     };
 }
