@@ -13,6 +13,7 @@ type Props = {
     name?: string;
     slug?: string;
     verified?: boolean;
+    inline?: boolean;
 };
 
 export default function Mention({
@@ -21,7 +22,8 @@ export default function Mention({
     avatar,
     name,
     slug,
-    verified
+    verified,
+    inline,
 }: Props) {
     const { ready } = useTranslation();
 
@@ -53,8 +55,10 @@ export default function Mention({
         return;
     }
 
+    const Wrapper = inline ? "span" : "div";
+
     return (
-        <div className="flex items-center justify-center">
+        <Wrapper className={inline ? "inline-flex items-center" : "flex items-center justify-center"}>
             <div className="mention" style={auraStyle}>
                 <Link className="z-1 link-hover flex items-center justify-center gap-2 text-xs leading-none min-w-0"
                     to={`/${slug || id}`}
@@ -77,6 +81,6 @@ export default function Mention({
                     : ""
                 }
             </div>
-        </div>
+        </Wrapper>
     );
 }
