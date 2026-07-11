@@ -92,7 +92,7 @@ export default function NotFound() {
     }, [user]);
 
    const setTab = (tab: string) => {
-        if (tab === "about") {
+        if (tab === "about" || tab === "featured") {
             history.replaceState(null, "", window.location.pathname + window.location.search);
         } else {
             window.location.hash = tab;
@@ -103,7 +103,7 @@ export default function NotFound() {
 
     useEffect(() => {
         const updateTab = () => {
-            setActiveTab(window.location.hash.replace("#", "") || "about");
+            setActiveTab(window.location.hash.replace("#", "") || "featured");
         };
 
         window.addEventListener("hashchange", updateTab);
@@ -765,12 +765,12 @@ Check out my character: <@6773794953695671>
                                     </div>
                                 </div>
 
-                                <div className="aura-box p-6 h-fit" style={auraStyle}>
+                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
                                     <div className="w-full text-center text-lg font-bold pb-6">External Links</div>
                                     <ExternalLinks links={allLinks} hasBackground={false} />
                                 </div>
 
-                                <div className="aura-box p-6 h-fit" style={auraStyle}>
+                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
                                     <div className="w-full text-center text-lg font-bold pb-6">Awards</div>
                                     <div className="grid grid-cols-3 gap-4 w-full text-center">
                                         <div 
@@ -809,7 +809,7 @@ Check out my character: <@6773794953695671>
                                     </div>
                                 </div>
 
-                                <div className="aura-box p-6 h-fit" style={auraStyle}>
+                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
                                     <div className="w-full text-center text-lg font-bold pb-6">Statistics</div>
                                     <div className="grid grid-cols-3 gap-4 w-full text-center">
                                         <div>
@@ -851,19 +851,6 @@ Check out my character: <@6773794953695671>
 
                                         <button
                                             className={`tab flex-1 ${
-                                                activeTab === "about"
-                                                    ? "tab-active"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                setTab("about")
-                                            }
-                                        >
-                                            About
-                                        </button>
-
-                                        <button
-                                            className={`tab flex-1 ${
                                                 activeTab === "featured"
                                                     ? "tab-active"
                                                     : ""
@@ -873,6 +860,19 @@ Check out my character: <@6773794953695671>
                                             }
                                         >
                                             Featured
+                                        </button>
+
+                                        <button
+                                            className={`tab flex-1 ${
+                                                activeTab === "about"
+                                                    ? "tab-active"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                setTab("about")
+                                            }
+                                        >
+                                            About
                                         </button>
 
                                         <button
@@ -903,16 +903,18 @@ Check out my character: <@6773794953695671>
 
                                         <button
                                             className={`tab flex-1 ${
-                                                activeTab === "collaborations"
+                                                activeTab === "collections"
                                                     ? "tab-active"
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setTab("collaborations")
+                                                setTab("collections")
                                             }
                                         >
-                                            Collaborations
+                                            Collections
                                         </button>
+
+
 
                                         <button
                                             className={`tab flex-1 ${
@@ -929,28 +931,15 @@ Check out my character: <@6773794953695671>
 
                                         <button
                                             className={`tab flex-1 ${
-                                                activeTab === "collections"
+                                                activeTab === "collaborations"
                                                     ? "tab-active"
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setTab("collections")
+                                                setTab("collaborations")
                                             }
                                         >
-                                            Collections
-                                        </button>
-
-                                        <button
-                                            className={`tab flex-1 ${
-                                                activeTab === "downloadables"
-                                                    ? "tab-active"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                setTab("downloadables")
-                                            }
-                                        >
-                                            Downloadables
+                                            Collaborations
                                         </button>
 
                                     </div>
@@ -1158,7 +1147,11 @@ Check out my character: <@6773794953695671>
 
                                     {activeTab === "collaborations" && (
                                         <div>
-                                            Collaborations content...
+                                            <div className="text-2xl font-bold">Universes</div>
+                                            <br/>
+                                            <div className="text-2xl font-bold">Profiles</div>
+                                            <br/>
+                                            <div className="text-2xl font-bold">Collections</div>
                                         </div>
                                     )}
 
