@@ -120,7 +120,7 @@ export default function loginOrRegisterAccount({
 
     // Check connections for valid account
     if (externalConnectionName && externalConnectionId) {
-        userAccount = getUserAccountByExternalId(externalConnectionName, externalConnectionId);
+        userAccount = getUserAccountByExternalId(externalConnectionName, externalConnectionId, email);
     }
 
     // If connections are valid, update them then return
