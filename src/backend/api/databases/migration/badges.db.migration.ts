@@ -31,16 +31,16 @@ db.badges.transaction(q => {
     });
 
     for (const d of rows) {
-        if (d.type === "admin" || d.type === "moderator") {
-            d.type = "staff";
-        }
-
         if (d.type === "admin") {
             d.text = "Administrator";
         }
 
         if (d.type === "moderator") {
             d.text = "Moderator";
+        }
+
+        if (d.type === "admin" || d.type === "moderator") {
+            d.type = "staff";
         }
 
         if (d.type === "precursor") {
