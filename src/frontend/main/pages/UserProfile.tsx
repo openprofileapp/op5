@@ -5,6 +5,8 @@ import Confetti from "react-confetti";
 
 import { formatNumber } from "kage-library/client";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
@@ -40,7 +42,7 @@ export default function UserProfile() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await fetch(`https://${window.config.domains.api}/v2/users?id=${id}`);
+                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`);
                 
                 if (!res.ok) {
                     navigate("/404", { replace: true });

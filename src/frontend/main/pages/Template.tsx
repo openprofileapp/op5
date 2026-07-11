@@ -47,7 +47,7 @@ export default function NotFound() {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${window.config.domains.api}/v2/users?id=${id}`
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`
                 );
 
                 if (!res.ok) {
