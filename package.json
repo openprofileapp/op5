@@ -30,6 +30,7 @@
     "build:npm": "cd packages/node && tsx ../../dev/node/buildNodePackage.mts && cd ../../",
     "dev:app": "tauri dev",
     "build:app:windows": "tauri build --target x86_64-pc-windows-msvc --no-bundle",
+    "build:app:linux": "tauri build --target x86_64-unknown-linux-gnu",
     "package:app:windows": "cmd /c \"\"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe\" inno.iss\"",
     "init": "npm install --force && npm install -g pm2 && shx cp .env.example .env && shx mv ssl/dev.crt.example ssl/dev.crt && shx mv ssl/dev.key.example ssl/dev.key && shx mv ssl/prod.crt.example ssl/prod.crt && shx mv ssl/prod.key.example ssl/prod.key && rimraf --glob \"**/DELETE_ME\" && npm run update"
   },
