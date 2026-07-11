@@ -255,3 +255,13 @@ REMOVE ALL CHECKS DUE TO ALTER-TABLE NOT SUPPORTING THEM; use code validation in
         CHECK (visibility IN ('public', 'followers', 'friends', 'unlisted', 'private', 'hidden')),
 
         ON SERVER RESTART; ENSURE ALL CONNECTED SESSIONS ARE SET TO 0
+
+AAUTH BACKEND / GET METHODS SERVICE LINE ~18
+// DEV NOTE: Load this once per session call and save in req.i18n
+const i18n = await I18nService.load(
+    { 
+        localesPath: "/public/locales", 
+        locale: "en", 
+        defaultLocale: config.metadata.locale 
+    }
+);
