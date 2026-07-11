@@ -7,7 +7,7 @@
   "theme_color": "#ce1616",
   "icons": [
     {
-      "src": "https://cdn.dev.openprofile.app/branding/icon.svg",
+      "src": "https://gateway.dev.openprofile.app/cdn/branding/icon.svg",
       "sizes": "256x256",
       "type": "image/png"
     }
