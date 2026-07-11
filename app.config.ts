@@ -192,7 +192,7 @@ export const config = {
 
     // Domains assigned to each server
     domains: {
-        gateway: isProduction ? "gateway.prod.openprofile.app" : "localhost:444",
+        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
         main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
         status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
         auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
