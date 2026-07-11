@@ -56,9 +56,7 @@ export const googleLogin = async (req: Request, res: Response) => {
                     client_secret: getEnv("INTEGRATION_GOOGLE_AUTH_SECRET"),
                     grant_type: "authorization_code",
                     code,
-                    redirect_uri: config.isProduction
-                        ? "https://auth.openprofile.app/login/google"
-                        : "https://auth.dev.openprofile.app/login/google"
+                    redirect_uri: `https://${config.domains.auth}/login/google`
                 }).toString()
             }
         );
@@ -69,7 +67,7 @@ export const googleLogin = async (req: Request, res: Response) => {
         )
 
         // Fetch session and internal account
-        const currentSession = await validateSession(req, res);
+        const currentSession = await validateSession(req, res); // USE REQ.SESSION INSTEAD
 
         if (!currentSession.sessionId) {
             throw new AdvancedError({ code: 400, message: "Invalid session" });
