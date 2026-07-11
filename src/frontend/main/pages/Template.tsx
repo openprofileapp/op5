@@ -17,6 +17,10 @@ import { toast } from "../scripts/toast.js";
 import RestrictModal from "../components/modals/RestrictModal.js";
 import BlockModal from "../components/modals/BlockModal.js";
 import MuteModal from "../components/modals/MuteModal.js";
+import ExternalLinks from "../components/ExternalLinks.js";
+import CharacterCard from "../components/CharacterCard.js";
+import Mention from "../components/Mention.js";
+import React from "react";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -25,6 +29,7 @@ export default function NotFound() {
 
     const [activeTab, setActiveTab] = useState("about");
     const [user, setUser] = useState<unknown[]>([]);
+    const [profiles, setProfiles] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [following, setFollowing] = useState(false);
     const [blocked, setBlocked] = useState(false);
@@ -66,6 +71,48 @@ export default function NotFound() {
 
         if (id) fetchUsers();
     }, [id, navigate]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        
+        const fetchProfiles = async () => {
+            try {
+                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?owner=${user.id}`);
+                const data = await res.json();
+                setProfiles(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfiles();
+    }, [user]);
+
+   const setTab = (tab: string) => {
+        if (tab === "about") {
+            history.replaceState(null, "", window.location.pathname + window.location.search);
+        } else {
+            window.location.hash = tab;
+        }
+
+        setActiveTab(tab);
+    };
+
+    useEffect(() => {
+        const updateTab = () => {
+            setActiveTab(window.location.hash.replace("#", "") || "about");
+        };
+
+        window.addEventListener("hashchange", updateTab);
+
+        updateTab();
+
+        return () => {
+            window.removeEventListener("hashchange", updateTab);
+        };
+    }, []);
 
     const auraStyle = user.isAuraEnabled
         ? 
@@ -192,6 +239,9 @@ const SpotifyEmbed = ({ url }: { url: string }) => {
     const aboutMarkdown = `
 ## Projects
 I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
+
+
+Check out my character: <@6773794953695671>
 `.trim();
 
     const isStaff = user.badges?.some(badge => badge.type === "staff") ?? false;
@@ -716,6 +766,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
 
                                 <div className="aura-box p-6 h-fit" style={auraStyle}>
                                     <div className="w-full text-center text-lg font-bold pb-6">External Links</div>
+                                    <ExternalLinks links={allLinks} hasBackground={false} />
                                 </div>
 
                                 <div className="aura-box p-6 h-fit" style={auraStyle}>
@@ -787,7 +838,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                     </div>
                                 </div>
 
-                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded h-fit">
+                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
                                     <div className="w-full text-center text-lg font-bold pb-6">Advertisement</div>
                                     Google ad here; get premium to remove from your profile
                                 </div>
@@ -804,7 +855,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("about")
+                                                setTab("about")
                                             }
                                         >
                                             About
@@ -817,7 +868,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("featured")
+                                                setTab("featured")
                                             }
                                         >
                                             Featured
@@ -830,7 +881,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("projects")
+                                                setTab("projects")
                                             }
                                         >
                                             Projects
@@ -843,7 +894,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("profiles")
+                                                setTab("profiles")
                                             }
                                         >
                                             Profiles
@@ -856,7 +907,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("collaborations")
+                                                setTab("collaborations")
                                             }
                                         >
                                             Collaborations
@@ -869,7 +920,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("collections")
+                                                setTab("collections")
                                             }
                                         >
                                             Collections
@@ -882,7 +933,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setActiveTab("downloadables")
+                                                setTab("downloadables")
                                             }
                                         >
                                             Downloadables
@@ -900,6 +951,37 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                             <ReactMarkdown
                                                 remarkPlugins={[remarkGfm]}
                                                 components={{
+                                                    p({ children }) {
+                                                        return (
+                                                            <p>
+                                                                {React.Children.map(children, (child) => {
+                                                                    if (typeof child !== "string") return child;
+
+                                                                    const parts = child.split(/<@([A-Za-z0-9_-]+)>/g);
+
+                                                                    return parts.map((part, index) =>
+                                                                        index % 2 === 1 ? (
+                                                                            <Mention
+                                                                                key={index}
+                                                                                id={part}
+                                                                                name="Cornelia"
+                                                                                avatar="https://cdn.openprofile.app/uploads/profiles/6773794953695671/4k2jGxq2utoquol17wG9HZ54LgLTUfVc.png"
+                                                                                aura={{
+                                                                                    isEnabled: true,
+                                                                                    primary: "#fce1969f"
+                                                                                }}
+                                                                                verified={true}
+                                                                                inline={true}
+                                                                            />
+                                                                        ) : (
+                                                                            part
+                                                                        )
+                                                                    );
+                                                                })}
+                                                            </p>
+                                                        );
+                                                    },
+                                                                                                        
                                                     a({ href, children }) {
                                                         if (!href) return null;
 
@@ -1018,8 +1100,47 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                     )}
 
                                     {activeTab === "profiles" && (
-                                        <div>
-                                            Profiles content...
+                                        <div className="flex flex-wrap gap-4">
+                                            {!loading &&
+                                                profiles.profiles?.map((d) => (
+                                                    <CharacterCard
+                                                        key={d.id}
+                                                        id={d.id}
+                                                        aura={{
+                                                            isEnabled: d.isAuraEnabled,
+                                                            type: d.auraType,
+                                                            primary: d.auraPrimary,
+                                                            secondary: d.auraSecondary
+                                                        }}
+                                                        avatar={
+                                                            d.avatar
+                                                                ? `https://cdn.openprofile.app${d.avatar}`
+                                                                : ""
+                                                        }
+                                                        name={d.displayName}
+                                                        slug={d.slug}
+                                                        owner={{
+                                                            id: profiles.owner.id,
+                                                            slug: profiles.owner.username,
+                                                            name: profiles.owner.displayName,
+                                                            isVerified: profiles.owner.badges?.some(
+                                                                (b) => b.type === "verified"
+                                                            ),
+                                                            type: profiles.owner.type
+                                                        }}
+                                                        about={d.about}
+                                                        interactions={{
+                                                            views: {
+                                                                count: 0,
+                                                                interacted: true
+                                                            },
+                                                            likes: {
+                                                                count: 0,
+                                                                interacted: false
+                                                            }
+                                                        }}
+                                                    />
+                                                ))}
                                         </div>
                                     )}
 
