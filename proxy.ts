@@ -36,6 +36,11 @@ const serverMap: Record<string, string> = {};
 for (const [key, domain] of Object.entries(config.domains)) {
     const port = config.ports[key as keyof typeof config.ports];
 
+    if (key === "gateway") {
+        serverMap[domain.toLowerCase()] = `https://localhost:444`;
+        continue;
+    }
+
     if (!domain) {
         log.proxy.warn(`Missing domain for "${key}" key in app.config.ts`).save();
         continue;
@@ -55,7 +60,7 @@ const local = https.createServer(
     async (req: IncomingMessage, res: ServerResponse) => {
         if (req.url!.startsWith("/favicon.ico")) {
             res.writeHead(302, {
-                Location: `https://${config.domains.cdn}${config.metadata.assets.icon}`
+                Location: `https://${config.domains.gateway}/cdn/${config.metadata.assets.icon}`
             });
             return res.end();
         }

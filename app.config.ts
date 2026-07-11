@@ -162,7 +162,7 @@ export const config = {
     // Port numbers on localhost (default: 1052* and 3955*)
     ports: {
         // proxy is fixed at 443
-        gateway: 444,
+        // gateway is fixed at 444
         main: 10521,
         status: 10522,
         auth: 10523,
@@ -192,7 +192,7 @@ export const config = {
 
     // Domains assigned to each server
     domains: {
-        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
+        gateway: isProduction ? "gateway.prod.openprofile.app" : "localhost:444",
         main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
         status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
         auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",

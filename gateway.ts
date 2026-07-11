@@ -31,6 +31,7 @@ const proxy = httpProxy.createProxyServer({
 
 // Map routes to ports
 const routeMap: Record<string, string> = {};
+const defaultRoute = `https://localhost:${config.ports.main}`;
 
 for (const [key, port] of Object.entries(config.ports)) {
     if (!port) {
@@ -38,12 +39,7 @@ for (const [key, port] of Object.entries(config.ports)) {
         continue;
     }
 
-    if (key === "gateway") {
-        continue;
-    }
-
-    if (key === "main") {
-        routeMap[`/`] = `https://localhost:${port}`;
+    if (key === "gateway" || key === "main") {
         continue;
     }
 
@@ -61,7 +57,7 @@ const local = https.createServer(
 
         if (req.url.startsWith("/favicon.ico")) {
             res.writeHead(302, {
-                Location: `https://${config.domains.cdn}${config.metadata.assets.icon}`
+                Location: `https://${config.domains.gateway}/cdn/${config.metadata.assets.icon}`
             });
             return res.end();
         }
@@ -70,22 +66,11 @@ const local = https.createServer(
             req.url!.startsWith(prefix)
         );
 
-        if (!route) {
-            log.gateway.warn(`No route found for '${req.url}'`).save();
+        const target = route ? routeMap[route] : defaultRoute;
 
-            const i18n = await I18nService.load({
-                localesPath: "/public/locales",
-                locale: "en",
-                defaultLocale: config.metadata.locale
-            });
-
-            res.writeHead(404);
-            return res.end(i18n.t("messages.notFound"));
+        if (route) {
+            req.url = req.url.substring(route.length) || "/";
         }
-
-        const target = routeMap[route];
-
-        req.url = req.url.substring(route.length) || "/";
 
         proxy.web(
             req,
@@ -128,14 +113,11 @@ local.on("upgrade", (req, socket, head) => {
         req.url!.startsWith(prefix)
     );
 
-    if (!route) {
-        socket.destroy();
-        return;
+    const target = route ? routeMap[route] : defaultRoute;
+
+    if (route) {
+        req.url = req.url.substring(route.length) || "/";
     }
-
-    const target = routeMap[route];
-
-    req.url = req.url.substring(route.length) || "/";
 
     proxy.ws(req, socket, head, {
         target,
@@ -150,7 +132,7 @@ Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const port = config.ports.gateway;
+const port = 444;
 
 local.listen(port, () => {
     log.gateway.info(`Proxy online at https://localhost:${port}`);
