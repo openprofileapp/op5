@@ -1,76 +1,97 @@
-import type { CookieOptions, Request, Response } from "express";
-import net from "node:net";
-import DeviceDetector from "node-device-detector";
-import { DateTime } from "luxon";
-import haversine from "haversine-distance"
-import crypto from "crypto";
+import { AdvancedError, I18nService } from "kage-library";
 
-import { AdvancedError, URL } from "kage-library";
-
+import { db } from "../databases/db.js";
+import { UserAccountType } from "../types/userAccount.type.js";
 import { config } from "../../../../app.config.js";
-import { db,  } from "../databases/db.js";
-import { id, log, wc } from "../instances.js";
-import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
-import fetchGeoIp from "../helpers/fetchGeoIp.js";
-import { InviteType } from "../../_common/types/queries/invite.type.js";
-import { UserAgentType } from "../../_common/types/queries/userAgent.type.js";
-import { SessionType } from "../types/session.type.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
-import { AuditApiType } from "../../_common/types/queries/audit.type.js";
-import { GeoIpType } from "../types/geoIp.type.js";
+import { UserConnectionType } from "../types/userConnection.type.js";
 
-type MfaMethods = {
-    sessionId?: string;
-    userId?: string;
-    permissions?: {
-        value: string;
-        array: string[];
-    };
-    locale?: string;
-    timezone?: string;
-    action?: string;
-};
+type MfaMethod =
+    | "totp"
+    | "biometric"
+    | "connection"
+    | "qr"
+    | "backup";
 
-export default async function getMfaMethods(userId: string): Promise<MfaMethods> {
-    // Update the session row
-    const updatedUserSessionResult = db.accounts.query(
-        `UPDATE sessions SET
-            userAgent = ?,
-            inviteCode = ?,
-            isConnected = ?,
-            lastConnectedDate = ?
-        WHERE sessionId = ?
-        LIMIT 1`,
-        [
-            JSON.stringify(formattedUserAgent),
-            inviteCode,
-            1,
-            now,
-            sessionId
-        ]
-    );
-
-    if (!updatedUserSessionResult.success) {
+export default async function getMfaMethods(
+    userId: string
+): Promise<{ methods: MfaMethod[] }> {
+    if (!userId) {
+        // DEV NOTE: Load this once per session call and save in req.i18n
+        const i18n = await I18nService.load(
+            { 
+                localesPath: "/public/locales", 
+                locale: "en", 
+                defaultLocale: config.metadata.locale 
+            }
+        );
+        
         throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while updating session",
-            details: updatedUserSessionResult.error
+            code: 401,
+            message: i18n.t("responses.noAccount"),
         })
     }
 
-    // Display member role for non-logged users
-    const role = PlatformPermissionsService.getRole("guest");
+    const methods: MfaMethod[] = [];
 
-    // Return session data
-    return {
-        sessionId,
-        userId: row.userId,
-        permissions: {
-            value: role.value,
-            array: role.array
-        },
-        locale: rowGeoIpJSON.locale,
-        timezone: rowGeoIpJSON.timezone,
-        ...(returnMfaToken === true && { mfaToken })
-    };
+    // TOTP
+    const userAccountResult = db.accounts.query<UserAccountType>(
+        `SELECT 
+            isMfaEnabled, 
+            totpSecret 
+        FROM users 
+        WHERE id = ? LIMIT 1`,
+        [userId]
+    );
+
+    if (!userAccountResult.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while fetching account",
+            details: userAccountResult.error
+        })
+    }
+
+    if (userAccountResult.rowCount < 1) {
+        throw new AdvancedError({
+            code: 404,
+            message: "Account not found"
+        })
+    }
+
+    if (!userAccountResult.rows[0].isMfaEnabled) return { methods }
+
+    if (userAccountResult.rows[0].totpSecret) methods.push("totp");
+
+    // Connections
+    const userConnectionsResult = db.accounts.query<UserConnectionType>(
+        `SELECT 
+            isMfa,
+        FROM connections 
+        WHERE userId = ?`,
+        [userId]
+    );
+
+    if (!userConnectionsResult.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while fetching connections",
+            details: userConnectionsResult.error
+        })
+    }
+
+    if (userConnectionsResult.rowCount < 1) {
+        throw new AdvancedError({
+            code: 404,
+            message: "Connection not found"
+        })
+    }
+
+    if (userConnectionsResult.rowCount > 0) methods.push("connection");
+
+    if (methods.length > 0) {
+        methods.push("qr");
+        methods.push("backup");
+    }
+
+    return { methods };
 }
