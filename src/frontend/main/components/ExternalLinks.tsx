@@ -5,10 +5,12 @@ import { LinkType } from "../../../backend/_common/types/queries/link.type.js";
 
 type Props = {
     links?: LinkType[];
+    hasBackground?: boolean;
 };
 
 export default function ExternalLinks({
-    links = []
+    links = [],
+    hasBackground = true
 }: Props) {
     const { ready } = useTranslation();
 
@@ -38,7 +40,7 @@ export default function ExternalLinks({
     {/* Display a link for all links */}
 
     return (
-        <div className="flex gap-2 h-8 px-2 text-xs font-normal bg-base-200 border border-base-300 rounded">
+        <div className={`flex gap-2 h-7 px-2 text-xs font-normal ${hasBackground ? "bg-base-200 border border-base-300 rounded" : ""}`}>
             {sortedLinks.map((l) => (
                 <span className="relative grid place-items-center tooltip tooltip-top">
                     <div className="tooltip-content">
