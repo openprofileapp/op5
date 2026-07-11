@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import { BadgeType } from "../../../backend/_common/types/queries/badge.type.js";
 
 type Props = {
@@ -85,7 +87,7 @@ export default function Badges({
                         <div className="flex justify-center w-full">
                             <img
                                 className="h-32 w-32 object-contain"
-                                src={`https://${window.config.domains.cdn}/uploads/${b.type}.png`}
+                                src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/uploads/${b.type}.png`}
                                 alt="avatar"
                             />
                         </div>

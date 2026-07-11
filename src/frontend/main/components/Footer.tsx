@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 export default function Footer() {
     const { t, ready } = useTranslation();
 
@@ -68,7 +70,7 @@ export default function Footer() {
 
                     <div className="flex justify-center">
                         <img className="w-full opacity-10"
-                            src={`https://${window.config.domains.cdn}/branding/wordmark-alt.svg`}
+                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/branding/wordmark-alt.svg`}
                         />
                     </div>
                 </div>

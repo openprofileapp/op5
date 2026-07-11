@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
 import MfaModal from "./modals/MfaModal.js";
@@ -59,7 +61,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 <div className="flex flex-1 items-center">
                     <Link className="cursor-pointer w-42" to="/">
                         <img alt="OpenProfile wordmark"
-                            src={`https://${config.domains.cdn}${config.metadata.assets.wordmark}`} 
+                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${config.metadata.assets.wordmark}`} 
                         />
                     </Link>
 
@@ -215,7 +217,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 <div className="navbar-center">
                     <Link className="cursor-pointer w-42" to="/">
                         <img alt="OpenProfile wordmark"
-                            src={`https://${config.domains.cdn}${config.metadata.assets.wordmark}`} 
+                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${config.metadata.assets.wordmark}`} 
                         />
                     </Link>
                     <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">

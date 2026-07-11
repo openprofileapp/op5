@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 /* GENERATED MOCK STATUS; REPLACE WITH API CALL */
 const mockStatus = {
     overall: "operational",
@@ -275,7 +277,7 @@ export default function StatusPage() {
                 <div className="flex justify-between items-center mb-4">
                     <Link className="cursor-pointer w-48" to="/">
                         <img alt="OpenProfile wordmark"
-                            src={`https://${window.config.domains.cdn}${window.config.metadata.assets.wordmark}`} 
+                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${window.config.metadata.assets.wordmark}`} 
                         />
                     </Link>
 

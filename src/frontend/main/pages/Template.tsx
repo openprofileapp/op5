@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm";
 
 import { formatNumber } from "kage-library/client";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
@@ -480,7 +482,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                     <div className="flex justify-center w-full">
                                                         <img
                                                             className="h-32 w-32 object-contain"
-                                                            src={`https://${window.config.domains.cdn}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
                                                             alt="avatar"
                                                         />
                                                     </div>
@@ -489,7 +491,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
                                                 </div>
                                                 <img
                                                     className="h-38 w-38 object-contain"
-                                                    src={`https://${window.config.domains.cdn}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                    src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
                                                     alt="avatar"
                                                 />
                                             </div>

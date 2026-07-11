@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
@@ -21,7 +23,7 @@ export default function Home() {
                 <div
                     className="absolute top-[64px] inset-0 bg-cover bg-center h-150"
                     style={{
-                        backgroundImage: `url(https://${window.config.domains.cdn}/media/hero.png)`,
+                        backgroundImage: `url(https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/media/hero.png)`,
                         opacity: 0.15
                     }}
                 />

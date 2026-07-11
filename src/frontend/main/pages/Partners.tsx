@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 
+import isGateway from "../../_common/helpers/isGateway.js";
+
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
@@ -101,7 +103,7 @@ export default function Partners() {
                                             <div className="avatar">
                                                 <div className="mask mask-circle h-12 w-12">
                                                     <img
-                                                        src={`https://${window.config.domains.cdn}/graphics/alice-happy.svg`}
+                                                        src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/graphics/alice-happy.svg`}
                                                         alt="Avatar"
                                                     />
                                                 </div>
@@ -147,7 +149,7 @@ export default function Partners() {
                                             <div className="avatar">
                                                 <div className="mask mask-circle h-12 w-12">
                                                     <img
-                                                        src={`https://${window.config.domains.cdn}/graphics/alice-happy.svg`}
+                                                        src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/graphics/alice-happy.svg`}
                                                         alt="Avatar"
                                                     />
                                                 </div>
@@ -193,7 +195,7 @@ export default function Partners() {
                                             <div className="avatar">
                                                 <div className="mask mask-circle h-12 w-12">
                                                     <img
-                                                        src={`https://${window.config.domains.cdn}/graphics/alice-happy.svg`}
+                                                        src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/graphics/alice-happy.svg`}
                                                         alt="Avatar"
                                                     />
                                                 </div>
@@ -237,7 +239,7 @@ export default function Partners() {
                                             <div className="avatar">
                                                 <div className="mask mask-circle h-12 w-12">
                                                     <img
-                                                        src={`https://${window.config.domains.cdn}/graphics/alice-happy.svg`}
+                                                        src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/graphics/alice-happy.svg`}
                                                         alt="Avatar"
                                                     />
                                                 </div>
