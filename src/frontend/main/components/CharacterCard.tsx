@@ -103,6 +103,15 @@ export default function CharacterCard({
                     : ""
             }
 
+            <div className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="Pinned">
+                <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
+                >
+                    <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
+                        󰐃
+                    </span>
+                </button>
+            </div>
+
             <div className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="More">
                 <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
                     popoverTarget={`character-more-dropdown-${index}`} style={{ anchorName: `--character-more-anchor-${index}` }}
@@ -128,6 +137,14 @@ export default function CharacterCard({
                         View Analytics
                         <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
                             󰺓
+                        </span>
+                    </Link>
+                </li>
+                <li>
+                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                        Pin Profile
+                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
+                            󰐃
                         </span>
                     </Link>
                 </li>
@@ -185,6 +202,14 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Not Interested
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                            󰈉
+                        </span>
+                    </Link>
+                </li>
+                <li>
+                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                        Hide Collaboration
                         <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
                             󰈉
                         </span>
