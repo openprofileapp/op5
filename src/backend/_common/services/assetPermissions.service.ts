@@ -33,7 +33,10 @@ const index = {
     AUDIT_ACCESS: 55n, // Based on permissions, view and rollback any changes on asset performed by users
     VIEW_REVENUE: 56n, // View monetized revenue
     ADMIN: 57n, // COMPLETE CONTROL OF GRANTED ASSET
-    SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin 
+    SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin
+
+    FEATURE_AS_OWNER: 0n, // Show asset in collaborator's owned profile tab
+    FEATURE_AS_COLLAB: 0n, // Show asset in collaborator's collaborations profile tab
 } as const;
 
 // Move this to a database if custom roles release
