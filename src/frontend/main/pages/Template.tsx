@@ -92,7 +92,7 @@ export default function NotFound() {
     }, [user]);
 
    const setTab = (tab: string) => {
-        if (tab === "about" || tab === "featured") {
+        if (tab === "about" || tab === "pinned") {
             history.replaceState(null, "", window.location.pathname + window.location.search);
         } else {
             window.location.hash = tab;
@@ -103,7 +103,7 @@ export default function NotFound() {
 
     useEffect(() => {
         const updateTab = () => {
-            setActiveTab(window.location.hash.replace("#", "") || "featured");
+            setActiveTab(window.location.hash.replace("#", "") || "pinned");
         };
 
         window.addEventListener("hashchange", updateTab);
@@ -304,7 +304,7 @@ Check out my character: <@6773794953695671>
                         />
                     </div>
                     
-                    <div className="px-4 py-8 md:px-28 md:py-12">
+                    <div className="px-0 py-8 md:px-25 md:py-20">
                         <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-4">
                             <div className="flex flex-col gap-4">
                                 <div className="aura-box p-6 h-fit" style={auraStyle}>
@@ -766,12 +766,12 @@ Check out my character: <@6773794953695671>
                                 </div>
 
                                 <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                    <div className="w-full text-center text-lg font-bold pb-6">External Links</div>
+                                    <div className="w-full text-center text-lg font-bold mb-6">External Links</div>
                                     <ExternalLinks links={allLinks} hasBackground={false} />
                                 </div>
 
                                 <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                    <div className="w-full text-center text-lg font-bold pb-6">Awards</div>
+                                    <div className="w-full text-center text-lg font-bold mb-6">Awards</div>
                                     <div className="grid grid-cols-3 gap-4 w-full text-center">
                                         <div 
                                             className="aspect-square rounded border border-base-300 tooltip"
@@ -788,11 +788,11 @@ Check out my character: <@6773794953695671>
                                         </div>
                                         <div 
                                             className="aspect-square rounded border border-base-300 tooltip"
-                                            data-tip="Featured"
+                                            data-tip="pinned"
                                         >
                                             <img 
                                                 src="https://i.postimg.cc/j5WBLZXR/Patsh.png"
-                                                alt="Featured"
+                                                alt="pinned"
                                                 className="w-full h-full object-contain p-3"
                                             />
                                         </div>
@@ -810,7 +810,7 @@ Check out my character: <@6773794953695671>
                                 </div>
 
                                 <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                    <div className="w-full text-center text-lg font-bold pb-6">Statistics</div>
+                                    <div className="w-full text-center text-lg font-bold mb-6">Statistics</div>
                                     <div className="grid grid-cols-3 gap-4 w-full text-center">
                                         <div>
                                             <div className="font-bold">{formatNumber(383).short}</div>
@@ -839,9 +839,13 @@ Check out my character: <@6773794953695671>
                                     </div>
                                 </div>
 
-                                <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                    <div className="w-full text-center text-lg font-bold pb-6">Advertisement</div>
-                                    Google ad here; get premium to remove from your profile
+                                <div className="relative flex flex-col items-center bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
+                                    <div className=" w-full mb-6">
+                                        <div className="w-full text-center text-lg font-bold">Advertisement</div>
+                                        <div className="text-center mt-1 text-xs text-sub">Subscribe to Premium to remove this.</div>
+                                    </div>
+                                    <img className="rounded-lg border border-base-300 w-48 md:w-full" src={`https://${window.config.domains.gateway}/cdn/uploads/ad.jpg`} />
+                                    <div className="text-center mt-6 text-xs text-sub">Provided by AvatarKage</div>
                                 </div>
                             </div>
 
@@ -851,15 +855,15 @@ Check out my character: <@6773794953695671>
 
                                         <button
                                             className={`tab flex-1 ${
-                                                activeTab === "featured"
+                                                activeTab === "pinned"
                                                     ? "tab-active"
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                setTab("featured")
+                                                setTab("pinned")
                                             }
                                         >
-                                            Featured
+                                            Pinned
                                         </button>
 
                                         <button
@@ -947,7 +951,7 @@ Check out my character: <@6773794953695671>
 
                                 {/* TAB CONTENT */}
 
-                                <div className="p-4">
+                                <div className="p-2 md:p-4">
 
                                     {activeTab === "about" && (
                                         <div className="p-4 prose text-base-content text-base">
@@ -1012,8 +1016,8 @@ Check out my character: <@6773794953695671>
                                         </div>
                                     )}
 
-                                    {activeTab === "featured" && (
-                                        <div className="flex flex-wrap gap-4">
+                                    {activeTab === "pinned" && (
+                                        <div className="p-4 flex flex-wrap gap-4">
 
                                             <ProjectCard
                                                 id="1655391085225720"
@@ -1053,55 +1057,7 @@ Check out my character: <@6773794953695671>
                                                     },
                                                 }}
                                             />
-                                        </div>
-                                    )}
 
-                                    {activeTab === "universes" && (
-                                        <div className="flex flex-wrap gap-4">
-
-                                            <ProjectCard
-                                                id="1655391085225720"
-                                                aura={{
-                                                    isEnabled: true,
-                                                    type: "flow",
-                                                    primary: "#76d1ff",
-                                                    secondary: "#76d1ff",
-                                                }}
-                                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
-                                                name="Dragonights"
-                                                slug="dragonights"
-                                                owner={{
-                                                    id: "5019646586243236",
-                                                    username: "j9studios",
-                                                    name: "J9 Studios",
-                                                    isVerified: true,
-                                                    type: "publisher",
-                                                }}
-                                                status="Follow to keep up with the J9 universe."
-                                                about="Dragonights is an upcoming 3D-animated sci-fi action TV series."
-                                                interactions={{
-                                                    views: {
-                                                        count: 481,
-                                                        interacted: true,
-                                                    },
-                                                    follows: {
-                                                        count: 6,
-                                                        interacted: true,
-                                                    },
-                                                    profiles: {
-                                                        count: 52,
-                                                        interacted: true,
-                                                    },
-                                                    fanflairs: {
-                                                        count: 5,
-                                                    },
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {activeTab === "profiles" && (
-                                        <div className="flex flex-wrap gap-4">
                                             {!loading &&
                                                 profiles.profiles?.map((d) => (
                                                     <CharacterCard
@@ -1145,18 +1101,150 @@ Check out my character: <@6773794953695671>
                                         </div>
                                     )}
 
+                                    {activeTab === "universes" && (
+                                        <div className="p-4 flex flex-wrap gap-4">
+
+                                            <ProjectCard
+                                                id="1655391085225720"
+                                                aura={{
+                                                    isEnabled: true,
+                                                    type: "flow",
+                                                    primary: "#76d1ff",
+                                                    secondary: "#76d1ff",
+                                                }}
+                                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
+                                                name="Dragonights"
+                                                slug="dragonights"
+                                                owner={{
+                                                    id: "5019646586243236",
+                                                    username: "j9studios",
+                                                    name: "J9 Studios",
+                                                    isVerified: true,
+                                                    type: "publisher",
+                                                }}
+                                                status="Follow to keep up with the J9 universe."
+                                                about="Dragonights is an upcoming 3D-animated sci-fi action TV series."
+                                                interactions={{
+                                                    views: {
+                                                        count: 481,
+                                                        interacted: true,
+                                                    },
+                                                    follows: {
+                                                        count: 6,
+                                                        interacted: true,
+                                                    },
+                                                    profiles: {
+                                                        count: 52,
+                                                        interacted: true,
+                                                    },
+                                                    fanflairs: {
+                                                        count: 5,
+                                                    },
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {activeTab === "profiles" && (
+                                        <>
+                                            <div className="px-0 md:px-4 flex flex-row gap-3">
+                                                <fieldset className="fieldset flex-4">
+                                                    <legend className="fieldset-legend">Search</legend>
+                                                    <label className="input mb-4 w-full">
+                                                        <span className="font-nerdfont text-base mr-1"></span>
+                                                        <input type="search" placeholder="Name, franchises, topics..." />
+                                                    </label>
+                                                </fieldset>
+
+                                                <fieldset className="fieldset flex-1">
+                                                    <legend className="fieldset-legend">Filter</legend>
+                                                    <select defaultValue="Pick a browser" className="select w-full">
+                                                        <option value="updated">Recently Updated</option>
+                                                        <option value="newest">Newest First</option>
+                                                        <option value="oldest">Oldest First</option>
+                                                        <option value="popular-desc">Most Popular</option>
+                                                        <option value="popular-asc">Least Popular</option>
+                                                        <option value="name-asc">Name (A–Z)</option>
+                                                        <option value="name-desc">Name (Z–A)</option>
+                                                    </select>
+                                                </fieldset>
+                                            </div>
+                                            
+                                            <div className="px-0 md:px-4 flex flex-wrap gap-4">
+                                                {!loading &&
+                                                    profiles.profiles?.map((d) => (
+                                                        <CharacterCard
+                                                            key={d.id}
+                                                            id={d.id}
+                                                            aura={{
+                                                                isEnabled: d.isAuraEnabled,
+                                                                type: d.auraType,
+                                                                primary: d.auraPrimary,
+                                                                secondary: d.auraSecondary
+                                                            }}
+                                                            avatar={
+                                                                d.avatar
+                                                                    ? `https://cdn.openprofile.app${d.avatar}`
+                                                                    : ""
+                                                            }
+                                                            name={d.displayName}
+                                                            slug={d.slug}
+                                                            owner={{
+                                                                id: profiles.owner.id,
+                                                                slug: profiles.owner.username,
+                                                                name: profiles.owner.displayName,
+                                                                isVerified: profiles.owner.badges?.some(
+                                                                    (b) => b.type === "verified"
+                                                                ),
+                                                                type: profiles.owner.type
+                                                            }}
+                                                            about={d.about}
+                                                            interactions={{
+                                                                views: {
+                                                                    count: 0,
+                                                                    interacted: true
+                                                                },
+                                                                likes: {
+                                                                    count: 0,
+                                                                    interacted: false
+                                                                }
+                                                            }}
+                                                        />
+                                                    ))}
+                                            </div>
+
+                                            <div className="px-0 md:px-4 text-center mt-24 text-xl">You've reached the end!</div>
+                                            <div className="px-0 md:px-4 text-center mb-24 mt-2 text-sm text-sub">Follow {user.displayName} to never miss a new publication.</div>
+
+                                            <div className="px-0 md:px-4 flex items-center justify-center mt-8 mb-6">
+                                                <div className="join border border-base-300 rounded">
+                                                    <button className="join-item btn font-nerdfont"></button>
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="1" />
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="2" />
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="3" />
+                                                    <input className="join-item btn btn-square font-nerdfont" type="radio" name="options" aria-label="󰇘" disabled={true} />
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="98" />
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="99" />
+                                                    <input className="join-item btn btn-square" type="radio" name="options" aria-label="100" />
+                                                    <button className="join-item btn font-nerdfont"></button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                    
                                     {activeTab === "collaborations" && (
-                                        <div>
+                                        <div className="p-4">
+                                            <br/>
                                             <div className="text-2xl font-bold">Universes</div>
-                                            <br/>
+                                            <br/><hr/><br/>
                                             <div className="text-2xl font-bold">Profiles</div>
-                                            <br/>
+                                            <br/><hr/><br/>
                                             <div className="text-2xl font-bold">Collections</div>
                                         </div>
                                     )}
 
                                     {activeTab === "titles" && (
-                                        <div className="flex flex-wrap gap-4">
+                                        <div className="p-4 flex flex-wrap gap-4">
                                             <TitleCard
                                                 key="0"
                                                 id="0"
@@ -1166,13 +1254,13 @@ Check out my character: <@6773794953695671>
                                     )}
 
                                     {activeTab === "collections" && (
-                                        <div>
+                                        <div className="p-4">
                                             Collections content...
                                         </div>
                                     )}
 
                                     {activeTab === "downloadables" && (
-                                        <div>
+                                        <div className="p-4">
                                             Downloadables content...
                                         </div>
                                     )}
