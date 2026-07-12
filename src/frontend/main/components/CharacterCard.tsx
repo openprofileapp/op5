@@ -77,8 +77,6 @@ export default function CharacterCard({
             }
         ;
 
-    {/* Url for images are only cdn slugs, not the domain. Fix code below */}
-
     if (
         !id || 
         !owner || 
@@ -125,9 +123,9 @@ export default function CharacterCard({
             <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm cursor-default" 
                 popover="auto" id={`character-more-dropdown-${index}`} style={{ positionAnchor: `--character-more-anchor-${index}` }}>
                 <li>
-                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="justify-between text-info" to={`/dashboard/${owner?.slug || owner.id}/dragonights/character/${slug || id}/edit`}>
                         Edit Profile
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -135,7 +133,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         View Analytics
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰺓
                         </span>
                     </Link>
@@ -143,7 +141,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Pin Profile
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰐃
                         </span>
                     </Link>
@@ -152,7 +150,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         View
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰈈
                         </span>
                     </Link>
@@ -160,7 +158,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Read
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -169,7 +167,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Follow
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -177,7 +175,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Unlike
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -185,7 +183,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Unfavorite
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -193,7 +191,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Add to Collection
-                        <span className="font-nerdfont text-base h-6 leading-none translate-y-[4px]">
+                        <span className="font-nerdfont text-base h-6 leading-none translate-y-[4px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -202,7 +200,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Not Interested
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰈉
                         </span>
                     </Link>
@@ -210,7 +208,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Hide Collaboration
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰈉
                         </span>
                     </Link>
@@ -218,7 +216,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Mute
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰂛
                         </span>
                     </Link>
@@ -226,7 +224,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Report
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -235,7 +233,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Share
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰒗
                         </span>
                     </Link>
@@ -243,7 +241,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Copy ID
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             󰅇
                         </span>
                     </Link>
@@ -252,7 +250,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Moderate
-                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
@@ -260,7 +258,7 @@ export default function CharacterCard({
                 <li>
                     <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Manage
-                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
+                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
                             
                         </span>
                     </Link>
