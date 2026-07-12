@@ -36,7 +36,7 @@ const index = {
     SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin
 
     FEATURE_AS_OWNER: 0n, // Show asset in collaborator's owned profile tab
-    FEATURE_AS_COLLAB: 0n, // Show asset in collaborator's collaborations profile tab
+    FEATURE_AS_COLLAB: 0n, // Show asset in collaborator's collaborations profile tab and on the asset's collaboration list 
 } as const;
 
 // Move this to a database if custom roles release
