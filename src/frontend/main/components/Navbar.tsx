@@ -126,7 +126,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     <div className="flex flex-1 flex-col w-72">
                         <label className="input w-full">
                             <span className="font-nerdfont text-base mr-1"></span>
-                            <input type="search" required placeholder="Characters, franchises, topics..." />
+                            <input type="search" placeholder="Characters, franchises, topics..." />
                         </label>
                     </div>
                     {/* While typing, auto forward to search and display results, on clear, return home */}
