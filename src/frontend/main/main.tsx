@@ -66,8 +66,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
                         <Route path="/account/onboarding" element={<Onboarding />} />
 
-                        <Route path="old/user/:id" element={<UserProfile />} />
-                        <Route path="user/:id" element={<Template />} />
+                        <Route path="/user/:id" element={<UserProfile />} />
+                        <Route path="/:id" element={<Template />} />
                         {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
 
                         <Route path="/404" element={<NotFound />} />
