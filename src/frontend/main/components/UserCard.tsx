@@ -231,7 +231,7 @@ export default function UserCard({
                 </>
             )}
 
-            <Component to={`/user/${username || id}`}>
+            <Component to={`/${username || id}`}>
                 { banner ?
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover"
