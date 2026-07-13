@@ -22,6 +22,7 @@ import CharacterCard from "../components/CharacterCard.js";
 import Mention from "../components/Mention.js";
 import React from "react";
 import TitleCard from "../components/TitleCard.js";
+import AskAlice from "../components/AskAlice.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -261,6 +262,8 @@ Check out my character: <@6773794953695671>
             <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
 
             <Navbar isBannerPage={true} />
+
+            <AskAlice/>
 
             <div className={user.isAuraEnabled ? "bg-base-200" : "bg-base-200"}>
                 <div style={{backgroundColor: user.isAuraEnabled ? hexToRgba(user.auraPrimary, 0.05) : "transparent"}}>
