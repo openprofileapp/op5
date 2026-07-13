@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
+import { toast } from "../scripts/toast.js";
+import { useState } from "react";
 
 type Props = {
     id: string;
@@ -53,6 +55,37 @@ export default function CharacterCard({
     notification
 }: Props) {
     const { ready } = useTranslation();
+
+    const [flipCollectionMenu, setFlipCollectionMenu] = useState(false);
+
+    // Move some of these to common
+    const checkCollectionMenuPosition = (
+        e: React.MouseEvent<HTMLLIElement>
+    ) => {
+        const button = e.currentTarget.getBoundingClientRect();
+        const submenuWidth = 208;
+        const spaceRight = window.innerWidth - button.right;
+
+        setFlipCollectionMenu(spaceRight < submenuWidth);
+    };
+
+    function formatDisplayNameToUrl(name: string): string {
+        return name
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9._]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+    }
+
+    const closeContextMenu = () => {
+        document
+            .getElementById(`character-more-dropdown-${id}`)
+            ?.hidePopover();
+    };
+
+    function exampleTrigger() {
+        toast.show("Example triggered!")
+    }
 
     if (!ready) return null;
 
@@ -112,7 +145,7 @@ export default function CharacterCard({
 
             <div className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="More">
                 <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
-                    popoverTarget={`character-more-dropdown-${index}`} style={{ anchorName: `--character-more-anchor-${index}` }}
+                    popoverTarget={`character-more-dropdown-${id}`} style={{ anchorName: `--character-more-anchor-${id}` }}
                 >
                     <span className="leading-none text-2xl font-nerdfont translate-y-[-2px] cursor-pointer">
                         󰇘
@@ -120,152 +153,236 @@ export default function CharacterCard({
                 </button>
             </div>
 
-            <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm cursor-default" 
-                popover="auto" id={`character-more-dropdown-${index}`} style={{ positionAnchor: `--character-more-anchor-${index}` }}>
+            <ul
+                className="dropdown menu w-fit min-w-52 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible"
+                popover="auto" id={`character-more-dropdown-${id}`} style={{ positionAnchor: `--character-more-anchor-${id}` }}
+            >
                 <li>
-                    <Link className="justify-between text-info" to={`/dashboard/${owner?.slug || owner.id}/dragonights/character/${slug || id}/edit`}>
-                        Edit Profile
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
-                            
+                    <Link
+                        className="flex items-center justify-between gap-4 text-info"
+                        to={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(name || "")}`}
+                    >
+                        View in Studio
+                        <span className="font-nerdfont text-info text-lg flex h-6 w-4 leading-none items-center justify-center">
+                            
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
-                        View Analytics
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
-                            󰺓
-                        </span>
-                    </Link>
-                </li>
-                <li>
-                    <Link className="justify-between text-info" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
-                        Pin Profile
-                        <span className="font-nerdfont text-info text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                    <button 
+                        className="flex items-center justify-between gap-4 text-info"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
+                        Pin to Profile
+                        <span className="font-nerdfont text-info text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰐃
                         </span>
-                    </Link>
+                    </button>
                 </li>
-                <hr></hr>
+                <hr />
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link 
+                        className="flex items-center justify-between gap-4" 
+                        to={`/character/${id}/${formatDisplayNameToUrl(name || "")}`}
+                    >
                         View
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰈈
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link 
+                        className="flex items-center justify-between gap-4" 
+                        to={`/character/${id}/${formatDisplayNameToUrl(name || "")}/read`}
+                    >
                         Read
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
                     </Link>
                 </li>
-                <hr></hr>
+                <hr />
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
                         Follow
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
-                        Unlike
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
+                        Like
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
-                        Unfavorite
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
+                        Favorite
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
-                <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                <li 
+                    className="relative group"
+                    onMouseEnter={checkCollectionMenuPosition}
+                >
+                    <button className="flex items-center justify-between gap-4 w-full">
                         Add to Collection
-                        <span className="font-nerdfont text-base h-6 leading-none translate-y-[4px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
+
+                    <span className={`absolute ${flipCollectionMenu ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+
+                    <ul className={`absolute ${flipCollectionMenu ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-52 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                onClick={() => {
+                                    exampleTrigger();
+                                    closeContextMenu();
+                                }}
+                            >
+                                Superheroes
+                                <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                    <img 
+                                        className="rounded-full translate-x-[2px]"
+                                        src="https://cdn.openprofile.app//uploads/users/5019646586243236/5019646586243236.png"
+                                    />
+                                </span>
+                            </button>
+                        </li>
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                onClick={() => {
+                                    exampleTrigger();
+                                    closeContextMenu();
+                                }}
+                            >
+                                Featured by OpenProfile
+                                <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                    <img 
+                                        className="rounded-full translate-x-[2px]"
+                                        src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
+                                    />
+                                </span>
+                            </button>
+                        </li>
+                        <hr />
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                onClick={() => {
+                                    exampleTrigger();
+                                    closeContextMenu();
+                                }}
+                            >
+                                New Collection
+                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                    󰌴
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
                 </li>
-                <hr></hr>
+                <hr />
                 <li>
-                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Not Interested
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰈉
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Hide Collaboration
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰈉
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Mute
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰂛
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Report
-                        <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
                     </Link>
                 </li>
-                <hr></hr>
+                <hr />
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Share
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰒗
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Copy ID
-                        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰅇
                         </span>
                     </Link>
                 </li>
-                <hr></hr>
+                <hr />
                 <li>
-                    <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Moderate
-                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-warning text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
                     </Link>
                 </li>
                 <li>
-                    <Link className="justify-between text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <Link className="flex items-center justify-between gap-4 text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
                         Manage
-                        <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px] w-4 text-center">
+                        <span className="font-nerdfont text-warning text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
                     </Link>
                 </li>
             </ul>
 
-            <Link to={`${owner.type === "user" ? "/user" : ""}/${owner?.slug || owner.id}/profile/${slug || id}`}>
+            <Link to={`/character/${id}${slug ? `/${slug}` : ""}`}>
                 <div className="absolute inset-0 group">
                     <img
                         className={`absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover transition-opacity duration-300 ${animatedAvatar ? "group-hover:opacity-0" : ""}`}
