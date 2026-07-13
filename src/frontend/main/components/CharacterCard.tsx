@@ -315,20 +315,32 @@ export default function CharacterCard({
                 </li>
                 <hr />
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-error"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
                         Not Interested
                         <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰈉
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-error"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu();
+                        }}
+                    >
                         Hide Collaboration
                         <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰈉
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
                     <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
