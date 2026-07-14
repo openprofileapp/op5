@@ -37,11 +37,12 @@ Middlewares
 ———————————————————————————————————————————————————————————————— 
 */
 
-app.use(express.json());
-app.use(cookieParser());
-app.use(corsMiddleware);
-app.use(maintenanceMiddleware);
-
+app.use(
+    express.json(),
+    cookieParser(),
+    corsMiddleware,
+    maintenanceMiddleware
+);
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -50,10 +51,20 @@ Routes
 */
 
 app.use("/health", healthRoute);
+app.use("/v2", v2);
 
-app.use("/v2", v2); // Do not attach middlewares on this
+v2.use(
+    "/users", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    userRoute
+);
 
-v2.use("/users", fetchSessionMiddleware, rateLimitMiddleware(240), userRoute);
+
+
+// ADD A ACCESS TOKEN CHECK MIDDLEWARE middleware(access OR ApiSecret)
+
+
 v2.use("/profiles", fetchSessionMiddleware, rateLimitMiddleware(240), profileRoute);
 v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), interactionRoutes);
