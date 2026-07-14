@@ -50,7 +50,7 @@ export default async function fetchGeoIp(ip: string): Promise<GeoIpType> {
 
         if (isLocalAddress(address)) {
             const { ip } = await wc.callAPI("https://api.ipify.org?format=json") as { ip: string; };
-            address = ip;
+            address = ip || "";
         }
     }
 
