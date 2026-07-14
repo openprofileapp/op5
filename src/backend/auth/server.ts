@@ -48,11 +48,11 @@ Routes
 */
 router.use("/health", healthRoute);
 
-app.use("/", router);
+app.use("/", router); // Do not attach middlewares on this
 
 router.use("/captcha", validateSessionMiddleware, rateLimitMiddleware(60), captchaRoute);
 router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenRoute);
-router.use("/session", validateSessionMiddleware, rateLimitMiddleware(240), sessionRoute);
+router.use("/session", rateLimitMiddleware(240), sessionRoute); // No validateSessionMiddleware here
 router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
 router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
 
