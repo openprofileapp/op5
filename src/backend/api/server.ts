@@ -12,7 +12,7 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import { fetchSessionMiddleware } from "./middlewares/fetchSession.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
-import userRoute from "./routes/user.route.js";
+import userRoute from "./routes/user.routes.js";
 import profileRoute from "./routes/profile.route.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import interactionRoutes from "./routes/interactions.routes.js";

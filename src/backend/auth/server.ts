@@ -10,7 +10,7 @@ import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
-import sessionRoute from "./routes/session.route.js";
+import sessionRoute from "./routes/session.routes.js";
 import loginRoutes from "./routes/login.routes.js";
 import captchaRoute from "./routes/captcha.route.js";
 import tokenRoute from "./routes/token.route.js";
