@@ -2,9 +2,10 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
 import { toast } from "../scripts/toast.js";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Props = {
+    isPreview?: boolean;
     id: string;
     aura?: {
         isEnabled: boolean;
@@ -14,11 +15,11 @@ type Props = {
     };
     avatar?: string;
     animatedAvatar?: string;
-    name?: string;
+    displayName?: string;
     slug?: string;
     owner: {
         id: string;
-        name?: string;
+        displayName?: string;
         slug?: string;
         isVerified?: boolean;
         type: string;
@@ -43,11 +44,12 @@ type Props = {
 let index = 1;
 
 export default function CharacterCard({
+    isPreview = false,
     id,
     aura,
     avatar,
     animatedAvatar,
-    name,
+    displayName,
     slug,
     owner,
     about,
@@ -56,9 +58,67 @@ export default function CharacterCard({
 }: Props) {
     const { ready } = useTranslation();
 
-    const [flipCollectionMenu, setFlipCollectionMenu] = useState(false);
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+    const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+
+    const [isPinned, setIsPinned] = useState(false);
+    const [isPinLoading, setIsPinLoading] = useState(false);
+
+
+
+
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isLikeLoading, setIsLikeLoading] = useState(false);
+
+
+
+
+
+
+
+
+    useEffect(() => {
+        if (isContextMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [isContextMenuOpen]);
 
     // Move some of these to common
+    const closeContextMenu = useCallback((id: string) => {
+        setIsContextMenuOpen(false);
+        document
+            .getElementById(`character-more-dropdown-${id}`)
+            ?.hidePopover();
+    }, []);
+    
+   useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const menu = document.getElementById(`character-more-dropdown-${id}`);
+
+            if (!menu) return;
+
+            if (menu.contains(e.target as Node)) {
+                return;
+            }
+
+            closeContextMenu(id);
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [id, closeContextMenu]);
+
     const checkCollectionMenuPosition = (
         e: React.MouseEvent<HTMLLIElement>
     ) => {
@@ -66,7 +126,7 @@ export default function CharacterCard({
         const submenuWidth = 208;
         const spaceRight = window.innerWidth - button.right;
 
-        setFlipCollectionMenu(spaceRight < submenuWidth);
+        setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
 
     function formatDisplayNameToUrl(name: string): string {
@@ -77,12 +137,6 @@ export default function CharacterCard({
             .replace(/^-+|-+$/g, "");
     }
 
-    const closeContextMenu = () => {
-        document
-            .getElementById(`character-more-dropdown-${id}`)
-            ?.hidePopover();
-    };
-
     function exampleTrigger() {
         toast.show("Example triggered!")
     }
@@ -90,6 +144,8 @@ export default function CharacterCard({
     if (!ready) return null;
 
     index++
+
+    const Component = !isPreview ? Link : "div";
 
     const auraStyle = aura?.isEnabled
         ? 
@@ -122,6 +178,32 @@ export default function CharacterCard({
         <div
             className={`character-card relative p-4 shadow-sm cursor-pointer z-${index}`}
             style={auraStyle}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                setIsContextMenuOpen(true);
+
+                const popover = document.getElementById(
+                    `character-more-dropdown-${id}`
+                ) as HTMLElement | null;
+
+                if (!popover) return;
+
+                popover.showPopover?.();
+
+                requestAnimationFrame(() => {
+                    const rect = popover.getBoundingClientRect();
+
+                    popover.style.left = `${Math.min(
+                        e.clientX,
+                        window.innerWidth - rect.width - 8
+                    )}px`;
+
+                    popover.style.top = `${Math.min(
+                        e.clientY,
+                        window.innerHeight - rect.height - 8
+                    )}px`;
+                });
+            }}
         >
             {
                 notification?.isActive ?
@@ -134,19 +216,45 @@ export default function CharacterCard({
                     : ""
             }
 
-            <div className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="Pinned">
-                <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
+            {isPinned && (
+                <div 
+                    className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent" 
+                    data-tip="Pinned"
                 >
-                    <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                        󰐃
-                    </span>
-                </button>
-            </div>
+                    <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
+                        <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
+                            󰐃
+                        </span>
+                    </button>
+                </div>
+            )}
 
-            <div className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="More">
-                <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
-                    popoverTarget={`character-more-dropdown-${id}`} style={{ anchorName: `--character-more-anchor-${id}` }}
-                >
+            <div
+                className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent"
+                data-tip="More"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsContextMenuOpen(true);
+
+                    const popover = document.getElementById(
+                        `character-more-dropdown-${id}`
+                    );
+
+                    if (!popover) return;
+
+                    const rect = e.currentTarget.getBoundingClientRect();
+
+                    popover.style.left = `${rect.left}px`;
+                    popover.style.top = `${rect.bottom}px`;
+
+                    if (popover.matches(":popover-open")) {
+                        popover.hidePopover?.();
+                    } else {
+                        popover.showPopover?.();
+                    }
+                }}
+            >
+                <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
                     <span className="leading-none text-2xl font-nerdfont translate-y-[-2px] cursor-pointer">
                         󰇘
                     </span>
@@ -154,39 +262,67 @@ export default function CharacterCard({
             </div>
 
             <ul
-                className="dropdown menu w-fit min-w-52 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible"
-                popover="auto" id={`character-more-dropdown-${id}`} style={{ positionAnchor: `--character-more-anchor-${id}` }}
+                className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
+                popover="manual"
+                id={`character-more-dropdown-${id}`}
             >
-                <li>
-                    <Link
-                        className="flex items-center justify-between gap-4 text-info"
-                        to={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(name || "")}`}
-                    >
-                        View in Studio
-                        <span className="font-nerdfont text-info text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </Link>
-                </li>
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4 text-info"
-                        onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu();
-                        }}
-                    >
-                        Pin to Profile
-                        <span className="font-nerdfont text-info text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰐃
-                        </span>
-                    </button>
-                </li>
-                <hr />
+                {owner.id === window.session.userId && (
+                    <>
+                        <li>
+                            <Link
+                                className="flex items-center justify-between gap-4"
+                                to={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
+                            >
+                                View in Studio
+                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                disabled={isPinLoading}
+                                onClick={() => {
+                                    if (isPinLoading) return;
+
+                                    setIsPinLoading(true);
+
+                                    // Call API here and await response instead of timeout
+                                    setTimeout(() => {
+                                        setIsPinLoading(false);
+                                        setIsPinned(!isPinned);
+                                        toast.show(
+                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`, 
+                                            { 
+                                                icon: isPinned ? "󰐄" : "󰐃", 
+                                                type: isPinned ? "info" : "success"
+                                            });
+                                    }, 500);
+                
+                                    // closeContextMenu(id);
+                                }}
+                            >
+                                <span
+                                    className={`${isPinned ? "text-error" : "text-base-content"}`}
+                                >
+                                    {isPinned ? "Unpin from Profile" : "Pin to Profile"}
+                                </span>
+                                <span className={`${isPinLoading ? "loading" : ""} font-nerdfont ${isPinned ? "text-error" : "text-base-content"} text-lg flex h-6 w-4 leading-none items-center justify-center`}>
+                                    {isPinLoading ? "" : isPinned ? "󰐄" : "󰐃"}
+                                </span>
+                            </button>
+                        </li>
+
+                        <hr />
+                    </>
+                )}
+
                 <li>
                     <Link 
                         className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}/${formatDisplayNameToUrl(name || "")}`}
+                        to={`/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
                     >
                         View
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -194,10 +330,11 @@ export default function CharacterCard({
                         </span>
                     </Link>
                 </li>
+
                 <li>
                     <Link 
                         className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}/${formatDisplayNameToUrl(name || "")}/read`}
+                        to={`/character/${id}/${formatDisplayNameToUrl(displayName || "")}/read`}
                     >
                         Read
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -205,13 +342,15 @@ export default function CharacterCard({
                         </span>
                     </Link>
                 </li>
+
                 <hr />
+
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
                         onClick={() => {
                             exampleTrigger();
-                            closeContextMenu();
+                            closeContextMenu(id);
                         }}
                     >
                         Follow
@@ -220,12 +359,13 @@ export default function CharacterCard({
                         </span>
                     </button>
                 </li>
+
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
                         onClick={() => {
                             exampleTrigger();
-                            closeContextMenu();
+                            closeContextMenu(id);
                         }}
                     >
                         Like
@@ -234,12 +374,13 @@ export default function CharacterCard({
                         </span>
                     </button>
                 </li>
+
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
                         onClick={() => {
                             exampleTrigger();
-                            closeContextMenu();
+                            closeContextMenu(id);
                         }}
                     >
                         Favorite
@@ -248,6 +389,7 @@ export default function CharacterCard({
                         </span>
                     </button>
                 </li>
+
                 <li 
                     className="relative group"
                     onMouseEnter={checkCollectionMenuPosition}
@@ -259,15 +401,15 @@ export default function CharacterCard({
                         </span>
                     </button>
 
-                    <span className={`absolute ${flipCollectionMenu ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+                    <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
-                    <ul className={`absolute ${flipCollectionMenu ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-52 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                    <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
                         <li>
                             <button 
                                 className="flex items-center justify-between gap-4"
                                 onClick={() => {
                                     exampleTrigger();
-                                    closeContextMenu();
+                                    closeContextMenu(id);
                                 }}
                             >
                                 Superheroes
@@ -284,7 +426,7 @@ export default function CharacterCard({
                                 className="flex items-center justify-between gap-4"
                                 onClick={() => {
                                     exampleTrigger();
-                                    closeContextMenu();
+                                    closeContextMenu(id);
                                 }}
                             >
                                 Featured by OpenProfile
@@ -302,7 +444,7 @@ export default function CharacterCard({
                                 className="flex items-center justify-between gap-4"
                                 onClick={() => {
                                     exampleTrigger();
-                                    closeContextMenu();
+                                    closeContextMenu(id);
                                 }}
                             >
                                 New Collection
@@ -319,7 +461,7 @@ export default function CharacterCard({
                         className="flex items-center justify-between gap-4 text-error"
                         onClick={() => {
                             exampleTrigger();
-                            closeContextMenu();
+                            closeContextMenu(id);
                         }}
                     >
                         Not Interested
@@ -333,7 +475,7 @@ export default function CharacterCard({
                         className="flex items-center justify-between gap-4 text-error"
                         onClick={() => {
                             exampleTrigger();
-                            closeContextMenu();
+                            closeContextMenu(id);
                         }}
                     >
                         Hide Collaboration
@@ -343,58 +485,94 @@ export default function CharacterCard({
                     </button>
                 </li>
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-error"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Mute
                         <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰂛
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-accent" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-error"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Report
                         <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <hr />
                 <li>
-                    <Link className="flex items-center justify-between gap-4" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Share
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰒗
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="flex items-center justify-between gap-4" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Copy ID
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             󰅇
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <hr />
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-warning"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Moderate
                         <span className="font-nerdfont text-warning text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className="flex items-center justify-between gap-4 text-warning" to={`/user/${owner?.slug || owner.id}/profile/${slug || id}`}>
+                    <button 
+                        className="flex items-center justify-between gap-4 text-warning"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
                         Manage
                         <span className="font-nerdfont text-warning text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
                         </span>
-                    </Link>
+                    </button>
                 </li>
             </ul>
 
-            <Link to={`/character/${id}${slug ? `/${slug}` : ""}`}>
+            <Component to={`/character/${id}${slug ? `/${slug}` : ""}`}>
                 <div className="absolute inset-0 group">
                     <img
                         className={`absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover transition-opacity duration-300 ${animatedAvatar ? "group-hover:opacity-0" : ""}`}
@@ -402,51 +580,6 @@ export default function CharacterCard({
                         alt="avatar"
                         style={{
                             maskImage: `linear-gradient(
-                            to bottom,
-                            rgba(0,0,0,1) 70%,
-                            rgba(0,0,0,0.92) 72%,
-                            rgba(0,0,0,0.82) 74%,
-                            rgba(0,0,0,0.72) 76%,
-                            rgba(0,0,0,0.6) 78%,
-                            rgba(0,0,0,0.5) 80%,
-                            rgba(0,0,0,0.4) 82%,
-                            rgba(0,0,0,0.3) 84%,
-                            rgba(0,0,0,0.22) 86%,
-                            rgba(0,0,0,0.16) 88%,
-                            rgba(0,0,0,0.11) 90%,
-                            rgba(0,0,0,0.07) 92%,
-                            rgba(0,0,0,0.04) 94%,
-                            rgba(0,0,0,0.02) 97%,
-                            rgba(0,0,0,0) 100%
-                        )`,
-                        WebkitMaskImage: `linear-gradient(
-                            to bottom,
-                            rgba(0,0,0,1) 70%,
-                            rgba(0,0,0,0.92) 72%,
-                            rgba(0,0,0,0.82) 74%,
-                            rgba(0,0,0,0.72) 76%,
-                            rgba(0,0,0,0.6) 78%,
-                            rgba(0,0,0,0.5) 80%,
-                            rgba(0,0,0,0.4) 82%,
-                            rgba(0,0,0,0.3) 84%,
-                            rgba(0,0,0,0.22) 86%,
-                            rgba(0,0,0,0.16) 88%,
-                            rgba(0,0,0,0.11) 90%,
-                            rgba(0,0,0,0.07) 92%,
-                            rgba(0,0,0,0.04) 94%,
-                            rgba(0,0,0,0.02) 97%,
-                            rgba(0,0,0,0) 100%
-                        )`,
-                        }}
-                    />
-
-                    { animatedAvatar ?
-                        <img
-                            className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                            src={animatedAvatar}
-                            alt="animated avatar"
-                            style={{
-                                maskImage: `linear-gradient(
                                 to bottom,
                                 rgba(0,0,0,1) 70%,
                                 rgba(0,0,0,0.92) 72%,
@@ -480,8 +613,53 @@ export default function CharacterCard({
                                 rgba(0,0,0,0.07) 92%,
                                 rgba(0,0,0,0.04) 94%,
                                 rgba(0,0,0,0.02) 97%,
-                                rgba(0,0,0,0) 100%
+                                rgba(0,0,0,0) 100%          
                             )`,
+                        }}
+                    />
+
+                    { animatedAvatar ?
+                        <img
+                            className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                            src={animatedAvatar}
+                            alt="animated avatar"
+                            style={{
+                                maskImage: `linear-gradient(
+                                    to bottom,
+                                    rgba(0,0,0,1) 70%,
+                                    rgba(0,0,0,0.92) 72%,
+                                    rgba(0,0,0,0.82) 74%,
+                                    rgba(0,0,0,0.72) 76%,
+                                    rgba(0,0,0,0.6) 78%,
+                                    rgba(0,0,0,0.5) 80%,
+                                    rgba(0,0,0,0.4) 82%,
+                                    rgba(0,0,0,0.3) 84%,
+                                    rgba(0,0,0,0.22) 86%,
+                                    rgba(0,0,0,0.16) 88%,
+                                    rgba(0,0,0,0.11) 90%,
+                                    rgba(0,0,0,0.07) 92%,
+                                    rgba(0,0,0,0.04) 94%,
+                                    rgba(0,0,0,0.02) 97%,
+                                    rgba(0,0,0,0) 100%
+                                )`,
+                                WebkitMaskImage: `linear-gradient(
+                                    to bottom,
+                                    rgba(0,0,0,1) 70%,
+                                    rgba(0,0,0,0.92) 72%,
+                                    rgba(0,0,0,0.82) 74%,
+                                    rgba(0,0,0,0.72) 76%,
+                                    rgba(0,0,0,0.6) 78%,
+                                    rgba(0,0,0,0.5) 80%,
+                                    rgba(0,0,0,0.4) 82%,
+                                    rgba(0,0,0,0.3) 84%,
+                                    rgba(0,0,0,0.22) 86%,
+                                    rgba(0,0,0,0.16) 88%,
+                                    rgba(0,0,0,0.11) 90%,
+                                    rgba(0,0,0,0.07) 92%,
+                                    rgba(0,0,0,0.04) 94%,
+                                    rgba(0,0,0,0.02) 97%,
+                                    rgba(0,0,0,0) 100%
+                                )`,
                             }}
                         /> : ""
                     }
@@ -491,7 +669,7 @@ export default function CharacterCard({
                     <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold text-center w-full truncate leading-snug">
-                                {name || slug || id}
+                                {displayName || slug || id}
                             </span>
                         </div>
 
@@ -520,7 +698,7 @@ export default function CharacterCard({
                         <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-1.5 min-w-0 max-w-full">
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <span className="truncate text-xs leading-snug">
-                                    {owner?.name || owner.slug || owner.id}
+                                    {owner?.displayName || owner.slug || owner.id}
                                 </span>
                             </div>
                         </div>
@@ -541,7 +719,7 @@ export default function CharacterCard({
                         </div>
                     </div>
                 </div>
-            </Link>
+            </Component>
         </div>
     );
 }
