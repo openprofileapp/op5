@@ -10,6 +10,8 @@ import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
+import { fetchSessionMiddleware } from "./middlewares/fetchSession.middleware.js";
+import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import userRoute from "./routes/user.route.js";
 import profileRoute from "./routes/profile.route.js";
 import inviteRoutes from "./routes/invite.routes.js";
@@ -40,6 +42,7 @@ app.use(cookieParser());
 app.use(corsMiddleware);
 app.use(maintenanceMiddleware);
 
+
 /* 
 ————————————————————————————————————————————————————————————————
 Routes
@@ -48,15 +51,15 @@ Routes
 
 app.use("/health", healthRoute);
 
-app.use("/v2", v2);
+app.use("/v2", v2); // Do not attach middlewares on this
 
-v2.use("/users", userRoute);
-v2.use("/profiles", profileRoute);
-v2.use("/invites", inviteRoutes);
-v2.use("/interactions", interactionRoutes);
-v2.use("/statistics", statisticsRoute);
+v2.use("/users", fetchSessionMiddleware, rateLimitMiddleware(240), userRoute);
+v2.use("/profiles", fetchSessionMiddleware, rateLimitMiddleware(240), profileRoute);
+v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users
+v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), interactionRoutes);
+v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
-v2.use("/audit", auditRoute);
+v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
 
 /* 
 ————————————————————————————————————————————————————————————————
