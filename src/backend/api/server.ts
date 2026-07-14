@@ -66,7 +66,7 @@ v2.use(
 
 
 v2.use("/profiles", fetchSessionMiddleware, rateLimitMiddleware(240), profileRoute);
-v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users
+v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), interactionRoutes);
 v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
