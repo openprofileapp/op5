@@ -15,9 +15,22 @@ export type ClientConfig = {
     }
 };
 
+export type ClientSession = {
+    sessionId: string;
+    userId: string;
+    userId: string;
+    permissions: {
+        value: number;
+        array: string[];
+    };
+    locale: string;
+    timezone: string;
+};
+
 declare global {
     interface Window {
         config: ClientConfig,
+        session: ClientSession,
         ws: any;
     }
 }

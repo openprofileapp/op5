@@ -48,33 +48,46 @@ import UserProfile from "./pages/UserProfile.js"
 
 import Template from "./pages/Template.js"
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        <HelmetProvider>
-            <I18nextProvider i18n={i18n}>
-                <BrowserRouter>
-                    <ToastContainer />
-                    <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/search" element={<Search />} />
-                        <Route path="/universes" element={<ComingSoon />} />
-                        <Route path="/library" element={<ComingSoon />} />
-                        <Route path="/partners" element={<Partners />} />
-                        <Route path="/premium" element={<Premium />} />
-                        <Route path="/popular" element={<Browse />} />
+async function bootstrap() {
+    const response = await fetch(
+        `https://${window.config.domains.auth}/session`,
+        {
+            credentials: "include",
+        }
+    );
 
-                        <Route path="/account/onboarding" element={<Onboarding />} />
+    window.session = await response.json();
 
-                        <Route path="/user/:id" element={<UserProfile />} />
-                        <Route path="/:id" element={<Template />} />
-                        {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
+    ReactDOM.createRoot(document.getElementById("root")!).render(
+        <React.StrictMode>
+            <HelmetProvider>
+                <I18nextProvider i18n={i18n}>
+                    <BrowserRouter>
+                        <ToastContainer />
+                        <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/search" element={<Search />} />
+                            <Route path="/universes" element={<ComingSoon />} />
+                            <Route path="/library" element={<ComingSoon />} />
+                            <Route path="/partners" element={<Partners />} />
+                            <Route path="/premium" element={<Premium />} />
+                            <Route path="/popular" element={<Browse />} />
 
-                        <Route path="/404" element={<NotFound />} />
-                        <Route path="*" element={<Navigate to="/404" replace />} />
-                    </Routes>
-                </BrowserRouter>
-            </I18nextProvider>
-        </HelmetProvider>
-    </React.StrictMode>
-)
+                            <Route path="/account/onboarding" element={<Onboarding />} />
+
+                            <Route path="/user/:id" element={<UserProfile />} />
+                            <Route path="/:id" element={<Template />} />
+                            {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
+
+                            <Route path="/404" element={<NotFound />} />
+                            <Route path="*" element={<Navigate to="/404" replace />} />
+                        </Routes>
+                    </BrowserRouter>
+                </I18nextProvider>
+            </HelmetProvider>
+        </React.StrictMode>
+    )
+}
+
+bootstrap();
