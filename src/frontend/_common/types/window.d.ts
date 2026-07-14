@@ -18,7 +18,6 @@ export type ClientConfig = {
 export type ClientSession = {
     sessionId: string;
     userId: string;
-    userId: string;
     permissions: {
         value: number;
         array: string[];
