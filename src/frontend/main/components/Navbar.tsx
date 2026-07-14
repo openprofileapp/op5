@@ -143,12 +143,17 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     </Link>*/}
 
                     <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                        data-tip="Create" onClick={()=>document.getElementById("create-asset").showModal()}>
+                        data-tip="Create"
+                        data-guide="create"
+                        onClick={()=>document.getElementById("create-asset").showModal()}
+                    >
                         <span className="font-nerdfont text-xl"></span>
                     </button>
 
-                    <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                        data-tip="Report">
+                    <button 
+                        className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                        data-tip="Report"
+                    >
                         <span className="font-nerdfont text-xl"></span>
                     </button>
 
