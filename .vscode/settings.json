@@ -13,7 +13,7 @@
     "components": "react-components",
     "pages": "react-components",
     "ws": "connection",
-    "graphics": "images"
+    "graphics": "images",
   },
   "material-icon-theme.files.associations": {
     "*.config.ts": "settings",
@@ -35,6 +35,12 @@
       "base": "robot",
       "color": "#5865F2",
       "folderNames": ["discord"]
+    },
+    {
+      "name": "studio",
+      "base": "ui",
+      "color": "#ff6f43",
+      "folderNames": ["studio"]
     }
   ],
   "material-icon-theme.files.customClones": [

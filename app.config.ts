@@ -164,17 +164,19 @@ export const config = {
         // proxy is fixed at 443
         // gateway is fixed at 444
         main: 10521,
-        status: 10522,
-        auth: 10523,
-        api: 10524,
-        cdn: 10525,
-        support: 10526,
-        nightly: 10527,
+        studio: 10522,
+        status: 10523,
+        auth: 10524,
+        api: 10525,
+        cdn: 10526,
+        support: 10527,
+        nightly: 10528,
         ws: {
             main: 39551,
-            status: 39552,
-            support: 39556,
-            nightly: 39557
+            studio: 39552,
+            status: 39553,
+            support: 39554,
+            nightly: 39555
         }
     },
 
@@ -182,6 +184,7 @@ export const config = {
     ips: {
         gateway: isProduction ? "127.0.0.0" : "127.0.0.0",
         main: isProduction ? "127.0.0.0" : "127.0.0.0",
+        studio: isProduction ? "127.0.0.0" : "127.0.0.0",
         status: isProduction ? "127.0.0.0" : "127.0.0.0",
         auth: isProduction ? "127.0.0.0" : "127.0.0.0",
         api: isProduction ? "127.0.0.0" : "127.0.0.0",
@@ -194,6 +197,7 @@ export const config = {
     domains: {
         gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
         main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
+        studio: isProduction ? "studio.prod.openprofile.app" : "studio.dev.openprofile.app",
         status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
         auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
         api: isProduction ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
