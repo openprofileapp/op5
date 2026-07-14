@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
 
-import isBearerTokenAuthorized from "../helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
 import createAuditLog from "../services/createAuditLog.service.js";
 import { log } from "../instances.js";
 

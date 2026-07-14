@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import isBearerTokenAuthorized from "../helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
 import getInviteByOwner from "../services/getInviteByOwner.service.js";
 import getInviteByCode from "../services/getInviteByCode.service.js";
 
