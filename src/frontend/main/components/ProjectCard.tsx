@@ -13,7 +13,7 @@ type Props = {
     };
     avatar?: string;
     banner?: string;
-    name?: string;
+    displayName?: string;
     slug?: string;
     status?: string;
     owner: {
@@ -54,7 +54,7 @@ export default function ProjectCard({
     id,
     aura,
     banner,
-    name,
+    displayName,
     slug,
     owner,
     status,
@@ -320,7 +320,7 @@ export default function ProjectCard({
                         <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <span className="font-bold text-center w-full truncate leading-snug">
-                                    {name || slug || id}
+                                    {displayName || slug || id}
                                 </span>
                             </div>
 

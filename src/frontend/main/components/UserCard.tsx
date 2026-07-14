@@ -14,7 +14,7 @@ type Props = {
     };
     avatar?: string;
     banner?: string;
-    name?: string;
+    displayName?: string;
     username?: string;
     status?: string;
     badges?: string[];
@@ -53,7 +53,7 @@ export default function UserCard({
     aura,
     avatar,
     banner,
-    name,
+    displayName,
     username,
     status,
     badges,
@@ -304,7 +304,7 @@ export default function UserCard({
                     <div className="flex justify-between gap-2">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold truncate leading-snug">
-                                {name || username || id} 
+                                {displayName || username || id} 
                             </span>
                         </div>
 
