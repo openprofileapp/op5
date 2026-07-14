@@ -264,7 +264,7 @@ Check out my character: <@6773794953695671>
             <Navbar isBannerPage={true} />
 
             <AskAlice/>
-
+            
             <div className={user.isAuraEnabled ? "bg-base-200" : "bg-base-200"}>
                 <div style={{backgroundColor: user.isAuraEnabled ? hexToRgba(user.auraPrimary, 0.05) : "transparent"}}>
                     <div className="hero bg-base-200">
@@ -660,6 +660,7 @@ Check out my character: <@6773794953695671>
                                                 <button
                                                     className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300"
                                                     onClick={() => { closeCreateProjectModal() }}
+                                                    data-guide="message"
                                                 >
                                                     <span className="text-base font-nerdfont w-4">
                                                         
@@ -852,7 +853,7 @@ Check out my character: <@6773794953695671>
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 overflow-hidden border border-base-300 rounded-lg z-1">
+                            <div className="bg-base-100 border border-base-300 rounded-lg z-1">
                                 <div className="bg-base-200 border-base-300">
                                     <div className="tabs tabs-lift flex-nowrap">
 
@@ -1036,7 +1037,7 @@ Check out my character: <@6773794953695671>
                                                 owner={{
                                                     id: "5019646586243236",
                                                     username: "j9studios",
-                                                    name: "J9 Studios",
+                                                    displayName: "J9 Studios",
                                                     isVerified: true,
                                                     type: "publisher",
                                                 }}
@@ -1077,12 +1078,12 @@ Check out my character: <@6773794953695671>
                                                                 ? `https://cdn.openprofile.app${d.avatar}`
                                                                 : ""
                                                         }
-                                                        name={d.displayName}
+                                                        displayName={d.displayName}
                                                         slug={d.slug}
                                                         owner={{
                                                             id: profiles.owner.id,
                                                             slug: profiles.owner.username,
-                                                            name: profiles.owner.displayName,
+                                                            displayName: profiles.owner.displayName,
                                                             isVerified: profiles.owner.badges?.some(
                                                                 (b) => b.type === "verified"
                                                             ),
@@ -1116,12 +1117,12 @@ Check out my character: <@6773794953695671>
                                                     secondary: "#76d1ff",
                                                 }}
                                                 banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
-                                                name="Dragonights"
+                                                displayName="Dragonights"
                                                 slug="dragonights"
                                                 owner={{
                                                     id: "5019646586243236",
                                                     username: "j9studios",
-                                                    name: "J9 Studios",
+                                                    displayName: "J9 Studios",
                                                     isVerified: true,
                                                     type: "publisher",
                                                 }}
@@ -1190,12 +1191,12 @@ Check out my character: <@6773794953695671>
                                                                     ? `https://cdn.openprofile.app${d.avatar}`
                                                                     : ""
                                                             }
-                                                            name={d.displayName}
+                                                            displayName={d.displayName}
                                                             slug={d.slug}
                                                             owner={{
                                                                 id: profiles.owner.id,
                                                                 slug: profiles.owner.username,
-                                                                name: profiles.owner.displayName,
+                                                                displayName: profiles.owner.displayName,
                                                                 isVerified: profiles.owner.badges?.some(
                                                                     (b) => b.type === "verified"
                                                                 ),
