@@ -7,6 +7,7 @@ import Mention from "./Mention.js";
 interface KnowledgeItem {
     keywords: string[];
     response: string;
+    action?: string;
 }
 
 // api.openprofile.app/v2/assistant
@@ -14,10 +15,33 @@ interface KnowledgeItem {
 //      "body": { "Suggest me a character" }
 //  }
 
+// ADD
+// How to make charcters private and how to access specific settings.
+// How does Alice Works
+// What is OpenProfile
+// How do I interact with others?
+
 const knowledge: KnowledgeItem[] = [
+    {
+        keywords: ["what", "openprofile"],
+        response: "OpenProfile is a free original character database and collaboration platform made by and for writers. It is proclaimed to own the most advanced character profile template in the world and is the first of its kind in what it does.\n\nOpenProfile aims to touch every aspect of character creation through a transparent and source-available application that is free for all.\n\nIt was accidently created in 2017 by AvatarKage, but wasn't publicly published until 2021.",
+    },
+    {
+        keywords: ["free", "openprofile"],
+        response: "OpenProfile is 100% free and can be self-hosted. The online version has vanity-based premium features to help support development and keep the platform online, but does not impose limits on what you create, how many people you collaborate with, or how many assets you can own within your account.",
+    },
+    {
+        keywords: ["self-host", "selfhost", "self host", "openprofile"], // Maybe have a auto-trim thing to normalize characters (- _ etc)
+        response: "You can self-host OpenProfile by cloning the 'op5' repository from our GitHub. OpenProfile may be hosted internally for both personal and commercial use on private networks, but it must not be exposed to the public internet or used to compete with us. Please review our license before self-hosting.",
+    },
+    {
+        keywords: ["why", "self-host", "selfhost", "self host", "openprofile"],
+        response: "Self-hosting OpenProfile provides a NDA secure environment where you and your team can collaborate to create characters.",
+    },
     {
         keywords: ["character", "create"],
         response: "You can create a character by pressing the plus button in the navbar.\n\nOr press this quick button below.\n<BUTTON>",
+        action: "highlightElement(create)"
     },
     {
         keywords: ["suggest", "character"],
@@ -58,7 +82,66 @@ export default function AskAlice() {
         }
     }, [messages, typing, open]);
 
-    const getResponse = (question: string): string => {
+
+    let highlightFrame: number | null = null;
+
+    function highlightElement(id: string) {
+        const element = document.querySelector(`[data-guide="${id}"]`);
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) + 10;
+        
+        const ring = document.createElement("div");
+
+        Object.assign(ring.style, {
+            position: "fixed",
+            width: `${size}px`,
+            height: `${size}px`,
+            borderRadius: "50%",
+            border: "4px solid #ce1616",
+            background: "rgba(206, 22, 22, 0.15)",
+            boxShadow: "0 0 30px 15px rgba(206, 22, 22, 0.45)",
+            filter: "blur(1px)",
+            zIndex: "999999",
+            pointerEvents: "none",
+            animation: "ping 1s ease-out infinite",
+        });
+
+        document.body.appendChild(ring);
+
+        const follow = () => {
+            const r = element.getBoundingClientRect();
+
+            ring.style.left = `${r.left + r.width / 2}px`;
+            ring.style.top = `${r.top + r.height / 2}px`;
+            ring.style.translate = "-50% -50%";
+
+            highlightFrame = requestAnimationFrame(follow);
+        };
+
+        follow();
+
+        setTimeout(() => {
+            if (highlightFrame) cancelAnimationFrame(highlightFrame);
+            ring.remove();
+        }, 3000);
+    }
+                
+    const runAction = (action: string) => {
+        const match = action.match(/^(\w+)\((.*)\)$/);
+        if (!match) return;
+
+        const [, fn, arg] = match;
+
+        switch (fn) {
+            case "highlightElement":
+                highlightElement(arg);
+                break;
+        }
+    };
+
+    const getResponse = (question: string): KnowledgeItem => {
         const normalized = question.toLowerCase();
 
         let bestMatch: KnowledgeItem | null = null;
@@ -79,11 +162,12 @@ export default function AskAlice() {
             }
         }
 
-        if (bestMatch) {
-            return bestMatch.response;
-        }
-
-        return "I'm sorry, I couldn't find an answer for that yet.";
+        return (
+            bestMatch ?? {
+                keywords: [],
+                response: "I'm sorry, I couldn't find an answer for that yet.",
+            }
+        );
     };
 
     const sendMessage = (text: string) => {
@@ -102,7 +186,7 @@ export default function AskAlice() {
         setInput("");
         setTyping(true);
 
-        const response = getResponse(text);
+        const { response, action } = getResponse(text);
 
         setTimeout(() => {
             setMessages((prev) => [
@@ -114,6 +198,10 @@ export default function AskAlice() {
             ]);
 
             let index = 0;
+
+            if (action) {
+                runAction(action);
+            }
 
             const interval = setInterval(() => {
                 index++;
