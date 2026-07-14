@@ -12,6 +12,7 @@ userRoute.get("/:userId", async (req: Request, res: Response) => {
 });
 
 userRoute.get("/:userId/pins", (req: Request, res: Response) => {
+    // REQUIRE ACCESS TOKEN
     const { userId } = req.params;
 
     return res.status(400).json({ ...req.session});
