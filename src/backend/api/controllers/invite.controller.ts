@@ -16,7 +16,7 @@ export const getInvitesController = async (req: Request, res: Response) => {
 export const getInviteByCodeController = async (req: Request, res: Response) => {
     const { inviteCode } = req.params;
 
-    if (!inviteCode || typeof inviteCode !== "string") {
+    if (!inviteCode) {
         return res.status(400).json({ error: "Invalid parameter" });
     }
 
@@ -26,7 +26,7 @@ export const getInviteByCodeController = async (req: Request, res: Response) => 
     }
 
     res.status(200).json({
-        ...getInviteByCode(inviteCode)
+        ...getInviteByCode(inviteCode as string)
     });
 };
 
@@ -38,11 +38,11 @@ export const getInvitesByOwnerController = async (req: Request, res: Response) =
         return res.status(401).json({ error: "Unauthorized" });
     }
 
-    if (!ownerId || typeof ownerId !== "string") {
+    if (!ownerId) {
         return res.status(400).json({ error: "Invalid parameter" });
     }
 
     res.status(200).json({
-        ...getInviteByOwner(ownerId)
+        ...getInviteByOwner(ownerId as string)
     });
 };
