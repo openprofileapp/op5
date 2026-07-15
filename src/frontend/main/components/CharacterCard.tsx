@@ -284,23 +284,50 @@ export default function CharacterCard({
                             <button 
                                 className="flex items-center justify-between gap-4"
                                 disabled={isPinLoading}
-                                onClick={() => {
-                                    if (isPinLoading) return;
+                                onClick={async () => {
+                                    try {
+                                        if (isPinLoading) return;
+                                        // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
 
-                                    setIsPinLoading(true);
+                                        setIsPinLoading(true);
 
-                                    // Call API here and await response instead of timeout
-                                    setTimeout(() => {
-                                        setIsPinLoading(false);
+                                        const response = await fetch(
+                                            `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                },
+                                                credentials: "include",
+                                                body: JSON.stringify({
+                                                    position: 1,
+                                                }),
+                                            }
+                                        );
+
+                                        if (!response.ok) {
+                                            throw new Error("Failed to pin asset");
+                                        }
+
                                         setIsPinned(!isPinned);
+
                                         toast.show(
-                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`, 
-                                            { 
-                                                icon: isPinned ? "󰐄" : "󰐃", 
-                                                type: isPinned ? "info" : "success"
-                                            });
-                                    }, 500);
-                
+                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`,
+                                            {
+                                                icon: isPinned ? "󰐄" : "󰐃",
+                                                type: isPinned ? "info" : "success",
+                                            }
+                                        );
+                                    } catch (error) {
+                                        console.error(error);
+
+                                        toast.show("Failed to pin asset", {
+                                            type: "error",
+                                        });
+                                    } finally {
+                                        setIsPinLoading(false);
+                                    }
+                        
                                     // closeContextMenu(id);
                                 }}
                             >
