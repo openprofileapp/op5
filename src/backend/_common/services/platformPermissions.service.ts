@@ -5,6 +5,14 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 ———————————————————————————————————————————————————————————————— 
 */
 
+import { AdvancedError } from "kage-library";
+
+import { db } from "../../api/databases/db.js";
+import { ValidSessionType } from "../types/validSession.type.js";
+import { CharacterType } from "../types/queries/character.type.js";
+import { UserProfileType } from "../types/queries/userProfile.type.js";
+import { PermissionsType } from "../types/queries/permissions.type.js";
+
 const index = {
     // Base
     VIEW: 0n, // View OpenProfile and authorized assets/users overview
@@ -18,6 +26,9 @@ const index = {
     CREATE_REPORTS: 6n, // REQUIRES "WRITE"; Create reports on assets and users
     CREATE_ASSETS: 7n, // REQUIRES "WRITE"; Create and manage owned assets completely including assigning users and deletion
     CREATE_BOTS: 8n, // REQUIRES "WRITE"; Create and manage owned bot accounts including resetting their tokens and deletion
+
+    // PIN_ASSETS: 0n,
+    // VIEW_BIRTHDAY: 0n,
 
     // Limited
     BYPASS_EXTERNAL_ADS: 9n, // External ads will not render on client
@@ -169,11 +180,10 @@ export default class PlatformPermissionsService {
 
     private static bit(permission: PermissionName): bigint {
         if (!(permission in this.permissions)) {
-            // Throw AdvancedError
-            throw Object.assign(
-                new Error(`Permission "${permission}" not found`),
-                { code: 404 }
-            );
+            throw new AdvancedError({
+                code: 404,
+                message: `Permission "${permission}" not found`
+            })
         }
 
         return 1n << this.permissions[permission];
@@ -187,16 +197,17 @@ export default class PlatformPermissionsService {
      */
     public static decode(input: string): PermissionName[] {
         if (!input) {
-            // Throw AdvancedError
-            throw Object.assign(new Error("Invalid input"), {
+            throw new AdvancedError({
                 code: 400,
-            });
+                message: "Malformed request"
+            })
         }
 
         if (!/^[0-9]+$/.test(input)) {
-            throw Object.assign(new Error("Invalid permissions"), {
+            throw new AdvancedError({
                 code: 400,
-            });
+                message: "Malformed request"
+            })
         }
 
         const userPermissions = BigInt(input);
@@ -229,10 +240,10 @@ export default class PlatformPermissionsService {
      */
     public static encode(input: PermissionName[]): string {
         if (!input?.length) {
-            // Throw AdvancedError
-            throw Object.assign(new Error("Invalid input"), {
+            throw new AdvancedError({
                 code: 400,
-            });
+                message: "Malformed request"
+            })
         }
 
         let result = 0n;
@@ -286,10 +297,10 @@ export default class PlatformPermissionsService {
         const role = roles[input];
 
         if (!role) {
-            throw Object.assign(
-                new Error(`Role "${input}" not found`),
-                { code: 404 }
-            );
+            throw new AdvancedError({
+                code: 404,
+                message: `Role "${input}" not found`
+            })
         }
 
         return {
@@ -328,5 +339,120 @@ export default class PlatformPermissionsService {
         }
 
         return permValue.toString();
+    }
+
+    /**
+     * HELP TEXT HERE
+     */
+    public static can(
+        session: ValidSessionType,
+        permissions: PermissionName | PermissionName[],
+        assetId: string
+    ) {
+        // Check if malformed
+        if (
+            !session || 
+            !permissions || 
+            !assetId
+        ) {
+            throw new AdvancedError({
+                code: 400,
+                message: "Malformed request"
+            })
+        }
+
+        // Find and get the asset
+        let isAllowed: boolean = false;
+        let row: 
+            UserProfileType | 
+            CharacterType | 
+            null 
+        = null;
+
+        if (!row) {
+            const result = db.characters.query<CharacterType>(
+                "SELECT * FROM published WHERE id = ?",
+                [assetId]
+            );
+
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while fetching characters",
+                    details: result.error
+                })
+            }
+
+            row = result.rows[0]
+        }
+
+        // ADD UNIVERSES, USERS, ETC
+
+        if (!row) {
+            throw new AdvancedError({
+                code: 404,
+                message: "Asset not found"
+            })
+        }
+
+        // Check if owner
+        if (
+            session.userId === row.id ||
+            session.userId === (row.ownerId)
+        ) {
+            return true;
+        }
+
+        // Check if platform staff
+        if (
+            session.permissions &&
+            this.has(
+                session.permissions?.value, 
+                [
+                    "MANAGE_VISIBILITY", 
+                    "ADMIN"
+                ], 
+                "any"
+            )
+        ) {
+            const allowedPermissions = this.encode(
+                ["VIEW", "READ"] // Add VIEW_BIRTHDATE etc.
+            )
+
+            isAllowed = this.has(
+                allowedPermissions,
+                permissions
+            )
+
+            if (isAllowed) return true;
+        }
+
+        // Check if following // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
+        // Check if friends // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
+
+        // Check the permissions database
+        const permissionsResult = db.users.query<PermissionsType>(
+            "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
+            [session.userId, assetId]
+        );
+
+        if (!permissionsResult.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching permissions",
+                details: permissionsResult.error
+            })
+        }
+
+        if (permissionsResult.rowCount > 0) {
+            isAllowed = this.has(
+                permissionsResult.rows[0].permissions,
+                permissions
+            )
+
+            if (isAllowed) return true;
+        }
+        
+        return isAllowed;
     }
 }
