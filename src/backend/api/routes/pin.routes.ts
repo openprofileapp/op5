@@ -6,6 +6,6 @@ import { postPins } from "../controllers/users/pins/postPins.controller.js";
 const userRoute = Router();
 
 userRoute.get("/:ownerId", getPins)
-userRoute.post("/:ownerId", postPins)
+userRoute.post("/:ownerId/:assetId", postPins)
 
 export default userRoute;
