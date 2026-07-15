@@ -23,6 +23,7 @@ import Mention from "../components/Mention.js";
 import React from "react";
 import TitleCard from "../components/TitleCard.js";
 import AskAlice from "../components/AskAlice.js";
+import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -33,6 +34,7 @@ export default function NotFound() {
     const [user, setUser] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(true);
     const [following, setFollowing] = useState(false);
     const [blocked, setBlocked] = useState(false);
     const [loadingFollow, setLoadingFollow] = useState(false);
@@ -85,7 +87,7 @@ export default function NotFound() {
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false);
+                setProfileLoading(false);
             }
         };
 
@@ -1175,7 +1177,17 @@ Check out my character: <@6773794953695671>
                                             </div>
                                             
                                             <div className="px-0 md:px-4 flex flex-wrap gap-4">
-                                                {!loading &&
+                                                {profileLoading && (
+                                                    <>
+                                                        <SkeletonCharacterCard />
+                                                        <SkeletonCharacterCard />
+                                                        <SkeletonCharacterCard />
+                                                        <SkeletonCharacterCard />
+                                                        
+                                                    </>
+                                                )}
+                                                
+                                                {!profileLoading &&
                                                     profiles.profiles?.map((d) => (
                                                         <CharacterCard
                                                             key={d.id}
