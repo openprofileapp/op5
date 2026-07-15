@@ -11,6 +11,7 @@ export const db = {
     badges: new Database("data/databases/badges.sqlite"),
     invites: new Database("data/databases/invites.sqlite"),
     links: new Database("data/databases/links.sqlite"),
+    pins: new Database("data/databases/pins.sqlite"),
     interactions: new Database("data/databases/interactions.sqlite")
 };
 
@@ -85,11 +86,6 @@ db.users.transaction(q => {
         const result = q(`${config.folders.sql.api}/users/users.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
-
-    if (!q("SELECT * FROM pins LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/users/pins.sql`);
-        if (!result.success) return log.db.error(result.error).save();
-    };
 });
 
 db.badges.transaction(q => {
@@ -114,6 +110,13 @@ db.invites.transaction(q => {
 db.links.transaction(q => {
     if (!q("SELECT * FROM links LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/links.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
+db.pins.transaction(q => {
+    if (!q("SELECT * FROM pins LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/pins.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 });
