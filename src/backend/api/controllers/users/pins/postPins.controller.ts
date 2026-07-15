@@ -4,12 +4,13 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../../instances.js";
 import { db } from "../../../databases/db.js";
-import isBearerTokenAuthorized from "../../../../_common/helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../../../_common/helpers/isTokenOrSecretAuthorized.js";
+import PlatformPermissionsService from "../../../../_common/services/platformPermissions.service.js";
 
 export const postPins = async (req: Request, res: Response) => {
     try {
-        const { ownerId } = req.params;
-        const { assetId, position } = req.body;
+        const { ownerId, assetId } = req.params;
+        const { position } = req.body;
 
         if (!req.session?.userId) {
             return res.status(403).json({ error: "No account" });
@@ -22,11 +23,20 @@ export const postPins = async (req: Request, res: Response) => {
             })
         }
 
-        if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+        if (
+            !await isBearerTokenAuthorized(req) || 
+            req.session && !PlatformPermissionsService.can(
+                req.session, 
+                ["ADMIN"],
+                assetId as string
+            )
+        ) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        // Check (isActionAuthorized(ownerId, assetId, ["pin"])) by checking aganist req.session, permissions, and more
+        // GET PINS
+        // If the new pin is the same number as another, raise all numbers by 1
+        // If the number is unchanged, unpin
 
         const result = db.pins.query(
             `
