@@ -26,7 +26,7 @@ export const createAuditLogController = async (req: Request, res: Response) => {
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error (audit.controller.ts):", error).save();
+            log.unknown.error(error).save();
         }
     }
 };

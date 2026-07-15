@@ -37,7 +37,7 @@ sessionRoute.post("/", async (req: Request, res: Response) => {
             log.network.error(error.stack).save();
             return res.status(error.code).json(error.message);
         } else {
-            console.log("Unknown error (session.route.ts):", error);
+            console.log(error);
         }
     }
 });

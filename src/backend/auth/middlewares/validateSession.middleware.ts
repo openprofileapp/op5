@@ -27,7 +27,7 @@ export const validateSessionMiddleware = async (req: Request, res: Response, nex
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error (validateSession.middleware.ts):", error).save();
+            log.unknown.error(error).save();
         }
     } 
 };

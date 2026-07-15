@@ -38,7 +38,7 @@ export const isAccessTokenValid = async (req: Request, res: Response) => {
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error (token.controller.ts):", error).save();
+            log.unknown.error(error).save();
         }
     } 
 };

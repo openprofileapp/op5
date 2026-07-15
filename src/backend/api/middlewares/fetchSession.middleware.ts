@@ -39,7 +39,7 @@ export const fetchSessionMiddleware = async (req: Request, res: Response, next: 
                 message: error.message
             });
         } else {
-            log.unknown.error("Unknown error (fetchSession.middleware.ts):", error).save();
+            log.unknown.error(error).save();
         }
     } 
 };
