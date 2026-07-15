@@ -86,6 +86,11 @@ db.users.transaction(q => {
         const result = q(`${config.folders.sql.api}/users/users.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM permissions LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/users/permissions.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 db.badges.transaction(q => {
