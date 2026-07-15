@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS badges (
-    id TEXT NOT NULL, -- User or project id
+    id TEXT NOT NULL, -- User or asset id
     type TEXT NOT NULL,
     comment TEXT, -- The reason or milestone that earned the badge
     visibility TEXT NOT NULL DEFAULT 'public',

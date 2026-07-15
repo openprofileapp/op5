@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS links (
-    id TEXT NOT NULL, -- User or project id
+    id TEXT NOT NULL, -- User or asset id
     url TEXT NOT NULL,
     name TEXT NOT NULL,
     previewText TEXT,
