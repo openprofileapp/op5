@@ -25,6 +25,6 @@ export default function getPinsByOwnerId(id: string) {
 
     return {
         count: result.rowCount, // maybe have a count? Needs a response if no pins exist
-        ...result.rows
+        pins: result.rows
     };
 }
