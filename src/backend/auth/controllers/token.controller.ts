@@ -2,14 +2,14 @@ import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
 
-import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isTokenOrSecretAuthorized.js";
 import { db } from "../databases/db.js";
 import { log } from "../instances.js";
 import { SessionType } from "../types/session.type.js";
 
 export const isAccessTokenValid = async (req: Request, res: Response) => {
     try {
-        if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+        if (!await isBearerTokenAuthorized(req)) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 

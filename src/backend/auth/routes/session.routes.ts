@@ -5,7 +5,7 @@ import { validateSessionMiddleware } from "../middlewares/validateSession.middle
 import validateSession from "../services/validateSession.service.js";
 import { AdvancedError } from "kage-library";
 import { log } from "../instances.js";
-import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isTokenOrSecretAuthorized.js";
 
 const sessionRoute = Router();
 
@@ -17,7 +17,7 @@ sessionRoute.get("/", validateSessionMiddleware, async (req: Request, res: Respo
 
 sessionRoute.post("/", async (req: Request, res: Response) => {
     try {
-        if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+        if (!await isBearerTokenAuthorized(req)) {
             return res.status(401).json({ error: "Unauthorized" });
         }
         

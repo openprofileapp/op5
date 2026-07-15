@@ -2,13 +2,13 @@ import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
 
-import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isTokenOrSecretAuthorized.js";
 import createAuditLog from "../services/createAuditLog.service.js";
 import { log } from "../instances.js";
 
 export const createAuditLogController = async (req: Request, res: Response) => {
     try {
-        if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+        if (!await isBearerTokenAuthorized(req)) {
             
             // CREATE ACCESS AUDIT REPORTS ON FALSE AUTHORIZED; ALL APIS
 

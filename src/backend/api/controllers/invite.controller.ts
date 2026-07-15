@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
 
-import isBearerTokenAuthorized from "../../_common/helpers/isBearerTokenAuthorized.js";
+import isBearerTokenAuthorized from "../../_common/helpers/isTokenOrSecretAuthorized.js";
 import getInviteByOwner from "../services/getInviteByOwner.service.js";
 import getInviteByCode from "../services/getInviteByCode.service.js";
 
 export const getInvitesController = async (req: Request, res: Response) => {
     // If admin, display all invites
-    if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+    if (!await isBearerTokenAuthorized(req)) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -21,7 +21,7 @@ export const getInviteByCodeController = async (req: Request, res: Response) => 
     }
 
     // Only display if owner or admin
-    if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+    if (!await isBearerTokenAuthorized(req)) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -34,7 +34,7 @@ export const getInvitesByOwnerController = async (req: Request, res: Response) =
     const { ownerId } = req.params;
 
     // Only display if owner or admin
-    if (!await isBearerTokenAuthorized(req.headers.authorization)) {
+    if (!await isBearerTokenAuthorized(req)) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
