@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import Mention from "./Mention.js";
+import Mention from "../../main/components/Mention.js";
 
 interface KnowledgeItem {
     keywords: string[];
