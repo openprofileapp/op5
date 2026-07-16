@@ -9,6 +9,7 @@ import ToastContainer from "../_common/components/ToastContainer.js";
 import CaptchaPortal from "../_common/components/CaptchaPortal.js";
 import AskAlice from "../_common/components/AskAlice.js";
 
+import Dashboard from "./pages/Dashboard.js";
 import Analytics from "./pages/Analytics.js";
 
 import ComingSoon from "../_common/pages/ComingSoon.js";
@@ -69,7 +70,7 @@ export default function Layout() {
                             <div className="p-4">
                                 <Routes>
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    <Route path="/dashboard" element={<ComingSoon />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/analytics" element={<Analytics />} />
                                     <Route path="/content" element={<ComingSoon />} />
 
@@ -176,8 +177,25 @@ export default function Layout() {
                                                 </div>
                                             </details>
                                         </li>
-
+                                        
                                         <hr />
+
+                                        <li>
+                                            <button 
+                                                className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                data-tip="Projects"
+                                                onClick={async () => {
+                                                    // ACTION HERE
+                                                }}
+                                            >
+                                                <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                                    
+                                                </span>
+                                                <span className="is-drawer-close:hidden text-sm">
+                                                    Projects
+                                                </span>
+                                            </button>
+                                        </li>
 
                                         <li>
                                             <button 
@@ -195,9 +213,40 @@ export default function Layout() {
                                                 </span>
                                             </button>
                                         </li>
+
+                                        <hr />
+
+                                        <li>
+                                            <Link 
+                                                className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                data-tip="Templates"
+                                                to={"/analytics"}
+                                            >
+                                                <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                                    󱔗
+                                                </span>
+                                                <span className="is-drawer-close:hidden text-sm">
+                                                    Templates {/* prfile and roles */}
+                                                </span>
+                                            </Link>
+                                        </li>
+
+                                        <li className="hidden">
+                                            <Link 
+                                                className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                data-tip="Themes"
+                                                to={"/analytics"}
+                                            >
+                                                <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                                    
+                                                </span>
+                                                <span className="is-drawer-close:hidden text-sm">
+                                                    Themes
+                                                </span>
+                                            </Link>
+                                        </li>
                                     </ul>
 
-                                    
                                     <ul>
                                         <hr />
 
@@ -234,7 +283,7 @@ export default function Layout() {
                                                 </span>
                                             </button>
                                         </li>
-                                        
+
                                         <li>
                                             <button 
                                                 className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
