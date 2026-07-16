@@ -5,8 +5,9 @@ import { AdvancedError } from 'kage-library';
 import { log } from '../../../instances.js';
 import getPinsByOwnerId from '../../../services/getPinsByOwnerId.service.js';
 import PlatformPermissionsService from '../../../../_common/services/platformPermissions.service.js';
+import getPublishedProfileById from '../../../services/getPublishedProfileById.service.js';
 
-export const getPins = (req: Request, res: Response) => {
+export const getPins = async (req: Request, res: Response) => {
     try {
         const { ownerId } = req.params;
 
@@ -31,8 +32,16 @@ export const getPins = (req: Request, res: Response) => {
             });
         }*/
 
+        const pins = getPinsByOwnerId(ownerId as string).pins;
+
+        const profiles = await Promise.all(
+            [...pins]
+                .sort((a, b) => a.position - b.position)
+                .map(pin => getPublishedProfileById(pin.assetId as string))
+        );
+
         return res.status(200).json({
-            ...getPinsByOwnerId(ownerId as string)
+            pins: profiles,
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
