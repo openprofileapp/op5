@@ -23,6 +23,8 @@ export const postPins = async (req: Request, res: Response) => {
             })
         }
 
+        // VERIFY THIS IS A VALID PIN BEFORE PINNING IT
+
         if (
             !await isBearerTokenAuthorized(req) || 
             req.session && !PlatformPermissionsService.can(
