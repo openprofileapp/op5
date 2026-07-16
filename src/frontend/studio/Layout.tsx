@@ -5,6 +5,10 @@ import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 
 import i18n from "../_common/i18n.js";
 
+import ToastContainer from "../_common/components/ToastContainer.js";
+import CaptchaPortal from "../_common/components/CaptchaPortal.js";
+import AskAlice from "../_common/components/AskAlice.js";
+
 import Analytics from "./pages/Analytics.js";
 
 import ComingSoon from "../_common/pages/ComingSoon.js";
@@ -40,6 +44,9 @@ export default function Layout() {
         <HelmetProvider>
             <I18nextProvider i18n={i18n}>
                 <BrowserRouter>
+                    <ToastContainer />
+                    <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
+                    <AskAlice />
                     <div className="drawer lg:drawer-open">
                         <input 
                             id="my-drawer-4" 
