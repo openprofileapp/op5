@@ -514,3 +514,30 @@ hr {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 }
+
+.no-arrow > summary::after {
+    display: none !important;
+    content: none !important;
+}
+
+.details-arrow {
+    transition: transform 0.2s ease;
+}
+
+.no-arrow[open] .details-arrow {
+    transform: rotate(90deg);
+}
+
+.details-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.2s ease;
+}
+
+.no-arrow[open] .details-content {
+    grid-template-rows: 1fr;
+}
+
+.details-content > div {
+    overflow: hidden;
+}
