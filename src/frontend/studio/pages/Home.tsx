@@ -5,6 +5,7 @@ import { formatNumber } from "kage-library/client";
 
 import Metadata from "../../_common/components/Metadata.js";
 import WorldMap from "../components/WorldMap.js";
+import AskAlice from "../../_common/components/AskAlice.js";
 
 export default function Home() {
     const { t, ready } = useTranslation();
@@ -48,6 +49,8 @@ export default function Home() {
     return (
         <>  
             <Metadata />
+
+            <AskAlice />
      
             <div className="drawer lg:drawer-open">
                 <input 
@@ -236,7 +239,7 @@ export default function Home() {
                                         }}
                                     >
                                         <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
-                                            
+                                            
                                         </span>
                                         <span className="is-drawer-close:hidden text-sm">
                                             Feedback
