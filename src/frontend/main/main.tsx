@@ -31,8 +31,8 @@ document.head.appendChild(style);
 // Have a display 503 scripts that re-renders the full page when recieving
 // { action: "DISPLAY_503" }
 
-import ToastContainer from "./components/ToastContainer.js"
-import CaptchaPortal from "./components/CaptchaPortal.js"
+import ToastContainer from "../_common/components/ToastContainer.js"
+import CaptchaPortal from "../_common/components/CaptchaPortal.js"
 
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
@@ -42,8 +42,8 @@ import Premium from "./pages/Premium.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
 
-import ComingSoon from "./pages/ComingSoon.js"
-import NotFound from "./pages/NotFound.js"
+import ComingSoon from "../../_common/pages/ComingSoon.js"
+import NotFound from "../../_common/pages/NotFound.js"
 import UserProfile from "./pages/UserProfile.js"
 
 import Template from "./pages/Template.js"
