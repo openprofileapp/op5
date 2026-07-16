@@ -5,7 +5,6 @@ import { formatNumber } from "kage-library/client";
 
 import Metadata from "../../_common/components/Metadata.js";
 import WorldMap from "../components/WorldMap.js";
-import AskAlice from "../../_common/components/AskAlice.js";
 
 export default function Home() {
     const { t, ready } = useTranslation();
@@ -50,8 +49,6 @@ export default function Home() {
         <>  
             <Metadata />
 
-            <AskAlice />
-     
             <div className="drawer lg:drawer-open">
                 <input 
                     id="my-drawer-4" 
