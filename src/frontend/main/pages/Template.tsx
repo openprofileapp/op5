@@ -26,7 +26,7 @@ import CharacterCard from "../components/CharacterCard.js";
 import Mention from "../components/Mention.js";
 import React from "react";
 import TitleCard from "../components/TitleCard.js";
-import AskAlice from "../components/AskAlice.js";
+import AskAlice from "../../_common/components/AskAlice.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 
 export default function NotFound() {
