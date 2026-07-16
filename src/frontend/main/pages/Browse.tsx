@@ -23,7 +23,10 @@ export default function SearchProfiles() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users`);
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users`,
+                    { credentials: "include" }
+                );
                 const data = await res.json();
 
                 setUsers(data);
@@ -40,7 +43,10 @@ export default function SearchProfiles() {
     useEffect(() => {
         const fetchProfiles = async () => {
             try {
-                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles`);
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles`, 
+                    { credentials: "include" }
+                );
                 const data = await res.json();
 
                 setProfiles(data);

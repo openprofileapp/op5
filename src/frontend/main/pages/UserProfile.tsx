@@ -42,7 +42,10 @@ export default function UserProfile() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`);
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`,
+                    { credentials: "include" }
+                );
                 
                 if (!res.ok) {
                     navigate("/404", { replace: true });
