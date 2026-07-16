@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 
-import isGateway from "../../frontend/_common/helpers/isGateway.js";
+import isGateway from "../helpers/isGateway.js";
 
-import Metadata from "../../frontend/_common/components/Metadata.js";
-import Navbar from "../../frontend/main/components/Navbar.js";
-import Footer from "../../frontend/main/components/Footer.js";
+import Metadata from "../components/Metadata.js";
+import Navbar from "../../main/components/Navbar.js";
+import Footer from "../../main/components/Footer.js";
 
 export default function NotFound() {
     const { t, ready } = useTranslation();
