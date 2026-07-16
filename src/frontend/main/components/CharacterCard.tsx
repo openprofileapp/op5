@@ -38,7 +38,8 @@ type Props = {
     notification?: {
         isActive?: boolean,
         time?: string
-    }
+    },
+    isPinnedPass?: boolean
 };
 
 let index = 1;
@@ -54,14 +55,16 @@ export default function CharacterCard({
     owner,
     about,
     interactions,
-    notification
+    notification,
+    isPinnedPass = false,
+    dragHandleProps
 }: Props) {
     const { ready } = useTranslation();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const [isPinned, setIsPinned] = useState(false);
+    const [isPinned, setIsPinned] = useState(isPinnedPass);
     const [isPinLoading, setIsPinLoading] = useState(false);
 
 
@@ -71,7 +74,7 @@ export default function CharacterCard({
     const [isFollowLoading, setIsFollowLoading] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
-
+    const [hidden, setHidden] = useState(false);
 
 
 
@@ -141,7 +144,7 @@ export default function CharacterCard({
         toast.show("Example triggered!")
     }
 
-    if (!ready) return null;
+    if (!ready || hidden) return null;
 
     index++
 
@@ -217,16 +220,33 @@ export default function CharacterCard({
             }
 
             {isPinned && (
-                <div 
-                    className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent" 
-                    data-tip="Pinned"
-                >
-                    <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
-                        <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                            󰐃
-                        </span>
-                    </button>
-                </div>
+                dragHandleProps ? (
+                    <div
+                        {...dragHandleProps}
+                    >
+                        <div
+                            className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
+                            data-tip="Reorder"
+                        >
+                            <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden cursor-grab">
+                                <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
+                                    󰇛
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
+                        data-tip="Pinned"
+                    >
+                        <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
+                            <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
+                                󰐃
+                            </span>
+                        </button>
+                    </div>
+                )
             )}
 
             <div
@@ -290,20 +310,36 @@ export default function CharacterCard({
                                         // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
 
                                         setIsPinLoading(true);
+                                        let response;
 
-                                        const response = await fetch(
-                                            `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
-                                            {
-                                                method: "POST",
-                                                headers: {
-                                                    "Content-Type": "application/json",
-                                                },
-                                                credentials: "include",
-                                                body: JSON.stringify({
-                                                    position: 1,
-                                                }),
-                                            }
-                                        );
+                                        if (isPinned) {
+                                            response = await fetch(
+                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                    credentials: "include"
+                                                }
+                                            );
+
+                                            setHidden(true);
+                                        } else {
+                                            response = await fetch(
+                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
+                                                {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                    credentials: "include",
+                                                    body: JSON.stringify({
+                                                        position: 1,
+                                                    }),
+                                                }
+                                            );
+                                        }
 
                                         if (!response.ok) {
                                             throw new Error("Failed to pin asset");

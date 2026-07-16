@@ -3,6 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
 
 import { formatNumber } from "kage-library/client";
 
@@ -33,6 +37,7 @@ export default function NotFound() {
     const [activeTab, setActiveTab] = useState("about");
     const [user, setUser] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
+    const [pins, setPins] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [profileLoading, setProfileLoading] = useState(true);
     const [following, setFollowing] = useState(false);
@@ -52,11 +57,88 @@ export default function NotFound() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     };
 
+
+
+
+    const [pinnedItems, setPinnedItems] = useState(pins || []);
+
+    useEffect(() => {
+        setPinnedItems(pins || []);
+    }, [pins]);
+
+    function SortableCard({ item, children }) {
+        const {
+            attributes,
+            listeners,
+            setNodeRef,
+            setActivatorNodeRef,
+            transform,
+            transition,
+        } = useSortable({
+            id: item.id,
+        });
+
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    transform: CSS.Transform.toString(transform),
+                    transition,
+                }}
+            >
+                {children({
+                    dragHandleProps: {
+                        ref: setActivatorNodeRef,
+                        ...attributes,
+                        ...listeners,
+                    },
+                })}
+            </div>
+        );
+    }
+
+    const handleDragEnd = async ({ active, over }) => {
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = pinnedItems.findIndex(
+            item => item.id === active.id
+        );
+
+        const newIndex = pinnedItems.findIndex(
+            item => item.id === over.id
+        );
+
+        const updated = arrayMove(
+            pinnedItems,
+            oldIndex,
+            newIndex
+        );
+
+        setPinnedItems(updated);
+
+        updated.forEach((item, index) => {
+            fetch(
+                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${item.id}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        position: index + 1,
+                    }),
+                }
+            );
+        });
+    };
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`, 
+                    { credentials: "include" }
                 );
 
                 if (!res.ok) {
@@ -78,10 +160,34 @@ export default function NotFound() {
 
     useEffect(() => {
         if (!user?.id) return;
+
+        const fetchPins = async () => {
+            try {
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/pins/${user.id}`,
+                    { credentials: "include" }
+                );
+                const data = await res.json();
+                setPins(data.pins);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                // setLoading(false);
+            }
+        };
+        
+        fetchPins();
+    }, [user, activeTab]);
+
+    useEffect(() => {
+        if (!user?.id) return;
         
         const fetchProfiles = async () => {
             try {
-                const res = await fetch(`https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?owner=${user.id}`);
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?owner=${user.id}`,
+                    { credentials: "include" }
+                );
                 const data = await res.json();
                 setProfiles(data);
             } catch (err) {
@@ -92,7 +198,7 @@ export default function NotFound() {
         };
 
         fetchProfiles();
-    }, [user]);
+    }, [user, activeTab]);
 
    const setTab = (tab: string) => {
         if (tab === "about" || tab === "pinned") {
@@ -1023,88 +1129,74 @@ Check out my character: <@6773794953695671>
                                     )}
 
                                     {activeTab === "pinned" && (
-                                        <div className="p-4 flex flex-wrap gap-4">
+                                        <DndContext
+                                            collisionDetection={closestCenter}
+                                            onDragEnd={handleDragEnd}
+                                        >
+                                            <SortableContext
+                                                items={pinnedItems.map(item => item.id)}
+                                                strategy={rectSortingStrategy}
+                                            >
+                                                <div className="p-4 flex flex-wrap gap-4">
 
-                                            <ProjectCard
-                                                id="1655391085225720"
-                                                aura={{
-                                                    isEnabled: true,
-                                                    type: "flow",
-                                                    primary: "#76d1ff",
-                                                    secondary: "#76d1ff",
-                                                }}
-                                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
-                                                name="Dragonights"
-                                                slug="dragonights"
-                                                owner={{
-                                                    id: "5019646586243236",
-                                                    username: "j9studios",
-                                                    displayName: "J9 Studios",
-                                                    isVerified: true,
-                                                    type: "publisher",
-                                                }}
-                                                status="Follow to keep up with the J9 universe."
-                                                about="Dragonights is an upcoming 3D-animated sci-fi action TV series."
-                                                interactions={{
-                                                    views: {
-                                                        count: 481,
-                                                        interacted: true,
-                                                    },
-                                                    follows: {
-                                                        count: 6,
-                                                        interacted: true,
-                                                    },
-                                                    profiles: {
-                                                        count: 52,
-                                                        interacted: true,
-                                                    },
-                                                    fanflairs: {
-                                                        count: 5,
-                                                    },
-                                                }}
-                                            />
+                                                    {pinnedItems.map((d) => (
+                                                        <SortableCard
+                                                            key={d.id}
+                                                            item={d}
+                                                        >
+                                                            {({ dragHandleProps }) => (
+                                                                <CharacterCard
+                                                                    id={d.id}
 
-                                            {!loading &&
-                                                profiles.profiles?.map((d) => (
-                                                    <CharacterCard
-                                                        key={d.id}
-                                                        id={d.id}
-                                                        aura={{
-                                                            isEnabled: d.isAuraEnabled,
-                                                            type: d.auraType,
-                                                            primary: d.auraPrimary,
-                                                            secondary: d.auraSecondary
-                                                        }}
-                                                        avatar={
-                                                            d.avatar
-                                                                ? `https://cdn.openprofile.app${d.avatar}`
-                                                                : ""
-                                                        }
-                                                        displayName={d.displayName}
-                                                        slug={d.slug}
-                                                        owner={{
-                                                            id: profiles.owner.id,
-                                                            slug: profiles.owner.username,
-                                                            displayName: profiles.owner.displayName,
-                                                            isVerified: profiles.owner.badges?.some(
-                                                                (b) => b.type === "verified"
-                                                            ),
-                                                            type: profiles.owner.type
-                                                        }}
-                                                        about={d.about}
-                                                        interactions={{
-                                                            views: {
-                                                                count: 0,
-                                                                interacted: true
-                                                            },
-                                                            likes: {
-                                                                count: 0,
-                                                                interacted: false
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
-                                        </div>
+                                                                    aura={{
+                                                                        isEnabled: d.isAuraEnabled,
+                                                                        type: d.auraType,
+                                                                        primary: d.auraPrimary,
+                                                                        secondary: d.auraSecondary
+                                                                    }}
+
+                                                                    avatar={
+                                                                        d.avatar
+                                                                            ? `https://cdn.openprofile.app${d.avatar}`
+                                                                            : ""
+                                                                    }
+
+                                                                    displayName={d.displayName}
+                                                                    slug={d.slug}
+
+                                                                    owner={{
+                                                                        id: profiles?.owner?.id,
+                                                                        slug: profiles?.owner?.username,
+                                                                        displayName: profiles?.owner?.displayName,
+                                                                        isVerified: profiles?.owner?.badges?.some(
+                                                                            b => b.type === "verified"
+                                                                        ),
+                                                                        type: profiles?.owner?.type
+                                                                    }}
+
+                                                                    about={d.about}
+
+                                                                    interactions={{
+                                                                        views: {
+                                                                            count: 0,
+                                                                            interacted: true
+                                                                        },
+                                                                        likes: {
+                                                                            count: 0,
+                                                                            interacted: false
+                                                                        }
+                                                                    }}
+
+                                                                    isPinnedPass={true}
+                                                                    dragHandleProps={dragHandleProps}
+                                                                />
+                                                                )}
+                                                        </SortableCard>
+                                                    ))}
+
+                                                </div>
+                                            </SortableContext>
+                                        </DndContext>
                                     )}
 
                                     {activeTab === "universes" && (
@@ -1190,8 +1282,8 @@ Check out my character: <@6773794953695671>
                                                 {!profileLoading &&
                                                     profiles.profiles?.map((d) => (
                                                         <CharacterCard
-                                                            key={d.id}
-                                                            id={d.id}
+                                                            key={d?.id}
+                                                            id={d?.id}
                                                             aura={{
                                                                 isEnabled: d.isAuraEnabled,
                                                                 type: d.auraType,
@@ -1203,8 +1295,8 @@ Check out my character: <@6773794953695671>
                                                                     ? `https://cdn.openprofile.app${d.avatar}`
                                                                     : ""
                                                             }
-                                                            displayName={d.displayName}
-                                                            slug={d.slug}
+                                                            displayName={d?.displayName}
+                                                            slug={d?.slug}
                                                             owner={{
                                                                 id: profiles.owner.id,
                                                                 slug: profiles.owner.username,
@@ -1214,7 +1306,7 @@ Check out my character: <@6773794953695671>
                                                                 ),
                                                                 type: profiles.owner.type
                                                             }}
-                                                            about={d.about}
+                                                            about={d?.about}
                                                             interactions={{
                                                                 views: {
                                                                     count: 0,
