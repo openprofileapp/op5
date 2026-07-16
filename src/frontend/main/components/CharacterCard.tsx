@@ -289,15 +289,20 @@ export default function CharacterCard({
                 {owner.id === window.session.userId && (
                     <>
                         <li>
-                            <Link
+                            <a
                                 className="flex items-center justify-between gap-4"
-                                to={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
+                                href={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => {
+                                    closeContextMenu(id);
+                                }}
                             >
                                 View in Studio
                                 <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                                     
                                 </span>
-                            </Link>
+                            </a>
                         </li>
 
                         <li>
