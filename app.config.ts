@@ -57,6 +57,7 @@ export const config = {
         // Save all logs to file
         logger: {
             main: false,
+            studio: false,
             status: false,
             auth: false,
             api: false,

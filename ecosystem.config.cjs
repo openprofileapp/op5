@@ -34,6 +34,17 @@ module.exports = {
       }
     },
     {
+      name: "studio",
+      script: "./dist/src/backend/studio/server.js",
+      interpreter: "node",
+      autorestart: true,
+      max_memory_restart: "350M",
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "status",
       script: "./dist/src/backend/status/server.js",
       interpreter: "node",

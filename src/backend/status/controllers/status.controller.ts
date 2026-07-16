@@ -9,6 +9,7 @@ export const statusController = async (req: Request, res: Response) => {
 
     // Do not ping the status server
     const main = await wc.ping(`https://${config.domains.main}`);
+    const studio = await wc.ping(`https://${config.domains.studio}/health`);
     const auth = await wc.ping(`https://${config.domains.auth}/health`);
     const api = await wc.ping(`https://${config.domains.api}/health`);
     const cdn = await wc.ping(`https://${config.domains.cdn}/health`);
@@ -18,6 +19,7 @@ export const statusController = async (req: Request, res: Response) => {
 
     res.json({ 
         main,
+        studio,
         auth,
         api, 
         cdn, 

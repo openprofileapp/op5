@@ -64,6 +64,27 @@ module.exports = {
       }
     },
     {
+      name: "studio",
+      script: "./src/backend/studio/server.ts",
+      interpreter: "node",
+      node_args: "--import tsx",
+      autorestart: true,
+      max_memory_restart: "1G",
+      watch: [
+        "./app.config.ts",
+        "./src/backend/studio",
+        "./src/backend/_common",
+        "./src/_common"
+      ],
+      ignore_watch: [
+        "**/*.tsx"
+      ],
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "status",
       script: "./src/backend/status/server.ts",
       interpreter: "node",
