@@ -43,8 +43,8 @@ import Premium from "./pages/Premium.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
 
-import ComingSoon from "../../_common/pages/ComingSoon.js"
-import NotFound from "../../_common/pages/NotFound.js"
+import ComingSoon from "../_common/pages/ComingSoon.js"
+import NotFound from "../_common/pages/NotFound.js"
 import UserProfile from "./pages/UserProfile.js"
 
 import Template from "./pages/Template.js"
