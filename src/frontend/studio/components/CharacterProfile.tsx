@@ -942,14 +942,75 @@ Check out my character: <@6773794953695671>
 
                                         <div className="flex gap-3">
                                             <fieldset className="fieldset w-full">
-                                                <legend className="fieldset-legend text-sm">
+                                                <legend className="fieldset-legend text-sm font-normal">
                                                     Full Name
+                                                    
+                                                    <span 
+                                                        className="tooltip hidden"
+                                                        data-tip="Assigned to AvatarKage"
+                                                    >
+                                                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                                            
+                                                        </span>
+                                                    </span>
+
+                                                    <span 
+                                                        className="tooltip hidden"
+                                                        data-tip="Awaiting publisher review"
+                                                    >
+                                                        <span className="font-nerdfont text-xl text-info flex w-4 leading-none items-center justify-center">
+                                                            󱍸
+                                                        </span>
+                                                    </span>
+
+                                                    <span 
+                                                        className="tooltip hidden"
+                                                        data-tip="Changes approved by J9 Studios"
+                                                    >
+                                                        <span className="font-nerdfont text-lg text-success flex w-4 leading-none items-center justify-center">
+                                                            
+                                                        </span>
+                                                    </span>
+
+                                                    <span 
+                                                        className="tooltip hidden"
+                                                        data-tip="Changes rejected by J9 Studios (awaiting author revision)"
+                                                    >
+                                                        <span className="font-nerdfont text-lg text-error flex w-4 leading-none items-center justify-center">
+                                                            
+                                                        </span>
+                                                    </span>
+
+                                                    <span 
+                                                        className="tooltip hidden"
+                                                        data-tip="Locked"
+                                                    >
+                                                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                                            
+                                                        </span>
+                                                    </span>
+
+                                                    <span 
+                                                        className="tooltip"
+                                                    >
+                                                        <div className="flex flex-col gap-1 tooltip-content text-left">
+                                                            <div className="font-bold text-center">Notes</div>
+                                                            <div className="text-xs">AvatarKage (07/17/26): Don't forget to include the character's title</div>
+                                                            <div className="text-xs">J9 Studios (07/17/26): The author should include their suffix</div>
+                                                        </div>
+                                                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                                            
+                                                        </span>
+                                                    </span>
                                                 </legend>
 
                                                 <textarea
-                                                    className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden"
+                                                    className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
                                                     placeholder="What is <CHARACTER>'s full name?"
                                                     rows={1}
+                                                    spellCheck={false}
+                                                    autoCorrect="off"
+                                                    autoCapitalize="off"
                                                     onFocus={() => setShowHelp(true)}
                                                     onBlur={() => setShowHelp(false)}
                                                     onContextMenu={(e) => {
@@ -986,7 +1047,7 @@ Check out my character: <@6773794953695671>
 
                                                 <div
                                                     className={`overflow-hidden transition-all duration-300 ease-out ${
-                                                        showHelp ? "max-h-20 opacity-100 mt-2" : "max-h-0 opacity-0 mt-0"
+                                                        showHelp ? "max-h-200 opacity-100" : "max-h-0 opacity-0 mt-[-24px] z-1"
                                                     }`}
                                                 >
                                                     <div className="bg-accent rounded px-3 py-2 text-sm">
