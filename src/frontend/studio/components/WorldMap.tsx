@@ -4,6 +4,7 @@ import { scaleSequential } from "d3-scale";
 import { interpolateRgbBasis } from "d3-interpolate";
 import countries from "i18n-iso-countries";
 import en from "i18n-iso-countries/langs/en.json";
+import { useTranslation } from "react-i18next";
 
 type Props = {
     data: Record<string, Record<string, number>>;
@@ -32,6 +33,8 @@ const nameToIso2: Record<string, string> = Object.fromEntries(
 );
 
 export default function WorldMap({data = {}}: Props) {
+    const { t, ready } = useTranslation();
+
     const [tooltip, setTooltip] = useState<Tooltip>(null);
 
     const [position, setPosition] = useState({
@@ -73,6 +76,7 @@ export default function WorldMap({data = {}}: Props) {
             );
     }, [countryTotals]);
 
+    if (!ready) return null;
 
     return (
         <div>
