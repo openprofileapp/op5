@@ -69,6 +69,7 @@ async function bootstrap() {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/analytics" element={<Analytics />} />
                                 <Route path="/content" element={<ComingSoon />} />
+                                {/* /template/84615986161318 (Template Editor) */}
 
                                 <Route path="/404" element={<NotFound />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />
