@@ -224,10 +224,7 @@ export default function CharacterCard({
                     <div
                         {...dragHandleProps}
                     >
-                        <div
-                            className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
-                            data-tip="Reorder"
-                        >
+                        <div className="absolute top-[12px] left-[12px] z-2">
                             <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden cursor-grab">
                                 <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
                                     󰇛
