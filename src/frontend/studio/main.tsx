@@ -38,7 +38,7 @@ import AskAlice from "../_common/components/AskAlice.js"
 
 import Dashboard from "./pages/Dashboard.js"
 import Analytics from "./pages/Analytics.js"
-import CharacterProfile from "./components/CharacterProfile.js"
+import CharacterTemplate from "./components/CharacterTemplate.js"
 
 import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
@@ -62,7 +62,7 @@ async function bootstrap() {
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
                         <AskAlice />
                         <Routes>
-                            <Route path="/character" element={<CharacterProfile />} />
+                            <Route path="/character" element={<CharacterTemplate />} />
 
                             <Route element={<Layout />}>
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
