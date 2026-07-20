@@ -1,11 +1,7 @@
-<style>
-td:nth-child(1),td:nth-child(3),th:nth-child(1),th:nth-child(3) {white-space: nowrap;}td:nth-child(2) {white-space: normal;}
-</style>
-
 # OpenProfile Roadmap
 Features here are subject to change as development progresses and may release sooner or later than displayed.
 
-### v5.1.0 - July 2026
+### v5.1.0 - August 2026
 
 | Feature | Description | Status |
 | - | - | - |
@@ -21,7 +17,7 @@ Features here are subject to change as development progresses and may release so
 | Share Graphics| Click the share button to generate graphics and a text with hastags for posting on social media including full support for Instagram. | In-progress |
 | Self-host | Self-host OpenProfile for your company to use internally. Please refer to our license before self-hosting. | In-progress |
 
-### v5.2.0 - August 2026
+### v5.2.0 - September 2026
 
 | Feature | Description | Status |
 | - | - | - |
