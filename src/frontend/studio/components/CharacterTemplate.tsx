@@ -1,16 +1,14 @@
-import { React, useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
-import colors from "tailwindcss/colors";
 
 import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "./TemplateField.js";
+import { restrictToParentElement, restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 export default function CharacterTemplate() {
     const { id } = useParams();
@@ -379,6 +377,10 @@ export default function CharacterTemplate() {
 
                                         <DndContext
                                             collisionDetection={closestCorners}
+                                            modifiers={[
+                                                restrictToVerticalAxis,
+                                                restrictToParentElement
+                                            ]}
                                             onDragEnd={handleDragEnd}
                                         >
                                             <SortableContext
@@ -405,26 +407,33 @@ export default function CharacterTemplate() {
                                                                         </div>
                                                                     </span>
 
-                                                                    <SortableContext
-                                                                        items={row.items.map(i => i.id)}
-                                                                        strategy={rectSortingStrategy}
+                                                                    <DndContext 
+                                                                        modifiers={[
+                                                                            restrictToWindowEdges
+                                                                        ]}
+                                                                        onDragEnd={handleDragEnd}
                                                                     >
-                                                                        <div className="flex w-full gap-3">
-                                                                            {row.items.map(item => (
-                                                                                <div key={item.id} className="flex-1">
-                                                                                    <SortableCard item={item}>
-                                                                                        {({ dragHandleProps }) => (
-                                                                                            <TemplateField
-                                                                                                id={item.id}
-                                                                                                label={item.label}
-                                                                                                dragHandleProps={dragHandleProps}
-                                                                                            />
-                                                                                        )}
-                                                                                    </SortableCard>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </SortableContext>
+                                                                        <SortableContext
+                                                                            items={row.items.map(i => i.id)}
+                                                                            strategy={rectSortingStrategy}
+                                                                        >
+                                                                            <div className="flex w-full gap-3">
+                                                                                {row.items.map(item => (
+                                                                                    <div key={item.id} className="flex-1">
+                                                                                        <SortableCard item={item}>
+                                                                                            {({ dragHandleProps }) => (
+                                                                                                <TemplateField
+                                                                                                    id={item.id}
+                                                                                                    label={item.label}
+                                                                                                    dragHandleProps={dragHandleProps}
+                                                                                                />
+                                                                                            )}
+                                                                                        </SortableCard>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </SortableContext>
+                                                                    </DndContext>
 
                                                                     <button
                                                                         className="btn btn-accent text-2xl w-10 mt-10"
@@ -438,7 +447,7 @@ export default function CharacterTemplate() {
                                                 </div>
                                             </SortableContext>
                                         </DndContext>
-
+                                        
                                         <button
                                             className="btn btn-accent text-2xl w-full mt-2"
                                         >
