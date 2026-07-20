@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { toast } from "../../scripts/toast.js";
+import { toast } from "../../../_common/scripts/toast.js";
 import { showCaptcha } from "../../../_common/components/CaptchaPortal.js";
 
 import { 

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { toast } from "../../scripts/toast.js";
+import { toast } from "../../../_common/scripts/toast.js";
 
 type Props = {
     userId: string;

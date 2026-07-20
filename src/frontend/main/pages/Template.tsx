@@ -17,7 +17,7 @@ import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 import ProjectCard from "../components/ProjectCard.js";
 import Badges from "../components/Badges.js";
-import { toast } from "../scripts/toast.js";
+import { toast } from "../../_common/scripts/toast.js";
 import RestrictModal from "../components/modals/RestrictModal.js";
 import BlockModal from "../components/modals/BlockModal.js";
 import MuteModal from "../components/modals/MuteModal.js";

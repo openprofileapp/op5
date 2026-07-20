@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast, Toast } from "../../main/scripts/toast.js";
+import { toast, Toast } from "../scripts/toast.js";
 import { AnimatePresence, motion } from "framer-motion";
 
 type ToastUI = Toast & {
