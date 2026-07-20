@@ -204,8 +204,6 @@ export default function Layout() {
                                 </button>
                             </li>
 
-                            <hr />
-
                             <li>
                                 <Link 
                                     className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
@@ -221,19 +219,83 @@ export default function Layout() {
                                 </Link>
                             </li>
 
-                            <li className="hidden">
-                                <Link 
-                                    className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
-                                    data-tip="Themes"
-                                    to={"/analytics"}
+                            <hr />
+
+                            <li>
+                                <details
+                                    ref={contentDetailsRef}
+                                    className="no-arrow tooltip tooltip-accent tooltip-right"
+                                    data-tip="Content"
+                                    onClick={(e) => {
+                                        const drawer = document.getElementById("my-drawer-4");
+
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        if (drawer && !drawer.checked) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 >
-                                    <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
-                                        
-                                    </span>
-                                    <span className="is-drawer-close:hidden text-sm">
-                                        Themes
-                                    </span>
-                                </Link>
+                                    <summary className="flex gap-4">
+                                        <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                            
+                                        </span>
+                                        <span className="is-drawer-close:hidden text-sm">
+                                            Marketplace
+                                        </span>
+                                        <span className="ml-auto font-nerdfont details-arrow is-drawer-close:hidden">
+                                            
+                                        </span>
+                                    </summary>
+                                    
+                                    <div className="details-content">
+                                        <div>
+                                            <ul>
+                                                <li>
+                                                    <button 
+                                                        className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                        data-tip="Content"
+                                                        onClick={async () => {
+                                                            // ACTION HERE
+                                                        }}
+                                                    >
+                                                        <span className="flex h-8 items-center justify-center is-drawer-close:hidden text-sm">
+                                                            Add-ons
+                                                        </span>
+                                                    </button>
+                                                </li>
+
+                                                <li>
+                                                    <button 
+                                                        className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                        data-tip="Content"
+                                                        onClick={async () => {
+                                                            // ACTION HERE
+                                                        }}
+                                                    >
+                                                        <span className="flex h-8 items-center justify-center is-drawer-close:hidden text-sm">
+                                                            Themes
+                                                        </span>
+                                                    </button>
+                                                </li>
+
+                                                <li>
+                                                    <button 
+                                                        className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                        data-tip="Content"
+                                                        onClick={async () => {
+                                                            // ACTION HERE
+                                                        }}
+                                                    >
+                                                        <span className="flex h-8 items-center justify-center is-drawer-close:hidden text-sm">
+                                                            Templates
+                                                        </span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </details>
                             </li>
                         </ul>
 
