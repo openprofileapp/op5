@@ -52,7 +52,7 @@ export default function MfaModal() {
     const [loading, setLoading] = useState(false);
     const [loadingConnection, setLoadingConnection] = useState<string | null>(null);
     const [screen, setScreen] = useState<MfaScreen>("menu");
-    const [methods, setMethods] = useState<MfaMethod[]>([]);
+    const [methods, setMethods] = useState<MfaMethod[]>(["backup", "totp"]);
     const [isSingleMethod, setIsSingleMethod] = useState(false);
     const [totp, setTotp] = useState<string[]>(Array(6).fill(""));
     const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export default function MfaModal() {
                 const json = await response.json();
                 const MfaMethods = json.methods ?? [];
 
-                setMethods(MfaMethods);
+                // setMethods(MfaMethods);
 
                 if (MfaMethods.length === 1) {
                     setIsSingleMethod(true);
@@ -323,7 +323,7 @@ export default function MfaModal() {
 
                                         <div className="flex flex-col text-left flex-1">
                                             <div>{cfg.title}</div>
-                                            <div className="text-xs text-sub">
+                                            <div className="text-xs font-normal text-sub">
                                                 {cfg.description}
                                             </div>
                                         </div>
