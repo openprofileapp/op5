@@ -9,6 +9,8 @@ import { CSS } from "@dnd-kit/utilities";
 import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "./TemplateField.js";
 import { restrictToParentElement, restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
+import NewRowModal from "./modals/NewRowModal.js";
+import NewFieldModal from "./modals/NewFieldModal.js";
 
 export default function CharacterTemplate() {
     const { id } = useParams();
@@ -21,15 +23,38 @@ export default function CharacterTemplate() {
     const [activeYear, setActiveYear] = useState(0);
     const [activeSeries, setActiveSeries] = useState(0);
 
+    const soon = [
+        {
+            id: "names-category",
+            tabs: ["current", "former"],
+            rows: [
+                {
+                    id: "full-name-row",
+                    fields: [
+                        { id: "full-name", label: "Full Name" }
+                    ],
+                },
+                {
+                    id: "first-name-row",
+                    fields: [
+                        { id: "first-name", label: "First Name" },
+                        { id: "middle-name", label: "Middle Name" },
+                        { id: "last-name", label: "Last Name" }
+                    ],
+                }
+            ]
+        }
+    ]
+
     const [fieldRows, setFieldRows] = useState([
         {
-            id: "row-1",
+            id: "full-name-row",
             items: [
                 { id: "full-name", label: "Full Name" }
             ],
         },
         {
-            id: "row-2",
+            id: "first-name-row",
             items: [
                 { id: "first-name", label: "First Name" },
                 { id: "middle-name", label: "Middle Name" },
@@ -209,6 +234,9 @@ export default function CharacterTemplate() {
                 title="Development"
                 allowIndex="false"
             />
+
+            <NewRowModal />
+            <NewFieldModal />
 
             <div className="drawer lg:drawer-open">
                 <input 
@@ -437,6 +465,7 @@ export default function CharacterTemplate() {
 
                                                                     <button
                                                                         className="btn btn-accent text-2xl w-10 mt-10"
+                                                                        onClick={()=>document.getElementById("new-field").showModal()}
                                                                     >
                                                                         +
                                                                     </button>
@@ -450,6 +479,7 @@ export default function CharacterTemplate() {
                                         
                                         <button
                                             className="btn btn-accent text-2xl w-full mt-2"
+                                            onClick={()=>document.getElementById("new-row").showModal()}
                                         >
                                             +
                                         </button>
