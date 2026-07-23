@@ -47,7 +47,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
     return (
         <>
             <LoginModal />
-            {/*<MfaModal />*/}
+            <MfaModal />
             <CreateProjectModal />
 
             <div className={`
