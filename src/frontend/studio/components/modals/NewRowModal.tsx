@@ -1,27 +1,18 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-type MfaScreen =
-    | "menu"
-    | "totp"
-    | "biometric"
-    | "connection"
-    | "qr"
-    | "backup";
+type Screen = "menu" | "configure";
 
-type MfaMethod =
-    | "field"
-    | "split"
-    | "media"
-    | "timeline"
-    | "calendar"
+export type RowType = "field" | "split" | "media" | "timeline" | "calendar";
 
-const TYPES: {
-    method: MfaMethod;
+interface RowTypeOption {
+    method: RowType;
     icon: string;
     title: string;
     description: string;
-}[] = [
+}
+
+const TYPES: RowTypeOption[] = [
     {
         method: "field",
         icon: "󰈚",
@@ -54,25 +45,65 @@ const TYPES: {
     }
 ];
 
-export default function NewRowModal() {
+export interface NewRowData {
+    id: string;
+    label: string;
+    type: RowType;
+}
+
+interface NewRowModalProps {
+    onAddRow: (data: NewRowData) => void;
+}
+
+export default function NewRowModal({ onAddRow }: NewRowModalProps) {
     const { ready } = useTranslation();
 
     const [loading] = useState(false);
-    const [screen, setScreen] = useState<MfaScreen>("menu");
+    const [screen, setScreen] = useState<Screen>("menu");
     const [isSingleMethod] = useState(false);
 
-    function go(method: MfaMethod) {
-        setScreen(method);
+    const [selectedType, setSelectedType] = useState<RowType>("field");
+    const [rowLabel, setRowLabel] = useState("");
+    const [rowId, setRowId] = useState("");
+
+    function go(method: RowType) {
+        setSelectedType(method);
+        const defaultName = `${method.charAt(0).toUpperCase() + method.slice(1)} Row`;
+        setRowLabel(defaultName);
+        setRowId(`${method}-${Date.now().toString().slice(-4)}`);
+        setScreen("configure");
+    }
+
+    function resetForm() {
+        setScreen("menu");
+        setRowLabel("");
+        setRowId("");
+    }
+
+    function handleSave() {
+        const finalLabel = rowLabel.trim() || "New Row";
+        const finalId = rowId.trim() || `row-${Date.now()}`;
+
+        onAddRow({
+            id: finalId,
+            label: finalLabel,
+            type: selectedType
+        });
+
+        const modal = document.getElementById("new-row") as HTMLDialogElement | null;
+        modal?.close();
+        resetForm();
     }
 
     if (!ready) return null;
 
     return (
-        <dialog id="new-row" className="modal">
+        <dialog id="new-row" className="modal" onClose={resetForm}>
             <div className="modal-box flex flex-col">
 
                 <form method="dialog">
                     <button
+                        type="submit"
                         className="absolute right-0 top-0 m-5 text-2xl font-nerdfont cursor-pointer"
                     >
                         
@@ -81,6 +112,7 @@ export default function NewRowModal() {
 
                 {!isSingleMethod && screen !== "menu" && (
                     <button
+                        type="button"
                         className="absolute left-0 top-1 m-5 flex items-center gap-2 cursor-pointer"
                         onClick={() => setScreen("menu")}
                     >
@@ -103,18 +135,16 @@ export default function NewRowModal() {
                     <p className="text-center text-sm text-sub py-4">
                         {screen === "menu"
                             ? "What type of row do you want to add?"
-                            : "Complete the challenge to proceed."}
+                            : "Specify the row details to proceed."}
                     </p>
                 </div>
 
                 <div>
-                    {loading &&
-                        screen !== "biometric" &&
-                        screen !== "qr" && (
-                            <div className="flex justify-center py-10">
-                                <span className="loading loading-spinner" />
-                            </div>
-                        )}
+                    {loading && (
+                        <div className="flex justify-center py-10">
+                            <span className="loading loading-spinner" />
+                        </div>
+                    )}
 
                     {!loading && screen === "menu" && (
                         <div className="flex flex-col gap-2">
@@ -141,44 +171,32 @@ export default function NewRowModal() {
                         </div>
                     )}
 
-                    {screen === "totp" && (
-                        <div className="py-8 text-center">
-                            TOTP Challenge
-                        </div>
-                    )}
-
-                    {screen === "biometric" && (
-                        <div className="py-8 text-center">
-                            Biometric Challenge
-                        </div>
-                    )}
-
-                    {screen === "connection" && (
-                        <div className="py-8 text-center">
-                            Connected Account Challenge
-                        </div>
-                    )}
-
-                    {screen === "qr" && (
-                        <div className="py-8 text-center">
-                            QR Code Challenge
-                        </div>
-                    )}
-
-                    {screen === "backup" && (
-                        <div className="py-8 text-center">
+                    {screen === "configure" && (
+                        <div className="py-4 text-center flex flex-col gap-4">
                             <input
                                 type="text"
                                 className="input input-bordered w-full"
-                                placeholder="Enter backup code"
+                                placeholder="Row Title / Name"
+                                value={rowLabel}
+                                onChange={(e) => setRowLabel(e.target.value)}
+                            />
+                            <input
+                                type="text"
+                                className="input input-bordered w-full font-mono text-sm"
+                                placeholder="Row ID (e.g. overview-row)"
+                                value={rowId}
+                                onChange={(e) =>
+                                    setRowId(e.target.value.toLowerCase().replace(/\s+/g, "-"))
+                                }
                             />
                         </div>
                     )}
                 </div>
 
-                {screen === "backup" && (
+                {screen === "configure" && (
                     <button
                         type="button"
+                        onClick={handleSave}
                         className="absolute bottom-6 left-6 right-6 md:relative md:bottom-0 md:right-0 md:left-0 md:mt-4 btn btn-accent"
                     >
                         Continue
