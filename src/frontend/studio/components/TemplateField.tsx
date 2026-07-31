@@ -7,13 +7,19 @@ import colors from "tailwindcss/colors";
 
 type Props = {
     id: string;
+    type: string;
     label?: string;
 };
 
+{/* rename to fieldRenderer */}
 {/* pass name and type and stuff and gen data api and stuff */}
 export default function TemplateField({
     id,
+    type,
     label,
+    url,
+    value,
+    options,
     dragHandleProps
 }: Props) {
     const { t, ready } = useTranslation();
@@ -40,6 +46,33 @@ export default function TemplateField({
             .getElementById(`field-dropdown-${id}`)
             ?.hidePopover();
     }, []);
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsContextMenuOpen(true);
+
+        const popover = document.getElementById(
+            `field-dropdown-${id}`
+        ) as HTMLElement | null;
+
+        if (!popover) return;
+
+        popover.showPopover();
+
+        requestAnimationFrame(() => {
+            const rect = popover.getBoundingClientRect();
+
+            popover.style.left = `${Math.min(
+                e.clientX,
+                window.innerWidth - rect.width - 8
+            )}px`;
+
+            popover.style.top = `${Math.min(
+                e.clientY,
+                window.innerHeight - rect.height - 8
+            )}px`;
+        });
+    };
 
     const getTextColor = (color: string) => {
         const [name, shade] = color.split("-");
@@ -108,6 +141,139 @@ export default function TemplateField({
         const spaceRight = window.innerWidth - button.right;
 
         setIsContextMenuFlipped(spaceRight < submenuWidth);
+    };
+
+    const renderInputContent = () => {
+        switch (type) {
+            case "button":
+                return (
+                    <a
+                        href={url || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
+                        onContextMenu={handleContextMenu}
+                    >
+                        <span>{label || "Click Here"}</span>
+                        <span className="font-nerdfont"></span>
+                    </a>
+                );
+
+            case "dropdown":
+                return (
+                    <select
+                        className="select select-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base"
+                        defaultValue={value || ""}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onContextMenu={handleContextMenu}
+                    >
+                        <option value="" disabled>Select option...</option>
+                        {options?.map((opt, i) => (
+                            <option key={i} value={opt}>
+                                {opt}
+                            </option>
+                        ))}
+                    </select>
+                );
+
+            case "slider":
+                return (
+                    <div 
+                        className="w-full flex items-center h-10"
+                        onContextMenu={handleContextMenu}
+                    >
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            defaultValue={value ?? 50}
+                            className="range range-accent range-sm w-full"
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                        />
+                    </div>
+                );
+
+            case "color":
+                return (
+                    <div 
+                        className="flex gap-2 items-center w-full h-10"
+                        onContextMenu={handleContextMenu}
+                    >
+                        <input
+                            type="color"
+                            defaultValue={value || "#3b82f6"}
+                            className="input input-bordered h-10 w-16 p-1 cursor-pointer bg-base-100 border border-base-300"
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                        />
+                        <span className="font-mono text-sm">{value || "#3b82f6"}</span>
+                    </div>
+                );
+
+            case "rating":
+                return (
+                    <div 
+                        className="rating rating-md h-10 items-center"
+                        onContextMenu={handleContextMenu}
+                    >
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <input
+                                key={star}
+                                type="radio"
+                                name={`rating-${id}`}
+                                className="mask mask-star-2 bg-orange-400"
+                                defaultChecked={value === star}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                            />
+                        ))}
+                    </div>
+                );
+
+            case "asset":
+                return (
+                    <div 
+                        className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base flex items-center justify-between cursor-pointer"
+                        onContextMenu={handleContextMenu}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        tabIndex={0}
+                    >
+                        <span className="truncate text-sub">{value || "Select Asset..."}</span>
+                        <span className="font-nerdfont text-lg"></span>
+                    </div>
+                );
+
+            case "text":
+            default:
+                return (
+                    <>
+                        <textarea
+                            className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
+                            id={`template-field-${id}`}
+                            placeholder="What is <CHARACTER>'s full name?"
+                            rows={1}
+                            spellCheck={false}
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            onMouseDown={(e) => {
+                                if (e.button === 2) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onContextMenu={handleContextMenu}
+                            onInput={(e) => {
+                                e.currentTarget.style.height = "auto";
+                                e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                            }}
+                        />
+                    </>
+                );
+        }
     };
 
     if (!ready) return null;
@@ -643,8 +809,8 @@ export default function TemplateField({
 
             <div className="flex gap-3 w-full">
                 <fieldset className="fieldset w-full">
-                    <legend className="fieldset-legend text-sm font-normal">
 
+                    <legend className="fieldset-legend text-sm font-normal">
                         {dragHandleProps && (
                             <span
                                 {...dragHandleProps}
@@ -718,52 +884,7 @@ export default function TemplateField({
                         </span>
                     </legend>
 
-                    <textarea
-                        className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
-                        id={`template-field-${id}`}
-                        placeholder="What is <CHARACTER>'s full name?"
-                        rows={1}
-                        spellCheck={false}
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        onMouseDown={(e) => {
-                            if (e.button === 2) {
-                                e.preventDefault();
-                            }
-                        }}
-                        onContextMenu={(e) => {
-                            e.preventDefault();
-                            setIsContextMenuOpen(true);
-
-                            const popover = document.getElementById(
-                                `field-dropdown-${id}`
-                            ) as HTMLElement | null;
-
-                            if (!popover) return;
-
-                            popover.showPopover();
-
-                            requestAnimationFrame(() => {
-                                const rect = popover.getBoundingClientRect();
-
-                                popover.style.left = `${Math.min(
-                                    e.clientX,
-                                    window.innerWidth - rect.width - 8
-                                )}px`;
-
-                                popover.style.top = `${Math.min(
-                                    e.clientY,
-                                    window.innerHeight - rect.height - 8
-                                )}px`;
-                            });
-                        }}
-                        onInput={(e) => {
-                            e.currentTarget.style.height = "auto";
-                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-                        }}
-                    />
+                    {renderInputContent()}
 
                     <div
                         className={`overflow-hidden transition-all duration-300 ease-out ${
