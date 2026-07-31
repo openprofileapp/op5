@@ -85,7 +85,7 @@ export default function CreateProjectModal() {
                                     <label className="label">Name</label>
                                     <input 
                                         id="create-project-name"
-                                        type="text" 
+                                        type="text"
                                         className="input w-full" 
                                         placeholder="What is your project's name?"
                                         value={name}
