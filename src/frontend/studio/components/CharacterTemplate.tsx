@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +29,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "./TemplateField.js";
 import NewRowModal from "./modals/NewRowModal.js";
 import NewFieldModal from "./modals/NewFieldModal.js";
+import { toast } from "../../_common/scripts/toast.js";
 
 function FieldDropZone({ id, children, className = "" }) {
     const { setNodeRef } = useDroppable({ id });
@@ -78,42 +79,120 @@ export default function CharacterTemplate() {
     const { id } = useParams();
     const { ready } = useTranslation();
 
+    const isToastActiveRef = useRef(false);
     const [drawerOpen, setDrawerOpen] = useState(true);
-
-    const [activeCategory, setActiveCategory] = useState("names");
+    const [targetRowId, setTargetRowId] = useState(null);
+    const [activeCategory, setActiveCategory] = useState("identities");
     const [activeTab, setActiveTab] = useState("current");
     const [activeYear, setActiveYear] = useState(0);
     const [activeSeries, setActiveSeries] = useState(0);
 
     const [template, setTemplate] = useState([
         {
-            id: "names",
-            label: "Names",
-            tabs: ["current", "former"],
+            id: "identities",
+            label: "Identities",
+            single: "Identity",
+            tabs: [
+                { id: "main", label: "Mable Jackson", description: "Real-life" },
+                { id: "secret-identity", label: "Eclipse", description: "Secret identity" },
+                { id: "online", label: "@???????", description: "Social Media" },
+                // have for main, former, and alias by default
+            ],
             rows: [
                 {
                     id: "full-name",
-                    fields: [{ id: "full-name", label: "Full Name" }],
+                    fields: [{ id: "full-name", label: "Full Name", type: "text" }],
                 },
                 {
                     id: "first-middle-last-name",
                     fields: [
-                        { id: "first-name", label: "First Name" },
-                        { id: "middle-name", label: "Middle Name" },
-                        { id: "last-name", label: "Last Name" },
+                        { id: "first-name", label: "First Name", type: "text" },
+                        { id: "middle-name", label: "Middle Name", type: "text" },
+                        { id: "last-name", label: "Last Name", type: "text" },
                     ],
                 },
             ],
         },
         { id: "astral", label: "Astral", tabs: [], rows: [] },
         { id: "physical", label: "Physical", tabs: [], rows: [] },
-        { id: "supernatural", label: "Supernatural", tabs: [], rows: [] },
+        { 
+            id: "supernatural", 
+            label: "Supernatural", 
+            tabs: [
+                { id: "fire-manipulation", label: "Fire Manipulation" },
+                { id: "frost-manipulation", label: "Frost Manipulation" },
+            ],
+            rows: [] 
+        },
         { id: "personality", label: "Personality", tabs: [], rows: [] },
-        { id: "favorites", label: "Favorites", tabs: [], rows: [] },
+        { 
+            id: "favorites", 
+            label: "Favorites",
+            tabs: [
+                { id: "book", label: "Book" },
+                { id: "author", label: "Author" },
+                { id: "movie", label: "Movie" },
+                { id: "actor", label: "Actor" },
+                { id: "tv-series", label: "TV Series" },
+                { id: "tv-channel", label: "TV Channel" }
+            ], 
+            rows: [] 
+        },
         { id: "interactions", label: "Interactions", tabs: [], rows: [] },
-        { id: "emotional", label: "Emotional", tabs: [], rows: [] },
-        { id: "relationships", label: "Relationships", tabs: [], rows: [] },
+        { 
+            id: "emotional", 
+            label: "Emotional", 
+            tabs: [
+                { id: "happiness", label: "Happiness" },
+                { id: "sadness", label: "Sadness" },
+                { id: "anger", label: "Anger" },
+                { id: "fear", label: "Fear" },
+                { id: "disgust", label: "Disgust" },
+                { id: "surprise", label: "Surprise" },
+                { id: "anxiety", label: "Anxiety" },
+                { id: "love", label: "Love" },
+                { id: "affection", label: "Affection" },
+                { id: "excitement", label: "Excitement" },
+                { id: "frustration", label: "Frustration" },
+                { id: "calmness", label: "Calmness" },
+                { id: "comfort", label: "Comfort" },
+                { id: "hope", label: "Hope" },
+                { id: "hurt", label: "Hurt" },
+                { id: "guilt", label: "Guilt" },
+                { id: "shame", label: "Shame" },
+                { id: "amazement", label: "Amazement" },
+                { id: "annoyance", label: "Annoyance" },
+                { id: "boredom", label: "Boredom" },
+                { id: "confusion", label: "Confusion" },
+                { id: "curiosity", label: "Curiosity" },
+                { id: "determination", label: "Determination" },
+                { id: "embarrassment", label: "Embarrassment" },
+                { id: "gratitude", label: "Gratitude" },
+                { id: "jealousy", label: "Jealousy" },
+                { id: "loneliness", label: "Loneliness" },
+                { id: "pride", label: "Pride" },
+            ],
+            rows: [] 
+        },
+        { 
+            id: "relationships", 
+            label: "Relationships", 
+            tabs: [
+                { id: "mable-jackson", label: "Mable Jackson", description: "Friend" },
+                { id: "julia-anderson", label: "Julia Anderson", description: "Friend" }
+            ],
+            rows: [] 
+        },
     ]);
+
+    const showToastOnce = (msg, options) => {
+        if (isToastActiveRef.current) return;
+        isToastActiveRef.current = true;
+        toast.show(msg, options);
+        setTimeout(() => {
+            isToastActiveRef.current = false;
+        }, 2000);
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -153,40 +232,48 @@ export default function CharacterTemplate() {
 
         const activeFieldId = activeStr.replace("field:", "");
 
-        setTemplate(prevTemplate => {
-            return prevTemplate.map(category => {
-                if (category.id !== activeCategory) return category;
+        const category = template.find(cat => cat.id === activeCategory);
+        if (!category) return;
 
-                const sourceRow = findFieldRow(category, activeFieldId);
-                if (!sourceRow) return category;
+        const sourceRow = findFieldRow(category, activeFieldId);
+        if (!sourceRow) return;
 
-                let targetRowId = null;
-                let targetFieldIndex = -1;
+        let targetRowId = null;
+        let targetFieldIndex = -1;
 
-                if (overStr.startsWith("field:")) {
-                    const overFieldId = overStr.replace("field:", "");
-                    const targetRow = findFieldRow(category, overFieldId);
-                    if (targetRow) {
-                        targetRowId = targetRow.id;
-                        targetFieldIndex = targetRow.fields.findIndex(f => f.id === overFieldId);
-                    }
-                } else if (overStr.startsWith("row-fields:")) {
-                    targetRowId = overStr.replace("row-fields:", "");
-                }
+        if (overStr.startsWith("field:")) {
+            const overFieldId = overStr.replace("field:", "");
+            const targetRow = findFieldRow(category, overFieldId);
+            if (targetRow) {
+                targetRowId = targetRow.id;
+                targetFieldIndex = targetRow.fields.findIndex(f => f.id === overFieldId);
+            }
+        } else if (overStr.startsWith("row-fields:")) {
+            targetRowId = overStr.replace("row-fields:", "");
+        }
 
-                if (!targetRowId || (sourceRow.id === targetRowId && overStr.startsWith("row-fields:"))) {
-                    return category;
-                }
+        if (!targetRowId || (sourceRow.id === targetRowId && overStr.startsWith("row-fields:"))) {
+            return;
+        }
 
-                const targetRow = category.rows.find(r => r.id === targetRowId);
-                if (!targetRow) return category;
+        const targetRow = category.rows.find(r => r.id === targetRowId);
+        if (!targetRow) return;
 
-                if (sourceRow.id !== targetRowId) {
-                    const movedField = sourceRow.fields.find(f => f.id === activeFieldId);
-                    
+        if (sourceRow.id !== targetRowId) {
+            if (targetRow.fields.length >= 5) {
+                showToastOnce("A row cannot contain more than 5 fields", { type: "error" });
+                return;
+            }
+
+            const movedField = sourceRow.fields.find(f => f.id === activeFieldId);
+            if (!movedField) return;
+
+            setTemplate(prevTemplate =>
+                prevTemplate.map(cat => {
+                    if (cat.id !== activeCategory) return cat;
                     return {
-                        ...category,
-                        rows: category.rows.map(row => {
+                        ...cat,
+                        rows: cat.rows.map(row => {
                             if (row.id === sourceRow.id) {
                                 return {
                                     ...row,
@@ -204,11 +291,58 @@ export default function CharacterTemplate() {
                             return row;
                         }),
                     };
-                }
+                })
+            );
+        }
+    };
 
-                return category;
-            });
-        });
+    const handleAddRow = (data) => {
+        setTemplate((prev) =>
+            prev.map((cat) => {
+                if (cat.id !== activeCategory) return cat;
+                return {
+                    ...cat,
+                    rows: [
+                        ...cat.rows,
+                        {
+                            id: data.id,
+                            label: data.label,
+                            type: data.type,
+                            fields: []
+                        }
+                    ]
+                };
+            })
+        );
+    };
+
+    const handleAddField = (rowId, data) => {
+        const currentCat = template.find(c => c.id === activeCategory);
+        const targetRow = currentCat?.rows.find(r => r.id === rowId);
+
+        if (targetRow && targetRow.fields.length >= 5) {
+            toast.show("A row cannot contain more than 5 fields", { type: "error" });
+            return;
+        }
+
+        setTemplate(prev =>
+            prev.map(cat => {
+                if (cat.id !== activeCategory) return cat;
+                return {
+                    ...cat,
+                    rows: cat.rows.map(r => {
+                        if (r.id !== rowId) return r;
+                        return {
+                            ...r,
+                            fields: [
+                                ...r.fields,
+                                { id: data.id, label: data.label, type: data.type }
+                            ]
+                        };
+                    })
+                };
+            })
+        );
     };
 
     const handleDragEnd = (event) => {
@@ -260,13 +394,18 @@ export default function CharacterTemplate() {
 
                 if (category.id !== activeCategory) return category;
 
+                // Updated for { id, label } object format
                 if (activeType === "tab") {
-                    const oldIndex = category.tabs.indexOf(activeId);
-                    const newIndex = category.tabs.indexOf(overId);
-                    return {
-                        ...category,
-                        tabs: arrayMove(category.tabs, oldIndex, newIndex),
-                    };
+                    const oldIndex = category.tabs.findIndex(t => t.id === activeId);
+                    const newIndex = category.tabs.findIndex(t => t.id === overId);
+                    
+                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                        return {
+                            ...category,
+                            tabs: arrayMove(category.tabs, oldIndex, newIndex),
+                        };
+                    }
+                    return category;
                 }
 
                 if (activeType === "row") {
@@ -284,20 +423,23 @@ export default function CharacterTemplate() {
     };
 
     const setTab = (tab) => {
-        if (tab === "about") {
-            history.replaceState(null, "", window.location.pathname + window.location.search);
+        if (!tab || tab === "about") {
+            history.pushState(null, "", window.location.pathname + window.location.search);
+            setActiveTab(null);
         } else {
             window.location.hash = tab;
         }
-        setActiveTab(tab);
     };
 
     useEffect(() => {
         const updateTab = () => {
-            setActiveTab(window.location.hash.replace("#", ""));
+            const hash = window.location.hash.replace("#", "");
+            setActiveTab(hash ? hash : null);
         };
+
         window.addEventListener("hashchange", updateTab);
         updateTab();
+
         return () => window.removeEventListener("hashchange", updateTab);
     }, []);
 
@@ -307,8 +449,8 @@ export default function CharacterTemplate() {
         <>
             <Metadata title="Development" allowIndex="false" />
 
-            <NewRowModal />
-            <NewFieldModal />
+            <NewRowModal onAddRow={handleAddRow} />
+            <NewFieldModal targetRowId={targetRowId} onAddField={handleAddField} />
 
             <DndContext
                 sensors={sensors}
@@ -340,7 +482,7 @@ export default function CharacterTemplate() {
                             </div>
                         </nav>
 
-                        <nav className="w-full bg-base-100 border-b border-base-300">
+                        <nav className="w-full bg-base-100 border-b border-base-300 hidden">
                             <div className="mx-4">
                                 <input
                                     type="range"
@@ -387,116 +529,275 @@ export default function CharacterTemplate() {
                                 </div>
                             </div>
                             
-                            <div className="px-4 w-full mt-6">
-                                <div className="tabs tabs-lift flex-nowrap">
-                                    <SortableContext
-                                        items={currentCategory?.tabs.map(tab => `tab:${tab}`) ?? []}
-                                    >
-                                        {currentCategory?.tabs.map(tab => (
-                                            <SortableItem key={tab} id={`tab:${tab}`}>
-                                                {({ sortableProps, dragHandleProps }) => (
-                                                    <button
-                                                        {...sortableProps}
-                                                        className={`tab flex-1 ${
-                                                            activeTab === tab ? "tab-active bg-base-200" : ""
-                                                        }`}
-                                                        onClick={() => setTab(tab)}
+                            <div 
+                                className="tabs tabs-lift overflow-x-auto flex-nowrap scrollbar-none w-full"
+                                onWheel={(e) => {
+                                    if (e.deltaY !== 0) {
+                                        e.currentTarget.scrollLeft += e.deltaY;
+                                    }
+                                }}
+                            >
+                                <SortableContext
+                                    items={currentCategory?.tabs.map(tab => `tab:${tab.id}`) ?? []}
+                                >
+                                    {currentCategory?.tabs.map(tab => (
+                                        <SortableItem key={tab.id} id={`tab:${tab.id}`}>
+                                            {({ sortableProps, dragHandleProps }) => (
+                                                <button
+                                                    {...sortableProps}
+                                                    className={`tab flex-1 min-w-[max-content] px-4 ${
+                                                        activeTab === tab.id ? "tab-active bg-base-200" : ""
+                                                    }`}
+                                                    onClick={() => setTab(tab.id)}
+                                                >
+                                                    <span
+                                                        {...dragHandleProps}
+                                                        className="flex items-center cursor-grab touch-none"
                                                     >
-                                                        {tab}
-
-                                                        <span
-                                                            {...dragHandleProps}
-                                                            className="ml-2 cursor-grab touch-none"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <span className="text-xl font-nerdfont">
-                                                                󰇝
-                                                            </span>
-                                                        </span>
-                                                    </button>
-                                                )}
-                                            </SortableItem>
-                                        ))}
-                                        <button className="btn btn-accent text-2xl mt-2">+</button>
-                                    </SortableContext>
-                                </div>
+                                                        <div className="flex items-center justify-center">
+                                                            <div className="flex w-5 items-center justify-center">
+                                                                <span className="text-2xl leading-none font-nerdfont">
+                                                                    󰇝
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </span>
+                                                
+                                                    <span className="flex-1">
+                                                        {tab.label}
+                                                    </span>
+                                                </button>
+                                            )}
+                                        </SortableItem>
+                                    ))}
+                                    
+                                    <button className="btn btn-accent text-2xl shrink-0">
+                                        +
+                                    </button>
+                                </SortableContext>
                             </div>
                         </nav>
 
-                        <div className="flex justify-center p-4">
-                            <div className="bg-base-100 border border-base-300 p-4 rounded-lg z-1 w-232">
-                                <div className="p-2 md:p-4">
-                                    <SortableContext
-                                        items={currentCategory?.rows.map(row => `row:${row.id}`) ?? []}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        <div className="flex flex-col gap-1">
-                                            {currentCategory?.rows.map(row => (
-                                                <SortableItem key={row.id} id={`row:${row.id}`}>
-                                                    {({ sortableProps, dragHandleProps }) => (
-                                                        <div {...sortableProps} className="flex gap-3">
-                                                            <span
-                                                                {...dragHandleProps}
-                                                                className="flex items-center cursor-grab touch-none"
-                                                            >
-                                                                <div className="flex h-full items-center justify-center py-2">
-                                                                    <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
-                                                                        <span className="text-2xl leading-none font-nerdfont">
-                                                                            󰇝
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </span>
+                        <div className="flex flex-col items-center p-4 w-full">
+                            <div className="bg-base-100 border border-base-300 p-4 rounded-lg z-1 w-full max-w-5xl">
 
-                                                            <FieldDropZone
-                                                                id={`row-fields:${row.id}`}
-                                                                className="flex-1 min-w-0 w-full min-h-[44px]"
-                                                            >
-                                                                <SortableContext
-                                                                    items={row.fields.map(f => `field:${f.id}`)}
-                                                                    strategy={rectSortingStrategy}
-                                                                >
-                                                                    <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
-                                                                        {row.fields.map(field => (
-                                                                            <SortableItem key={field.id} id={`field:${field.id}`}>
-                                                                                {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => (
-                                                                                    <div {...fSortProps} className="flex-1 min-w-0">
-                                                                                        <TemplateField
-                                                                                            id={field.id}
-                                                                                            label={field.label}
-                                                                                            dragHandleProps={{
-                                                                                                ...fDragProps,
-                                                                                                className: `${fDragProps.className || ""} touch-none`,
-                                                                                            }}
-                                                                                        />
-                                                                                    </div>
-                                                                                )}
-                                                                            </SortableItem>
-                                                                        ))}
-                                                                    </div>
-                                                                </SortableContext>
-                                                            </FieldDropZone>
-                                                            
-                                                            <button
-                                                                className="btn btn-accent text-2xl w-10 mt-10"
-                                                                onClick={() => document.getElementById("new-field").showModal()}
-                                                            >
-                                                                +
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </SortableItem>
-                                            ))}
+                                {!activeTab ? (
+                                    <div className="p-2 md:p-4">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-2xl font-bold">Select {currentCategory?.label}</h2>
                                         </div>
-                                    </SortableContext>
 
-                                    <button
-                                        className="btn btn-accent text-2xl w-full mt-2"
-                                        onClick={() => document.getElementById("new-row").showModal()}
-                                    >
-                                        +
-                                    </button>
-                                </div>
+                                        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                            <fieldset className="fieldset flex-1">
+                                                <legend className="fieldset-legend">Search</legend>
+                                                <label className="input w-full">
+                                                    <span className="font-nerdfont text-base mr-1"></span>
+                                                    <input type="search" placeholder="???..." />
+                                                </label>
+                                            </fieldset>
+
+                                            <fieldset className="fieldset shrink-0 w-full sm:w-60">
+                                                <legend className="fieldset-legend">Filter</legend>
+                                                <select defaultValue="updated" className="select w-full">
+                                                    <option value="updated">?????</option>
+                                                    <option value="newest">Newest First</option>
+                                                    <option value="oldest">Oldest First</option>
+                                                    <option value="popular-desc">Most Popular</option>
+                                                    <option value="popular-asc">Least Popular</option>
+                                                    <option value="name-asc">Name (A–Z)</option>
+                                                    <option value="name-desc">Name (Z–A)</option>
+                                                </select>
+                                            </fieldset>
+                                        </div>
+
+                                        <SortableContext
+                                            items={currentCategory?.tabs.map(tab => `tab:${tab.id}`) ?? []}
+                                            strategy={rectSortingStrategy}
+                                        >
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                {currentCategory?.tabs.map(tab => (
+                                                    <SortableItem key={tab.id} id={`tab:${tab.id}`}>
+                                                        {({ sortableProps, dragHandleProps }) => (
+                                                            <button
+                                                                {...sortableProps}
+                                                                className="relative flex flex-col items-center justify-center p-6 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer w-full"
+                                                                onClick={() => setTab(tab.id)}
+                                                            >
+                                                                <div
+                                                                    {...dragHandleProps}
+                                                                    className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                        󰇛
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* ADD MORE MENU HERE TO COPY AND DELETE AND OPEN AND STUFF */}
+                                                                <div
+                                                                    className="absolute top-2 right-2 p-1 touch-none"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <span className="text-lg leading-none font-nerdfont">
+                                                                        󰇘
+                                                                    </span>
+                                                                </div>
+                                                                
+                                                                <img className="h-20" src="https://openmoji.org/data/color/svg/E282.svg" alt={tab.label} />
+                                                                <span className="text-lg font-semibold mt-2">{tab.label}</span>
+                                                                <span className="text-xs text-base-content/60 mt-1">{tab.description}</span>
+                                                            </button>
+                                                        )}
+                                                    </SortableItem>
+                                                ))}
+
+                                                <button
+                                                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-base-300 hover:border-accent rounded transition-all text-accent cursor-pointer min-h-[160px]"
+                                                    onClick={() => (document.getElementById("new-tab") as HTMLDialogElement | null)?.showModal()}
+                                                >
+                                                    <span className="text-3xl font-bold">+</span>
+                                                    <span className="text-sm font-medium mt-1">Add {currentCategory?.single}</span>
+                                                </button>
+                                            </div>
+                                        </SortableContext>
+                                    </div>
+                                ) : (
+                                    <div className="p-2 md:p-4">
+                                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-300">
+                                            <button
+                                                className="btn btn-ghost btn-sm gap-2 text-base font-normal"
+                                                onClick={() => setTab(null)}
+                                            >
+                                                <span className="text-xl leading-none">←</span> Back to All
+                                            </button>
+                                            <div className="h-5 w-px bg-base-300" />
+                                            <h2 className="text-xl font-bold">
+                                                {currentCategory?.tabs.find(t => t.id === activeTab)?.label ?? activeTab}
+                                            </h2>
+                                        </div>
+
+                                        <SortableContext
+                                            items={currentCategory?.rows.map(row => `row:${row.id}`) ?? []}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            <div className="flex flex-col gap-1">
+                                                {currentCategory?.rows.map(row => (
+                                                    <SortableItem key={row.id} id={`row:${row.id}`}>
+                                                        {({ sortableProps, dragHandleProps }) => (
+                                                            <div {...sortableProps} className="flex gap-3">
+                                                                <span
+                                                                    {...dragHandleProps}
+                                                                    className="flex items-center cursor-grab touch-none"
+                                                                >
+                                                                    <div className="flex h-full items-center justify-center py-2">
+                                                                        <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
+                                                                            <span className="text-2xl leading-none font-nerdfont">
+                                                                                󰇝
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </span>
+
+                                                                {(() => {
+                                                                    switch (row.type) {
+                                                                        case "media":
+                                                                            return (
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
+                                                                                    {/* row content */}
+                                                                                </div>
+                                                                            );
+
+                                                                        case "split":
+                                                                            return (
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
+                                                                                    {/* row content */}
+                                                                                </div>
+                                                                            );
+
+                                                                        case "timeline":
+                                                                            return (
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
+                                                                                    {/* row content */}
+                                                                                </div>
+                                                                            );
+
+                                                                        case "calendar":
+                                                                            return (
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
+                                                                                    {/* row content */}
+                                                                                </div>
+                                                                            );
+
+                                                                        case "field":
+                                                                        default:
+                                                                            return (
+                                                                                <FieldDropZone
+                                                                                    id={`row-fields:${row.id}`}
+                                                                                    className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                                                >
+                                                                                    <SortableContext
+                                                                                        items={(row.fields || []).map(f => `field:${f.id}`)}
+                                                                                        strategy={rectSortingStrategy}
+                                                                                    >
+                                                                                        <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
+                                                                                            {(row.fields || []).map(field => (
+                                                                                                <SortableItem key={field.id} id={`field:${field.id}`}>
+                                                                                                    {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => (
+                                                                                                        <div {...fSortProps} className="flex-1 min-w-0">
+                                                                                                            <TemplateField
+                                                                                                                id={field.id}
+                                                                                                                type={field.type}
+                                                                                                                label={field.label}
+                                                                                                                url={field.url}
+                                                                                                                value={field.value}
+                                                                                                                options={field.options}
+                                                                                                                dragHandleProps={{
+                                                                                                                    ...fDragProps,
+                                                                                                                    className: `${fDragProps.className || ""} touch-none`,
+                                                                                                                }}
+                                                                                                            />
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </SortableItem>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </SortableContext>
+                                                                                </FieldDropZone>
+                                                                            );
+                                                                        }
+                                                                })()}
+
+                                                                {(!row.type || row.type === "field") && (
+                                                                    <button
+                                                                        className="btn btn-accent text-2xl w-10 mt-10"
+                                                                        onClick={() => {
+                                                                            if ((row.fields?.length || 0) >= 5) {
+                                                                                toast.show("A row cannot contain more than 5 fields", { type: "error" });
+                                                                                return;
+                                                                            }
+                                                                            // Set target row before opening the modal
+                                                                            setTargetRowId(row.id);
+                                                                            (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
+                                                                        }}
+                                                                    >
+                                                                        +
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </SortableItem>
+                                                ))}
+                                            </div>
+                                        </SortableContext>
+
+                                        <button
+                                            className="btn btn-accent text-2xl w-full mt-2"
+                                            onClick={() => (document.getElementById("new-row") as HTMLDialogElement | null)?.showModal()}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -512,22 +813,19 @@ export default function CharacterTemplate() {
                                                 {({ sortableProps, dragHandleProps }) => (
                                                     <li {...sortableProps}>
                                                         <button
-                                                            className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                                            className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
                                                             data-tip={category.label}
                                                             onClick={() => {
                                                                 setActiveCategory(category.id);
-                                                                if (category.tabs.length) {
-                                                                    setTab(category.tabs[0]);
-                                                                }
+                                                                setTab(null);
                                                             }}
                                                         >
                                                             <span
                                                                 {...dragHandleProps}
-                                                                className="touch-none"
-                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="flex items-center cursor-grab touch-none"
                                                             >
-                                                                <div className="flex h-full items-center justify-center py-2">
-                                                                    <div className="flex h-full w-5 items-center justify-center rounded bg-base-300 cursor-grab">
+                                                                <div className="flex items-center justify-center py-2">
+                                                                    <div className="flex w-5 items-center justify-center">
                                                                         <span className="text-2xl leading-none font-nerdfont">
                                                                             󰇝
                                                                         </span>
