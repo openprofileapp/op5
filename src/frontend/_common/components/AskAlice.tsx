@@ -244,7 +244,7 @@ export default function AskAlice() {
                             Ask Alice
                         </h2>
 
-                        <p className="text-xs text-base-content/60">
+                        <p className="text-xs text-sub">
                             Your guide to OpenProfile
                         </p>
                     </div>
