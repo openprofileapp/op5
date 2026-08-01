@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, ReactNode, CSSProperties } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +12,9 @@ import {
     KeyboardSensor,
     useSensor,
     useSensors,
+    CollisionDetection,
+    DragOverEvent,
+    DragEndEvent,
 } from "@dnd-kit/core";
 
 import {
@@ -31,20 +34,80 @@ import NewRowModal from "./modals/NewRowModal.js";
 import NewFieldModal from "./modals/NewFieldModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 
-function FieldDropZone({ id, children, className = "" }) {
+export interface Field {
+    id: string;
+    type: string;
+    label?: string;
+    url?: string;
+    value?: unknown;
+    options?: unknown[];
+}
+
+export interface Tab {
+    id: string;
+    label: string;
+    description?: string;
+}
+
+export interface Row {
+    id: string;
+    type?: "field" | "media" | "split" | "timeline" | "calendar" | string;
+    fields: Field[];
+    [key: string]: unknown;
+}
+
+export interface Category {
+    id: string;
+    label: string;
+    single?: string;
+    tabs?: Tab[];
+    rows: Row[];
+    [key: string]: unknown;
+}
+
+export interface AddRowFormData {
+    id: string;
+    label?: string;
+    type: "field" | "media" | "split" | "timeline" | "calendar" | string;
+}
+
+export interface FieldDropZoneProps {
+    id: string;
+    children: ReactNode;
+    className?: string;
+}
+
+export interface DragHandleProps {
+    ref: (element: HTMLElement | null) => void;
+    [key: string]: unknown;
+}
+
+export interface SortableProps {
+    ref: (element: HTMLElement | null) => void;
+    style: CSSProperties;
+}
+
+export interface SortableItemChildrenArgs {
+    sortableProps: SortableProps;
+    dragHandleProps: DragHandleProps;
+}
+
+export interface SortableItemProps {
+    id: string;
+    children: (args: SortableItemChildrenArgs) => ReactNode;
+}
+
+export function FieldDropZone({ id, children, className = "" }: FieldDropZoneProps) {
     const { setNodeRef } = useDroppable({ id });
 
     return (
-        <div
-            ref={setNodeRef}
-            className={className}
-        >
+        <div ref={setNodeRef} className={className}>
             {children}
         </div>
     );
 }
 
-function SortableItem({ id, children }) {
+export function SortableItem({ id, children }: SortableItemProps) {
     const {
         attributes,
         listeners,
@@ -55,24 +118,28 @@ function SortableItem({ id, children }) {
         isDragging,
     } = useSortable({ id });
 
-    const style = {
+    const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.4 : 1,
         zIndex: isDragging ? 999 : "auto",
     };
 
-    return children({
-        sortableProps: {
-            ref: setNodeRef,
-            style,
-        },
-        dragHandleProps: {
-            ref: setActivatorNodeRef,
-            ...attributes,
-            ...listeners,
-        },
-    });
+    return (
+        <>
+            {children({
+                sortableProps: {
+                    ref: setNodeRef,
+                    style,
+                },
+                dragHandleProps: {
+                    ref: setActivatorNodeRef,
+                    ...attributes,
+                    ...listeners,
+                },
+            })}
+        </>
+    );
 }
 
 export default function CharacterTemplate() {
@@ -81,13 +148,13 @@ export default function CharacterTemplate() {
 
     const isToastActiveRef = useRef(false);
     const [drawerOpen, setDrawerOpen] = useState(true);
-    const [targetRowId, setTargetRowId] = useState(null);
+    const [targetRowId, setTargetRowId] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState("identities");
-    const [activeTab, setActiveTab] = useState("current");
+    const [activeTab, setActiveTab] = useState<string | null>(null);
     const [activeYear, setActiveYear] = useState(0);
     const [activeSeries, setActiveSeries] = useState(0);
 
-    const [template, setTemplate] = useState([
+    const [template, setTemplate] = useState<Category[]>([
         {
             id: "identities",
             label: "Identities",
@@ -185,10 +252,14 @@ export default function CharacterTemplate() {
         },
     ]);
 
-    const showToastOnce = (msg, options) => {
+    const currentCategory = template.find(cat => cat.id === activeCategory);
+
+    const showToastOnce = (msg: string, options?: Record<string, unknown>): void => {
         if (isToastActiveRef.current) return;
+        
         isToastActiveRef.current = true;
         toast.show(msg, options);
+        
         setTimeout(() => {
             isToastActiveRef.current = false;
         }, 2000);
@@ -205,23 +276,28 @@ export default function CharacterTemplate() {
         })
     );
 
-    const currentCategory = template.find(cat => cat.id === activeCategory);
-
-    const customCollisionDetection = useCallback((args) => {
+    const customCollisionDetection: CollisionDetection = useCallback((args) => {
         const pointerCollisions = pointerWithin(args);
         if (pointerCollisions.length > 0) {
             return pointerCollisions;
         }
 
         const intersections = rectIntersection(args);
-        return getFirstCollision(intersections, "id");
+        const firstCollision = getFirstCollision(intersections, "id");
+
+        if (!firstCollision) {
+            return [];
+        }
+
+        const collision = intersections.find((c) => c.id === firstCollision);
+        return collision ? [collision] : [];
     }, []);
 
-    const findFieldRow = (cat, fieldId) => {
-        return cat.rows.find(row => row.fields.some(f => f.id === fieldId));
+    const findFieldRow = (cat: Category, fieldId: string | number): Row | undefined => {
+        return cat.rows.find((row) => row.fields?.some((f) => f.id === fieldId));
     };
 
-    const handleDragOver = (event) => {
+    const handleDragOver = (event: DragOverEvent): void => {
         const { active, over } = event;
         if (!over) return;
 
@@ -232,21 +308,21 @@ export default function CharacterTemplate() {
 
         const activeFieldId = activeStr.replace("field:", "");
 
-        const category = template.find(cat => cat.id === activeCategory);
+        const category = template.find((cat) => cat.id === activeCategory);
         if (!category) return;
 
         const sourceRow = findFieldRow(category, activeFieldId);
         if (!sourceRow) return;
 
-        let targetRowId = null;
+        let targetRowId: string | null = null;
         let targetFieldIndex = -1;
 
         if (overStr.startsWith("field:")) {
             const overFieldId = overStr.replace("field:", "");
             const targetRow = findFieldRow(category, overFieldId);
             if (targetRow) {
-                targetRowId = targetRow.id;
-                targetFieldIndex = targetRow.fields.findIndex(f => f.id === overFieldId);
+                targetRowId = String(targetRow.id);
+                targetFieldIndex = targetRow.fields?.findIndex((f) => f.id === overFieldId) ?? -1;
             }
         } else if (overStr.startsWith("row-fields:")) {
             targetRowId = overStr.replace("row-fields:", "");
@@ -256,34 +332,37 @@ export default function CharacterTemplate() {
             return;
         }
 
-        const targetRow = category.rows.find(r => r.id === targetRowId);
+        const targetRow = category.rows.find((r) => String(r.id) === targetRowId);
         if (!targetRow) return;
 
         if (sourceRow.id !== targetRowId) {
-            if (targetRow.fields.length >= 5) {
+            const targetFields = targetRow.fields || [];
+
+            if (targetFields.length >= 5) {
                 showToastOnce("A row cannot contain more than 5 fields", { type: "error" });
                 return;
             }
 
-            const movedField = sourceRow.fields.find(f => f.id === activeFieldId);
+            const movedField = sourceRow.fields?.find((f) => f.id === activeFieldId);
             if (!movedField) return;
+            setTemplate((prevTemplate) => {
+                const categories = prevTemplate as Category[];
 
-            setTemplate(prevTemplate =>
-                prevTemplate.map(cat => {
+                return categories.map((cat) => {
                     if (cat.id !== activeCategory) return cat;
                     return {
                         ...cat,
-                        rows: cat.rows.map(row => {
+                        rows: cat.rows.map((row) => {
                             if (row.id === sourceRow.id) {
                                 return {
                                     ...row,
-                                    fields: row.fields.filter(f => f.id !== activeFieldId),
+                                    fields: (row.fields || []).filter((f) => f.id !== activeFieldId),
                                 };
                             }
-                            if (row.id === targetRowId) {
-                                const newFields = [...row.fields];
+                            if (String(row.id) === targetRowId) {
+                                const newFields = [...(row.fields || [])];
                                 const insertIndex = targetFieldIndex >= 0 ? targetFieldIndex : newFields.length;
-                                if (!newFields.some(f => f.id === activeFieldId)) {
+                                if (!newFields.some((f) => f.id === activeFieldId)) {
                                     newFields.splice(insertIndex, 0, movedField);
                                 }
                                 return { ...row, fields: newFields };
@@ -291,46 +370,50 @@ export default function CharacterTemplate() {
                             return row;
                         }),
                     };
-                })
-            );
+                }) as typeof prevTemplate;
+            });
         }
     };
 
-    const handleAddRow = (data) => {
-        setTemplate((prev) =>
-            prev.map((cat) => {
+    const handleAddRow = (data: AddRowFormData): void => {
+        setTemplate((prev) => {
+            const prevCategories = prev as unknown as Category[];
+
+            const updatedCategories = prevCategories.map((cat) => {
                 if (cat.id !== activeCategory) return cat;
+
+                const newRow: Row = {
+                    id: data.id,
+                    label: data.label,
+                    type: data.type,
+                    fields: [],
+                };
+
                 return {
                     ...cat,
-                    rows: [
-                        ...cat.rows,
-                        {
-                            id: data.id,
-                            label: data.label,
-                            type: data.type,
-                            fields: []
-                        }
-                    ]
+                    rows: [...cat.rows, newRow],
                 };
-            })
-        );
+            });
+
+            return updatedCategories as unknown as typeof prev;
+        });
     };
 
-    const handleAddField = (rowId, data) => {
-        const currentCat = template.find(c => c.id === activeCategory);
-        const targetRow = currentCat?.rows.find(r => r.id === rowId);
+    const handleAddField = (rowId: string, data: Field): void => {
+        const currentCat = template.find((c) => c.id === activeCategory);
+        const targetRow = currentCat?.rows.find((r) => r.id === rowId);
 
         if (targetRow && targetRow.fields.length >= 5) {
             toast.show("A row cannot contain more than 5 fields", { type: "error" });
             return;
         }
 
-        setTemplate(prev =>
-            prev.map(cat => {
+        setTemplate((prev: Category[]) =>
+            prev.map((cat) => {
                 if (cat.id !== activeCategory) return cat;
                 return {
                     ...cat,
-                    rows: cat.rows.map(r => {
+                    rows: cat.rows.map((r) => {
                         if (r.id !== rowId) return r;
                         return {
                             ...r,
@@ -345,7 +428,7 @@ export default function CharacterTemplate() {
         );
     };
 
-    const handleDragEnd = (event) => {
+    const handleDragEnd = (event: DragEndEvent): void => {
         const { active, over } = event;
         if (!over) return;
 
@@ -356,23 +439,23 @@ export default function CharacterTemplate() {
         const [overType, overId] = overStr.split(":");
 
         if (activeType === "field" && overType === "field") {
-            setTemplate(prev =>
-                prev.map(cat => {
+            setTemplate((prev) =>
+                prev.map((cat) => {
                     if (cat.id !== activeCategory) return cat;
 
-                    const row = cat.rows.find(r => r.fields.some(f => f.id === activeId));
+                    const row = cat.rows.find((r) => r.fields.some((f) => f.id === activeId));
                     if (!row) return cat;
 
-                    const oldIdx = row.fields.findIndex(f => f.id === activeId);
-                    const newIdx = row.fields.findIndex(f => f.id === overId);
+                    const oldIdx = row.fields.findIndex((f) => f.id === activeId);
+                    const newIdx = row.fields.findIndex((f) => f.id === overId);
 
                     if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
                         return {
                             ...cat,
-                            rows: cat.rows.map(r =>
-                                r.id === row.id
-                                    ? { ...r, fields: arrayMove(r.fields, oldIdx, newIdx) }
-                                    : r
+                            rows: cat.rows.map((r) =>
+                            r.id === row.id
+                                ? { ...r, fields: arrayMove(r.fields, oldIdx, newIdx) }
+                                : r
                             ),
                         };
                     }
@@ -384,50 +467,70 @@ export default function CharacterTemplate() {
 
         if (activeType !== overType) return;
 
-        setTemplate(prev =>
-            prev.map(category => {
-                if (activeType === "category") {
-                    const oldIndex = prev.findIndex(c => c.id === activeId);
-                    const newIndex = prev.findIndex(c => c.id === overId);
-                    return arrayMove(prev, oldIndex, newIndex)[prev.indexOf(category)];
+        if (activeType === "category") {
+            setTemplate((prev) => {
+                const oldIndex = prev.findIndex((c) => c.id === activeId);
+                const newIndex = prev.findIndex((c) => c.id === overId);
+                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                    return arrayMove(prev, oldIndex, newIndex);
                 }
+                return prev;
+            });
+            return;
+        }
 
-                if (category.id !== activeCategory) return category;
+        setTemplate((prev) =>
+            prev.map((category) => {
+            if (category.id !== activeCategory) return category;
 
-                // Updated for { id, label } object format
-                if (activeType === "tab") {
-                    const oldIndex = category.tabs.findIndex(t => t.id === activeId);
-                    const newIndex = category.tabs.findIndex(t => t.id === overId);
-                    
-                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                        return {
-                            ...category,
-                            tabs: arrayMove(category.tabs, oldIndex, newIndex),
-                        };
-                    }
-                    return category;
+            if (activeType === "tab" && category.tabs) {
+                const oldIndex = category.tabs.findIndex((t) => t.id === activeId);
+                const newIndex = category.tabs.findIndex((t) => t.id === overId);
+
+                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                return {
+                    ...category,
+                    tabs: arrayMove(category.tabs, oldIndex, newIndex),
+                };
                 }
-
-                if (activeType === "row") {
-                    const oldIndex = category.rows.findIndex(r => r.id === activeId);
-                    const newIndex = category.rows.findIndex(r => r.id === overId);
-                    return {
-                        ...category,
-                        rows: arrayMove(category.rows, oldIndex, newIndex),
-                    };
-                }
-
                 return category;
+            }
+
+            if (activeType === "row") {
+                const oldIndex = category.rows.findIndex((r) => r.id === activeId);
+                const newIndex = category.rows.findIndex((r) => r.id === overId);
+
+                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                return {
+                    ...category,
+                    rows: arrayMove(category.rows, oldIndex, newIndex),
+                };
+                }
+                return category;
+            }
+
+            return category;
             })
         );
     };
 
-    const setTab = (tab) => {
+    useEffect(() => {
+        if (!activeTab || activeTab === "about") {
+            history.pushState(
+            null,
+            "",
+            window.location.pathname + window.location.search
+            );
+        } else {
+            window.location.hash = activeTab;
+        }
+    }, [activeTab]);
+
+    const setTab = (tab?: string | null): void => {
         if (!tab || tab === "about") {
-            history.pushState(null, "", window.location.pathname + window.location.search);
             setActiveTab(null);
         } else {
-            window.location.hash = tab;
+            setActiveTab(tab);
         }
     };
 
@@ -538,9 +641,9 @@ export default function CharacterTemplate() {
                                 }}
                             >
                                 <SortableContext
-                                    items={currentCategory?.tabs.map(tab => `tab:${tab.id}`) ?? []}
+                                    items={currentCategory?.tabs?.map(tab => `tab:${tab.id}`) ?? []}
                                 >
-                                    {currentCategory?.tabs.map(tab => (
+                                    {currentCategory?.tabs?.map(tab => (
                                         <SortableItem key={tab.id} id={`tab:${tab.id}`}>
                                             {({ sortableProps, dragHandleProps }) => (
                                                 <button
@@ -611,11 +714,11 @@ export default function CharacterTemplate() {
                                         </div>
 
                                         <SortableContext
-                                            items={currentCategory?.tabs.map(tab => `tab:${tab.id}`) ?? []}
+                                            items={currentCategory?.tabs?.map(tab => `tab:${tab.id}`) ?? []}
                                             strategy={rectSortingStrategy}
                                         >
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                                {currentCategory?.tabs.map(tab => (
+                                                {currentCategory?.tabs?.map(tab => (
                                                     <SortableItem key={tab.id} id={`tab:${tab.id}`}>
                                                         {({ sortableProps, dragHandleProps }) => (
                                                             <button
@@ -672,16 +775,16 @@ export default function CharacterTemplate() {
                                             </button>
                                             <div className="h-5 w-px bg-base-300" />
                                             <h2 className="text-xl font-bold">
-                                                {currentCategory?.tabs.find(t => t.id === activeTab)?.label ?? activeTab}
+                                                {currentCategory?.tabs?.find(t => t.id === activeTab)?.label ?? activeTab}
                                             </h2>
                                         </div>
 
                                         <SortableContext
-                                            items={currentCategory?.rows.map(row => `row:${row.id}`) ?? []}
+                                            items={currentCategory?.rows?.map(row => `row:${row.id}`) ?? []}
                                             strategy={verticalListSortingStrategy}
                                         >
                                             <div className="flex flex-col gap-1">
-                                                {currentCategory?.rows.map(row => (
+                                                {currentCategory?.rows?.map(row => (
                                                     <SortableItem key={row.id} id={`row:${row.id}`}>
                                                         {({ sortableProps, dragHandleProps }) => (
                                                             <div {...sortableProps} className="flex gap-3">
@@ -702,29 +805,80 @@ export default function CharacterTemplate() {
                                                                     switch (row.type) {
                                                                         case "media":
                                                                             return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
-                                                                                    {/* row content */}
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-4 border-2 border-dashed border-base-300 rounded-lg flex flex-col items-center justify-center bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer">
+                                                                                    <div className="flex flex-col items-center gap-2 text-base-content/70">
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                                        </svg>
+                                                                                        <div className="text-sm font-medium text-center">
+                                                                                            <span className="text-primary underline">Upload media</span> or drag & drop files here
+                                                                                        </div>
+                                                                                        <span className="text-xs text-base-content/50">PNG, JPG, MP4, PDF up to 10MB</span>
+                                                                                    </div>
                                                                                 </div>
                                                                             );
 
                                                                         case "split":
                                                                             return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
-                                                                                    {/* row content */}
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-base-200/30 rounded-lg border border-base-300">
+                                                                                    <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
+                                                                                        <span className="text-xs text-base-content/60 font-medium">Left Column Content</span>
+                                                                                    </div>
+                                                                                    <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
+                                                                                        <span className="text-xs text-base-content/60 font-medium">Right Column Content</span>
+                                                                                    </div>
                                                                                 </div>
                                                                             );
 
                                                                         case "timeline":
                                                                             return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
-                                                                                    {/* row content */}
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-4 bg-base-100 rounded-lg border border-base-300 overflow-x-auto">
+                                                                                    <div className="flex items-center justify-between w-full relative min-w-[320px] py-2">
+                                                                                        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-base-300 -translate-y-1/2 z-0" />
+                                                                                        
+                                                                                        {["Step 1", "Step 2", "In Progress", "Review"].map((label, index) => (
+                                                                                            <div key={index} className="relative z-10 flex flex-col items-center gap-1 bg-base-100 px-2">
+                                                                                                <div className={`w-4 h-4 rounded-full border-2 ${index <= 1 ? "bg-primary border-primary" : "bg-base-100 border-base-300"}`} />
+                                                                                                <span className="text-xs font-semibold text-base-content/80">{label}</span>
+                                                                                                <span className="text-[10px] text-base-content/50">Jul {10 + index}</span>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
                                                                                 </div>
                                                                             );
 
                                                                         case "calendar":
                                                                             return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px]">
-                                                                                    {/* row content */}
+                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-3 bg-base-100 rounded-lg border border-base-300">
+                                                                                    <div className="flex items-center justify-between mb-3 px-1">
+                                                                                        <span className="text-sm font-bold text-base-content/80">July 2026</span>
+                                                                                        <div className="flex gap-1 text-xs text-base-content/60">
+                                                                                            <span className="px-2 py-0.5 rounded bg-base-200">Today</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-base-content/50 mb-1">
+                                                                                        {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+                                                                                            <div key={idx}>{day}</div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                        {Array.from({ length: 14 }).map((_, i) => {
+                                                                                            const dayNum = i + 1;
+                                                                                            const isSelected = dayNum === 15;
+                                                                                            return (
+                                                                                                <div 
+                                                                                                    key={i} 
+                                                                                                    className={`py-1 rounded cursor-pointer transition-colors ${
+                                                                                                        isSelected 
+                                                                                                            ? "bg-primary text-primary-content font-bold" 
+                                                                                                            : "hover:bg-base-200 text-base-content/80"
+                                                                                                    }`}
+                                                                                                >
+                                                                                                    {dayNum}
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
                                                                                 </div>
                                                                             );
 
@@ -775,7 +929,6 @@ export default function CharacterTemplate() {
                                                                                 toast.show("A row cannot contain more than 5 fields", { type: "error" });
                                                                                 return;
                                                                             }
-                                                                            // Set target row before opening the modal
                                                                             setTargetRowId(row.id);
                                                                             (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
                                                                         }}
