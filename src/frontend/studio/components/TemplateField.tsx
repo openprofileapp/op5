@@ -261,6 +261,7 @@ export default function TemplateField({
                         <textarea
                             className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
                             id={`template-field-${id}`}
+                            value={value}
                             placeholder="What is <CHARACTER>'s full name?"
                             rows={1}
                             spellCheck={false}
