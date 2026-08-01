@@ -5,11 +5,19 @@ import React from "react";
 
 import colors from "tailwindcss/colors";
 
-type Props = {
+interface Props {
     id: string;
     type: string;
     label?: string;
-};
+    url?: string;
+    value?: unknown;
+    options?: unknown[];
+    dragHandleProps?: {
+        className?: string;
+        ref?: (element: HTMLElement | null) => void;
+        [key: string]: unknown;
+    };
+}
 
 {/* rename to fieldRenderer */}
 {/* pass name and type and stuff and gen data api and stuff */}
