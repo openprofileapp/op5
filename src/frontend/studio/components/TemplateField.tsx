@@ -1,17 +1,174 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import React from "react";
 
 import colors from "tailwindcss/colors";
+import { TypeableDropdownInput } from "./TypeableDropdownInput.js";
+
+interface DropdownOption {
+    label: string;
+    value: string | number;
+}
+
+interface ComboboxProps {
+    options?: (string | DropdownOption)[];
+    value?: string | number;
+    defaultValue?: string | number;
+    placeholder?: string;
+    onChange?: (value: string | number) => void;
+    onFocus?: () => void;
+    onBlur?: () => void;
+    onContextMenu?: (e: React.MouseEvent) => void;
+    className?: string;
+}
+
+export const Combobox: React.FC<ComboboxProps> = ({
+    options = [],
+    value,
+    defaultValue = "",
+    placeholder = "Type or select...",
+    onChange,
+    onFocus,
+    onBlur,
+    onContextMenu,
+    className = "",
+}) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Normalize options to object format
+  const normalizedOptions = options.map((opt) =>
+    typeof opt === "object" && opt !== null
+      ? opt
+      : { label: String(opt), value: opt }
+  );
+
+  // Sync state if external value changes
+  useEffect(() => {
+    if (value !== undefined) {
+      const matched = normalizedOptions.find((opt) => opt.value === value);
+      setSearchTerm(matched ? matched.label : String(value));
+    } else if (defaultValue) {
+      const matched = normalizedOptions.find((opt) => opt.value === defaultValue);
+      setSearchTerm(matched ? matched.label : String(defaultValue));
+    }
+  }, [value, defaultValue]);
+
+  // Handle clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        if (isOpen) {
+          setIsOpen(false);
+          onBlur?.();
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, onBlur]);
+
+  // Filter options based on user typing
+  const filteredOptions = normalizedOptions.filter((opt) =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setSearchTerm(newVal);
+    setIsOpen(true);
+    onChange?.(newVal);
+  };
+
+  const handleSelect = (option: DropdownOption) => {
+    setSearchTerm(option.label);
+    setIsOpen(false);
+    onChange?.(option.value);
+    onBlur?.();
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative w-full ${className}`}
+      onContextMenu={onContextMenu}
+    >
+      <div className="relative flex items-center">
+        {/* Input where user can type */}
+        <input
+          type="text"
+          value={searchTerm}
+          placeholder={placeholder}
+          className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base pr-8 focus:outline-none focus:ring-2 focus:ring-primary"
+          onChange={handleInputChange}
+          onFocus={() => {
+            setIsOpen(true);
+            onFocus?.();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setIsOpen(false);
+              onBlur?.();
+            }
+          }}
+        />
+
+        {/* Dropdown Arrow Indicator */}
+        <button
+          type="button"
+          tabIndex={-1}
+          className="absolute right-3 text-sm opacity-50 hover:opacity-100 cursor-pointer"
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          {isOpen ? "▲" : "▼"}
+        </button>
+      </div>
+
+      {/* Filtered Results Menu */}
+      {isOpen && (
+        <ul
+          className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-base-100 border border-base-300 shadow-lg py-1 text-base focus:outline-none"
+          role="listbox"
+        >
+          {filteredOptions.length === 0 ? (
+            <li className="px-4 py-2 text-sm text-base-content/50">
+              No matching options
+            </li>
+          ) : (
+            filteredOptions.map((opt, i) => (
+              <li
+                key={i}
+                role="option"
+                onClick={() => handleSelect(opt)}
+                className="px-4 py-2 text-sm cursor-pointer hover:bg-base-200 transition-colors"
+              >
+                {opt.label}
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
+};
 
 interface Props {
     id: string;
     type: string;
     label?: string;
-    url?: string;
-    value?: unknown;
+    placeholder?: string;
+    guide?: string;
+    value?: string;
     options?: unknown[];
+    thoughts?: string;
+    comments?: string;
     dragHandleProps?: {
         className?: string;
         ref?: (element: HTMLElement | null) => void;
@@ -25,9 +182,12 @@ export default function TemplateField({
     id,
     type,
     label,
-    url,
+    placeholder,
+    guide,
     value,
     options,
+    thoughts,
+    comments,
     dragHandleProps
 }: Props) {
     const { t, ready } = useTranslation();
@@ -169,22 +329,23 @@ export default function TemplateField({
 
             case "dropdown":
                 return (
-                    <select
-                        className="select select-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base"
-                        defaultValue={value || ""}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        onContextMenu={handleContextMenu}
-                    >
-                        <option value="" disabled>Select option...</option>
-                        {options?.map((opt, i) => (
-                            <option key={i} value={opt}>
-                                {opt}
-                            </option>
-                        ))}
-                    </select>
+                    <>
+                        <TypeableDropdownInput
+                            value={value}
+                            options={options}
+                            placeholder="Select or type..."
+                            onChange={(newValue) => {
+                                if (typeof onChange === "function") {
+                                    onChange(newValue);
+                                }
+                            }}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            onContextMenu={handleContextMenu}
+                        />
+                    </>
                 );
-
+                
             case "slider":
                 return (
                     <div 
@@ -257,30 +418,38 @@ export default function TemplateField({
             case "text":
             default:
                 return (
-                    <>
-                        <textarea
-                            className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
-                            id={`template-field-${id}`}
-                            value={value}
-                            placeholder="What is <CHARACTER>'s full name?"
-                            rows={1}
-                            spellCheck={false}
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onMouseDown={(e) => {
-                                if (e.button === 2) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            onContextMenu={handleContextMenu}
-                            onInput={(e) => {
-                                e.currentTarget.style.height = "auto";
-                                e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-                            }}
-                        />
-                    </>
+                    <textarea
+                        className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
+                        id={`template-field-${id}`}
+                        defaultValue={value}
+                        placeholder={
+                            placeholder
+                                ?.replace("{DISPLAY_NAME}", "Alice")
+                                ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")
+                        }
+                        rows={1}
+                        spellCheck={false}
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onMouseDown={(e) => {
+                            if (e.button === 2) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onContextMenu={handleContextMenu}
+                        onInput={(e) => {
+                            e.currentTarget.style.height = "auto";
+                            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+                        }}
+                        ref={(el) => {
+                            if (el) {
+                                el.style.height = "auto";
+                                el.style.height = `${el.scrollHeight}px`;
+                            }
+                        }}
+                    />
                 );
         }
     };
@@ -891,20 +1060,107 @@ export default function TemplateField({
                                 
                             </span>
                         </span>
+
+                        <span 
+                            className={`tooltip ${thoughts ? "" : "hidden"}`}
+                        >
+                            <div className="flex flex-col gap-1 tooltip-content text-left">
+                                <div className="font-bold text-center">DISPLAY_NAME's Thoughts</div>
+                                <div className="text-xs">{thoughts}</div>
+                            </div>
+                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                󰟶
+                            </span>
+                        </span>
+
+                        <span 
+                            className={`tooltip ${comments ? "" : "hidden"}`}
+                        >
+                            <div className="flex flex-col gap-1 tooltip-content text-left">
+                                <div className="font-bold text-center">Author's Comment</div>
+                                <div className="text-xs">{comments}</div>
+                            </div>
+                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                󰅺
+                            </span>
+                        </span>
                     </legend>
 
                     {renderInputContent()}
 
-                    <div
-                        className={`overflow-hidden transition-all duration-300 ease-out ${
-                            isFocused ? "max-h-200 opacity-100" : "max-h-0 opacity-0 mt-[-24px] z-1"
-                        }`}
-                    >
-                        <div className="bg-accent rounded px-3 py-2 text-sm">
-                            <span className="font-nerdfont leading-none mr-2">󰋼</span>
-                            Be sure to include undefined prefixes and suffixes if any.
+                    {Boolean(guide) && (
+                        <div
+                            className={`overflow-hidden transition-all duration-300 ease-out ${
+                                isFocused
+                                    ? "max-h-[500px] opacity-100 mt-2"
+                                    : "max-h-0 opacity-0 mt-0 pointer-events-none"
+                            }`}
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                            }}
+                        >
+                            <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        p: ({ children, node }) => {
+                                            const isFirstParagraph = node?.position?.start.line === 1;
+                                            return (
+                                                <p className={isFirstParagraph ? "" : "mt-2"}>
+                                                    {isFirstParagraph && (
+                                                        <span className="font-nerdfont inline-block mr-2 text-base align-middle">
+                                                            󰋼
+                                                        </span>
+                                                    )}
+                                                    {children}
+                                                </p>
+                                            );
+                                        },
+
+                                        ul: ({ children, node }) => {
+                                            const isFirstList = node?.position?.start.line === 1;
+                                            return (
+                                                <div className="my-1">
+                                                    {isFirstList && (
+                                                        <span className="font-nerdfont inline-block mr-2 text-base align-middle">
+                                                            󰋼
+                                                        </span>
+                                                    )}
+                                                    <ul className="inline-block list-disc pl-5 my-0">
+                                                        {children}
+                                                    </ul>
+                                                </div>
+                                            );
+                                        },
+                                        
+                                        li: ({ children }) => <li className="my-0">{children}</li>,
+
+                                        a: ({ children, ...props }) => (
+                                            <span>
+                                                <span className="font-nerdfont inline-block mx-1 text-sm align-middle">
+                                                    
+                                                </span>
+                                                <a 
+                                                    {...props} 
+                                                    className="font-bold hover:underline inline-block"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {children}
+                                                </a>
+                                            </span>
+                                        ),
+                                    }}
+                                >
+                                    {
+                                        guide
+                                            ?.replace("{DISPLAY_NAME}", "Alice")
+                                            ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")
+                                    }
+                                </ReactMarkdown>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </fieldset>
             </div>
         </>

@@ -33,20 +33,18 @@ import TemplateField from "./TemplateField.js";
 import NewRowModal from "./modals/NewRowModal.js";
 import NewFieldModal from "./modals/NewFieldModal.js";
 import { toast } from "../../_common/scripts/toast.js";
+import NewBlockModal from "./modals/NewBlockModal.js";
 
 export interface Field {
     id: string;
     type: string;
     label?: string;
-    url?: string;
-    value?: unknown;
-    options?: unknown[];
-}
-
-export interface Tab {
-    id: string;
-    label: string;
-    description?: string;
+    placeholder?: string;
+    guide?: string;
+    value?: string;
+    options?: string[];
+    thoughts?: string;
+    comments?: string;
 }
 
 export interface Row {
@@ -56,13 +54,33 @@ export interface Row {
     [key: string]: unknown;
 }
 
+export interface Block {
+    id: string;
+    label: string;
+    description?: string;
+    type?: string;
+    icon?: string;
+    source?: "official" | "addon";
+    pinned?: boolean;
+    rows: Row[];
+    [key: string]: unknown;
+}
+
 export interface Category {
     id: string;
     label: string;
     single?: string;
-    tabs?: Tab[];
-    rows: Row[];
+    blocks: Block[];
     [key: string]: unknown;
+}
+
+export interface NewBlockData {
+    id: string;
+    label: string;
+    description?: string;
+    icon?: string;
+    type?: string;
+    rows: string[];
 }
 
 export interface AddRowFormData {
@@ -149,110 +167,36 @@ export default function CharacterTemplate() {
     const isToastActiveRef = useRef(false);
     const [drawerOpen, setDrawerOpen] = useState(true);
     const [targetRowId, setTargetRowId] = useState<string | null>(null);
-    const [activeCategory, setActiveCategory] = useState("identities");
-    const [activeTab, setActiveTab] = useState<string | null>(null);
+    const [activeCategory, setActiveCategory] = useState("identity");
+    const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
     const [activeYear, setActiveYear] = useState(0);
     const [activeSeries, setActiveSeries] = useState(0);
 
     const [template, setTemplate] = useState<Category[]>([
         {
-            id: "identities",
-            label: "Identities",
+            id: "identity",
+            label: "Identity",
             single: "Identity",
-            tabs: [
-                { id: "main", label: "Mable Jackson", description: "Real-life" },
-                { id: "secret-identity", label: "Eclipse", description: "Secret identity" },
-                { id: "online", label: "@???????", description: "Social Media" },
-                // have for main, former, and alias by default
-            ],
-            rows: [
-                {
-                    id: "full-name",
-                    fields: [{ id: "full-name", label: "Full Name", type: "text" }],
-                },
-                {
-                    id: "first-middle-last-name",
-                    fields: [
-                        { id: "first-name", label: "First Name", type: "text" },
-                        { id: "middle-name", label: "Middle Name", type: "text" },
-                        { id: "last-name", label: "Last Name", type: "text" },
-                    ],
-                },
-            ],
-        },
-        { id: "astral", label: "Astral", tabs: [], rows: [] },
-        { id: "physical", label: "Physical", tabs: [], rows: [] },
-        { 
-            id: "supernatural", 
-            label: "Supernatural", 
-            tabs: [
-                { id: "fire-manipulation", label: "Fire Manipulation" },
-                { id: "frost-manipulation", label: "Frost Manipulation" },
-            ],
-            rows: [] 
-        },
-        { id: "personality", label: "Personality", tabs: [], rows: [] },
-        { 
-            id: "favorites", 
-            label: "Favorites",
-            tabs: [
-                { id: "book", label: "Book" },
-                { id: "author", label: "Author" },
-                { id: "movie", label: "Movie" },
-                { id: "actor", label: "Actor" },
-                { id: "tv-series", label: "TV Series" },
-                { id: "tv-channel", label: "TV Channel" }
-            ], 
-            rows: [] 
-        },
-        { id: "interactions", label: "Interactions", tabs: [], rows: [] },
-        { 
-            id: "emotional", 
-            label: "Emotional", 
-            tabs: [
-                { id: "happiness", label: "Happiness" },
-                { id: "sadness", label: "Sadness" },
-                { id: "anger", label: "Anger" },
-                { id: "fear", label: "Fear" },
-                { id: "disgust", label: "Disgust" },
-                { id: "surprise", label: "Surprise" },
-                { id: "anxiety", label: "Anxiety" },
-                { id: "love", label: "Love" },
-                { id: "affection", label: "Affection" },
-                { id: "excitement", label: "Excitement" },
-                { id: "frustration", label: "Frustration" },
-                { id: "calmness", label: "Calmness" },
-                { id: "comfort", label: "Comfort" },
-                { id: "hope", label: "Hope" },
-                { id: "hurt", label: "Hurt" },
-                { id: "guilt", label: "Guilt" },
-                { id: "shame", label: "Shame" },
-                { id: "amazement", label: "Amazement" },
-                { id: "annoyance", label: "Annoyance" },
-                { id: "boredom", label: "Boredom" },
-                { id: "confusion", label: "Confusion" },
-                { id: "curiosity", label: "Curiosity" },
-                { id: "determination", label: "Determination" },
-                { id: "embarrassment", label: "Embarrassment" },
-                { id: "gratitude", label: "Gratitude" },
-                { id: "jealousy", label: "Jealousy" },
-                { id: "loneliness", label: "Loneliness" },
-                { id: "pride", label: "Pride" },
-            ],
-            rows: [] 
+            blocks: [],
         },
         { 
-            id: "relationships", 
-            label: "Relationships", 
-            tabs: [
-                { id: "mable-jackson", label: "Mable Jackson", description: "Friend" },
-                { id: "julia-anderson", label: "Julia Anderson", description: "Friend" }
-            ],
-            rows: [] 
+            id: "socials", 
+            label: "Socials", 
+            single: "Social",
+            blocks: [],
         },
     ]);
 
-    const currentCategory = template.find(cat => cat.id === activeCategory);
+    const currentCategory = template.find((cat) => cat.id === activeCategory);
+    const currentBlock = currentCategory?.blocks?.find(t => t.id === activeBlockId);
+
+    // Keep activeBlockId aligned with current Category
+    useEffect(() => {
+        if (!currentCategory || currentCategory.blocks.length === 0) {
+            setActiveBlockId(null);
+            return;
+        }
+    }, [activeCategory, currentCategory, activeBlockId]);
 
     const showToastOnce = (msg: string, options?: Record<string, unknown>): void => {
         if (isToastActiveRef.current) return;
@@ -293,8 +237,8 @@ export default function CharacterTemplate() {
         return collision ? [collision] : [];
     }, []);
 
-    const findFieldRow = (cat: Category, fieldId: string | number): Row | undefined => {
-        return cat.rows.find((row) => row.fields?.some((f) => f.id === fieldId));
+    const findFieldRowInBlock = (block: Block, fieldId: string | number): Row | undefined => {
+        return block.rows?.find((row) => row.fields?.some((f) => f.id === fieldId));
     };
 
     const handleDragOver = (event: DragOverEvent): void => {
@@ -311,7 +255,10 @@ export default function CharacterTemplate() {
         const category = template.find((cat) => cat.id === activeCategory);
         if (!category) return;
 
-        const sourceRow = findFieldRow(category, activeFieldId);
+        const currentBlock = category.blocks.find((t) => t.id === activeBlockId);
+        if (!currentBlock) return;
+
+        const sourceRow = findFieldRowInBlock(currentBlock, activeFieldId);
         if (!sourceRow) return;
 
         let targetRowId: string | null = null;
@@ -319,7 +266,7 @@ export default function CharacterTemplate() {
 
         if (overStr.startsWith("field:")) {
             const overFieldId = overStr.replace("field:", "");
-            const targetRow = findFieldRow(category, overFieldId);
+            const targetRow = findFieldRowInBlock(currentBlock, overFieldId);
             if (targetRow) {
                 targetRowId = String(targetRow.id);
                 targetFieldIndex = targetRow.fields?.findIndex((f) => f.id === overFieldId) ?? -1;
@@ -332,7 +279,7 @@ export default function CharacterTemplate() {
             return;
         }
 
-        const targetRow = category.rows.find((r) => String(r.id) === targetRowId);
+        const targetRow = currentBlock.rows.find((r) => String(r.id) === targetRowId);
         if (!targetRow) return;
 
         if (sourceRow.id !== targetRowId) {
@@ -345,63 +292,105 @@ export default function CharacterTemplate() {
 
             const movedField = sourceRow.fields?.find((f) => f.id === activeFieldId);
             if (!movedField) return;
-            setTemplate((prevTemplate) => {
-                const categories = prevTemplate as Category[];
 
-                return categories.map((cat) => {
+            setTemplate((prevTemplate) => {
+                return prevTemplate.map((cat) => {
                     if (cat.id !== activeCategory) return cat;
+
                     return {
                         ...cat,
-                        rows: cat.rows.map((row) => {
-                            if (row.id === sourceRow.id) {
-                                return {
-                                    ...row,
-                                    fields: (row.fields || []).filter((f) => f.id !== activeFieldId),
-                                };
-                            }
-                            if (String(row.id) === targetRowId) {
-                                const newFields = [...(row.fields || [])];
-                                const insertIndex = targetFieldIndex >= 0 ? targetFieldIndex : newFields.length;
-                                if (!newFields.some((f) => f.id === activeFieldId)) {
-                                    newFields.splice(insertIndex, 0, movedField);
-                                }
-                                return { ...row, fields: newFields };
-                            }
-                            return row;
+                        blocks: cat.blocks.map((block) => {
+                            if (block.id !== activeBlockId) return block;
+
+                            return {
+                                ...block,
+                                rows: block.rows.map((row) => {
+                                    if (row.id === sourceRow.id) {
+                                        return {
+                                            ...row,
+                                            fields: (row.fields || []).filter((f) => f.id !== activeFieldId),
+                                        };
+                                    }
+                                    if (String(row.id) === targetRowId) {
+                                        const newFields = [...(row.fields || [])];
+                                        const insertIndex = targetFieldIndex >= 0 ? targetFieldIndex : newFields.length;
+                                        if (!newFields.some((f) => f.id === activeFieldId)) {
+                                            newFields.splice(insertIndex, 0, movedField);
+                                        }
+                                        return { ...row, fields: newFields };
+                                    }
+                                    return row;
+                                }),
+                            };
                         }),
                     };
-                }) as typeof prevTemplate;
+                });
             });
         }
     };
 
-    const handleAddRow = (data: AddRowFormData): void => {
-        setTemplate((prev) => {
-            const prevCategories = prev as unknown as Category[];
-
-            const updatedCategories = prevCategories.map((cat) => {
+    const handleAddBlock = (data: NewBlockData): void => {
+        setTemplate((prev: Category[]) =>
+            prev.map((cat) => {
                 if (cat.id !== activeCategory) return cat;
 
-                const newRow: Row = {
+                const newBlock: Block = {
                     id: data.id,
                     label: data.label,
+                    description: data.description,
+                    icon: data.icon,
                     type: data.type,
-                    fields: [],
+                    rows: data.rows ?? [],
                 };
+
+                setBlock(data.id);
 
                 return {
                     ...cat,
-                    rows: [...cat.rows, newRow],
+                    blocks: [...(cat.blocks ?? []), newBlock],
                 };
-            });
+            })
+        );
+    };
 
-            return updatedCategories as unknown as typeof prev;
-        });
+    const handleAddRow = (data: AddRowFormData): void => {
+        if (!activeBlockId) {
+            toast.show("Please select or create a block first", { type: "error" });
+            return;
+        }
+
+        setTemplate((prev: Category[]) =>
+            prev.map((cat) => {
+                if (cat.id !== activeCategory) return cat;
+
+                return {
+                    ...cat,
+                    blocks: cat.blocks.map((block) => {
+                        if (block.id !== activeBlockId) return block;
+
+                        const newRow: Row = {
+                            id: data.id,
+                            type: data.type,
+                            fields: [],
+                            ...(data.label ? { label: data.label } : {}),
+                        };
+
+                        return {
+                            ...block,
+                            rows: [...(block.rows ?? []), newRow],
+                        };
+                    }),
+                };
+            })
+        );
     };
 
     const handleAddField = (rowId: string, data: Field): void => {
+        if (!activeBlockId) return;
+
         const currentCat = template.find((c) => c.id === activeCategory);
-        const targetRow = currentCat?.rows.find((r) => r.id === rowId);
+        const currentBlock = currentCat?.blocks.find((t) => t.id === activeBlockId);
+        const targetRow = currentBlock?.rows.find((r) => r.id === rowId);
 
         if (targetRow && targetRow.fields.length >= 5) {
             toast.show("A row cannot contain more than 5 fields", { type: "error" });
@@ -411,18 +400,27 @@ export default function CharacterTemplate() {
         setTemplate((prev: Category[]) =>
             prev.map((cat) => {
                 if (cat.id !== activeCategory) return cat;
+
                 return {
                     ...cat,
-                    rows: cat.rows.map((r) => {
-                        if (r.id !== rowId) return r;
+                    blocks: cat.blocks.map((block) => {
+                        if (block.id !== activeBlockId) return block;
+
                         return {
-                            ...r,
-                            fields: [
-                                ...r.fields,
-                                { id: data.id, label: data.label, type: data.type }
-                            ]
+                            ...block,
+                            rows: block.rows.map((r) => {
+                                if (r.id !== rowId) return r;
+
+                                return {
+                                    ...r,
+                                    fields: [
+                                        ...r.fields,
+                                        { id: data.id, label: data.label, type: data.type },
+                                    ],
+                                };
+                            }),
                         };
-                    })
+                    }),
                 };
             })
         );
@@ -443,23 +441,30 @@ export default function CharacterTemplate() {
                 prev.map((cat) => {
                     if (cat.id !== activeCategory) return cat;
 
-                    const row = cat.rows.find((r) => r.fields.some((f) => f.id === activeId));
-                    if (!row) return cat;
+                    return {
+                        ...cat,
+                        blocks: cat.blocks.map((block) => {
+                            if (block.id !== activeBlockId) return block;
 
-                    const oldIdx = row.fields.findIndex((f) => f.id === activeId);
-                    const newIdx = row.fields.findIndex((f) => f.id === overId);
+                            const row = block.rows.find((r) => r.fields.some((f) => f.id === activeId));
+                            if (!row) return block;
 
-                    if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
-                        return {
-                            ...cat,
-                            rows: cat.rows.map((r) =>
-                            r.id === row.id
-                                ? { ...r, fields: arrayMove(r.fields, oldIdx, newIdx) }
-                                : r
-                            ),
-                        };
-                    }
-                    return cat;
+                            const oldIdx = row.fields.findIndex((f) => f.id === activeId);
+                            const newIdx = row.fields.findIndex((f) => f.id === overId);
+
+                            if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+                                return {
+                                    ...block,
+                                    rows: block.rows.map((r) =>
+                                        r.id === row.id
+                                            ? { ...r, fields: arrayMove(r.fields, oldIdx, newIdx) }
+                                            : r
+                                    ),
+                                };
+                            }
+                            return block;
+                        }),
+                    };
                 })
             );
             return;
@@ -481,69 +486,76 @@ export default function CharacterTemplate() {
 
         setTemplate((prev) =>
             prev.map((category) => {
-            if (category.id !== activeCategory) return category;
+                if (category.id !== activeCategory) return category;
 
-            if (activeType === "tab" && category.tabs) {
-                const oldIndex = category.tabs.findIndex((t) => t.id === activeId);
-                const newIndex = category.tabs.findIndex((t) => t.id === overId);
+                if (activeType === "block" && category.blocks) {
+                    const oldIndex = category.blocks.findIndex((t) => t.id === activeId);
+                    const newIndex = category.blocks.findIndex((t) => t.id === overId);
 
-                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                return {
-                    ...category,
-                    tabs: arrayMove(category.tabs, oldIndex, newIndex),
-                };
+                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                        return {
+                            ...category,
+                            blocks: arrayMove(category.blocks, oldIndex, newIndex),
+                        };
+                    }
+                    return category;
                 }
-                return category;
-            }
 
-            if (activeType === "row") {
-                const oldIndex = category.rows.findIndex((r) => r.id === activeId);
-                const newIndex = category.rows.findIndex((r) => r.id === overId);
+                if (activeType === "row") {
+                    return {
+                        ...category,
+                        blocks: category.blocks.map((block) => {
+                            if (block.id !== activeBlockId) return block;
 
-                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                return {
-                    ...category,
-                    rows: arrayMove(category.rows, oldIndex, newIndex),
-                };
+                            const oldIndex = block.rows.findIndex((r) => r.id === activeId);
+                            const newIndex = block.rows.findIndex((r) => r.id === overId);
+
+                            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                                return {
+                                    ...block,
+                                    rows: arrayMove(block.rows, oldIndex, newIndex),
+                                };
+                            }
+                            return block;
+                        }),
+                    };
                 }
-                return category;
-            }
 
-            return category;
+                return category;
             })
         );
     };
 
     useEffect(() => {
-        if (!activeTab || activeTab === "about") {
+        if (!activeBlockId || activeBlockId === "about") {
             history.pushState(
-            null,
-            "",
-            window.location.pathname + window.location.search
+                null,
+                "",
+                window.location.pathname + window.location.search
             );
         } else {
-            window.location.hash = activeTab;
+            window.location.hash = activeBlockId;
         }
-    }, [activeTab]);
+    }, [activeBlockId]);
 
-    const setTab = (tab?: string | null): void => {
-        if (!tab || tab === "about") {
-            setActiveTab(null);
+    const setBlock = (block?: string | null): void => {
+        if (!block || block === "about") {
+            setActiveBlockId(null);
         } else {
-            setActiveTab(tab);
+            setActiveBlockId(block);
         }
     };
 
     useEffect(() => {
-        const updateTab = () => {
+        const updateBlock = () => {
             const hash = window.location.hash.replace("#", "");
-            setActiveTab(hash ? hash : null);
+            setActiveBlockId(hash ? hash : null);
         };
 
-        window.addEventListener("hashchange", updateTab);
-        updateTab();
+        window.addEventListener("hashchange", updateBlock);
+        updateBlock();
 
-        return () => window.removeEventListener("hashchange", updateTab);
+        return () => window.removeEventListener("hashchange", updateBlock);
     }, []);
 
     if (!ready) return null;
@@ -641,17 +653,17 @@ export default function CharacterTemplate() {
                                 }}
                             >
                                 <SortableContext
-                                    items={currentCategory?.tabs?.map(tab => `tab:${tab.id}`) ?? []}
+                                    items={currentCategory?.blocks?.map(block => `block:${block.id}`) ?? []}
                                 >
-                                    {currentCategory?.tabs?.map(tab => (
-                                        <SortableItem key={tab.id} id={`tab:${tab.id}`}>
+                                    {currentCategory?.blocks?.map(block => (
+                                        <SortableItem key={block.id} id={`block:${block.id}`}>
                                             {({ sortableProps, dragHandleProps }) => (
                                                 <button
                                                     {...sortableProps}
                                                     className={`tab flex-1 min-w-[max-content] px-4 ${
-                                                        activeTab === tab.id ? "tab-active bg-base-200" : ""
+                                                        activeBlockId === block.id ? "tab-active bg-base-200" : ""
                                                     }`}
-                                                    onClick={() => setTab(tab.id)}
+                                                    onClick={() => setBlock(block.id)}
                                                 >
                                                     <span
                                                         {...dragHandleProps}
@@ -667,7 +679,7 @@ export default function CharacterTemplate() {
                                                     </span>
                                                 
                                                     <span className="flex-1">
-                                                        {tab.label}
+                                                        {block.label}
                                                     </span>
                                                 </button>
                                             )}
@@ -684,7 +696,7 @@ export default function CharacterTemplate() {
                         <div className="flex flex-col items-center p-4 w-full">
                             <div className="bg-base-100 border border-base-300 p-4 rounded-lg z-1 w-full max-w-5xl">
 
-                                {!activeTab ? (
+                                {!activeBlockId ? (
                                     <div className="p-2 md:p-4">
                                         <div className="flex justify-between items-center mb-6">
                                             <h2 className="text-2xl font-bold">Select {currentCategory?.label}</h2>
@@ -714,17 +726,17 @@ export default function CharacterTemplate() {
                                         </div>
 
                                         <SortableContext
-                                            items={currentCategory?.tabs?.map(tab => `tab:${tab.id}`) ?? []}
+                                            items={currentCategory?.blocks?.map(block => `block:${block.id}`) ?? []}
                                             strategy={rectSortingStrategy}
                                         >
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                                {currentCategory?.tabs?.map(tab => (
-                                                    <SortableItem key={tab.id} id={`tab:${tab.id}`}>
+                                                {currentCategory?.blocks?.map(block => (
+                                                    <SortableItem key={block.id} id={`block:${block.id}`}>
                                                         {({ sortableProps, dragHandleProps }) => (
                                                             <button
                                                                 {...sortableProps}
-                                                                className="relative flex flex-col items-center justify-center p-6 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer w-full"
-                                                                onClick={() => setTab(tab.id)}
+                                                                className="aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer"
+                                                                onClick={() => setBlock(block.id)}
                                                             >
                                                                 <div
                                                                     {...dragHandleProps}
@@ -746,17 +758,29 @@ export default function CharacterTemplate() {
                                                                     </span>
                                                                 </div>
                                                                 
-                                                                <img className="h-20" src="https://openmoji.org/data/color/svg/E282.svg" alt={tab.label} />
-                                                                <span className="text-lg font-semibold mt-2">{tab.label}</span>
-                                                                <span className="text-xs text-base-content/60 mt-1">{tab.description}</span>
+                                                                <img 
+                                                                    className="h-20" 
+                                                                    src={
+                                                                        {
+                                                                            book: "https://openmoji.org/data/color/svg/1F4DA.svg",
+                                                                            author: "https://openmoji.org/data/color/svg/270F.svg",
+                                                                            movie: "https://openmoji.org/data/color/svg/1F3AC.svg",
+                                                                        }[block?.type || ""] ?? block?.icon ?? ""
+                                                                    } 
+                                                                    alt={block?.label} 
+                                                                />
+                                                                <span className="text-lg font-semibold mt-2">{block.label}</span>
+                                                                <span className="text-xs text-sub mt-1">{block.description || block.type}</span>
                                                             </button>
                                                         )}
                                                     </SortableItem>
                                                 ))}
 
+                                                <NewBlockModal onAddBlock={handleAddBlock} initialCategory={currentCategory?.id} />
+
                                                 <button
-                                                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-base-300 hover:border-accent rounded transition-all text-accent cursor-pointer min-h-[160px]"
-                                                    onClick={() => (document.getElementById("new-tab") as HTMLDialogElement | null)?.showModal()}
+                                                    className="aspect-square flex flex-col items-center justify-center p-6 border-2 border-dashed border-base-300 hover:border-accent rounded transition-all text-accent cursor-pointer min-h-[160px]"
+                                                    onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
                                                 >
                                                     <span className="text-3xl font-bold">+</span>
                                                     <span className="text-sm font-medium mt-1">Add {currentCategory?.single}</span>
@@ -769,22 +793,22 @@ export default function CharacterTemplate() {
                                         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-300">
                                             <button
                                                 className="btn btn-ghost btn-sm gap-2 text-base font-normal"
-                                                onClick={() => setTab(null)}
+                                                onClick={() => setBlock(null)}
                                             >
                                                 <span className="text-xl leading-none">←</span> Back to All
                                             </button>
                                             <div className="h-5 w-px bg-base-300" />
                                             <h2 className="text-xl font-bold">
-                                                {currentCategory?.tabs?.find(t => t.id === activeTab)?.label ?? activeTab}
+                                                {currentCategory?.blocks?.find(t => t.id === activeBlockId)?.label ?? activeBlockId}
                                             </h2>
                                         </div>
 
                                         <SortableContext
-                                            items={currentCategory?.rows?.map(row => `row:${row.id}`) ?? []}
+                                            items={currentBlock?.rows?.map(row => `row:${row.id}`) ?? []}
                                             strategy={verticalListSortingStrategy}
                                         >
                                             <div className="flex flex-col gap-1">
-                                                {currentCategory?.rows?.map(row => (
+                                                {currentBlock?.rows?.map(row => (
                                                     <SortableItem key={row.id} id={`row:${row.id}`}>
                                                         {({ sortableProps, dragHandleProps }) => (
                                                             <div {...sortableProps} className="flex gap-3">
@@ -806,14 +830,14 @@ export default function CharacterTemplate() {
                                                                         case "media":
                                                                             return (
                                                                                 <div className="flex-1 min-w-0 w-full min-h-[44px] p-4 border-2 border-dashed border-base-300 rounded-lg flex flex-col items-center justify-center bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer">
-                                                                                    <div className="flex flex-col items-center gap-2 text-base-content/70">
+                                                                                    <div className="flex flex-col items-center gap-2 text-sub">
                                                                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                                                         </svg>
                                                                                         <div className="text-sm font-medium text-center">
                                                                                             <span className="text-primary underline">Upload media</span> or drag & drop files here
                                                                                         </div>
-                                                                                        <span className="text-xs text-base-content/50">PNG, JPG, MP4, PDF up to 10MB</span>
+                                                                                        <span className="text-xs text-sub">PNG, JPG, MP4, PDF up to 10MB</span>
                                                                                     </div>
                                                                                 </div>
                                                                             );
@@ -822,10 +846,10 @@ export default function CharacterTemplate() {
                                                                             return (
                                                                                 <div className="flex-1 min-w-0 w-full min-h-[44px] grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-base-200/30 rounded-lg border border-base-300">
                                                                                     <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
-                                                                                        <span className="text-xs text-base-content/60 font-medium">Left Column Content</span>
+                                                                                        <span className="text-xs text-sub font-medium">Left Column Content</span>
                                                                                     </div>
                                                                                     <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
-                                                                                        <span className="text-xs text-base-content/60 font-medium">Right Column Content</span>
+                                                                                        <span className="text-xs text-sub font-medium">Right Column Content</span>
                                                                                     </div>
                                                                                 </div>
                                                                             );
@@ -839,8 +863,8 @@ export default function CharacterTemplate() {
                                                                                         {["Step 1", "Step 2", "In Progress", "Review"].map((label, index) => (
                                                                                             <div key={index} className="relative z-10 flex flex-col items-center gap-1 bg-base-100 px-2">
                                                                                                 <div className={`w-4 h-4 rounded-full border-2 ${index <= 1 ? "bg-primary border-primary" : "bg-base-100 border-base-300"}`} />
-                                                                                                <span className="text-xs font-semibold text-base-content/80">{label}</span>
-                                                                                                <span className="text-[10px] text-base-content/50">Jul {10 + index}</span>
+                                                                                                <span className="text-xs font-semibold text-sub">{label}</span>
+                                                                                                <span className="text-[10px] text-sub">Jul {10 + index}</span>
                                                                                             </div>
                                                                                         ))}
                                                                                     </div>
@@ -851,12 +875,12 @@ export default function CharacterTemplate() {
                                                                             return (
                                                                                 <div className="flex-1 min-w-0 w-full min-h-[44px] p-3 bg-base-100 rounded-lg border border-base-300">
                                                                                     <div className="flex items-center justify-between mb-3 px-1">
-                                                                                        <span className="text-sm font-bold text-base-content/80">July 2026</span>
-                                                                                        <div className="flex gap-1 text-xs text-base-content/60">
+                                                                                        <span className="text-sm font-bold text-sub">July 2026</span>
+                                                                                        <div className="flex gap-1 text-xs text-sub">
                                                                                             <span className="px-2 py-0.5 rounded bg-base-200">Today</span>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-base-content/50 mb-1">
+                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-sub mb-1">
                                                                                         {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
                                                                                             <div key={idx}>{day}</div>
                                                                                         ))}
@@ -871,7 +895,7 @@ export default function CharacterTemplate() {
                                                                                                     className={`py-1 rounded cursor-pointer transition-colors ${
                                                                                                         isSelected 
                                                                                                             ? "bg-primary text-primary-content font-bold" 
-                                                                                                            : "hover:bg-base-200 text-base-content/80"
+                                                                                                            : "hover:bg-base-200 text-sub"
                                                                                                     }`}
                                                                                                 >
                                                                                                     {dayNum}
@@ -902,9 +926,12 @@ export default function CharacterTemplate() {
                                                                                                                 id={field.id}
                                                                                                                 type={field.type}
                                                                                                                 label={field.label}
-                                                                                                                url={field.url}
+                                                                                                                placeholder={field.placeholder}
+                                                                                                                guide={field.guide}
                                                                                                                 value={field.value}
                                                                                                                 options={field.options}
+                                                                                                                thoughts={field.thoughts}
+                                                                                                                comments={field.comments}
                                                                                                                 dragHandleProps={{
                                                                                                                     ...fDragProps,
                                                                                                                     className: `${fDragProps.className || ""} touch-none`,
@@ -970,7 +997,7 @@ export default function CharacterTemplate() {
                                                             data-tip={category.label}
                                                             onClick={() => {
                                                                 setActiveCategory(category.id);
-                                                                setTab(null);
+                                                                setBlock(null);
                                                             }}
                                                         >
                                                             <span
