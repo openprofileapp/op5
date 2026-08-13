@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 
@@ -39,7 +39,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
         window.addEventListener("scroll", handleScroll);
 
         // DELETE LATER
-        document.getElementById("mfa")?.showModal();
+        // document.getElementById("mfa")?.showModal();
 
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
