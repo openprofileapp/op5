@@ -15,6 +15,7 @@ target
 !.vscode/settings.json
 package-lock.json
 Cargo.lock
+todo_private
 
 # Extensions
 *.env
