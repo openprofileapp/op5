@@ -1,12 +1,17 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import isGateway from "../../_common/helpers/isGateway.js";
 
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
 import MfaModal from "./modals/MfaModal.js";
+import ReportModal from "./modals/ReportModal.js";
+import { toast } from "../../_common/scripts/toast.js";
+import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
 
 type Props = {
     isBannerPage?: boolean;
@@ -17,15 +22,96 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
     const { t, ready } = useTranslation();
 
-    if (!ready) return null;
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [scrolled, setScrolled] = useState(false);
+    const [user, setUser] = useState<UserProfileType | null>();
+    const [isLoading, setIsLoading] = useState(true);
     
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+    const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+
+    // MAKE THESE AS IMPORTABLE MAYBE?
+    function exampleTrigger() {
+        toast.show("Example triggered!")
+    }
+
+    function formatDisplayNameToUrl(name: string): string {
+        return name
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9._]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+    }
+
+    const closeContextMenu = useCallback(() => {
+        setIsContextMenuOpen(false);
+        document
+            .getElementById(`account-dropdown`)
+            ?.hidePopover();
+    }, []);
+    
+   useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const menu = document.getElementById(`account-dropdown`);
+
+            if (!menu) return;
+
+            if (menu.contains(e.target as Node)) {
+                return;
+            }
+
+            closeContextMenu();
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [closeContextMenu]);
+
+    const checkCollectionMenuPosition = (
+        e: React.MouseEvent<HTMLLIElement>
+    ) => {
+        const button = e.currentTarget.getBoundingClientRect();
+        const submenuWidth = 208;
+        const spaceRight = window.innerWidth - button.right;
+
+        setIsContextMenuFlipped(spaceRight < submenuWidth);
+    };
+
+    useEffect(() => {
+        const loadUserSession = async () => {
+            try {
+                if (!window.session?.userId) {
+                    setUser(null);
+                    return;
+                }
+
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${window.session.userId}`,
+                    { credentials: "include" }
+                );
+
+                if (!res.ok) {
+                    setUser(null);
+                    return;
+                }
+
+                const data = await res.json();
+                setUser(data);
+            } catch (error) {
+                toast.show(`Failed to fetch session: ${error}`, { type: "error" })
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadUserSession();
+    }, []);
+        
     useEffect(() => {
         if (!isBannerPage) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setScrolled(true);
             return;
         }
@@ -38,17 +124,20 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
         window.addEventListener("scroll", handleScroll);
 
-        // DELETE LATER
+        // DELETE LATER; ONLY CALL WHEN NEEDED
         // document.getElementById("mfa")?.showModal();
 
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
+
+    if (isLoading || !ready) return null;
 
     return (
         <>
             <LoginModal />
             <MfaModal />
             <CreateProjectModal />
+            <ReportModal />
 
             <div className={`
                     sticky top-0 z-9999 hidden md:flex navbar items-center gap-4 px-16
@@ -84,10 +173,10 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 <li
                                     className="hover:bg-transparent"
                                     onMouseEnter={(e) =>
-                                        e.currentTarget.querySelector("details").setAttribute("open", "")
+                                        e.currentTarget.querySelector("details")?.setAttribute("open", "")
                                     }
                                     onMouseLeave={(e) =>
-                                        e.currentTarget.querySelector("details").removeAttribute("open")
+                                        e.currentTarget.querySelector("details")?.removeAttribute("open")
                                     }
                                 >
                                 <details>
@@ -113,46 +202,38 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 </li>
                             </ul>
                         </div>
-
-                        {/*<span>|</span>
-                        <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
-                        <Link className="link-hover" to="/account/library">My library</Link>
-                        <Link className="link-hover" to="/account/partners">Partner Stats</Link>*/}
                     </div>
                 </div>
 
                 <div className="flex items-center gap-5">
-
-                    <div className="flex flex-1 flex-col w-72">
+                    <div className="flex flex-1 flex-col w-84">
                         <label className="input w-full">
                             <span className="font-nerdfont text-base mr-1"></span>
                             <input type="search" placeholder="Characters, franchises, topics..." />
                         </label>
                     </div>
                     {/* While typing, auto forward to search and display results, on clear, return home */}
-                    
-                    {/*<Link to="/premium">
-                        <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info p-3.5 flex justify-center rounded-m bg-premium">
-                            <span className="font-nerdfont text-base mr-1"></span>
-                            Lifetime Premium
-                            <div className="tooltip-content">
-                                <div className="font-bold">You've got life-time premium!</div>
-                                <div className="text-xs">Thanks for registering early</div>
-                            </div>
-                        </div>
-                    </Link>*/}
 
-                    <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                    <button 
+                        className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
                         data-tip="Create"
                         data-guide="create"
-                        onClick={()=>document.getElementById("create-asset").showModal()}
-                    >
+                        onClick={() => {
+                            const dialog = document.getElementById("create-asset") as HTMLDialogElement | null;
+                            dialog?.showModal();
+                        }}
+                        >
                         <span className="font-nerdfont text-xl"></span>
                     </button>
 
                     <button 
                         className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
                         data-tip="Report"
+                        data-guide="report"
+                        onClick={() => {
+                            const dialog = document.getElementById("report") as HTMLDialogElement | null;
+                            dialog?.showModal();
+                        }}
                     >
                         <span className="font-nerdfont text-xl"></span>
                     </button>
@@ -164,36 +245,204 @@ export default function Navbar({ isBannerPage = false }: Props) {
                             <div className="text-xs">No new notifications!</div>
                         </div>
                     </button>
+                    { /* Maybe clicking the bell should display last 5-10 notifications with a see all link */}
 
-                    <div className="tooltip tooltip-bottom tooltip-accent">
-                        <button className="avatar cursor-pointer" popoverTarget="account-dropdown" 
-                        style={{ anchorName: "--account-anchor" }}>
-                            <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
-                                <img src="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/mp4vq9qxv51.png" />
-                            </div>
-                        </button>
-                        <div className="tooltip-content text-left">
-                            <div className="font-bold">@username</div>
-                            <div className="text-xs">102 Followers</div>
-                        </div>
+                    <div className={`tooltip tooltip-bottom tooltip-accent ${isLoading ? "loading" : ""}`}>
+                        {user && (
+                            <>
+                                <button 
+                                    className="relative avatar cursor-pointer border border-3 border-premium rounded-full" 
+                                    popoverTarget="account-dropdown" 
+                                    style={{ anchorName: "--account-anchor" }}
+                                >
+                                    <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
+                                        <img src={user.avatar} />
+                                    </div>
+                                </button>
+                                <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 font-nerdfont text-base text-premium pointer-events-none">
+                                    
+                                </div>
+                                <div className="tooltip-content text-center">
+                                    <div className="font-bold text-xs uppercase mb-1">Premium</div>
+                                    <div className="font-bold">@{user.username}</div>
+                                </div>
+                            </>
+                        )}
+                        {/* If no user, display a login or smth icon */}
                     </div>
                 </div>
+        
+                { /* <Link to="/premium">
+                    <div className="badge text-black border-0 tooltip tooltip-bottom tooltip-info p-3.5 flex justify-center rounded-m bg-premium">
+                        <span className="font-nerdfont text-base mr-1"></span>
+                        Lifetime Premium
+                        <div className="tooltip-content">
+                            <div className="font-bold">You've got life-time premium!</div>
+                            <div className="text-xs">Thanks for registering early</div>
+                        </div>
+                    </div>
+                </Link>*/}
 
                 { /* Maybe this can be a menu-hoz like for links */}
-                <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" 
-                    popover="auto" id="account-dropdown" style={{ positionAnchor: "--account-anchor" }}>
-                    <li>
-                        <Link to="/">My Profile</Link>
-                    </li>
-                    <li>
-                        <a className="justify-between">
-                            Settings
-                            <span className="badge badge-accent">New</span>
-                        </a>
-                    </li>
-                    <li><a>Become an Author</a></li>
-                    <li><a>Logout</a></li>
-                </ul>
+                {user && (
+                    <ul
+                        className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
+                        popover="manual"
+                        id="account-dropdown"
+                    >
+                        <li>
+                            <Link 
+                                className="flex items-center justify-between gap-4" 
+                                to={`/${user.username}`}
+                            >
+                                View Profile
+                                <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
+                                    󰈈
+                                </span>
+                            </Link>
+                        </li>
+
+                        <hr />
+
+                        <li>
+                            <a
+                                className="flex items-center justify-between gap-4"
+                                href={`https://${isGateway() ? window.location.host : window.config.domains.studio}${isGateway() ? "/studio" : ""}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => {
+                                    closeContextMenu();
+                                }}
+                            >
+                                <span>Go to Studio</span>
+                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <Link 
+                                className="flex items-center justify-between gap-4" 
+                                to={`/account/library`}
+                            >
+                                Your Library
+                                <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
+                                    󰪷
+                                </span>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link 
+                                className="flex items-center justify-between gap-4" 
+                                to={`/account/partners`}
+                            >
+                                Partner Stats
+                                <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </Link>
+                        </li>
+
+                        <hr />
+
+                        <li 
+                            className="relative group"
+                            onMouseEnter={checkCollectionMenuPosition}
+                        >
+                            <button className="flex items-center justify-between gap-4 w-full">
+                                <span>Switch Account</span>
+                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </button>
+
+                            <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+
+                            <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                                <li>
+                                    <button 
+                                        className="flex items-center justify-between gap-4"
+                                        onClick={() => {
+                                            exampleTrigger();
+                                            closeContextMenu();
+                                        }}
+                                    >
+                                        @j9studios
+                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                            <img 
+                                                className="rounded-full translate-x-[2px]"
+                                                src="https://cdn.openprofile.app//uploads/users/5019646586243236/5019646586243236.png"
+                                            />
+                                        </span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button 
+                                        className="flex items-center justify-between gap-4"
+                                        onClick={() => {
+                                            exampleTrigger();
+                                            closeContextMenu();
+                                        }}
+                                    >
+                                        @openprofile
+                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                            <img 
+                                                className="rounded-full translate-x-[2px]"
+                                                src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
+                                            />
+                                        </span>
+                                    </button>
+                                </li>
+                                <hr />
+                                <li>
+                                    <button 
+                                        className="flex items-center justify-between gap-4"
+                                        onClick={() => {
+                                            exampleTrigger();
+                                            closeContextMenu();
+                                        }}
+                                    >
+                                        Add Account
+                                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                            
+                                        </span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <Link 
+                                className="flex items-center justify-between gap-4" 
+                                to={`/account/settings`}
+                            >
+                                Settings
+                                <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </Link>
+                        </li>
+
+                        <hr />
+
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                onClick={() => {
+                                    exampleTrigger();
+                                    closeContextMenu();
+                                }}
+                            >
+                                <span>Logout</span>
+                                <span className="font-nerdfont text-[22px] flex h-6 w-4 leading-none items-center justify-center">
+                                    󰗼
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                )}
             </div>
 
             <div className={`md:hidden sticky top-0 z-9999 navbar
