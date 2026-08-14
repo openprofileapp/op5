@@ -23,9 +23,9 @@ export default function UserProfile() {
 
     const [activeTab, setActiveTab] = useState("projects");
     const [user, setUser] = useState<unknown[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setIsLoading] = useState(true);
     const [following, setFollowing] = useState(false);
-    const [loadingFollow, setLoadingFollow] = useState(false);
+    const [loadingFollow, setIsLoadingFollow] = useState(false);
     const [showConfetti, setShowConfetti] = useState(true);
 
     {/* MOVE THIS TO KAGE-LIBRARY/CLIENT */}
@@ -40,7 +40,7 @@ export default function UserProfile() {
     };
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchUser = async () => {
             try {
                 const res = await fetch(
                     `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`,
@@ -58,11 +58,11 @@ export default function UserProfile() {
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         };
 
-        fetchUsers();
+        fetchUser();
     });
 
     const auraStyle = user.isAuraEnabled
@@ -214,10 +214,10 @@ export default function UserProfile() {
                                     onClick={() => {
                                         if (following || loadingFollow) return;
 
-                                        setLoadingFollow(true);
+                                        setIsLoadingFollow(true);
 
                                         setTimeout(() => {
-                                            setLoadingFollow(false);
+                                            setIsLoadingFollow(false);
                                             setFollowing(true);
                                         }, 500);
                                     }}
@@ -343,10 +343,10 @@ export default function UserProfile() {
                                             onClick={() => {
                                                 if (following || loadingFollow) return;
 
-                                                setLoadingFollow(true);
+                                                setIsLoadingFollow(true);
 
                                                 setTimeout(() => {
-                                                    setLoadingFollow(false);
+                                                    setIsLoadingFollow(false);
                                                     setFollowing(true);
                                                 }, 500);
                                             }}
