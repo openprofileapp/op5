@@ -51,7 +51,7 @@ import Template from "./pages/Template.js"
 
 async function bootstrap() {
     const response = await fetch(
-        `https://${window.config.domains.auth}/session`,
+        `https://${isGateway() ? window.location.host : window.config.domains.auth}/session`,
         {
             credentials: "include",
         }
