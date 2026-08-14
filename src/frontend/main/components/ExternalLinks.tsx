@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { LinkType } from "../../../backend/_common/types/queries/link.type.js";
+import { LinkType } from "../../../_common/types/queries/link.type.js";
 
 type Props = {
     links?: LinkType[];

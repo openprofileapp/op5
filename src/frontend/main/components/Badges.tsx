@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import isGateway from "../../_common/helpers/isGateway.js";
 
-import { BadgeType } from "../../../backend/_common/types/queries/badge.type.js";
+import { BadgeType } from "../../../_common/types/queries/badge.type.js";
 
 type Props = {
     badges?: BadgeType[];

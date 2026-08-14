@@ -5,7 +5,7 @@ import { config } from "../../../../app.config.js";
 import PlatformPermissionsService from "../services/platformPermissions.service.js";
 import { wc } from "../instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { AuditApiType } from "../types/queries/audit.type.js";
+import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
 
 export default function rateLimitMiddleware(requests: number = 240) {
     return rateLimit({

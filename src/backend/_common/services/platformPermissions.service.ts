@@ -8,10 +8,10 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 import { AdvancedError } from "kage-library";
 
 import { db } from "../../api/databases/db.js";
-import { ValidSessionType } from "../types/validSession.type.js";
-import { CharacterType } from "../types/queries/character.type.js";
-import { UserProfileType } from "../types/queries/userProfile.type.js";
-import { PermissionsType } from "../types/queries/permissions.type.js";
+import { ValidSessionType } from "../../../_common/types/validSession.type.js";
+import { CharacterType } from "../../../_common/types/queries/character.type.js";
+import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
+import { PermissionsType } from "../../../_common/types/queries/permissions.type.js";
 
 const index = {
     // Base

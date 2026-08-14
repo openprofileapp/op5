@@ -13,13 +13,13 @@ import { log } from "../instances.js";
 import { wc, id } from "../../_common/instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
-import { InviteType } from "../../_common/types/queries/invite.type.js";
+import { InviteType } from "../../../_common/types/queries/invite.type.js";
 import { UserAgentType } from "../types/userAgent.type.js";
 import { SessionType } from "../types/session.type.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { AuditApiType } from "../../_common/types/queries/audit.type.js";
+import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
 import { GeoIpType } from "../types/geoIp.type.js";
-import { ValidSessionType } from "../../_common/types/validSession.type.js";
+import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;

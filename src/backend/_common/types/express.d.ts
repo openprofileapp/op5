@@ -1,6 +1,6 @@
 import "express";
 
-import { ValidSessionType } from "./validSession.type.ts"
+import { ValidSessionType } from "../../../_common/types/validSession.type.ts"
 
 declare global {
     namespace Express {

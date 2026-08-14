@@ -5,7 +5,7 @@ import { AdvancedError } from "kage-library";
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import { log, wc } from "../instances.js";
-import { ValidSessionType } from "../../_common/types/validSession.type.js";
+import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 
 export const fetchSessionMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
