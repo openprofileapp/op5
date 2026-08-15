@@ -64,6 +64,10 @@ export default async function validateSession(
     let accessToken = req.cookies?.accessToken;
     let sessionToken = req.cookies?.sessionToken;
 
+    const delegationToken = req.cookies?.delegationToken;
+    const delegatedAccounts: string[] = [];
+    // LIMIT UP TO 8 ACCOUNTS (INCLUDING THE ORIGINAL)
+
     const cookieOptions: CookieOptions = {
         httpOnly: true,
         secure: true,
@@ -80,7 +84,7 @@ export default async function validateSession(
     if (!sessionId) {
         const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
         const in15Minutes = DateTime.now().toUTC().plus({ minutes: 15 }).toISO();
-        
+
         sessionId = id.gen("HASH");
         accessToken = id.gen("TOKEN");
 
@@ -162,6 +166,7 @@ export default async function validateSession(
         res.clearCookie("sessionId", cookieOptions);
         res.clearCookie("accessToken", cookieOptions);
         res.clearCookie("sessionToken", cookieOptions);
+        res.clearCookie("delegationToken", cookieOptions);
 
         return { action: "REFRESH_PAGE" };
     }
@@ -176,6 +181,7 @@ export default async function validateSession(
         res.clearCookie("sessionId", cookieOptions);
         res.clearCookie("accessToken", cookieOptions);
         res.clearCookie("sessionToken", cookieOptions);
+        res.clearCookie("delegationToken", cookieOptions);
 
         return { action: "REFRESH_PAGE" };
     };
@@ -393,6 +399,7 @@ export default async function validateSession(
             res.clearCookie("sessionId", cookieOptions);
             res.clearCookie("accessToken", cookieOptions);
             res.clearCookie("sessionToken", cookieOptions);
+            res.clearCookie("delegationToken", cookieOptions);
 
             return { action: "REFRESH_PAGE" };
         } else {
@@ -417,6 +424,63 @@ export default async function validateSession(
                     details: result.error
                 })
             }
+        }
+    }
+
+    // If modified delegation token, delete session, clear cookies, and restart
+    if (delegationToken) {
+        if (crypto.createHash("sha256").update(delegationToken).digest("hex") !== row.delegationToken) {
+            const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
+
+            // Create audit log
+            await wc.callAPI(
+                `https://${config.domains.api}/v2/audit/create`,
+                {
+                    method: "POST",
+                    auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                    body: {
+                        type: "authentications", 
+                        source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, 
+                        action: "DELETED",
+                        changes: { 
+                            new: { delegationToken: crypto.createHash("sha256").update(delegationToken).digest("hex") }, 
+                            old: { delegationToken: row.delegationToken }
+                        },
+                        origin: req.originalUrl
+                    } as AuditApiType
+                }
+            );
+
+            const result = db.accounts.query(
+                `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
+                [sessionId]
+            );
+
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while deleting session",
+                    details: result.error
+                })
+            }
+
+            res.clearCookie("sessionId", cookieOptions);
+            res.clearCookie("accessToken", cookieOptions);
+            res.clearCookie("sessionToken", cookieOptions);
+            res.clearCookie("delegationToken", cookieOptions);
+
+            return { action: "REFRESH_PAGE" };
+        } else {
+            // Refesh the cookie so it doesn't expire
+
+            res.cookie("delegationToken", delegationToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            });
         }
     }
 
@@ -462,6 +526,7 @@ export default async function validateSession(
             res.clearCookie("sessionId", cookieOptions);
             res.clearCookie("accessToken", cookieOptions);
             res.clearCookie("sessionToken", cookieOptions);
+            res.clearCookie("delegationToken", cookieOptions);
 
             return { action: "REFRESH_PAGE" };
         } else if (
@@ -555,6 +620,7 @@ export default async function validateSession(
         res.clearCookie("sessionId", options);
         res.clearCookie("accessToken", options);
         res.clearCookie("sessionToken", options);
+        res.clearCookie("delegationToken", cookieOptions);
 
         return { action: "REFRESH_PAGE" };
     } else if (
@@ -658,6 +724,31 @@ export default async function validateSession(
     // Display member role for non-logged users
     const role = PlatformPermissionsService.getRole("guest");
 
+    if (row.delegationToken) {
+        const result = db.accounts.query<SessionType>(
+            `SELECT userId FROM sessions WHERE delegationToken = ?`,
+            [row.delegationToken]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching session",
+                details: result.error
+            });
+        }
+
+        if (result.rows?.length) {
+            result.rows.forEach(row => {
+                if (row.userId) {
+                    delegatedAccounts.push(row.userId);
+                }
+            });
+        }
+    } else if (row.userId) {
+        delegatedAccounts.push(row.userId);
+    }
+
     // Return session data
     return {
         sessionId,
@@ -668,6 +759,7 @@ export default async function validateSession(
         },
         locale: rowGeoIpJSON.locale,
         timezone: rowGeoIpJSON.timezone,
+        delegatedAccounts
         // ...(returnMfaToken === true && { mfaToken })
     };
 }

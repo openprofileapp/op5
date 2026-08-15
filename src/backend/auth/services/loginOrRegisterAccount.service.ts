@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import { snowflake, } from "../instances.js";
+import { log, snowflake, } from "../instances.js";
 import { id, } from "../../_common/instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
@@ -13,17 +13,18 @@ import getUserAccountByExternalId from "./getUserAccountByExternalId.service.js"
 import getUserAccountByEmail from "./getUserAccountByEmail.service.js";
 import { ReservedAccountType } from "../types/reservedAccount.type.js";
 import { createMfaChallenge } from '../helpers/createMfaChallenge.js';
+import { ValidSessionType } from '../../../_common/types/validSession.type.js';
+import { SessionType } from '../types/session.type.js';
 
 type Props = {
-    sessionId: string;
+    session: ValidSessionType;
+    delegationToken: string;
     email?: string;
     isEmailVerified?: boolean;
     phoneNumber?: string;
     isPhoneNumberConfirmed?: boolean;
     password?: string;
     birthdate?: string;
-    locale?: string;
-    timezone?: string;
     hasReadTerms?: boolean;
     username?: string;
     displayName?: string;
@@ -39,6 +40,9 @@ type Props = {
 type InternalTokenType = {
     type: string;
     value: string;
+    accessToken?: string;
+    sessionToken?: string;
+    sessionId?: string;
 }
 
 function updateSessionToken(userId: string, sessionId: string) {
@@ -75,16 +79,182 @@ function updateSessionToken(userId: string, sessionId: string) {
     };
 }
 
+function updateAccessToken(userId: string, sessionId: string) {
+    const accessToken = id.gen("TOKEN");
+    const in5Minutes = DateTime.now().toUTC().plus({ minutes: 5 }).toISO();
+
+    const hashedAccessToken = crypto.createHash("sha256").update(accessToken).digest("hex");
+
+    const result = db.accounts.query(
+        `UPDATE sessions SET 
+            userId = ?,
+            accessToken = ?, 
+            accessTokenExpireDate = ?
+            WHERE sessionId = ? LIMIT 1`,
+        [
+            userId,
+            hashedAccessToken,
+            in5Minutes,
+            sessionId,
+        ]
+    );
+
+    if (!result.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while saving session token",
+            details: result.error
+        })
+    }
+
+    return {
+        type: "session",
+        value: accessToken
+    };
+}
+
+function addDelegation(userId: string, sessionId: string, delegationToken?: string) {
+    let hashedDelegationToken;
+
+    const sessionResult = db.accounts.query<SessionType>(
+        `SELECT * FROM sessions WHERE sessionId = ? LIMIT 1`,
+        [sessionId]
+    );
+
+    if (!sessionResult.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while fetching session",
+            details: sessionResult.error
+        })
+    }
+
+    const session = sessionResult?.rows[0];
+
+    if (!session) {
+        throw new AdvancedError({
+            code: 404,
+            message: "Session not found"
+        });
+    }
+
+    if (session.userId === userId) return { type: "invalid" };
+
+    if (!delegationToken) {
+        delegationToken = id.gen("TOKEN");
+
+        hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
+
+        const updateResult = db.accounts.query(
+            `UPDATE sessions SET 
+                delegationToken = ?
+                WHERE sessionId= ? LIMIT 1`,
+            [
+                hashedDelegationToken,
+                sessionId,
+            ]
+        );
+
+        if (!updateResult.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while saving delegation token",
+                details: updateResult.error
+            })
+        }
+    } else {
+        hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
+    }
+
+    const existingDelegationSession = db.accounts.query<SessionType>(
+        `SELECT * FROM sessions WHERE userId = ? AND delegationToken = ? LIMIT 1`,
+        [userId, hashedDelegationToken]
+    );
+
+    if (!existingDelegationSession.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while fetching session",
+            details: existingDelegationSession.error
+        });
+    }
+
+    const existingSession = existingDelegationSession.rows?.[0];
+
+    if (existingSession) {
+        const sessionTokenResult = updateSessionToken(userId, existingSession.sessionId);
+        const accessTokenResult = updateAccessToken(userId, existingSession.sessionId);
+
+        return {
+            type: "delegation",
+            value: delegationToken,
+            accessToken: accessTokenResult?.value,
+            sessionToken: sessionTokenResult?.value,
+            sessionId: existingSession.sessionId
+        };
+    }
+
+    const newSessionId = id.gen("HASH");
+    const now = DateTime.now().toUTC().toISO();
+
+    const updateResult = db.accounts.query(
+        `INSERT INTO sessions (
+            sessionId,
+            userId,
+            geoIpFirstFetch,
+            geoIpLatestFetch,
+            geoIpLatestFetchExpireDate,
+            userAgent,
+            inviteCode,
+            delegationToken,
+            isConnected,
+            firstConnectedDate,
+            lastConnectedDate
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            newSessionId,
+            userId,
+            session.geoIpLatestFetch,
+            session.geoIpLatestFetch,
+            session.geoIpLatestFetchExpireDate,
+            session.userAgent,
+            session.inviteCode,
+            hashedDelegationToken,
+            1,
+            now,
+            now
+        ]
+    );
+
+    if (!updateResult.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: "An error occurred while saving session",
+            details: updateResult.error
+        })
+    }
+
+    const sessionTokenResult = updateSessionToken(userId, newSessionId)
+    const accessTokenResult = updateAccessToken(userId, newSessionId)
+
+    return {
+        type: "delegation",
+        value: delegationToken,
+        accessToken: accessTokenResult?.value,
+        sessionToken: sessionTokenResult?.value,
+        sessionId: newSessionId
+    };
+}
+
 export default function loginOrRegisterAccount({
-    sessionId,
+    session,
+    delegationToken,
     email,
     isEmailVerified,
     // phoneNumber,
     // isPhoneNumberConfirmed,
     // password,
     // birthdate,
-    locale,
-    timezone,
     // hasReadTerms,
     username,
     displayName,
@@ -97,6 +267,18 @@ export default function loginOrRegisterAccount({
     externalConnectionText
  }: Props): InternalTokenType {
     let userAccount;
+
+    if (
+            !session.sessionId ||
+            !session.locale ||
+            !session.timezone ||
+            !session.permissions     
+        ) {
+        throw new AdvancedError({
+            code: 400,
+            message: "Session missing"
+        })
+    }
 
     if (!email) {
         throw new AdvancedError({
@@ -120,7 +302,11 @@ export default function loginOrRegisterAccount({
 
     // Check connections for valid account
     if (externalConnectionName && externalConnectionId) {
-        userAccount = getUserAccountByExternalId(externalConnectionName, externalConnectionId, email);
+        try {
+            userAccount = getUserAccountByExternalId(externalConnectionName, externalConnectionId, email);
+        } catch {
+            userAccount = null;
+        }
     }
 
     // If connections are valid, update them then return
@@ -150,11 +336,15 @@ export default function loginOrRegisterAccount({
         if (userAccount.isMfaEnabled) {
             return createMfaChallenge(
                 userAccount.mfaSecret, 
-                userAccount.id, 
-                sessionId
+                userAccount.id,
+                session.sessionId
             );
         } else {
-            return updateSessionToken(userAccount.id, sessionId);
+            if (session.userId) {
+                return addDelegation(userAccount.id, session.sessionId, delegationToken);
+            }
+
+            return updateSessionToken(userAccount.id, session.sessionId);
         }
     }
 
@@ -163,7 +353,11 @@ export default function loginOrRegisterAccount({
         externalConnectionId && 
         email
     ) { 
-        userAccount = getUserAccountByEmail(email); 
+        try {
+            userAccount = getUserAccountByEmail(email);
+        } catch {
+            userAccount = null;
+        }
     }
 
     // If email is valid, return
@@ -176,10 +370,14 @@ export default function loginOrRegisterAccount({
             return createMfaChallenge(
                 userAccount.mfaSecret, 
                 userAccount.id, 
-                sessionId
+                session.sessionId
             );
         } else {
-            return updateSessionToken(userAccount.id, sessionId);
+            if (session.userId) {
+                addDelegation(userAccount.id, session.sessionId, delegationToken);
+            }
+
+            return updateSessionToken(userAccount.id, session.sessionId);
         }
     }
   
@@ -388,8 +586,8 @@ export default function loginOrRegisterAccount({
             id,
             1,
             permissions.value,
-            locale,
-            timezone
+            session.locale,
+            session.timezone
         ]
     );
 

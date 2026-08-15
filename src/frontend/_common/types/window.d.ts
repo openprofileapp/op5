@@ -16,7 +16,6 @@ export type ClientConfig = {
 };
 
 export type ClientSession = {
-    sessionId: string;
     userId: string;
     permissions: {
         value: number;
@@ -24,6 +23,7 @@ export type ClientSession = {
     };
     locale: string;
     timezone: string;
+    delegatedAccounts?: string[];
 };
 
 declare global {

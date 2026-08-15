@@ -7,7 +7,6 @@ import { wc } from "../../../_common/instances.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
 import { config } from "../../../../../app.config.js";
 import loginOrRegisterAccount from "../../services/loginOrRegisterAccount.service.js";
-import validateSession from "../../services/validateSession.service.js";
 
 type GoogleTokenResponse = {
     access_token: string;
@@ -67,18 +66,15 @@ export const googleLogin = async (req: Request, res: Response) => {
         )
 
         // Fetch session and internal account
-        const currentSession = await validateSession(req, res); // USE REQ.SESSION INSTEAD
-
-        if (!currentSession.sessionId) {
+        if (!req.session?.sessionId) {
             throw new AdvancedError({ code: 400, message: "Invalid session" });
         }
 
         const internalToken = loginOrRegisterAccount({
-            sessionId: currentSession.sessionId,
+            session: req.session,
+            delegationToken: req.cookies?.delegationToken,
             email: googleAccount.email,
             isEmailVerified: googleAccount.email_verified,
-            locale: currentSession.locale,
-            timezone: currentSession.timezone,
             username: googleAccount.email.replace("@gmail.com", ""),
             displayName: googleAccount.name,
             avatar: googleAccount.picture,
@@ -103,10 +99,54 @@ export const googleLogin = async (req: Request, res: Response) => {
             return res.status(200).json({
                 action: "DISPLAY_MFA"
             });
-        } else {
+        }
+        
+        if (internalToken.type === "session") {
             // ALSO ADD AUDIT LOGGING FOR A SUCESSFUL LOGIN
 
             res.cookie("sessionToken", internalToken.value, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            });
+
+            // RETURN HERE
+        }
+
+        if (internalToken.type === "delegation") {
+            // ALSO ADD AUDIT LOGGING FOR A SUCESSFUL LOGIN
+
+            res.cookie("sessionId", internalToken.sessionId, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+            });
+
+            res.cookie("sessionToken", internalToken.sessionToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            });
+
+            res.cookie("accessToken", internalToken.accessToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 5, // 5 minutes
+            });
+
+            res.cookie("delegationToken", internalToken.value, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "none",

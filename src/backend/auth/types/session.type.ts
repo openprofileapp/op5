@@ -16,6 +16,7 @@ export type SessionType = {
     mfaStatus: string;
     sessionToken: string;
     sessionTokenExpireDate: string;
+    delegationToken: string;
     isTerminated: boolean;
     totalDuration: number;
     isConnected: boolean;

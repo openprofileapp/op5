@@ -79,6 +79,38 @@ export default function Navbar({ isBannerPage = false }: Props) {
         setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
 
+    const [accounts, setAccounts] = useState([]);
+
+    useEffect(() => {
+        const fetchDelegatedAccounts = async () => {
+            const delegatedIds = window.session?.delegatedAccounts || [];
+            
+            if (delegatedIds.length === 0) {
+                return;
+            }
+
+            try {
+                const baseUrl = `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}`;
+
+                // Fetch all accounts in parallel using Promise.all
+                const requests = delegatedIds.map(async (userId) => {
+                    const res = await fetch(`${baseUrl}/v2/users?id=${userId}`, {
+                        credentials: "include"
+                    });
+                    return res.ok ? await res.json() : null;
+                });
+
+                const results = await Promise.all(requests);
+                // Filter out any failed requests
+                setAccounts(results.filter(Boolean));
+            } catch (error) {
+                console.error("Failed to fetch delegated accounts:", error);
+            }
+        };
+
+        fetchDelegatedAccounts();
+    }, []);
+
     useEffect(() => {
         const loadUserSession = async () => {
             try {
@@ -248,7 +280,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     { /* Maybe clicking the bell should display last 5-10 notifications with a see all link */}
 
                     <div className={`tooltip tooltip-bottom tooltip-accent ${isLoading ? "loading" : ""}`}>
-                        {user && (
+                        {user ? (
                             <>
                                 <button 
                                     className="relative avatar cursor-pointer border border-3 border-premium rounded-full" 
@@ -267,8 +299,19 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                     <div className="font-bold">@{user.username}</div>
                                 </div>
                             </>
+                        ) : (
+                            <button 
+                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                                data-tip="Login"
+                                data-guide="login"
+                                onClick={() => {
+                                    const dialog = document.getElementById("login") as HTMLDialogElement | null;
+                                    dialog?.showModal();
+                                }}
+                            >
+                                <span className="font-nerdfont text-[22px]">󰗼</span>
+                            </button>
                         )}
-                        {/* If no user, display a login or smth icon */}
                     </div>
                 </div>
         
@@ -360,48 +403,35 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                             <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
+                            {/* For each delegated account, list it here. Include the current one somewhere */}
                             <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                                <li>
-                                    <button 
-                                        className="flex items-center justify-between gap-4"
-                                        onClick={() => {
-                                            exampleTrigger();
-                                            closeContextMenu();
-                                        }}
-                                    >
-                                        @j9studios
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            <img 
-                                                className="rounded-full translate-x-[2px]"
-                                                src="https://cdn.openprofile.app//uploads/users/5019646586243236/5019646586243236.png"
-                                            />
-                                        </span>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button 
-                                        className="flex items-center justify-between gap-4"
-                                        onClick={() => {
-                                            exampleTrigger();
-                                            closeContextMenu();
-                                        }}
-                                    >
-                                        @openprofile
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            <img 
-                                                className="rounded-full translate-x-[2px]"
-                                                src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
-                                            />
-                                        </span>
-                                    </button>
-                                </li>
+                                {accounts.map((account) => (
+                                    <li key={account.id}>
+                                        <button 
+                                            className="flex items-center justify-between gap-4"
+                                            onClick={() => {
+                                                window.location.href = `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/switch/${account.id}`
+                                            }}
+                                        >
+                                            @{account.username}
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                <img 
+                                                    className="rounded-full translate-x-[2px]"
+                                                    src={account.avatar}
+                                                />
+                                            </span>
+                                        </button>
+                                    </li>
+                                ))}
+
                                 <hr />
+
                                 <li>
                                     <button 
                                         className="flex items-center justify-between gap-4"
                                         onClick={() => {
-                                            exampleTrigger();
-                                            closeContextMenu();
+                                            const dialog = document.getElementById("login") as HTMLDialogElement | null;
+                                            dialog?.showModal();
                                         }}
                                     >
                                         Add Account
@@ -437,7 +467,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                             >
                                 <span>Logout</span>
                                 <span className="font-nerdfont text-[22px] flex h-6 w-4 leading-none items-center justify-center">
-                                    󰗼
+                                    󰗽
                                 </span>
                             </button>
                         </li>

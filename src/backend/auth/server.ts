@@ -18,6 +18,7 @@ import mfaRoutes from "./routes/mfa.routes.js";
 import { validateSessionMiddleware } from "./middlewares/validateSession.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
+import switchRoutes from "./routes/switch.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -53,6 +54,7 @@ app.use("/", router); // Do not attach middlewares on this
 router.use("/captcha", validateSessionMiddleware, rateLimitMiddleware(60), captchaRoute);
 router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenRoute);
 router.use("/session", rateLimitMiddleware(240), sessionRoute); // No validateSessionMiddleware here
+router.use("/switch", validateSessionMiddleware, rateLimitMiddleware(10), switchRoutes);
 router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
 router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
 

@@ -13,9 +13,12 @@ CREATE TABLE IF NOT EXISTS sessions (
     mfaStatus TEXT,
     sessionToken TEXT UNIQUE,
     sessionTokenExpireDate TEXT,
+    delegationToken TEXT,
     isTerminated INTEGER DEFAULT 0,
     totalDuration INTEGER DEFAULT 0,
     isConnected INTEGER DEFAULT 0,
     firstConnectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    lastConnectedDate TEXT
+    lastConnectedDate TEXT,
+
+    UNIQUE (userId, delegationToken) -- Ensure accounts can't be logged in twice
 );

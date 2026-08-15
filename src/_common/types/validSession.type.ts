@@ -8,4 +8,5 @@ export type ValidSessionType = {
     locale?: string;
     timezone?: string;
     action?: string; // Only part of session fetch
+    delegatedAccounts?: string[];
 };
