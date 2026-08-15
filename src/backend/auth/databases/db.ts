@@ -32,6 +32,11 @@ db.accounts.transaction(q => {
         const result = q(`${config.folders.sql.auth}/accounts/emails.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM reserved LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.auth}/accounts/reserved.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 // Migration (old databases)
