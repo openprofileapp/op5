@@ -246,38 +246,42 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     </div>
                     {/* While typing, auto forward to search and display results, on clear, return home */}
 
-                    <button 
-                        className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                        data-tip="Create"
-                        data-guide="create"
-                        onClick={() => {
-                            const dialog = document.getElementById("create-asset") as HTMLDialogElement | null;
-                            dialog?.showModal();
-                        }}
-                        >
-                        <span className="font-nerdfont text-xl"></span>
-                    </button>
+                    {window.session.userId && (
+                        <>
+                            <button 
+                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                                data-tip="Create"
+                                data-guide="create"
+                                onClick={() => {
+                                    const dialog = document.getElementById("create-asset") as HTMLDialogElement | null;
+                                    dialog?.showModal();
+                                }}
+                                >
+                                <span className="font-nerdfont text-xl"></span>
+                            </button>
 
-                    <button 
-                        className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                        data-tip="Report"
-                        data-guide="report"
-                        onClick={() => {
-                            const dialog = document.getElementById("report") as HTMLDialogElement | null;
-                            dialog?.showModal();
-                        }}
-                    >
-                        <span className="font-nerdfont text-xl"></span>
-                    </button>
+                            <button 
+                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                                data-tip="Report"
+                                data-guide="report"
+                                onClick={() => {
+                                    const dialog = document.getElementById("report") as HTMLDialogElement | null;
+                                    dialog?.showModal();
+                                }}
+                            >
+                                <span className="font-nerdfont text-xl"></span>
+                            </button>
 
-                    <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
-                        <span className="font-nerdfont text-xl">󰂚</span>
-                        <div className="tooltip-content">
-                            <div className="font-bold">Notifications</div>
-                            <div className="text-xs">No new notifications!</div>
-                        </div>
-                    </button>
-                    { /* Maybe clicking the bell should display last 5-10 notifications with a see all link */}
+                            <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
+                                <span className="font-nerdfont text-xl">󰂚</span>
+                                <div className="tooltip-content">
+                                    <div className="font-bold">Notifications</div>
+                                    <div className="text-xs">No new notifications!</div>
+                                </div>
+                            </button>
+                            { /* Maybe clicking the bell should display last 5-10 notifications with a see all link */}
+                        </>
+                    )}
 
                     <div className={`tooltip tooltip-bottom tooltip-accent ${isLoading ? "loading" : ""}`}>
                         {user ? (
