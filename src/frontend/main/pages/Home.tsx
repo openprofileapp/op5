@@ -1,18 +1,42 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import isGateway from "../../_common/helpers/isGateway.js";
-
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import CharacterCard from "../components/CharacterCard.js";
 
+const words = [
+    "Characters", 
+    "Universes", 
+    "Stories",
+    "Team"
+];
+
 export default function Home() {
     const { t, ready } = useTranslation();
+    const [index, setIndex] = useState(0);
+    const [width, setWidth] = useState(0);
+    const wordRef = useRef(null);
+
+    useEffect(() => {
+        if (wordRef.current) {
+            setWidth(wordRef.current.offsetWidth);
+        }
+    }, [index]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setIndex((prev) => (prev + 1) % words.length);
+        }, 3500);
+        return () => clearInterval(timer);
+    }, []);
 
     if (!ready) return null;
-    
+
     return (
         <>  
             <Metadata />
@@ -24,7 +48,7 @@ export default function Home() {
                     className="absolute top-[64px] inset-0 bg-cover bg-center h-150"
                     style={{
                         backgroundImage: `url(https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/media/hero.png)`,
-                        opacity: 0.15
+                        opacity: 0.1
                     }}
                 />
 
@@ -45,26 +69,52 @@ export default function Home() {
 
                 <div className="hero-content text-center px-4 md:px-16">
                     <div>
-                        <h1 className="text-4xl font-bold">
-                            Your 
-                            <span className="ml-3 text-rotate duration-6000">
-                                <span>
-                                    <span>Characters</span>
-                                    <span>Universes</span>
-                                    <span>Worlds</span>
-                                </span>
+                        <h1 className="text-4xl md:text-5xl font-bold inline-flex items-center justify-center whitespace-nowrap">
+                            <span>Your</span>
+
+                            <span
+                                className="ml-3 inline-flex relative overflow-hidden align-bottom transition-[width] duration-500"
+                                style={{ width: width ? `${width}px` : "auto" }}
+                            >
+                                <AnimatePresence mode="popLayout" initial={false}>
+                                    <motion.span
+                                        key={words[index]}
+                                        ref={wordRef}
+                                        initial={{ y: "100%", opacity: 0 }}
+                                        animate={{ y: "0%", opacity: 1 }}
+                                        exit={{ y: "-100%", opacity: 0 }}
+                                        transition={{ 
+                                            y: { type: "spring", stiffness: 220, damping: 26 },
+                                            opacity: { duration: 0.25 }
+                                        }}
+                                        className="inline-block whitespace-nowrap text-accent font-black"
+                                    >
+                                        {words[index]}
+                                    </motion.span>
+                                </AnimatePresence>
                             </span>
-                            . All in one place.
+
+                            <span>. All in one place.</span>
                         </h1>
-                        <p className="py-6">
-                            OpenProfile is a free collaborative platform to create and share original characters using an advanced template and a public database.
+
+                        <p className="py-6 mt-2 max-w-2xl mx-auto text-base md:text-lg">
+                            OpenProfile is a free collaborative platform to create and share original characters using advanced templates and a public database.
                         </p>
-                        <p className="pb-6 text-xs italic">
-                            The most advanced character profile in the world — created by writers for writers!
+
+                        <p className="pb-6 uppercase text-xs text-sub font-bold">
+                            The most advanced character profile in the world - <span className="text-white font-bold underline decoration-primary decoration-4 underline-offset-4">created by writers for writers</span>
                         </p>
-                        <div className="flex justify-center gap-3">
-                            <button className="btn btn-primary p-6" onClick={()=>document.getElementById("login").showModal()}>Get Started</button>
-                            <button className="btn btn-outline btn-primary p-6">Browse Characters</button>
+       
+                        <div className="flex justify-center gap-4 mt-1">
+                            <button 
+                                className="btn btn-primary h-12 px-8 hover:-translate-y-0.5 transition-all duration-200" 
+                                onClick={() => document.getElementById("login").showModal()}
+                            >
+                                Get Started
+                            </button>
+                            <button className="btn btn-outline btn-primary h-12 px-8 hover:-translate-y-0.5 transition-all duration-200">
+                                Browse Characters
+                            </button>
                         </div>
                     </div>
                 </div>
