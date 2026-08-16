@@ -51,13 +51,24 @@ import Template from "./pages/Template.js"
 
 async function bootstrap() {
     const response = await fetch(
-        `https://${isGateway() ? window.location.host : window.config.domains.auth}/session`,
+        `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/session`,
         {
             credentials: "include",
         }
     );
 
     window.session = await response.json();
+
+    if (window.session.userId) {
+        const response = await fetch(
+            `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${window.session.userId}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        window.session.user = await response.json();
+    }
 
     ReactDOM.createRoot(document.getElementById("root")!).render(
         <React.StrictMode>
