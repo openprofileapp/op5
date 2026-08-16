@@ -114,7 +114,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
     useEffect(() => {
         const loadUserSession = async () => {
             try {
-                if (!window.session?.userId) {
+                if (!window.session.userId) {
                     setUser(null);
                     return;
                 }
@@ -162,7 +162,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
 
-    if (isLoading || !ready) return null;
+    if (!ready) return null;
 
     return (
         <>
