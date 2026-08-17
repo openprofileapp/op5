@@ -572,10 +572,14 @@ export default async function validateSession(
 
     // If modified access token, delete session, clear cookies, and restart
     if (
-        accessToken &&
-        crypto.createHash("sha256").update(accessToken).digest("hex") !== row.accessToken
+        // DISABLED DUE TO FALSE RESETS (LIKELY DUE TO CONCURRENT CALLS)
+        // eslint-disable-next-line no-constant-condition
+        false
+        // accessToken &&
+        // crypto.createHash("sha256").update(accessToken).digest("hex") !== row.accessToken
     ) {
-        const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
+        // DISABLED DUE TO FALSE RESETS (LIKELY DUE TO CONCURRENT CALLS)
+        /*const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
 
         // Create audit log
         await wc.callAPI(
@@ -622,7 +626,7 @@ export default async function validateSession(
         res.clearCookie("sessionToken", options);
         res.clearCookie("delegationToken", cookieOptions);
 
-        return { action: "REFRESH_PAGE" };
+        return { action: "REFRESH_PAGE" };*/
     } else if (
         !accessToken ||
         new Date(row.accessTokenExpireDate as string) < new Date()
