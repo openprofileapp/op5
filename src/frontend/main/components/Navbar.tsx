@@ -12,6 +12,7 @@ import MfaModal from "./modals/MfaModal.js";
 import ReportModal from "./modals/ReportModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
+import CreateAssetModal from "./modals/CreateAssetModal.js";
 
 type Props = {
     isBannerPage?: boolean;
@@ -168,6 +169,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
         <>
             <LoginModal />
             <MfaModal />
+            <CreateAssetModal />
             <CreateProjectModal />
             <ReportModal />
 
@@ -550,7 +552,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 </button>
             </div>
 
-            {/* Move this out of this file as component */}
+            {/* DELETE THIS */}
             <dialog id="create-asset" className="modal">
                 <div className="modal-box">
                     <form method="dialog">
