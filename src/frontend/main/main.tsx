@@ -82,13 +82,14 @@ async function bootstrap() {
                             <Route path="/" element={<Home />} />
                             <Route path="/search" element={<Search />} />
                             <Route path="/universes" element={<ComingSoon />} />
-                            <Route path="/library" element={<ComingSoon />} />
-                            <Route path="/partners" element={<Partners />} />
+
                             <Route path="/premium" element={<Premium />} />
                             <Route path="/popular" element={<Browse />} />
 
                             <Route path="/account/onboarding" element={<Onboarding />} />
-
+                            <Route path="/account/library" element={<ComingSoon />} />
+                            <Route path="/account/partners" element={<Partners />} />
+                            
                             <Route path="/user/:id" element={<UserProfile />} />
                             <Route path="/:id" element={<Template />} />
                             {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
