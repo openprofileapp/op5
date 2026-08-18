@@ -22,6 +22,7 @@ const index = {
     // Common
     USE_INTERACTIONS: 3n, // REQUIRES "WRITE"; Allows user to follow, like, favorite, mute, block, hide, save, etc.
     SEND_COMMENTS: 4n, // REQUIRES "WRITE"; Comment on authorized assets
+    // SEND_CHATS: 5n, // REQUIRES "WRITE"; Chat authorized characters
     SEND_MESSAGES: 5n, // REQUIRES "WRITE"; Message authorized users
     CREATE_REPORTS: 6n, // REQUIRES "WRITE"; Create reports on assets and users
     CREATE_ASSETS: 7n, // REQUIRES "WRITE"; Create and manage owned assets completely including assigning users and deletion
