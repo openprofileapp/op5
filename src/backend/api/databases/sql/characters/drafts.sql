@@ -1,19 +1,14 @@
-CREATE TABLE IF NOT EXISTS draft (
+CREATE TABLE IF NOT EXISTS drafts (
     id TEXT PRIMARY KEY NOT NULL,
-    ownerId TEXT NOT NULL, -- User only
+    ownerId TEXT NOT NULL, -- User or project
     slug TEXT,
-    slugOld TEXT,
-    slugOldExpire TEXT,
     displayName TEXT,
     avatar TEXT,
+    animatedAvatar TEXT,
     banner TEXT,
-    status TEXT,
     about TEXT,
     tags TEXT,
-    created TEXT, -- Project creation date, not date added to OpenProfie
-    createdVisibility TEXT NOT NULL DEFAULT 'public',
-    license TEXT,
-    licenseContact TEXT,
+    licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
     auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
@@ -23,7 +18,7 @@ CREATE TABLE IF NOT EXISTS draft (
     sendComments TEXT NOT NULL DEFAULT 'public',
     isScheduled INTEGER NOT NULL DEFAULT 0, -- The scheduled conditions are in scheduled.sql
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')), -- Date added to OpenProfie
+    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     isDeleted INTEGER NOT NULL DEFAULT 0,
     deletedDate TEXT
 );
