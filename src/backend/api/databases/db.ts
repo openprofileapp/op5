@@ -79,6 +79,11 @@ db.characters.transaction(q => {
         const result = q(`${config.folders.sql.api}/characters/published.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/characters/drafts.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 db.users.transaction(q => {
@@ -199,6 +204,7 @@ async function waitForMDB() {
             import("./migration/badges.db.migration.js");
             import("./migration/links.db.migration.js");
             import("./migration/characters/published.db.migration.js");
+            import("./migration/characters/drafts.db.migration.js");
             import("./migration/invites/codes.db.migration.js");
             import("./migration/invites/uses.db.migration.js");
 
