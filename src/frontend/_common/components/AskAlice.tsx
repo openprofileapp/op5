@@ -21,6 +21,10 @@ interface KnowledgeItem {
 // What is OpenProfile
 // How do I interact with others?
 
+// VARIABLES
+// {USER.DISPLAY_NAME} // The user's display name
+// {OC.DISPLAY_NAME} // The character's display name
+
 const knowledge: KnowledgeItem[] = [
     {
         keywords: ["what", "openprofile"],
