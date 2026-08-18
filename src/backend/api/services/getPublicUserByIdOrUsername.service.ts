@@ -1,9 +1,18 @@
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
+import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
+import { BadgeType } from "../../../_common/types/queries/badge.type.js";
+import { LinkType } from "../../../_common/types/queries/link.type.js";
 
-export default function getPublicUserByIdOrUsername(id?: string) {
-    const userResult = db.users.query(
+export type getPublicUserByIdOrUsernameType = UserProfileType & {
+    badges: BadgeType,
+    links: LinkType,
+    // DEVELOPER NEEDED: Create interaction type
+};
+
+export default function getPublicUserByIdOrUsername(id?: string): getPublicUserByIdOrUsernameType {
+    const userResult = db.users.query<UserProfileType>(
         "SELECT * FROM users WHERE id = ? OR username = ? OR usernameOld = ?", 
         [id, id, id]
     );
@@ -23,7 +32,7 @@ export default function getPublicUserByIdOrUsername(id?: string) {
         })
     }
   
-    const badgesResult = db.badges.query(
+    const badgesResult = db.badges.query<BadgeType>(
         "SELECT * FROM badges WHERE id = ?", 
         [userResult.rows[0].id]
     );
@@ -36,7 +45,7 @@ export default function getPublicUserByIdOrUsername(id?: string) {
         })
     }
 
-    const linksResult = db.links.query(
+    const linksResult = db.links.query<LinkType>(
         "SELECT * FROM links WHERE id = ?", 
         [userResult.rows[0].id]
     );
@@ -72,8 +81,12 @@ export default function getPublicUserByIdOrUsername(id?: string) {
     
     return {
         ...userResult.rows[0],
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         badges: badgesResult.rows.map(({ id, ...badge }) => badge),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         links: linksResult.rows.map(({ id, ...link }) => link),
         interactions: {
