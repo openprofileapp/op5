@@ -45,7 +45,7 @@ db.characters.transaction(q => {
                 d.explicit || 0,
                 d.visibility || "public",
                 0,
-                d.updated_date,
+                DateTime.fromSQL(d.updated_date as string, { zone: "utc" }).toISO(),
                 DateTime.fromSQL(d.created_date as string, { zone: "utc" }).toISO()
             ]
         );
