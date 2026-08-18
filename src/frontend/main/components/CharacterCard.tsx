@@ -288,7 +288,7 @@ export default function CharacterCard({
                         <li>
                             <a
                                 className="flex items-center justify-between gap-4"
-                                href={`https://studio.${window.config.domains.main}/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
+                                href={`https://studio.${window.config.domains.main}/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => {
@@ -387,7 +387,7 @@ export default function CharacterCard({
                 <li>
                     <Link 
                         className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}/${formatDisplayNameToUrl(displayName || "")}`}
+                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
                     >
                         View
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -399,11 +399,23 @@ export default function CharacterCard({
                 <li>
                     <Link 
                         className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}/${formatDisplayNameToUrl(displayName || "")}/read`}
+                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}/read`}
                     >
                         Read
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
+                        </span>
+                    </Link>
+                </li>
+
+                <li>
+                    <Link 
+                        className="flex items-center justify-between gap-4" 
+                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}/chat`}
+                    >
+                        Chat
+                        <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
+                            󰭹
                         </span>
                     </Link>
                 </li>
@@ -440,21 +452,6 @@ export default function CharacterCard({
                     </button>
                 </li>
 
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
-                        }}
-                    >
-                        Favorite
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
-
                 <li 
                     className="relative group"
                     onMouseEnter={checkCollectionMenuPosition}
@@ -469,6 +466,21 @@ export default function CharacterCard({
                     <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
                     <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                        <li>
+                            <button 
+                                className="flex items-center justify-between gap-4"
+                                onClick={() => {
+                                    exampleTrigger();
+                                    closeContextMenu(id);
+                                }}
+                            >
+                                Favorites
+                                <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </button>
+                        </li>
+                        <hr />
                         <li>
                             <button 
                                 className="flex items-center justify-between gap-4"
