@@ -652,7 +652,7 @@ export default function CharacterCard({
             <Component to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}>
                 <div className="absolute inset-0 group">
                     <img
-                        className={`absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover transition-opacity duration-300 ${animatedAvatar ? "group-hover:opacity-0" : ""}`}
+                        className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
                         src={avatar}
                         alt="avatar"
                         style={{
@@ -697,7 +697,7 @@ export default function CharacterCard({
 
                     { animatedAvatar ?
                         <img
-                            className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                            className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 group-hover:opacity-100"
                             src={animatedAvatar}
                             alt="animated avatar"
                             style={{
