@@ -4,7 +4,7 @@ import getPublishedProfileById from "../services/getPublishedProfileById.service
 import getPublishedProfileByOwner from "../services/getPublishedProfilesByOwner.service.js";
 import getPublishedProfiles from "../services/getPublishedProfiles.service.js";
 
-export const getProfiles = (req: Request, res: Response) => {
+export const getCharacters = (req: Request, res: Response) => {
     const { id, owner, visibility } = req.query;
 
     // MAYBE COMBIE FOR SMART FILTERING
@@ -34,6 +34,6 @@ export const getProfiles = (req: Request, res: Response) => {
             });
         }
 
-        res.status(200).json(getPublishedProfiles(visibility));
+        res.status(200).json(getPublishedProfiles(visibility, req.session));
     }
 };

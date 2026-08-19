@@ -13,13 +13,13 @@ import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middle
 import { fetchSessionMiddleware } from "./middlewares/fetchSession.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import userRoutes from "./routes/user.routes.js";
-import profileRoute from "./routes/profile.route.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import interactionRoutes from "./routes/interactions.routes.js";
 import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
 import healthRoute from "../_common/routes/health.route.js";
 import pinRoutes from "./routes/pin.routes.js";
+import characterRoutes from "./routes/character.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -70,7 +70,7 @@ v2.use(
 
 // ADD A ACCESS TOKEN CHECK MIDDLEWARE middleware(access OR ApiSecret)
 
-v2.use("/profiles", fetchSessionMiddleware, rateLimitMiddleware(240), profileRoute);
+v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
 v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), interactionRoutes);
 v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
