@@ -7,6 +7,9 @@ import { getPopularCharacters } from "../controllers/characters/getPopularCharac
 const characterRoutes = Router();
 
 // DEVELOPER NEEDED: Add "page" query which has 30 items per
+
+// On front page, replace popular with trending; trending is top 100 with the most interactions within the past 24 hours
+// Add "getTrendingCharacters"
 characterRoutes.get("/", getCharacters);
 characterRoutes.get("/recommended", getRecommendedCharacters);
 characterRoutes.get("/popular", getPopularCharacters);
