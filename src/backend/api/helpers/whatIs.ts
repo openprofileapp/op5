@@ -15,8 +15,12 @@ type AssetType =
 export type WhatIsType = {
     id: string;
     type: AssetType;
+    tags: string[];
+    createdDate: string;
+    updatedDate?: string;
     isPremium: boolean;
     isVerified: boolean;
+    isPromoted: boolean;
     isOfficial: boolean;
 }
 
@@ -38,8 +42,10 @@ function hasBadge(owner: getPublicUserByIdOrUsernameType, badgeType: string): bo
  * // {
  * //   id: "00000000000000000"
  * //   type: "USER"
+ * //   tags: ["author", "writer"]
  * //   isPremium: true
  * //   isVerified: true
+ * //   isPromoted: false
  * //   isOfficial": true
  * // }
  * ```
@@ -72,14 +78,20 @@ export default function whatIs(id: string): WhatIsType {
         return {
             id,
             type: "USER",
+            tags: JSON.parse(owner.tags),
+            createdDate: owner.createdDate,
             isPremium: hasBadge(owner, "premium"),
             isVerified: hasBadge(owner, "verified"),
+            isPromoted: hasBadge(owner, "promoted"),
             isOfficial: hasBadge(owner, "official")
         }
     }
 
     let type: AssetType | undefined;
+    let tags: string[] | undefined;
     let ownerId: string | undefined;
+    let createdDate: string | undefined;
+    let updatedDate: string | undefined;
 
     // CHARACTER
     const characterResult = db.characters.query<CharacterType>(
@@ -97,12 +109,22 @@ export default function whatIs(id: string): WhatIsType {
 
     if (characterResult.rowCount === 1) {
         type = "CHARACTER";
+        tags = JSON.parse(characterResult.rows[0].tags);
         ownerId = characterResult.rows[0].ownerId;
+        createdDate = characterResult.rows[0].createdDate;
+        updatedDate = characterResult.rows[0].updatedDate;
     }
 
     // DEVELOPER NEEDED: Add UNIVERSE and COLLECTION
 
-    if (type && type !== "USER" && ownerId) {
+    if (
+        type &&
+        type !== "USER" &&
+        tags &&
+        createdDate &&
+        updatedDate &&
+        ownerId
+    ) {
         const owner = getPublicUserByIdOrUsername(ownerId);
 
         if (!owner) {
@@ -115,8 +137,12 @@ export default function whatIs(id: string): WhatIsType {
         return {
             id,
             type,
+            tags,
+            createdDate,
+            updatedDate,
             isPremium: hasBadge(owner, "premium"),
             isVerified: hasBadge(owner, "verified"),
+            isPromoted: hasBadge(owner, "promoted"),
             isOfficial: hasBadge(owner, "official")
         };
     }
