@@ -206,6 +206,7 @@ async function waitForMDB() {
             import("./migration/audits/views.db.migration.js");
 
             import("./migration/users/users.db.migration.js");
+            import("./migration/users/interests.db.migration.js");
             import("./migration/badges.db.migration.js");
             import("./migration/links.db.migration.js");
             import("./migration/characters/published.db.migration.js");
