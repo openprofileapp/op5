@@ -44,7 +44,7 @@ export default function SearchProfiles() {
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters?visibility=public`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -178,7 +178,7 @@ export default function SearchProfiles() {
                             }}
                             avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
                             banner={d.banner ? `https://cdn.openprofile.app${d.banner}` : ""}
-                            name={d.displayName}
+                            displayName={d.displayName}
                             username={d.username}
                             status={d.status}
                             badges={d.badges}
@@ -208,12 +208,12 @@ export default function SearchProfiles() {
                                 secondary: d.auraSecondary
                             }}
                             avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                            name={d.displayName}
+                            displayName={d.displayName}
                             slug={d.slug}
                             owner={{
                                 id: d.owner.id,
                                 slug: d.owner.username,
-                                name: d.owner.displayName,
+                                displayName: d.owner.displayName,
                                 isVerified: d.owner?.badges?.some(b => b.type === "verified"),
                                 type: "user" // p.owner.type
                             }}
