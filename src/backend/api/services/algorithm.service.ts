@@ -1,19 +1,42 @@
+import { DateTime } from "luxon";
+
 import { AdvancedError, DurationType } from "kage-library";
+
 import whatIs, { WhatIsType } from "../helpers/whatIs.js";
+import { db } from "../databases/db.js";
+
+type EventNameType = 
+    "API" |
+    "VIEW" |
+    "READ" |
+    "CHAT" |
+    "LIKE" |
+    "UNLIKE" |
+    "FOLLOW" |
+    "UNFOLLOW" |
+    "COMMENT" |
+    "UNCOMMENT" |
+    "SHARE" |
+    "UPDATE" |
+    "REPORT" |
+    "ADD_TO_COLLECTION" |
+    "REMOVE_FROM_COLLECTION" |
+    "ADD_INTEREST" |
+    "REMOVE_INTEREST"
 
 interface EventType {
     score: number;
     cooldown?: DurationType;
-    scope?: "global" | "user";
+    scope: "global" | "user";
 }
 
 interface IndexType {
-    event: Record<string, EventType>;
-    multiplier: Record<string, number>;
+    events: Record<string, EventType>;
+    multipliers: Record<string, number>;
 }
 
 const index: IndexType = {
-    event: {
+    events: {
         // Guest; cooldown per IP
         API: { score: 0.25, cooldown: "24h", scope: "global" },
 
@@ -28,7 +51,7 @@ const index: IndexType = {
         COMMENT: { score: 7, cooldown: "1h", scope: "global" },
         UNCOMMENT: { score: -7, cooldown: "1h", scope: "global" },
         SHARE: { score: 10, cooldown: "1h", scope: "global" },
-        UPDATE: { score: 50, cooldown: "7d", scope: "global" },
+        UPDATE: { score: 50, cooldown: "30d", scope: "global" },
         REPORT: { score: -50, scope: "global" }, 
         // ^ Rejected reports will return the score; frequent false reports will suspend accounts
 
@@ -40,7 +63,7 @@ const index: IndexType = {
     },
         
     // Multiplies the base (1.0)
-    multiplier: {
+    multipliers: {
         OFFICIAL: 4, // Platform mascot or collaborations
         VERIFIED: 1,
         PREMIUM: 0.1
@@ -52,234 +75,195 @@ const index: IndexType = {
  * Scores, cooldowns, scopes, and multipliers are stored on an index map.
  */
 export default class AlgorithmService {
+    public static scores = index.events;
+    public static multipliers = index.multipliers;
 
-    private calculate(whatIsData: WhatIsType, score: number) {
-        let multiplier = 1.0;
+    private static calculate(whatIsData: WhatIsType, score: number) {
+        let multipliers = 1.0;
+        const badges = [];
 
-        
+        if (whatIsData.isPremium) badges.push("PREMIUM");
+        if (whatIsData.isVerified) badges.push("VERIFIED");
+        if (whatIsData.isOfficial) badges.push("OFFICIAL");
 
-
-
-
-
-        // Include the verified type as a badge if applicable
-        let badges = (data.badges || []).map(b => b.type.toUpperCase());
-        if (verified_type) badges.push(verified_type);
-
-        // Add multipliers for all badges that exist in index.multiplier
         for (const badge of badges) {
-            if (index.multiplier[badge]) {
-                multiplier += index.multiplier[badge];
+            if (index.multipliers[badge]) {
+                multipliers += index.multipliers[badge];
             }
         }
 
-        // DEVELOPER NEEDED: Enable completion cron and timestamps of last update on lower profile tab
-
-        // Incomplete occures when lack of activity after 30 days
-        // if (data.stage && data.stage == "incomplete") {
-        //     score = score / 2;
-        // }
-
-        return score * multiplier;
+        return score * multipliers;
     };
 
+    /**
+     * Calculates the time-decayed weight of an engagement score 
+     * using a hybrid grace period and exponential decay model.
+     * 
+     * - Days 0 to grace period: Applies a fixed multiplier boost (e.g., 1.5x = 150%).
+     * - After grace period: Continuously decays towards 0 using e^(-decayRate * age - gracePeriodDays).
+     * 
+     * Example:
+     * - Day 1: 150.0%
+     * - Day 7: 144.1%
+     * - Day 30: 114.5%
+     * - Day 44: 100.0%
+     * - Day 365: 4.0%
+     * 
+     * @param updatedDate - ISO timestamp string of the last activity/update.
+     * @param score - Base value to decay (e.g., 1 view = 1.0).
+     * @returns Decayed score/weight percentage.
+     */
+    private static decay(updatedDate: string, score: number): number {
+        const updatedDateTime = DateTime.fromISO(updatedDate);
 
+        if (!updatedDateTime.isValid) {
+            return score;
+        }
 
+        const gracePeriodDays = 3;
+        const graceMultiplier = 1.5;
+        const decayRate = 0.01;
 
+        const rawAge = DateTime.now().diff(updatedDateTime, "days").days;
+        const age = Math.max(0, rawAge);
 
+        if (age <= gracePeriodDays) {
+            return score * graceMultiplier;
+        }
 
-
-
-
-
+        return score * graceMultiplier * Math.exp(-decayRate * (age - gracePeriodDays));
+    }
 
     /**
-     * Update algorithm score for an asset or account
+     * Update topic of interest score for an account
+     * @param {string} userId - user id (required)
+     * @param {string} whatIsData - whatIsData of the target id (required)
      * @param {string} EVENT - type of EVENT from index (required)
-     * @param {string} assetId - the id of the asset or account to update (required)
      */
-    public update(
-        EVENT: string, 
-        assetId: string,
+    private static interest(
+        userId: string, 
+        whatIsData: WhatIsType, 
+        EVENT: EventNameType
     ) {
-        if (!EVENT || !assetId) {
+        if (!userId || !whatIsData || !EVENT) {
             throw new AdvancedError({
                 code: 400,
                 message: "Malformed request",
-                details: { event: EVENT, assetId: assetId }
+                details: { userId, whatIsData, EVENT }
             });
         }
 
-        let score = index.event[EVENT].score;
+        const score = index.events[EVENT].score;
 
         if (!score) return;
 
-        const whatIsData = whatIs(assetId);
+        for (const tag of whatIsData.tags) {
+            const userResult = db.users.query(
+                `
+                    INSERT INTO interests (userId, tag, algorithmScore)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(userId, tag) 
+                    DO UPDATE SET algorithmScore = algorithmScore + excluded.algorithmScore
+                `,
+                [userId, tag, score]
+            );
+
+            if (!userResult.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while saving interests",
+                    details: userResult.error
+                })
+            }
+        }
+
+        return score;
+    };
+
+    /**
+     * Update algorithm score for an asset or account
+     * @param {string} targetId - the id of the asset or account to update (required)
+     * @param {string} sourceId - the id of the user causing the update (required)
+     * @param {string} EVENT - type of EVENT from index (required)
+     */
+    public static update(
+        targetId: string,
+        sourceId: string,
+        EVENT: EventNameType
+    ) {
+        if (!targetId || !sourceId || !EVENT) {
+            throw new AdvancedError({
+                code: 400,
+                message: "Malformed request",
+                details: { targetId, sourceId, EVENT }
+            });
+        }
+
+        let score = index.events[EVENT].score;
+        const { cooldown, scope } = index.events[EVENT];
+
+        if (!score || !scope) return;
+
+        const whatIsData = whatIs(targetId);
 
         if (!whatIsData) {
             throw new AdvancedError({
                 code: 400,
-                message: "Unknown asset",
-                details: { whatIsData: whatIsData }
+                message: "Unknown whatIsData"
             });
         }
 
+        if (scope === "user") {
+            const score = this.interest(sourceId, whatIsData, EVENT);
+
+            return score;
+        }
+
+        // DEVELOPER NEEDED: Check the latest interaction of event. If less than cooldown, return. 
+
         score = this.calculate(whatIsData, score);
-    }
-}
 
+        if (!whatIsData.isPromoted && whatIsData.updatedDate) {
+            score = this.decay(whatIsData.updatedDate, score);
+        }
 
+        // DEVELOPER NEEDED: Log the final score, target and source ids, and boost in audit
 
+        if (whatIsData.type === "USER") {
+            const userResult = db.users.query(
+                "UPDATE users SET algorithmScore = algorithmScore + ? WHERE id = ?",
+                [score, targetId]
+            )
 
+            if (!userResult.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while saving user",
+                    details: userResult.error
+                })
+            }
+        }
 
+        if (whatIsData.type === "CHARACTER") {
+            db.characters.query(
+                "UPDATE published SET algorithmScore = algorithmScore + ? WHERE id = ?",
+                [score, targetId]
+            )
 
+            const characterResult = db.characters.query(
+                "UPDATE drafts SET algorithmScore = algorithmScore + ? WHERE id = ?",
+                [score, targetId]
+            )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// DEVELOPER NEEDED: Make read score based on time spent (2 initial then idk, needs to be using time and activity)
-// Store read time in a database using socket
-
-
-
-
-algorithm.update = function(data, db, table, event) {
-    try {
-
-        // Calculate the event score 
-
-
-        // Assign account multipliers from badges and if asset, assign decay from last updated date
-       
-        if (data.owner && !data.promoted) {score = algorithm.decay(score, data.updated_date);}
-
-        // Update databases
-        database.query(db, `UPDATE ${table} SET score = score + ? WHERE id = ?`, [score, data.id]);
+            if (!characterResult.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while saving character",
+                    details: characterResult.error
+                })
+            }
+        }
 
         return score;
-    } catch (error) {
-        return forward_status("error", "server", "algorithm.update", error.code || 500, error.message);
     }
-};
-
-/**
- * Update aura (algorithm) topic of interest score for an account
- * @param {string} account - account id (required)
- * @param {string} topic - topic of interest (required)
- * @param {string} EVENT - type of EVENT from index (required)
- */
-algorithm.interest = function(account, topic, event) {
-    try {
-        if (!account || !event) {throw Object.assign(new Error(messages.error.field_validation), { code: 400 });}
-
-        // Calculate the event score 
-        let score = index.event[event];
-        if (score === undefined) {return}
-
-        // Split tags and update each, else register new interest for user
-        if (topic) {
-            let tags = topic.split(",").map(tag => tag.trim()).filter(Boolean);
-            for (const tag of tags) {
-                const result = database.query("accounts", `UPDATE interests SET score = score + ? WHERE user = ? AND topic = ?`, [score, account, tag]);
-                if (result.changes === 0) {database.query("accounts", `INSERT INTO interests (user, topic, score) VALUES (?, ?, ?)`, [account, tag, score]);}
-            }
-            return;
-        }
-
-        return
-    } catch (error) {
-        return forward_status("error", "server", "algorithm.interest", error.code || 500, error.message);
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Decay older content and boost newer ones
-algorithm.decay = function(score, date) {
-    const age = timestamp.generate("now", "subtract", date).total_days;
-    if (age < 3) {return score * 1.5}
-    return score * Math.exp(-0.01 * age);
 }
-
-// combine total 
-// If a lot of activity, reverse the decay slowly based on dates like -0.01 * age * activity (base 1.0)
-
-
-
-// Sync an asset's total score dynamically
-algorithm.sync = function(asset) {
-    try {
-        if (!asset || !asset.id) throw Object.assign(new Error("Missing asset.id"), { code: 400 });
-
-        // Get all aura events for this asset
-        const events = database.query("aura", "SELECT * FROM aura_events WHERE asset_id = ?", [asset.id]);
-
-        let totalScore = 0;
-        for (const event of events) {
-            // Get user badges
-            const account = database.query("accounts", "SELECT * FROM accounts WHERE id = ?", [event.user_id]);
-            account.badges = database.query("accounts", "SELECT type FROM badges WHERE user = ?", [event.user_id]);
-
-            const multiplier = algorithm.calculate(account);
-            totalScore += algorithm.decay(event.base_score * multiplier, event.timestamp);
-        }
-
-        // Update asset's total score
-        database.query("assets", "UPDATE assets SET score = ? WHERE id = ?", [totalScore, asset.id]);
-
-        return { success: true, score: totalScore };
-    } catch (error) {
-        return forward_status("error", "server", "algorithm", error.code || 500, error.message);
-    }
-};
