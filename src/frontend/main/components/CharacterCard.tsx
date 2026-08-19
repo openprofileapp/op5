@@ -649,7 +649,7 @@ export default function CharacterCard({
                 </li>
             </ul>
 
-            <Component to={`/character/${id}${slug ? `/${slug}` : ""}`}>
+            <Component to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}>
                 <div className="absolute inset-0 group">
                     <img
                         className={`absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover transition-opacity duration-300 ${animatedAvatar ? "group-hover:opacity-0" : ""}`}
