@@ -11,6 +11,7 @@ export type getPublicUserByIdOrUsernameType = UserProfileType & {
     // DEVELOPER NEEDED: Create interaction type
 };
 
+// DEVELOPER NEEDED: Rename to getUserProfileByIdOrUsername
 export default function getPublicUserByIdOrUsername(id?: string): getPublicUserByIdOrUsernameType {
     const userResult = db.users.query<UserProfileType>(
         "SELECT * FROM users WHERE id = ? OR username = ? OR usernameOld = ?", 
