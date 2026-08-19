@@ -11,6 +11,7 @@ db.users.transaction(q => {
     for (const d of result.rows) {
         const result = q(
             `INSERT INTO users (
+                algorithmScore,
                 id,
                 username,
                 usernameOld,
@@ -38,8 +39,9 @@ db.users.transaction(q => {
                 lastActive,
                 presenceVisibility,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                d.score,
                 d.id,
                 d.username,
                 d.username_old ,
@@ -50,7 +52,7 @@ db.users.transaction(q => {
                 d.banner,
                 d.status,
                 d.about,
-                d.tags,
+                JSON.stringify((d.tags as string ?? '').split(',').map(tag => tag.trim()).filter(Boolean)),
                 d.birthdate,
                 d.birthdate_visibility,
                 d.founded,

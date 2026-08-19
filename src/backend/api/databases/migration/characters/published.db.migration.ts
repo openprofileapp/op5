@@ -11,6 +11,7 @@ db.characters.transaction(q => {
     for (const d of result.rows) {
         const result = q(
             `INSERT INTO published (
+                algorithmScore,
                 id, 
                 ownerId, 
                 slug,
@@ -28,8 +29,9 @@ db.characters.transaction(q => {
                 isScheduled,
                 updatedDate,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                d.score,
                 d.id,
                 d.owner,
                 d.url,
@@ -37,7 +39,7 @@ db.characters.transaction(q => {
                 d.avatar,
                 d.banner,
                 d.about,
-                d.tags,
+                JSON.stringify((d.tags as string ?? '').split(',').map(tag => tag.trim()).filter(Boolean)),
                 d.aura || 0,
                 "flow",
                 d.aura_primary,
