@@ -44,7 +44,7 @@ export default function SearchProfiles() {
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?visibility=public`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
