@@ -21,29 +21,55 @@ export default function Home() {
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
     const wordRef = useRef(null);
-    const [profiles, setProfiles] = useState<unknown[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    const [recommendedCharacters, setRecommendedCharacters] = useState<unknown[]>([]);
+    const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
 
     useEffect(() => {
-        const fetchProfiles = async () => {
+        const fetchRecommendedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended`, 
                     { credentials: "include" }
                 );
+                
                 const data = await res.json();
 
-                console.log(data)
-
-                setProfiles(data);
+                setRecommendedCharacters(data);
             } catch (err) {
                 console.error(err);
+                setRecommendedCharacters([]);
             } finally {
-                setLoading(false);
+                setIsLoadingRecommendedCharacters(false);
             }
         };
 
-        fetchProfiles();
+        fetchRecommendedCharacters();
+    }, []);
+
+    const [popularCharacters, setPopularCharacters] = useState<unknown[]>([]);
+    const [isLoadingPopularCharacters, setIsLoadingPopularCharacters] = useState(true);
+
+    useEffect(() => {
+        const fetchPopularCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/popular?visibility=public`, 
+                    { credentials: "include" }
+                );
+                
+                const data = await res.json();
+
+                setPopularCharacters(data);
+            } catch (err) {
+                console.error(err);
+                setPopularCharacters([]);
+            } finally {
+                setIsLoadingPopularCharacters(false);
+            }
+        };
+
+        fetchPopularCharacters();
     }, []);
 
     useEffect(() => {
@@ -151,7 +177,7 @@ export default function Home() {
                     <div className="px-4 md:px-14">
                         <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
                         
-                        <div className="flex gap-4 overflow-x-auto mb-8">
+                        <div className="flex gap-4 overflow-x-auto mb-10">
                             <CharacterCard
                                 id="0"
                                 avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
@@ -189,65 +215,123 @@ export default function Home() {
             )}
 
             {window.session.user && (
-                <div className="py-2">
-                    <div className="px-4 md:px-14 py-2">
-                        <div className="mt-4 mb-6 text-xl font-bold">Recommended</div>
-                        
-                        <div className="flex gap-4 overflow-x-auto mb-8">
-                            {!loading && profiles.map((d) => (
-                                <CharacterCard
-                                    id={d.id}
-                                    aura={{
-                                        isEnabled: d.isAuraEnabled,
-                                        type: d.auraType,
-                                        primary: d.auraPrimary,
-                                        secondary: d.auraSecondary
-                                    }}
-                                    avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                                    name={d.displayName}
-                                    slug={d.slug}
-                                    owner={{
-                                        id: d.owner.id,
-                                        slug: d.owner.username,
-                                        name: d.owner.displayName,
-                                        isVerified: d.owner?.badges?.some(b => b.type === "verified"),
-                                        type: "user" // p.owner.type
-                                    }}
-                                    about={d.about}
-                                    interactions={{
-                                        views: {
-                                            count: 0,
-                                            interacted: true
-                                        },
-                                        likes: {
-                                            count: 0,
-                                            interacted: false
-                                        }
-                                    }}
-                                />
-                            ))}
+                <div className="py-4">
+                    {(isLoadingRecommendedCharacters || recommendedCharacters.length > 0) && (
+                        <div className="px-4 md:px-14">
+                            <div className="mt-4 mb-6 text-xl font-bold">Recommended</div>
+                            
+                            <div className="flex gap-4 overflow-x-auto mb-10">
+                                {!isLoadingRecommendedCharacters && recommendedCharacters.map((d) => (
+                                    <CharacterCard
+                                        id={d.id}
+                                        aura={{
+                                            isEnabled: d.isAuraEnabled,
+                                            type: d.auraType,
+                                            primary: d.auraPrimary,
+                                            secondary: d.auraSecondary
+                                        }}
+                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
+                                        displayName={d.displayName}
+                                        slug={d.slug}
+                                        owner={{
+                                            id: d.owner.id,
+                                            slug: d.owner.username,
+                                            displayName: d.owner.displayName,
+                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
+                                            type: "user" // p.owner.type
+                                        }}
+                                        about={d.about}
+                                        interactions={{
+                                            views: {
+                                                count: 0,
+                                                interacted: true
+                                            },
+                                            likes: {
+                                                count: 0,
+                                                interacted: false
+                                            }
+                                        }}
+                                    />
+                                ))}
 
-                            {loading && (
-                                <>
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                    <SkeletonCharacterCard />
-                                </>
-                            )}
+                                {isLoadingRecommendedCharacters && (
+                                    <>
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="px-4 md:px-14 py-2">
-                        <div className="mb-6 text-xl font-bold">Popular</div>
+                    {(isLoadingPopularCharacters || popularCharacters.length > 0) && (
+                        <div className="px-4 md:px-14">
+                            <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
+                            
+                            <div className="flex gap-4 overflow-x-auto mb-10">
+                                {!isLoadingPopularCharacters && popularCharacters.map((d) => (
+                                    <CharacterCard
+                                        id={d.id}
+                                        aura={{
+                                            isEnabled: d.isAuraEnabled,
+                                            type: d.auraType,
+                                            primary: d.auraPrimary,
+                                            secondary: d.auraSecondary
+                                        }}
+                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
+                                        displayName={d.displayName}
+                                        slug={d.slug}
+                                        owner={{
+                                            id: d.owner.id,
+                                            slug: d.owner.username,
+                                            displayName: d.owner.displayName,
+                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
+                                            type: "user" // p.owner.type
+                                        }}
+                                        about={d.about}
+                                        interactions={{
+                                            views: {
+                                                count: 0,
+                                                interacted: true
+                                            },
+                                            likes: {
+                                                count: 0,
+                                                interacted: false
+                                            }
+                                        }}
+                                    />
+                                ))}
+
+                                {isLoadingPopularCharacters && (
+                                    <>
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="px-4 md:px-14">
+                        <div className="mt-4 mb-6 text-xl font-bold">Recently Updated</div>
                         
-                        <div className="flex gap-4 overflow-x-auto mb-8">
+                        <div className="flex gap-4 overflow-x-auto mb-10">
                             <CharacterCard
                                 id="0"
                                 avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
@@ -282,48 +366,10 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="px-4 md:px-14 py-2">
-                        <div className="mb-6 text-xl font-bold">Recently Updated</div>
+                    <div className="px-4 md:px-14">
+                        <div className="mt-4 mb-6 text-xl font-bold">Because You Liked TAG_HERE</div>
                         
-                        <div className="flex gap-4 overflow-x-auto mb-8">
-                            <CharacterCard
-                                id="0"
-                                avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
-                                animatedAvatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/ezgif-3bddc376754c9ed9.gif`}
-                                name="AvatarKage"
-                                owner={{
-                                    id: "0",
-                                    name: "?",
-                                    type: "user" // p.owner.type
-                                }}
-                                about="Testing how good GIFs would work."
-                                interactions={{
-                                    views: {
-                                        count: 0,
-                                        interacted: true
-                                    },
-                                    likes: {
-                                        count: 0,
-                                        interacted: false
-                                    }
-                                }}
-                            />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                        </div>
-                    </div>
-
-                    <div className="px-4 md:px-14 py-2">
-                        <div className="mb-6 text-xl font-bold">Because You Liked TAG_HERE</div>
-                        
-                        <div className="flex gap-4 overflow-x-auto mb-8">
+                        <div className="flex gap-4 overflow-x-auto mb-10">
                             <CharacterCard
                                 id="0"
                                 avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
