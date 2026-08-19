@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS published (
+    algorithmScore INTEGER NOT NULL DEFAULT 0,
     id TEXT PRIMARY KEY NOT NULL,
     ownerId TEXT NOT NULL, -- User or project
     slug TEXT,

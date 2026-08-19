@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
+    algorithmScore INTEGER NOT NULL DEFAULT 0,
     id TEXT PRIMARY KEY NOT NULL,
     username TEXT,
     usernameOld TEXT,
