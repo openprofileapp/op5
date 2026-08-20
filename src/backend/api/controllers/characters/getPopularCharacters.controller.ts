@@ -6,10 +6,16 @@ import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { config } from "../../../../../app.config.js";
 
 export const getPopularCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public" } = req.query;
+        const { id, owner, visibility = "public", page = 1 } = req.query;
+
+        const offset = 
+            (page as number) * 
+            config.limits.assetsPerPage - 
+            config.limits.assetsPerPage;
 
         const idClause = id ? "AND id = ?" : "";
         const idParams = id ? [id] : [];
@@ -24,12 +30,14 @@ export const getPopularCharacters = (req: Request, res: Response) => {
                     ${idClause}
                     ${ownerIdClause}
                 ORDER BY algorithmScore DESC 
-                LIMIT 30
+                LIMIT ? OFFSET ?
             `,
             [
                 visibility,
                 ...idParams,
                 ...ownerIdArgs,
+                config.limits.assetsPerPage,
+                offset
             ]
         );
 
@@ -38,6 +46,28 @@ export const getPopularCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
+            })
+        }
+
+        const resultCount = db.characters.query(
+            `
+                SELECT COUNT(*) as count FROM published
+                WHERE visibility = ?
+                    ${idClause}
+                    ${ownerIdClause}
+            `,
+            [
+                visibility,
+                ...idParams,
+                ...ownerIdArgs,
+            ]
+        );
+
+        if (!resultCount.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching characters",
+                details: resultCount.error
             })
         }
 
@@ -59,7 +89,10 @@ export const getPopularCharacters = (req: Request, res: Response) => {
             };
         });
 
-        res.status(200).json(characters);
+        res.status(200).json({
+            characters,
+            count: resultCount.rows[0].count
+        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

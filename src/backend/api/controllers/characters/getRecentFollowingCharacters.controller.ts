@@ -7,10 +7,16 @@ import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { InteractionType } from "../../../../_common/types/queries/interaction.type.js";
+import { config } from "../../../../../app.config.js";
 
 export const getRecentFollowingCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public" } = req.query;
+        const { id, owner, visibility = "public", page = 1 } = req.query;
+
+        const offset = 
+            (page as number) * 
+            config.limits.assetsPerPage - 
+            config.limits.assetsPerPage;
 
         if (!req.session.userId) {
             throw new AdvancedError({
@@ -46,7 +52,7 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
         const trendingTargetIds = interactionsResult.rows.map((row) => row.target);
 
         if (trendingTargetIds.length === 0) {
-            return res.status(200).json([]);
+            return res.status(200).json({ characters: [], count: 0 });
         }
 
         const dateClause = `AND updatedDate >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-30 days')`;
@@ -72,7 +78,7 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
                     ${ownerIdClause}
                     ${selfExcludeClause}
                 ORDER BY updatedDate DESC
-                LIMIT 30
+                LIMIT ? OFFSET ?
             `,
             [
                 visibility,
@@ -80,6 +86,8 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
                 ...idParams,
                 ...ownerIdArgs,
                 ...selfExcludeArgs,
+                config.limits.assetsPerPage,
+                offset
             ]
         );
 
@@ -88,6 +96,33 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
+            })
+        }
+
+        const resultCount = db.characters.query(
+            `
+                SELECT COUNT(*) as count FROM published
+                WHERE visibility = ?
+                    ${dateClause}
+                    ${trendingClause}
+                    ${idClause}
+                    ${ownerIdClause}
+                    ${selfExcludeClause}
+            `,
+            [
+                visibility,
+                ...trendingTargetIds,
+                ...idParams,
+                ...ownerIdArgs,
+                ...selfExcludeArgs
+            ]
+        );
+
+        if (!resultCount.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching characters",
+                details: resultCount.error
             })
         }
 
@@ -109,7 +144,10 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
             };
         });
 
-        res.status(200).json(characters);
+        res.status(200).json({
+            characters,
+            count: resultCount.rows[0].count
+        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

@@ -7,10 +7,16 @@ import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { InteractionType } from "../../../../_common/types/queries/interaction.type.js";
+import { config } from "../../../../../app.config.js";
 
 export const getTrendingCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public" } = req.query;
+        const { id, owner, visibility = "public", page = 1 } = req.query;
+
+        const offset = 
+            (page as number) * 
+            config.limits.assetsPerPage - 
+            config.limits.assetsPerPage;
 
         const interactionsResult = db.interactions.query<InteractionType>(
             `
@@ -43,7 +49,7 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
         const trendingTargetIds = interactionsResult.rows.map((row) => row.target);
 
         if (trendingTargetIds.length === 0) {
-            return res.status(200).json([]);
+            return res.status(200).json({ characters: [], count: 0 });
         }
 
         const trendingClause = `AND id IN (${trendingTargetIds.map(() => "?").join(",")})`;
@@ -62,7 +68,33 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
                     ${idClause}
                     ${ownerIdClause}
                 ORDER BY algorithmScore DESC 
-                LIMIT 30
+                LIMIT ? OFFSET ?
+            `,
+            [
+                visibility,
+                ...trendingTargetIds,
+                ...idParams,
+                ...ownerIdArgs,
+                config.limits.assetsPerPage,
+                offset
+            ]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching characters",
+                details: result.error
+            })
+        }
+
+        const resultCount = db.characters.query(
+            `
+                SELECT COUNT(*) as count FROM published
+                WHERE visibility = ?
+                    ${trendingClause}
+                    ${idClause}
+                    ${ownerIdClause}
             `,
             [
                 visibility,
@@ -72,11 +104,11 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
             ]
         );
 
-        if (!result.success) {
+        if (!resultCount.success) {
             throw new AdvancedError({
                 code: 500,
                 message: "An error occurred while fetching characters",
-                details: result.error
+                details: resultCount.error
             })
         }
 
@@ -98,7 +130,10 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
             };
         });
 
-        res.status(200).json(characters);
+        res.status(200).json({
+            characters,
+            count: resultCount.rows[0].count
+        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

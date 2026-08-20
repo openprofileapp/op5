@@ -6,11 +6,26 @@ import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { config } from "../../../../../app.config.js";
+import getUserInterestsById from "../../services/getUserInterestsById.service.js";
 
 export const getTaggedCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public" } = req.query;
+        const { id, owner, visibility = "public", page = 1 } = req.query;
         const { tag } = req.params;
+
+        const offset = 
+            (Number(page) || 1) * 
+            config.limits.assetsPerPage - 
+            config.limits.assetsPerPage;
+
+        let userInterests;
+
+        if (req.session?.userId) {
+            userInterests = getUserInterestsById(req.session.userId); 
+        }
+
+        const userInterestList = userInterests?.interests || [];
 
         const tagClause = tag ? `AND tags LIKE ?` : "";
         const tagParams = tag ? [`%"${tag}"%`] : [];
@@ -21,6 +36,17 @@ export const getTaggedCharacters = (req: Request, res: Response) => {
         const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
+        const orderClause = userInterestList.length > 0
+            ? `(${userInterestList.map(
+                    () => "(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)"
+                ).join(" + ")}) DESC, algorithmScore DESC`
+            : "algorithmScore DESC";
+
+        const orderParams = userInterestList.flatMap(item => [
+            `%${item.tag}%`, 
+            item.algorithmScore
+        ]);
+
         const result = db.characters.query<CharacterType>(
             `
                 SELECT * FROM published
@@ -28,14 +54,17 @@ export const getTaggedCharacters = (req: Request, res: Response) => {
                     ${tagClause}
                     ${idClause}
                     ${ownerIdClause}
-                ORDER BY algorithmScore DESC 
-                LIMIT 30
+                ORDER BY ${orderClause}
+                LIMIT ? OFFSET ?
             `,
             [
                 visibility,
                 ...tagParams,
                 ...idParams,
                 ...ownerIdArgs,
+                ...orderParams,
+                config.limits.assetsPerPage,
+                offset
             ]
         );
 
@@ -44,7 +73,31 @@ export const getTaggedCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
-            })
+            });
+        }
+
+        const resultCount = db.characters.query(
+            `
+                SELECT COUNT(*) as count FROM published
+                WHERE visibility = ?
+                    ${tagClause}
+                    ${idClause}
+                    ${ownerIdClause}
+            `,
+            [
+                visibility,
+                ...tagParams,
+                ...idParams,
+                ...ownerIdArgs
+            ]
+        );
+
+        if (!resultCount.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching characters",
+                details: resultCount.error
+            });
         }
 
         const characters = result.rows.map((d) => {
@@ -65,7 +118,10 @@ export const getTaggedCharacters = (req: Request, res: Response) => {
             };
         });
 
-        res.status(200).json(characters);
+        res.status(200).json({
+            characters,
+            count: resultCount.rows[0].count
+        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
@@ -75,6 +131,9 @@ export const getTaggedCharacters = (req: Request, res: Response) => {
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: "An unexpected error occurred"
+            });
         }
     }
 };

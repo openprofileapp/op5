@@ -7,10 +7,16 @@ import getUserInterestsById from "../../services/getUserInterestsById.service.js
 import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { config } from "../../../../../app.config.js";
 
 export const getRecommendedCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner } = req.query;
+        const { id, owner, page = 1 } = req.query;
+
+        const offset = 
+            (page as number) * 
+            config.limits.assetsPerPage - 
+            config.limits.assetsPerPage;
 
         if (!req.session.userId) {
             throw new AdvancedError({
@@ -23,7 +29,7 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
         const userInterestList = userInterests.interests || [];
 
         if (userInterestList.length === 0) {
-            return [];
+            return res.status(200).json({ characters: [], count: 0 });
         }
 
         // DEVELOPER NEEDED: Add notInterested interaction to the list
@@ -82,7 +88,7 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
                     ${ownerIdClause}
                     ${selfExcludeClause}
                 ORDER BY (${orderScoreClauses}) DESC, algorithmScore DESC 
-                LIMIT 30
+                LIMIT ? OFFSET ?
             `,
             [
                 "public",
@@ -91,7 +97,9 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
                 ...idParams,
                 ...ownerIdArgs,
                 ...selfExcludeArgs,
-                ...orderParams
+                ...orderParams,
+                config.limits.assetsPerPage,
+                offset
             ]
         );
 
@@ -100,6 +108,34 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
+            })
+        }
+
+        const resultCount = db.characters.query(
+            `
+                SELECT COUNT(*) as count FROM published
+                WHERE visibility = ?
+                    AND (${likeClauses})
+                    ${excludeClause}
+                    ${idClause}
+                    ${ownerIdClause}
+                    ${selfExcludeClause}
+            `,
+            [
+                "public",
+                ...likeParams,
+                ...excludedIds,
+                ...idParams,
+                ...ownerIdArgs,
+                ...selfExcludeArgs
+            ]
+        );
+
+        if (!resultCount.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching characters",
+                details: resultCount.error
             })
         }
 
@@ -121,7 +157,10 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
             };
         });
 
-        res.status(200).json(characters);
+        res.status(200).json({
+            characters,
+            count: resultCount.rows[0].count
+        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
