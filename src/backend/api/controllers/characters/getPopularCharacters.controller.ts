@@ -10,10 +10,10 @@ import { config } from "../../../../../app.config.js";
 
 export const getPopularCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public", page = 1 } = req.query;
+        const { id, owner, visibility = "public", page } = req.query;
 
         const offset = 
-            (page as number) * 
+            (Number(page) || 1) * 
             config.limits.assetsPerPage - 
             config.limits.assetsPerPage;
 
