@@ -2,26 +2,19 @@ import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
 
-import { i18n, log } from "../../instances.js";
+import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 
 export const getPopularCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility } = req.query;
+        const { id, owner, visibility = "public" } = req.query;
 
-        if (!req.session.userId) {
-            throw new AdvancedError({
-                code: 401,
-                message: i18n.t("responses.noAccount"),
-            })
-        }
-
-        const idClause = id ? `AND id = ?` : '';
+        const idClause = id ? "AND id = ?" : "";
         const idParams = id ? [id] : [];
 
-        const ownerIdClause = owner ? `AND ownerId != ?` : '';
+        const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
         const result = db.characters.query<CharacterType>(
