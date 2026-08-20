@@ -283,6 +283,24 @@ export default function CharacterCard({
                 popover="manual"
                 id={`character-more-dropdown-${id}`}
             >
+                {/* Only display on the home screen */}
+                <li>
+                    <button 
+                        className="flex items-center justify-between gap-4"
+                        onClick={() => {
+                            exampleTrigger();
+                            closeContextMenu(id);
+                        }}
+                    >
+                        Dismiss
+                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                            
+                        </span>
+                    </button>
+                </li>
+
+                <hr />
+
                 {owner.id === window.session.userId && (
                     <>
                         <li>
