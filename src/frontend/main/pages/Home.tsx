@@ -36,7 +36,7 @@ export default function Home() {
                 
                 const data = await res.json();
 
-                setRecentFollowingCharacters(data);
+                setRecentFollowingCharacters(data.characters);
             } catch (err) {
                 console.error(err);
                 setRecentFollowingCharacters([]);
@@ -61,7 +61,7 @@ export default function Home() {
                 
                 const data = await res.json();
 
-                setRecommendedCharacters(data);
+                setRecommendedCharacters(data.characters);
             } catch (err) {
                 console.error(err);
                 setRecommendedCharacters([]);
@@ -86,7 +86,7 @@ export default function Home() {
                 
                 const data = await res.json();
 
-                setTrendingCharacters(data);
+                setTrendingCharacters(data.characters);
             } catch (err) {
                 console.error(err);
                 setTrendingCharacters([]);
