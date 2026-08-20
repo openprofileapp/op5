@@ -27,6 +27,7 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
         }
 
         // DEVELOPER NEEDED: Add notInterested interaction to the list
+        // If not dismissed (add dismiss interaction)
         const interactionResult = db.interactions.query(
             `
                 SELECT target FROM reads WHERE source = ?
@@ -44,26 +45,26 @@ export const getRecommendedCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const likeClauses = userInterestList.map(() => `tags LIKE ?`).join(" OR ");
+        const likeClauses = userInterestList.map(() => "tags LIKE ?").join(" OR ");
         const likeParams = userInterestList.map(item => `%${item.tag}%`);
 
         const excludedIds = interactionResult.rows.map(row => row.target);
 
         const excludeClause = excludedIds.length > 0 
             ? `AND id NOT IN (${excludedIds.map(() => '?').join(',')})` 
-            : '';
+            : "";
 
-        const idClause = id ? `AND id = ?` : '';
+        const idClause = id ? "AND id = ?" : "";
         const idParams = id ? [id] : [];
 
-        const ownerIdClause = owner ? `AND ownerId != ?` : '';
+        const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
-        const selfExcludeClause = req.session.userId ? `AND ownerId != ?` : '';
+        const selfExcludeClause = req.session.userId ? "AND ownerId != ?" : "";
         const selfExcludeArgs = req.session.userId ? [req.session.userId] : [];
 
         const orderScoreClauses = userInterestList
-            .map(() => `(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)`)
+            .map(() => "(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)")
             .join(" + ");
 
         const orderParams = userInterestList.flatMap(item => [
