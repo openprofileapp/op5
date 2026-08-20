@@ -215,7 +215,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 >
                                 <details>
                                     <summary className="hover:bg-transparent active:bg-transparent focus:bg-transparent pl-0">
-                                        Browse
+                                        <Link className="link-hover" to="/browse">Browse</Link>
                                     </summary>
 
                                     <ul className="bg-base-100 rounded-lg bg-alt border border-alt p-4 flex flex-col gap-4 w-50">
