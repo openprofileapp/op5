@@ -10,10 +10,12 @@ import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
+import { useParams } from "react-router-dom";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
 export default function SearchProfiles() {
+    const { tag } = useParams();
     const { t, ready } = useTranslation();
 
     const [users, setUsers] = useState<unknown[]>([]);
@@ -29,7 +31,7 @@ export default function SearchProfiles() {
                 );
                 const data = await res.json();
 
-                setUsers(data);
+                // setUsers(data);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -41,10 +43,12 @@ export default function SearchProfiles() {
     }, []);
 
     useEffect(() => {
+        if (!tag) return;
+
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/tag/${tag}?visibility=public`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -58,7 +62,14 @@ export default function SearchProfiles() {
         };
 
         fetchProfiles();
-    }, []);
+    }, [tag]);
+
+    const formatTag = (str?: string) => {
+        if (!str) return "";
+        return str
+            .replace(/[-_]+/g, " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
 
     if (!ready) return null;
     
@@ -73,7 +84,7 @@ export default function SearchProfiles() {
             
             <div className="px-4 py-4 md:px-14">
 
-                <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
+                <div className="mt-4 mb-6 text-xl font-bold">Browsing {formatTag(tag)}</div>
 
                 <div className="flex flex-wrap gap-4">
 
@@ -125,7 +136,7 @@ export default function SearchProfiles() {
                         </>
                     )}
 
-                    {!loading && (
+                    {!loading && false && (
                         <>
                             <ProjectCard
                                 id="1655391085225720"
@@ -167,7 +178,7 @@ export default function SearchProfiles() {
 
                     {/* Fix the inputs; eg: name -> displayName */}
 
-                    {!loading && users.map((d) => (
+                    {!loading && false && users.map((d) => (
                         <UserCard
                             id={d.id}
                             aura={{
