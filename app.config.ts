@@ -66,11 +66,12 @@ export const config = {
         }
     },
 
-    // Sets limits to prevent server or storage overload
+    // Global limits
     limits: {
         rateLimit: 240,
         softConnectedSessions: 500,
-        hardConnectedSessions: 650
+        hardConnectedSessions: 650,
+        assetsPerPage: 30
     },
 
     // Displays the maintenance landing
