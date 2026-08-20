@@ -9,14 +9,14 @@ import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsern
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
 
- // ONLY IF THE USER LIKED THE CHARACTER; MUST BE A TOP 10 SCORE TAG
- // FIX THIS SO IT WORKS, IT DOESN'T TAKE TAG RN
+// ONLY IF THE USER LIKED THE CHARACTER; MUST BE A TOP 10 SCORE TAG
 export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, page = 1 } = req.query;
+        const { id, owner, page } = req.query;
+        const { tag } = req.params;
 
         const offset = 
-            (page as number) * 
+            (Number(page) || 1) * 
             config.limits.assetsPerPage - 
             config.limits.assetsPerPage;
 
@@ -24,11 +24,11 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
             throw new AdvancedError({
                 code: 401,
                 message: i18n.t("responses.noAccount"),
-            })
+            });
         }
 
         const userInterests = getUserInterestsById(req.session.userId); 
-        const userInterestList = userInterests.interests || [];
+        const userInterestList = userInterests?.interests || [];
 
         if (userInterestList.length === 0) {
             return res.status(200).json({ characters: [], count: 0 });
@@ -50,8 +50,11 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching interactions",
                 details: interactionResult.error
-            })
+            });
         }
+
+        const tagClause = tag ? `AND tags LIKE ?` : "";
+        const tagParams = tag ? [`%"${tag}"%`] : [];
 
         const likeClauses = userInterestList.map(() => "tags LIKE ?").join(" OR ");
         const likeParams = userInterestList.map(item => `%${item.tag}%`);
@@ -71,9 +74,11 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
         const selfExcludeClause = req.session.userId ? "AND ownerId != ?" : "";
         const selfExcludeArgs = req.session.userId ? [req.session.userId] : [];
 
-        const orderScoreClauses = userInterestList
-            .map(() => "(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)")
-            .join(" + ");
+        const orderClause = userInterestList.length > 0
+            ? `(${userInterestList.map(
+                    () => "(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)"
+                ).join(" + ")}) DESC, algorithmScore DESC`
+            : "algorithmScore DESC";
 
         const orderParams = userInterestList.flatMap(item => [
             `%${item.tag}%`, 
@@ -85,16 +90,18 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 SELECT * FROM published
                 WHERE visibility = ?
                     AND (${likeClauses})
+                    ${tagClause}
                     ${excludeClause}
                     ${idClause}
                     ${ownerIdClause}
                     ${selfExcludeClause}
-                ORDER BY (${orderScoreClauses}) DESC, algorithmScore DESC 
+                ORDER BY ${orderClause}
                 LIMIT ? OFFSET ?
             `,
             [
                 "public",
                 ...likeParams,
+                ...tagParams,
                 ...excludedIds,
                 ...idParams,
                 ...ownerIdArgs,
@@ -110,7 +117,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
-            })
+            });
         }
 
         const resultCount = db.characters.query(
@@ -118,6 +125,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 SELECT COUNT(*) as count FROM published
                 WHERE visibility = ?
                     AND (${likeClauses})
+                    ${tagClause}
                     ${excludeClause}
                     ${idClause}
                     ${ownerIdClause}
@@ -126,6 +134,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
             [
                 "public",
                 ...likeParams,
+                ...tagParams,
                 ...excludedIds,
                 ...idParams,
                 ...ownerIdArgs,
@@ -138,7 +147,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: resultCount.error
-            })
+            });
         }
 
         const characters = result.rows.map((d) => {
@@ -172,6 +181,9 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: "An unexpected error occurred"
+            });
         }
     }
 };
