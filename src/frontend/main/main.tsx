@@ -84,6 +84,9 @@ async function bootstrap() {
                             <Route path="/universes" element={<ComingSoon />} />
 
                             <Route path="/popular" element={<Browse />} />
+                            <Route path="/trending" element={<Browse />} />
+                            <Route path="/recent" element={<Browse />} />
+                            <Route path="/browse" element={<Browse />} />
                             <Route path="/browse/:tag" element={<Browse />} />
 
                             <Route path="/premium" element={<Premium />} />
