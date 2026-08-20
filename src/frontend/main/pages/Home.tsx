@@ -73,6 +73,7 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
+    // Get top 10 user interests and select randomly between them or smth
     const [taggedCharacters, setTaggedCharacters] = useState<unknown[]>([]);
     const [isLoadingTaggedCharacters, setIsLoadingTaggedCharacters] = useState(true);
 
