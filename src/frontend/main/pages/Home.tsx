@@ -73,29 +73,29 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
-    const [trendingCharacters, setTrendingCharacters] = useState<unknown[]>([]);
-    const [isLoadingTrendingCharacters, setIsLoadingTrendingCharacters] = useState(true);
+    const [taggedCharacters, setTaggedCharacters] = useState<unknown[]>([]);
+    const [isLoadingTaggedCharacters, setIsLoadingTaggedCharacters] = useState(true);
 
     useEffect(() => {
-        const fetchTrendingCharacters = async () => {
+        const fetchTaggedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/trending?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended/dragonights?visibility=public`, 
                     { credentials: "include" }
                 );
                 
                 const data = await res.json();
 
-                setTrendingCharacters(data.characters);
+                setTaggedCharacters(data.characters);
             } catch (err) {
                 console.error(err);
-                setTrendingCharacters([]);
+                setTaggedCharacters([]);
             } finally {
-                setIsLoadingTrendingCharacters(false);
+                setIsLoadingTaggedCharacters(false);
             }
         };
 
-        fetchTrendingCharacters();
+        fetchTaggedCharacters();
     }, []);
 
     useEffect(() => {
@@ -354,12 +354,12 @@ export default function Home() {
                         </div>
                     )}
 
-                    {(isLoadingTrendingCharacters || trendingCharacters.length > 0) && (
+                    {(isLoadingTaggedCharacters || taggedCharacters.length > 0) && (
                         <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Trending</div>
+                            <div className="mt-4 mb-6 text-xl font-bold">Because You Liked #dragonights</div>
                             
                             <div className="flex gap-4 overflow-x-auto mb-10">
-                                {!isLoadingTrendingCharacters && trendingCharacters.map((d) => (
+                                {!isLoadingTaggedCharacters && taggedCharacters.map((d) => (
                                     <CharacterCard
                                         id={d.id}
                                         aura={{
@@ -392,7 +392,7 @@ export default function Home() {
                                     />
                                 ))}
 
-                                {isLoadingTrendingCharacters && (
+                                {isLoadingTaggedCharacters && (
                                     <>
                                         <SkeletonCharacterCard />
                                         <SkeletonCharacterCard />
@@ -409,44 +409,6 @@ export default function Home() {
                             </div>
                         </div>
                     )}
-
-                    <div className="px-4 md:px-14">
-                        <div className="mt-4 mb-6 text-xl font-bold">Because You Liked TAG_HERE</div>
-                        
-                        <div className="flex gap-4 overflow-x-auto mb-10">
-                            <CharacterCard
-                                id="0"
-                                avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
-                                animatedAvatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/ezgif-3bddc376754c9ed9.gif`}
-                                name="AvatarKage"
-                                owner={{
-                                    id: "0",
-                                    name: "?",
-                                    type: "user" // p.owner.type
-                                }}
-                                about="Testing how good GIFs would work."
-                                interactions={{
-                                    views: {
-                                        count: 0,
-                                        interacted: true
-                                    },
-                                    likes: {
-                                        count: 0,
-                                        interacted: false
-                                    }
-                                }}
-                            />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                        </div>
-                    </div>
                 </div>
             )}
 
