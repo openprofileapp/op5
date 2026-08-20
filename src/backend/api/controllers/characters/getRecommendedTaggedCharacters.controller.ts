@@ -9,7 +9,7 @@ import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsern
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
 
-// ONLY IF THE USER LIKED THE CHARACTER; MUST BE A TOP 10 SCORE TAG
+// ONLY IF THE USER LIKED THE CHARACTER
 export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
     try {
         const { id, owner, page } = req.query;
