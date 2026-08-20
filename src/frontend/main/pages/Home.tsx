@@ -73,21 +73,45 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
-    // Get top 10 user interests and select randomly between them or smth
     const [taggedCharacters, setTaggedCharacters] = useState<unknown[]>([]);
     const [isLoadingTaggedCharacters, setIsLoadingTaggedCharacters] = useState(true);
+    const [sourceTaggedCharacter, setSourceTaggedCharacter] = useState(null);
 
     useEffect(() => {
         const fetchTaggedCharacters = async () => {
             try {
-                const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended/dragonights?visibility=public`, 
+                const res1 = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/random/like`, 
+                    { credentials: "include" }
+                );
+
+                const data1 = await res1.json();
+                setSourceTaggedCharacter(data1);
+
+                const tagsArray: string[] = typeof data1.tags === "string" 
+                    ? JSON.parse(data1.tags) 
+                    : data1.tags;
+
+                let randomTag;
+                if (Array.isArray(tagsArray) && tagsArray.length > 0) {
+                    randomTag = tagsArray[Math.floor(Math.random() * tagsArray.length)];
+                }
+
+                if (!randomTag) {
+                    setTaggedCharacters([]);
+                    return;
+                }
+
+                const res2 = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended/${encodeURIComponent(randomTag)}?visibility=public`, 
                     { credentials: "include" }
                 );
                 
-                const data = await res.json();
+                const data2 = await res2.json();
+                console.log(randomTag)
+                console.log(data2)
 
-                setTaggedCharacters(data.characters);
+                setTaggedCharacters(data2.characters);
             } catch (err) {
                 console.error(err);
                 setTaggedCharacters([]);
@@ -357,7 +381,7 @@ export default function Home() {
 
                     {(isLoadingTaggedCharacters || taggedCharacters.length > 0) && (
                         <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Because You Liked #dragonights</div>
+                            <div className="mt-4 mb-6 text-xl font-bold">Because You Liked {sourceTaggedCharacter?.displayName || sourceTaggedCharacter?.id}</div>
                             
                             <div className="flex gap-4 overflow-x-auto mb-10">
                                 {!isLoadingTaggedCharacters && taggedCharacters.map((d) => (
