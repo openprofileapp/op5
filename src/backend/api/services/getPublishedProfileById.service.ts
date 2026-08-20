@@ -1,6 +1,7 @@
 import { db } from "../databases/db.js";
 import getPublicUserById from "./getPublicUserByIdOrUsername.service.js";
 
+// DEVELOPER NEEDED: Rename to getPublishedCharacterById
 export default function getPublishedProfileById(id?: string) {
     const result = db.characters.query("SELECT * FROM published WHERE id = ?", [id]);
 
