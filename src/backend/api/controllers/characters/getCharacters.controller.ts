@@ -11,7 +11,7 @@ import { config } from "../../../../../app.config.js";
 
 export const getCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, page = 1 } = req.query;
+        const { id, owner, page } = req.query;
 
         const offset = 
             (Number(page) || 1) * 

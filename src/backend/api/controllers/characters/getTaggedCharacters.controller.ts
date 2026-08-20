@@ -11,7 +11,7 @@ import getUserInterestsById from "../../services/getUserInterestsById.service.js
 
 export const getTaggedCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public", page = 1 } = req.query;
+        const { id, owner, visibility = "public", page } = req.query;
         const { tag } = req.params;
 
         const offset = 
