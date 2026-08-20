@@ -16,11 +16,37 @@ const words = [
     "Team"
 ];
 
+// Make the text like "Recently Updated" a skeleton during loading
 export default function Home() {
     const { t, ready } = useTranslation();
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
     const wordRef = useRef(null);
+
+    const [recentFollowingCharacters, setRecentFollowingCharacters] = useState<unknown[]>([]);
+    const [isLoadingRecentFollowingCharacters, setIsLoadingRecentFollowingCharacters] = useState(true);
+
+    useEffect(() => {
+        const fetchRecentFollowingCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recent/following?visibility=public`, 
+                    { credentials: "include" }
+                );
+                
+                const data = await res.json();
+
+                setRecentFollowingCharacters(data);
+            } catch (err) {
+                console.error(err);
+                setRecentFollowingCharacters([]);
+            } finally {
+                setIsLoadingRecentFollowingCharacters(false);
+            }
+        };
+
+        fetchRecentFollowingCharacters();
+    }, []);
 
     const [recommendedCharacters, setRecommendedCharacters] = useState<unknown[]>([]);
     const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
@@ -47,29 +73,29 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
-    const [popularCharacters, setPopularCharacters] = useState<unknown[]>([]);
-    const [isLoadingPopularCharacters, setIsLoadingPopularCharacters] = useState(true);
+    const [trendingCharacters, setTrendingCharacters] = useState<unknown[]>([]);
+    const [isLoadingTrendingCharacters, setIsLoadingTrendingCharacters] = useState(true);
 
     useEffect(() => {
-        const fetchPopularCharacters = async () => {
+        const fetchTrendingCharacters = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/popular?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/trending?visibility=public`, 
                     { credentials: "include" }
                 );
                 
                 const data = await res.json();
 
-                setPopularCharacters(data);
+                setTrendingCharacters(data);
             } catch (err) {
                 console.error(err);
-                setPopularCharacters([]);
+                setTrendingCharacters([]);
             } finally {
-                setIsLoadingPopularCharacters(false);
+                setIsLoadingTrendingCharacters(false);
             }
         };
 
-        fetchPopularCharacters();
+        fetchTrendingCharacters();
     }, []);
 
     useEffect(() => {
@@ -175,7 +201,7 @@ export default function Home() {
                     </div>
 
                     <div className="px-4 md:px-14">
-                        <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
+                        <div className="mt-4 mb-6 text-xl font-bold">Trending</div>
                         
                         <div className="flex gap-4 overflow-x-auto mb-10">
                             <CharacterCard
@@ -216,6 +242,62 @@ export default function Home() {
 
             {window.session.user && (
                 <div className="py-4">
+                    {(isLoadingRecentFollowingCharacters || recentFollowingCharacters.length > 0) && (
+                        <div className="px-4 md:px-14">
+                            <div className="mt-4 mb-6 text-xl font-bold">Recently Updated</div>
+                            
+                            <div className="flex gap-4 overflow-x-auto mb-10">
+                                {!isLoadingRecentFollowingCharacters && recentFollowingCharacters.map((d) => (
+                                    <CharacterCard
+                                        id={d.id}
+                                        aura={{
+                                            isEnabled: d.isAuraEnabled,
+                                            type: d.auraType,
+                                            primary: d.auraPrimary,
+                                            secondary: d.auraSecondary
+                                        }}
+                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
+                                        displayName={d.displayName}
+                                        slug={d.slug}
+                                        owner={{
+                                            id: d.owner.id,
+                                            slug: d.owner.username,
+                                            displayName: d.owner.displayName,
+                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
+                                            type: "user" // p.owner.type
+                                        }}
+                                        about={d.about}
+                                        interactions={{
+                                            views: {
+                                                count: 0,
+                                                interacted: true
+                                            },
+                                            likes: {
+                                                count: 0,
+                                                interacted: false
+                                            }
+                                        }}
+                                    />
+                                ))}
+
+                                {isLoadingRecentFollowingCharacters && (
+                                    <>
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                        <SkeletonCharacterCard />
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {(isLoadingRecommendedCharacters || recommendedCharacters.length > 0) && (
                         <div className="px-4 md:px-14">
                             <div className="mt-4 mb-6 text-xl font-bold">Recommended</div>
@@ -272,12 +354,12 @@ export default function Home() {
                         </div>
                     )}
 
-                    {(isLoadingPopularCharacters || popularCharacters.length > 0) && (
+                    {(isLoadingTrendingCharacters || trendingCharacters.length > 0) && (
                         <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Popular</div>
+                            <div className="mt-4 mb-6 text-xl font-bold">Trending</div>
                             
                             <div className="flex gap-4 overflow-x-auto mb-10">
-                                {!isLoadingPopularCharacters && popularCharacters.map((d) => (
+                                {!isLoadingTrendingCharacters && trendingCharacters.map((d) => (
                                     <CharacterCard
                                         id={d.id}
                                         aura={{
@@ -310,7 +392,7 @@ export default function Home() {
                                     />
                                 ))}
 
-                                {isLoadingPopularCharacters && (
+                                {isLoadingTrendingCharacters && (
                                     <>
                                         <SkeletonCharacterCard />
                                         <SkeletonCharacterCard />
@@ -327,44 +409,6 @@ export default function Home() {
                             </div>
                         </div>
                     )}
-
-                    <div className="px-4 md:px-14">
-                        <div className="mt-4 mb-6 text-xl font-bold">Recently Updated</div>
-                        
-                        <div className="flex gap-4 overflow-x-auto mb-10">
-                            <CharacterCard
-                                id="0"
-                                avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
-                                animatedAvatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/ezgif-3bddc376754c9ed9.gif`}
-                                name="AvatarKage"
-                                owner={{
-                                    id: "0",
-                                    name: "?",
-                                    type: "user" // p.owner.type
-                                }}
-                                about="Testing how good GIFs would work."
-                                interactions={{
-                                    views: {
-                                        count: 0,
-                                        interacted: true
-                                    },
-                                    likes: {
-                                        count: 0,
-                                        interacted: false
-                                    }
-                                }}
-                            />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                        </div>
-                    </div>
 
                     <div className="px-4 md:px-14">
                         <div className="mt-4 mb-6 text-xl font-bold">Because You Liked TAG_HERE</div>
