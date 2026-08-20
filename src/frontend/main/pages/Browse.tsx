@@ -10,19 +10,42 @@ import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
+import { Pagination } from "../components/Pagination.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
 export default function SearchProfiles() {
     const { tag } = useParams();
     const { t, ready } = useTranslation();
-
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [users, setUsers] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
+    const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const isOnPopularPage = location.pathname === "/popular";
+    const isOnTrendingPage = location.pathname === "/trending";
+    const isOnRecentPage = location.pathname === "/recent";
+    const isOnBrowsePage = location.pathname === "/browse";
+    const isOnTagPage = location.pathname.startsWith("/browse/");
+
+    let endpoint: string = "";
+    if (isOnPopularPage) {
+        endpoint = "/popular";
+    } else if (isOnTrendingPage) {
+        endpoint = "/trending";
+    } else if (isOnRecentPage) {
+        endpoint = "/recent";
+    } else if (isOnTagPage && tag) {
+        endpoint = `/tag/${tag}`;
+    }
+
+    // If current page change, update the browser url query
+
+    /*useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
@@ -31,7 +54,7 @@ export default function SearchProfiles() {
                 );
                 const data = await res.json();
 
-                // setUsers(data);
+                setUsers(data);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -40,20 +63,24 @@ export default function SearchProfiles() {
         };
 
         fetchUsers();
-    }, []);
+    }, []);*/
 
     useEffect(() => {
-        if (!tag) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoading(true);
 
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/tag/${tag}?visibility=public`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters${endpoint}?visibility=public&page=${currentPage}`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
 
-                setProfiles(data);
+                console.log(data)
+
+                setProfiles(data.characters);
+                setCount(data.count);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -62,14 +89,7 @@ export default function SearchProfiles() {
         };
 
         fetchProfiles();
-    }, [tag]);
-
-    const formatTag = (str?: string) => {
-        if (!str) return "";
-        return str
-            .replace(/[-_]+/g, " ")
-            .replace(/\b\w/g, (char) => char.toUpperCase());
-    };
+    }, [location.pathname, currentPage, tag, endpoint]);
 
     if (!ready) return null;
     
@@ -84,49 +104,26 @@ export default function SearchProfiles() {
             
             <div className="px-4 py-4 md:px-14">
 
-                <div className="mt-4 mb-6 text-xl font-bold">Browsing {formatTag(tag)}</div>
+                <div className="mt-4 mb-6 text-xl font-bold text-left">
+                    {isOnPopularPage ? "Popular (Top 100)" : ""}
+                    {isOnRecentPage ? "New & Updated (Last 30 Days)" : ""}
+                    {isOnTrendingPage ? "Trending (Top 100)" : ""}
+                    {isOnBrowsePage ? `Browsing All` : ""}
+                    {isOnTagPage ? `Browsing #${tag}` : ""}
+                </div>
+
+                <div className="top-14 left-1/2 -translate-x-1/2 absolute flex justify-center">
+                    <Pagination 
+                        totalCount={count} 
+                        currentPage={currentPage}
+                        onPageChange={(page) => setCurrentPage(page)}
+                    />
+                </div>
 
                 <div className="flex flex-wrap gap-4">
 
                     {loading && (
                         <>
-                            {/* Display max per page; 30? or 50 smth */}
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
                             <SkeletonCharacterCard />
@@ -208,7 +205,7 @@ export default function SearchProfiles() {
                             }}
                         />
                     ))}
-
+                    
                     {!loading && profiles.map((d) => (
                         <CharacterCard
                             id={d.id}
@@ -243,19 +240,11 @@ export default function SearchProfiles() {
                     ))}
                 </div>
 
-                <div className="flex items-center justify-center mt-8 mb-6">
-                    <div className="join border border-base-300 rounded">
-                        <button className="join-item btn font-nerdfont"></button>
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="1" />
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="2" />
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="3" />
-                        <input className="join-item btn btn-square font-nerdfont" type="radio" name="options" aria-label="󰇘" disabled={true} />
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="98" />
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="99" />
-                        <input className="join-item btn btn-square" type="radio" name="options" aria-label="100" />
-                        <button className="join-item btn font-nerdfont"></button>
-                    </div>
-                </div>
+                <Pagination 
+                    totalCount={count} 
+                    currentPage={currentPage}
+                    onPageChange={(page) => setCurrentPage(page)}
+                />
             </div>
 
             <Footer />
