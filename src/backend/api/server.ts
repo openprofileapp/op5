@@ -20,6 +20,7 @@ import auditRoute from "./routes/audit.route.js";
 import healthRoute from "../_common/routes/health.route.js";
 import pinRoutes from "./routes/pin.routes.js";
 import characterRoutes from "./routes/character.routes.js";
+import randomRoutes from "./routes/random.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -76,6 +77,12 @@ v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), intera
 v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
 v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
+v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+
+// DEVELOPER NEEDED: When editing your profile, assign interests based on your uploaded content and user tags,
+// This should assist with getting a head start in what you'd like to see
+
+// MAYBE ADD INTERESTS ROUTE; /v2/interests/USER_ID?top=5 (ONLY LOGGED IN USER CAN GET THEIR INTERESTS)
 
 /* 
 ————————————————————————————————————————————————————————————————
