@@ -6,19 +6,23 @@ import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
 import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
-import { InteractionType } from "../../../../_common/types/queries/interaction.type.js";
 import { config } from "../../../../../app.config.js";
 
 export const getTrendingCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public", page } = req.query;
+        const { 
+            id, 
+            owner, 
+            visibility = "public", 
+            page, 
+            limit = config.limits.assetsPerPage 
+        } = req.query;
 
-        const offset = 
-            (Number(page) || 1) * 
-            config.limits.assetsPerPage - 
-            config.limits.assetsPerPage;
+        const limitNum = Number(limit) || config.limits.assetsPerPage;
+        const pageNum = Number(page) || 1;
+        const offset = (pageNum - 1) * limitNum;
 
-        const interactionsResult = db.interactions.query<InteractionType>(
+        const interactionsResult = db.interactions.query<{ target: string; count: number | string }>(
             `
                 SELECT target, COUNT(*) as count
                 FROM (
@@ -43,13 +47,18 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching interactions",
                 details: interactionsResult.error
-            })
+            });
         }
 
-        const trendingTargetIds = interactionsResult.rows.map((row) => row.target);
+        const targetCountMap = new Map<string, number>();
+        interactionsResult.rows.forEach((row) => {
+            targetCountMap.set(row.target, Number(row.count) || 0);
+        });
+
+        const trendingTargetIds = Array.from(targetCountMap.keys());
 
         if (trendingTargetIds.length === 0) {
-            return res.status(200).json({ characters: [], count: 0 });
+            return res.status(200).json({ characters: [], pageCount: 0 });
         }
 
         const trendingClause = `AND id IN (${trendingTargetIds.map(() => "?").join(",")})`;
@@ -67,16 +76,12 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
                     ${trendingClause}
                     ${idClause}
                     ${ownerIdClause}
-                ORDER BY algorithmScore DESC 
-                LIMIT ? OFFSET ?
             `,
             [
                 visibility,
                 ...trendingTargetIds,
                 ...idParams,
                 ...ownerIdArgs,
-                config.limits.assetsPerPage,
-                offset
             ]
         );
 
@@ -85,46 +90,36 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
                 code: 500,
                 message: "An error occurred while fetching characters",
                 details: result.error
-            })
+            });
         }
 
-        const resultCount = db.characters.query(
-            `
-                SELECT COUNT(*) as count FROM published
-                WHERE visibility = ?
-                    ${trendingClause}
-                    ${idClause}
-                    ${ownerIdClause}
-            `,
-            [
-                visibility,
-                ...trendingTargetIds,
-                ...idParams,
-                ...ownerIdArgs,
-            ]
-        );
+        const sortedCharacters = result.rows
+            .map((character) => ({
+                ...character,
+                interactionCount: targetCountMap.get(character.id) || 0,
+            }))
+            .sort((a, b) => {
+                if (b.interactionCount === a.interactionCount) {
+                    return (Number(b.algorithmScore) || 0) - (Number(a.algorithmScore) || 0);
+                }
+                return b.interactionCount - a.interactionCount;
+            });
 
-        if (!resultCount.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching characters",
-                details: resultCount.error
-            })
-        }
+        const totalItems = sortedCharacters.length;
+        const paginatedCharacters = sortedCharacters.slice(offset, offset + limitNum);
 
-        const characters = result.rows.map((d) => {
-            const owner = getPublicUserByIdOrUsername(d.ownerId);
+        const characters = paginatedCharacters.map((d) => {
+            const ownerUser = getPublicUserByIdOrUsername(d.ownerId);
 
             return {
                 ...d,
-
-                owner: owner
+                owner: ownerUser
                     ? {
-                        id: owner.id,
-                        username: owner.username,
-                        displayName: owner.displayName,
-                        badges: owner.badges,
-                        type: owner.type
+                        id: ownerUser.id,
+                        username: ownerUser.username,
+                        displayName: ownerUser.displayName,
+                        badges: ownerUser.badges,
+                        type: ownerUser.type
                     }
                     : null
             };
@@ -132,7 +127,7 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
 
         res.status(200).json({
             characters,
-            count: resultCount.rows[0].count
+            pageCount: Math.ceil(totalItems / limitNum)
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
