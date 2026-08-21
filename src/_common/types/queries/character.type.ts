@@ -1,4 +1,5 @@
 export type CharacterType = {
+    algorithmScore: number;
     id: string;
     ownerId: string;
     slug: string;
