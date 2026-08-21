@@ -1,127 +1,41 @@
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
-import isGateway from "../../_common/helpers/isGateway.js";
+import { log } from "../scripts/main.js";
+
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 import Footer from "../components/Footer.js";
-import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
-import CharacterCard from "../components/CharacterCard.js";
+import isGateway from "../../_common/helpers/isGateway.js";
 
-const words = [
-    "Characters", 
-    "Universes", 
-    "Stories",
-    "Team"
-];
+import { characterApiType } from "../../_common/types/characterApi.type.js";
+import { CharacterWithOwnerType } from "../../../_common/types/characterWithOwner.type.js";
+import { apiHost } from "../scripts/hosts.js";
+import AssetCarousel from "../components/AssetCarousel.js";
+import { Link } from "react-router-dom";
 
-// Make the text like "Recently Updated" a skeleton during loading
 export default function Home() {
     const { t, ready } = useTranslation();
+
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
-    const wordRef = useRef(null);
+    const wordRef = useRef<HTMLSpanElement | null>(null);
+    const [trendingCharacters, setTrendingCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [isLoadingTrendingCharacters, setIsLoadingTrendingCharacters] = useState(true);
+    const [popularCharacters, setPopularCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [isLoadingPopularCharacters, setIsLoadingPopularCharacters] = useState(true);
+    const [recentCharacters, setRecentCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [isLoadingRecentCharacters, setIsLoadingRecentCharacters] = useState(true);
+    const [recentlyUpdatedCharacters, setRecentlyUpdatedCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [isLoadingRecentlyUpdatedCharacters, setIsLoadingRecentlyUpdatedCharacters] = useState(true);
 
-    const [recentFollowingCharacters, setRecentFollowingCharacters] = useState<unknown[]>([]);
-    const [isLoadingRecentFollowingCharacters, setIsLoadingRecentFollowingCharacters] = useState(true);
-
-    useEffect(() => {
-        const fetchRecentFollowingCharacters = async () => {
-            try {
-                const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recent/following?visibility=public`, 
-                    { credentials: "include" }
-                );
-                
-                const data = await res.json();
-
-                setRecentFollowingCharacters(data.characters);
-            } catch (err) {
-                console.error(err);
-                setRecentFollowingCharacters([]);
-            } finally {
-                setIsLoadingRecentFollowingCharacters(false);
-            }
-        };
-
-        fetchRecentFollowingCharacters();
-    }, []);
-
-    const [recommendedCharacters, setRecommendedCharacters] = useState<unknown[]>([]);
-    const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
-
-    useEffect(() => {
-        const fetchRecommendedCharacters = async () => {
-            try {
-                const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended`, 
-                    { credentials: "include" }
-                );
-                
-                const data = await res.json();
-
-                setRecommendedCharacters(data.characters);
-            } catch (err) {
-                console.error(err);
-                setRecommendedCharacters([]);
-            } finally {
-                setIsLoadingRecommendedCharacters(false);
-            }
-        };
-
-        fetchRecommendedCharacters();
-    }, []);
-
-    const [taggedCharacters, setTaggedCharacters] = useState<unknown[]>([]);
-    const [isLoadingTaggedCharacters, setIsLoadingTaggedCharacters] = useState(true);
-    const [sourceTaggedCharacter, setSourceTaggedCharacter] = useState(null);
-
-    useEffect(() => {
-        const fetchTaggedCharacters = async () => {
-            try {
-                const res1 = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/random/like`, 
-                    { credentials: "include" }
-                );
-
-                const data1 = await res1.json();
-                setSourceTaggedCharacter(data1);
-
-                const tagsArray: string[] = typeof data1.tags === "string" 
-                    ? JSON.parse(data1.tags) 
-                    : data1.tags;
-
-                let randomTag;
-                if (Array.isArray(tagsArray) && tagsArray.length > 0) {
-                    randomTag = tagsArray[Math.floor(Math.random() * tagsArray.length)];
-                }
-
-                if (!randomTag) {
-                    setTaggedCharacters([]);
-                    return;
-                }
-
-                const res2 = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended/${encodeURIComponent(randomTag)}?visibility=public`, 
-                    { credentials: "include" }
-                );
-                
-                const data2 = await res2.json();
-                console.log(randomTag)
-                console.log(data2)
-
-                setTaggedCharacters(data2.characters);
-            } catch (err) {
-                console.error(err);
-                setTaggedCharacters([]);
-            } finally {
-                setIsLoadingTaggedCharacters(false);
-            }
-        };
-
-        fetchTaggedCharacters();
-    }, []);
+    const words = [
+        "Characters",
+        "Universes",
+        "Stories",
+        "Team"
+    ];
 
     useEffect(() => {
         if (wordRef.current) {
@@ -134,6 +48,103 @@ export default function Home() {
             setIndex((prev) => (prev + 1) % words.length);
         }, 3500);
         return () => clearInterval(timer);
+    }, [words.length]);
+
+    useEffect(() => {
+        if (window.session.userId) return;
+
+        const fetchTrendingCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `${apiHost}/v2/characters/trending`, 
+                    { credentials: "include" }
+                );
+                
+                const data: characterApiType = await res.json();
+
+                setTrendingCharacters(data.characters);
+            } catch (error) {
+                log.network.error(error);
+                setTrendingCharacters([]);
+            } finally {
+                setIsLoadingTrendingCharacters(false);
+            }
+        };
+
+        fetchTrendingCharacters();
+    }, []);
+
+    useEffect(() => {
+        if (window.session.userId) return;
+
+        const fetchPopularCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `${apiHost}/v2/characters/popular`, 
+                    { credentials: "include" }
+                );
+                
+                const data: characterApiType = await res.json();
+
+                setPopularCharacters(data.characters);
+            } catch (error) {
+                log.network.error(error);
+                setPopularCharacters([]);
+            } finally {
+                setIsLoadingPopularCharacters(false);
+            }
+        };
+
+        fetchPopularCharacters();
+    }, []);
+
+    useEffect(() => {
+        if (window.session.userId) return;
+
+        const fetchRecentCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `${apiHost}/v2/characters/recent`, 
+                    { credentials: "include" }
+                );
+                
+                const data: characterApiType = await res.json();
+
+                setRecentCharacters(data.characters);
+            } catch (error) {
+                log.network.error(error);
+                setRecentCharacters([]);
+            } finally {
+                setIsLoadingRecentCharacters(false);
+            }
+        };
+
+        fetchRecentCharacters();
+    }, []);
+
+
+    useEffect(() => {
+        if (!window.session.userId) return;
+
+        const fetchRecentlyUpdatedCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `${apiHost}/v2/characters/recent/following`, 
+                    { credentials: "include" }
+                );
+                
+                const data: characterApiType = await res.json();
+
+                setRecentlyUpdatedCharacters(data.characters);
+            } catch (error) {
+                log.network.error(error);
+                setRecentlyUpdatedCharacters([]);
+            } finally {
+                setIsLoadingRecentlyUpdatedCharacters(false);
+            }
+        };
+
+        fetchRecentlyUpdatedCharacters();
     }, []);
 
     if (!ready) return null;
@@ -144,7 +155,7 @@ export default function Home() {
             
             <Navbar isBannerPage={window.session.user ? false : true} />
 
-            {!window.session.user && (
+            {!window.session.user ? (
                 <>
                     <div className="hero bg-base-200 h-140">
                         <div
@@ -211,230 +222,58 @@ export default function Home() {
                                 <div className="flex justify-center gap-4 mt-1">
                                     <button 
                                         className="btn btn-primary h-12 px-8 hover:-translate-y-0.5 transition-all duration-200" 
-                                        onClick={() => document.getElementById("login").showModal()}
+                                        onClick={() => (
+                                            document.getElementById("login") as HTMLDialogElement | null
+                                        )?.showModal()}
                                     >
                                         Get Started
                                     </button>
 
-                                    <button className="btn btn-outline btn-primary h-12 px-8 hover:-translate-y-0.5 transition-all duration-200">
+                                    <Link 
+                                        className="btn btn-outline btn-primary h-12 px-8 hover:-translate-y-0.5 transition-all duration-200"
+                                        to="/browse"
+                                    >
                                         Browse Characters
-                                    </button>
+                                    </Link>
                                     
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="px-4 md:px-14">
-                        <div className="mt-4 mb-6 text-xl font-bold">Trending</div>
-                        
-                        <div className="flex gap-4 overflow-x-auto mb-10">
-                            <CharacterCard
-                                id="0"
-                                avatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/Screenshot_2026-05-17_110157.png`}
-                                animatedAvatar={`https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/ezgif-3bddc376754c9ed9.gif`}
-                                name="AvatarKage"
-                                owner={{
-                                    id: "0",
-                                    name: "?",
-                                    type: "user" // p.owner.type
-                                }}
-                                about="Testing how good GIFs would work."
-                                interactions={{
-                                    views: {
-                                        count: 0,
-                                        interacted: true
-                                    },
-                                    likes: {
-                                        count: 0,
-                                        interacted: false
-                                    }
-                                }}
-                            />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                        </div>
-                    </div>
+                    <AssetCarousel 
+                        name={"Trending"} 
+                        assetType={"character"} 
+                        assets={trendingCharacters} 
+                        viewAllLink="/trending"
+                        isLoading={isLoadingTrendingCharacters} 
+                    />
+
+                    <AssetCarousel 
+                        name={"Popular"} 
+                        assetType={"character"} 
+                        assets={popularCharacters} 
+                        viewAllLink="/popular"
+                        isLoading={isLoadingPopularCharacters} 
+                    />
+
+                    <AssetCarousel 
+                        name={"New & Updated"} 
+                        assetType={"character"} 
+                        assets={recentCharacters} 
+                        viewAllLink="/recent"
+                        isLoading={isLoadingRecentCharacters} 
+                    />
                 </>
-            )}
-
-            {window.session.user && (
-                <div className="py-4">
-                    {(isLoadingRecentFollowingCharacters || recentFollowingCharacters.length > 0) && (
-                        <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Recently Updated</div>
-                            
-                            <div className="flex gap-4 overflow-x-auto mb-10">
-                                {!isLoadingRecentFollowingCharacters && recentFollowingCharacters.map((d) => (
-                                    <CharacterCard
-                                        id={d.id}
-                                        aura={{
-                                            isEnabled: d.isAuraEnabled,
-                                            type: d.auraType,
-                                            primary: d.auraPrimary,
-                                            secondary: d.auraSecondary
-                                        }}
-                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                                        displayName={d.displayName}
-                                        slug={d.slug}
-                                        owner={{
-                                            id: d.owner.id,
-                                            slug: d.owner.username,
-                                            displayName: d.owner.displayName,
-                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
-                                            type: "user" // p.owner.type
-                                        }}
-                                        about={d.about}
-                                        interactions={{
-                                            views: {
-                                                count: 0,
-                                                interacted: true
-                                            },
-                                            likes: {
-                                                count: 0,
-                                                interacted: false
-                                            }
-                                        }}
-                                    />
-                                ))}
-
-                                {isLoadingRecentFollowingCharacters && (
-                                    <>
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {(isLoadingRecommendedCharacters || recommendedCharacters.length > 0) && (
-                        <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Recommended</div>
-                            
-                            <div className="flex gap-4 overflow-x-auto mb-10">
-                                {!isLoadingRecommendedCharacters && recommendedCharacters.map((d) => (
-                                    <CharacterCard
-                                        id={d.id}
-                                        aura={{
-                                            isEnabled: d.isAuraEnabled,
-                                            type: d.auraType,
-                                            primary: d.auraPrimary,
-                                            secondary: d.auraSecondary
-                                        }}
-                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                                        displayName={d.displayName}
-                                        slug={d.slug}
-                                        owner={{
-                                            id: d.owner.id,
-                                            slug: d.owner.username,
-                                            displayName: d.owner.displayName,
-                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
-                                            type: "user" // p.owner.type
-                                        }}
-                                        about={d.about}
-                                        interactions={{
-                                            views: {
-                                                count: 0,
-                                                interacted: true
-                                            },
-                                            likes: {
-                                                count: 0,
-                                                interacted: false
-                                            }
-                                        }}
-                                    />
-                                ))}
-
-                                {isLoadingRecommendedCharacters && (
-                                    <>
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {(isLoadingTaggedCharacters || taggedCharacters.length > 0) && (
-                        <div className="px-4 md:px-14">
-                            <div className="mt-4 mb-6 text-xl font-bold">Because You Liked {sourceTaggedCharacter?.displayName || sourceTaggedCharacter?.id}</div>
-                            
-                            <div className="flex gap-4 overflow-x-auto mb-10">
-                                {!isLoadingTaggedCharacters && taggedCharacters.map((d) => (
-                                    <CharacterCard
-                                        id={d.id}
-                                        aura={{
-                                            isEnabled: d.isAuraEnabled,
-                                            type: d.auraType,
-                                            primary: d.auraPrimary,
-                                            secondary: d.auraSecondary
-                                        }}
-                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                                        displayName={d.displayName}
-                                        slug={d.slug}
-                                        owner={{
-                                            id: d.owner.id,
-                                            slug: d.owner.username,
-                                            displayName: d.owner.displayName,
-                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
-                                            type: "user" // p.owner.type
-                                        }}
-                                        about={d.about}
-                                        interactions={{
-                                            views: {
-                                                count: 0,
-                                                interacted: true
-                                            },
-                                            likes: {
-                                                count: 0,
-                                                interacted: false
-                                            }
-                                        }}
-                                    />
-                                ))}
-
-                                {isLoadingTaggedCharacters && (
-                                    <>
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                        <SkeletonCharacterCard />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
+            ) : (
+                <>
+                    <AssetCarousel 
+                        name={"Recently Updated"} 
+                        assetType={"character"} 
+                        assets={recentlyUpdatedCharacters} 
+                        isLoading={isLoadingRecentlyUpdatedCharacters} 
+                    />
+                </>
             )}
 
             <Footer />
