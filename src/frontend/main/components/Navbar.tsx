@@ -198,8 +198,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                     <div className="flex items-center gap-5 ml-10 text-sm">
                         <Link className="link-hover" to="/">Home</Link>
-                        <Link className="link-hover" to="/popular">Popular</Link>
                         <Link className="link-hover" to="/trending">Trending</Link>
+                        <Link className="link-hover" to="/popular">Popular</Link>
                         <Link className="link-hover" to="/recent">New & Updated</Link>
 
                         <div className="flex-none">
