@@ -1,72 +1,71 @@
 import React, { useState } from "react";
 
 interface PaginationProps {
-    totalCount: number;
+    pageCount: number;
     currentPage: number;
     onPageChange: (page: number) => void;
 }
 
 export function Pagination({ 
-    totalCount, 
+    pageCount, 
     currentPage, 
     onPageChange,
 }: PaginationProps) {
-    const [jumpPage, setJumpPage] = useState("");
+    const [jumpInputs, setJumpInputs] = useState<{ [key: string]: string }>({});
 
-    const numericCount = Number(totalCount) || 0;
-    const totalPages = Math.ceil(numericCount / 30);
-
-    if (totalPages <= 1) return null;
+    if (pageCount <= 1) return null;
 
     function changePage(newPage: number | string) {
         const pageNum = Number(newPage);
         if (!isNaN(pageNum)) {
-            const clampedPage = Math.max(1, Math.min(pageNum, totalPages));
+            const clampedPage = Math.max(1, Math.min(pageNum, pageCount));
             onPageChange(clampedPage);
-            
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
         }
     }
 
-    function handleJumpSubmit() {
-        if (!jumpPage.trim()) return;
-        const target = jumpPage;
-        setJumpPage("");
-        changePage(target);
+    function handleJumpSubmit(key: string) {
+        const val = jumpInputs[key];
+        if (!val || !val.trim()) return;
+        
+        setJumpInputs((prev) => ({ ...prev, [key]: "" }));
+        changePage(val);
     }
 
     function getPageNumbers() {
         const pages: (number | string)[] = [];
 
-        if (totalPages <= 7) {
-            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        if (pageCount <= 7) {
+            for (let i = 1; i <= pageCount; i++) pages.push(i);
         } else {
             let start = Math.max(2, currentPage - 1);
-            let end = Math.min(totalPages - 1, currentPage + 1);
+            let end = Math.min(pageCount - 1, currentPage + 1);
 
             if (currentPage <= 3) {
                 start = 2;
                 end = 4;
-            } else if (currentPage >= totalPages - 2) {
-                start = totalPages - 3;
-                end = totalPages - 1;
+            } else if (currentPage >= pageCount - 2) {
+                start = pageCount - 3;
+                end = pageCount - 1;
             }
 
             pages.push(1);
 
             if (start > 2) {
-                pages.push("...");
+                pages.push("ellipsis-left");
             }
 
             for (let i = start; i <= end; i++) {
                 pages.push(i);
             }
 
-            if (end < totalPages - 1) {
-                pages.push("...");
+            if (end < pageCount - 1) {
+                pages.push("ellipsis-right");
             }
 
-            pages.push(totalPages);
+            pages.push(pageCount);
         }
         return pages;
     }
@@ -75,46 +74,67 @@ export function Pagination({
         <div className="flex items-center justify-center mt-8 mb-6">
             <div className="join border border-base-300 rounded">
                 <button
+                    type="button"
                     className="join-item btn font-nerdfont"
                     onClick={() => changePage(currentPage - 1)}
                     disabled={currentPage === 1}
+                    aria-label="Previous Page"
                 >
                     
                 </button>
 
-                {getPageNumbers().map((page, index) =>
-                    page === "..." ? (
-                        <input
-                            key={`ellipsis-${index}`}
-                            className={`join-item btn btn-square text-center p-0 focus:outline-none focus:bg-base-200 ${
-                                !jumpPage.trim() ? "font-nerdfont" : ""
-                            }`}
-                            placeholder="󰇘"
-                            value={jumpPage}
-                            onChange={(e) => setJumpPage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    handleJumpSubmit();
-                                    e.currentTarget.blur();
+                {getPageNumbers().map((page) => {
+                    if (typeof page === "string" && page.startsWith("ellipsis")) {
+                        const val = jumpInputs[page] || "";
+                        return (
+                            <input
+                                key={page}
+                                className={`join-item btn btn-square text-center p-0 focus:outline-none focus:bg-base-200 ${
+                                    !val.trim() ? "font-nerdfont" : ""
+                                }`}
+                                placeholder="󰇘"
+                                value={val}
+                                onChange={(e) =>
+                                    setJumpInputs((prev) => ({
+                                        ...prev,
+                                        [page]: e.target.value,
+                                    }))
                                 }
-                            }}
-                        />
-                    ) : (
-                        <input
-                            key={`page-${page}`}
-                            className="join-item btn btn-square"
-                            type="radio"
-                            aria-label={String(page)}
-                            checked={currentPage === page}
-                            onChange={() => changePage(page)}
-                        />
-                    )
-                )}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handleJumpSubmit(page);
+                                        e.currentTarget.blur();
+                                    }
+                                }}
+                            />
+                        );
+                    }
+
+                    const pageNum = Number(page);
+                    const isActive = currentPage === pageNum;
+
+                    return (
+                        <button
+                            key={`page-${pageNum}`}
+                            type="button"
+                            className={`join-item btn btn-square ${
+                                isActive ? "btn-primary pointer-events-none" : ""
+                            }`}
+                            onClick={() => changePage(pageNum)}
+                            aria-label={`Page ${pageNum}`}
+                            aria-current={isActive ? "page" : undefined}
+                        >
+                            {pageNum}
+                        </button>
+                    );
+                })}
 
                 <button
+                    type="button"
                     className="join-item btn font-nerdfont"
                     onClick={() => changePage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage === pageCount}
+                    aria-label="Next Page"
                 >
                     
                 </button>
