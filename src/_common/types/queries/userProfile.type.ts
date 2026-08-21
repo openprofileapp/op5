@@ -1,4 +1,5 @@
 export type UserProfileType = {
+    algorithmScore: string;
     id: string;
     username: string;
     usernameOld: string;
