@@ -38,7 +38,7 @@ import AskAlice from "../_common/components/AskAlice.js"
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
 import Browse from "./pages/Browse.js"
-import Partners from "./pages/Partners.js"
+import Partners from "./pages/account/Partners.js"
 import Premium from "./pages/Premium.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
@@ -48,6 +48,7 @@ import NotFound from "../_common/pages/NotFound.js"
 import UserProfile from "./pages/UserProfile.js"
 
 import Template from "./pages/Template.js"
+import ScrollToTop from "../_common/components/ScrollToTop.js"
 
 async function bootstrap() {
     const response = await fetch(
@@ -75,6 +76,7 @@ async function bootstrap() {
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
                     <BrowserRouter>
+                        <ScrollToTop />
                         <ToastContainer />
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
                         <AskAlice />
@@ -83,8 +85,8 @@ async function bootstrap() {
                             <Route path="/search" element={<Search />} />
                             <Route path="/universes" element={<ComingSoon />} />
 
-                            <Route path="/popular" element={<Browse />} />
                             <Route path="/trending" element={<Browse />} />
+                            <Route path="/popular" element={<Browse />} />
                             <Route path="/recent" element={<Browse />} />
                             <Route path="/browse" element={<Browse />} />
                             <Route path="/browse/:tag" element={<Browse />} />
@@ -97,7 +99,7 @@ async function bootstrap() {
                             
                             <Route path="/user/:id" element={<UserProfile />} />
                             <Route path="/:id" element={<Template />} />
-                            {/* <Route path="user/:userId/profile/:id" element={<CharacterProfile />} /> */}
+                            {/* <Route path="character/:id" element={<CharacterProfile />} /> */}
 
                             <Route path="/404" element={<NotFound />} />
                             <Route path="*" element={<Navigate to="/404" replace />} />
