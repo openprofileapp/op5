@@ -11,6 +11,7 @@ import { getTaggedCharacters } from "../controllers/characters/getTaggedCharacte
 
 const characterRoutes = Router();
 
+// DEVELOPER NEEDED: Make it so non-public visibility can't be seen without an account and permissions/interaction check
 characterRoutes.get("/", getCharacters); // Make it tailored to preferences like recommended
 characterRoutes.get("/popular", getPopularCharacters);
 characterRoutes.get("/recommended", getRecommendedCharacters);
