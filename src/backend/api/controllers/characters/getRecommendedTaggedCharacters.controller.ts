@@ -12,13 +12,19 @@ import { config } from "../../../../../app.config.js";
 // ONLY IF THE USER LIKED THE CHARACTER
 export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, page } = req.query;
+        const { 
+            id, 
+            owner, 
+            page, 
+            limit = config.limits.assetsPerPage 
+        } = req.query;
+
         const { tag } = req.params;
 
         const offset = 
             (Number(page) || 1) * 
-            config.limits.assetsPerPage - 
-            config.limits.assetsPerPage;
+            Number(limit) - 
+            Number(limit);
 
         if (!req.session.userId) {
             throw new AdvancedError({
@@ -107,7 +113,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
                 ...ownerIdArgs,
                 ...selfExcludeArgs,
                 ...orderParams,
-                config.limits.assetsPerPage,
+                limit,
                 offset
             ]
         );
@@ -170,7 +176,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
 
         res.status(200).json({
             characters,
-            count: resultCount.rows[0].count
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
         });
     } catch(error) {
         if (error instanceof AdvancedError) {

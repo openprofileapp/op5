@@ -11,12 +11,17 @@ import { config } from "../../../../../app.config.js";
 
 export const getCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, page } = req.query;
+        const { 
+            id, 
+            owner, 
+            page, 
+            limit = config.limits.assetsPerPage 
+        } = req.query;
 
         const offset = 
             (Number(page) || 1) * 
-            config.limits.assetsPerPage - 
-            config.limits.assetsPerPage;
+            Number(limit) - 
+            Number(limit);
 
         let userInterests;
 
@@ -57,7 +62,7 @@ export const getCharacters = (req: Request, res: Response) => {
                 ...idParams,
                 ...ownerIdArgs,
                 ...orderParams,
-                config.limits.assetsPerPage,
+                limit,
                 offset
             ]
         );
@@ -95,6 +100,8 @@ export const getCharacters = (req: Request, res: Response) => {
         const characters = result.rows.map((d) => {
             const owner = getPublicUserByIdOrUsername(d.ownerId);
 
+            // REMOVE .OWNERID AS OWNER IS MEANT TO REPLACE IT AS OWNER.ID
+
             return {
                 ...d,
 
@@ -112,7 +119,7 @@ export const getCharacters = (req: Request, res: Response) => {
 
         res.status(200).json({
             characters,
-            count: resultCount.rows[0].count
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
         });
     } catch(error) {
         if (error instanceof AdvancedError) {

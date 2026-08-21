@@ -10,12 +10,18 @@ import { config } from "../../../../../app.config.js";
 
 export const getRecentCharacters = (req: Request, res: Response) => {
     try {
-        const { id, owner, visibility = "public", page } = req.query;
+        const { 
+            id, 
+            owner, 
+            visibility = "public", 
+            page, 
+            limit = config.limits.assetsPerPage 
+        } = req.query;
 
         const offset = 
             (Number(page) || 1) * 
-            config.limits.assetsPerPage - 
-            config.limits.assetsPerPage;
+            Number(limit) - 
+            Number(limit);
 
         const dateClause = `AND updatedDate >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-30 days')`;
 
@@ -39,7 +45,7 @@ export const getRecentCharacters = (req: Request, res: Response) => {
                 visibility,
                 ...idParams,
                 ...ownerIdArgs,
-                config.limits.assetsPerPage,
+                limit,
                 offset
             ]
         );
@@ -95,7 +101,7 @@ export const getRecentCharacters = (req: Request, res: Response) => {
 
         res.status(200).json({
             characters,
-            count: resultCount.rows[0].count
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
