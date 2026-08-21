@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 
-import isGateway from "../../_common/helpers/isGateway.js";
+import isGateway from "../../../_common/helpers/isGateway.js";
 
-import Metadata from "../../_common/components/Metadata.js";
-import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
+import Metadata from "../../../_common/components/Metadata.js";
+import Navbar from "../../components/Navbar.js";
+import Footer from "../../components/Footer.js";
 
 export default function Partners() {
     const { t, ready } = useTranslation();
