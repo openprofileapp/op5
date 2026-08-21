@@ -80,7 +80,7 @@ export default function SearchProfiles() {
                 console.log(data)
 
                 setProfiles(data.characters);
-                setCount(data.count);
+                setCount(data.pageCount);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -114,7 +114,7 @@ export default function SearchProfiles() {
 
                 <div className="top-14 left-1/2 -translate-x-1/2 absolute flex justify-center">
                     <Pagination 
-                        totalCount={count} 
+                        pageCount={count} 
                         currentPage={currentPage}
                         onPageChange={(page) => setCurrentPage(page)}
                     />
@@ -241,7 +241,7 @@ export default function SearchProfiles() {
                 </div>
 
                 <Pagination 
-                    totalCount={count} 
+                    pageCount={count} 
                     currentPage={currentPage}
                     onPageChange={(page) => setCurrentPage(page)}
                 />
