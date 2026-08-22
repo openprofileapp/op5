@@ -2,8 +2,8 @@ import { AdvancedError } from "kage-library";
 
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { db } from "../databases/db.js";
-import getUserByIdOrUsername from "./getUserByIdOrUsername.service.js";
 import getUserInterestsById from "./getUserInterestsById.service.js";
+import getUsersByIdOrUsername from "./getUsersByIdOrUsername.service.js";
 
 export default function getPublishedProfiles(visibility: string = "public", session?: ValidSessionType) {
     // If not visibility throw a malformed request
@@ -129,7 +129,7 @@ export default function getPublishedProfiles(visibility: string = "public", sess
     // visibility: owner.visibility
 
     const profiles = result.rows.map((d) => {
-        const owner = getUserByIdOrUsername(d.ownerId);
+        const owner = getUsersByIdOrUsername(d.ownerId);
 
         // Check for project too
 
