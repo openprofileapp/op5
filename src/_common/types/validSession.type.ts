@@ -1,12 +1,11 @@
 export type ValidSessionType = {
-    sessionId?: string;
+    sessionId: string;
     userId?: string;
-    permissions?: {
+    permissions: {
         value: string;
         array: string[];
     };
-    locale?: string;
-    timezone?: string;
-    action?: string; // Only part of session fetch
+    locale: string;
+    timezone: string;
     delegatedAccounts?: string[];
 };
