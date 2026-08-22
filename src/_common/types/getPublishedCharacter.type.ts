@@ -13,7 +13,7 @@ export type OwnerType = {
     type: string;
 }
 
-export type CharacterWithOwnerType = {
+export type getPublishedCharacterType = {
     id: string;
     owner: OwnerType;
     slug: string;
@@ -34,4 +34,5 @@ export type CharacterWithOwnerType = {
     isScheduled: boolean;
     updatedDate: string;
     createdDate: string;
+    badges: BadgeType[];
 }
