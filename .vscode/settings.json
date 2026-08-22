@@ -18,6 +18,7 @@
   "material-icon-theme.files.associations": {
     "*.config.ts": "settings",
     "*.config.js": "settings",
+    "*.type.ts": "Typescript-def",
     "*.ecosystem.config.cjs": "pm2-ecosystem",
     "*.crt.example": "certificate",
     "*.key.example": "key",
