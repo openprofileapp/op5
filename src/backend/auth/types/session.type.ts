@@ -23,3 +23,16 @@ export type SessionType = {
     firstConnectedDate: string;
     lastConnectedDate: string;
 }
+
+export type FetchSessionType = {
+    sessionId: string;
+    userId?: string | null;
+    permissions: {
+        value: string;
+        array: string[];
+    };
+    locale: string;
+    timezone: string;
+    action?: string;
+    delegatedAccounts?: string[];
+};
