@@ -1,40 +1,94 @@
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
-import { BadgeType } from "../../../_common/types/queries/badge.type.js";
-import { LinkType } from "../../../_common/types/queries/link.type.js";
 import getBadgesById from "./getBadgesById.service.js";
+import { GetUserType, UserType } from "../../../_common/types/user.type.js";
+import { buildSqlInClause } from "../../../_common/helpers/sql.js";
+import { parseTags } from "../helpers/parseTags.js";
 
-export type getUserByIdOrUsernameType = UserProfileType & {
-    badges: BadgeType[],
-    links: LinkType,
-    // DEVELOPER NEEDED: Create interaction type
-};
+export default function getUsersByIdOrUsername(
+    id: string
+): GetUserType | null;
 
-// DEVELOPER NEEDED: Rename to getUserProfileByIdOrUsername
-export default function getUserByIdOrUsername(id?: string): getUserByIdOrUsernameType {
-    const userResult = db.users.query<UserProfileType>(
-        "SELECT * FROM users WHERE id = ? OR username = ? OR usernameOld = ?", 
-        [id, id, id]
+export default function getUsersByIdOrUsername(
+    ids: string[]
+): Record<string, GetUserType[]>;
+
+export default function getUsersByIdOrUsername(
+    ids: string | string[]
+): GetUserType | null | Record<string, GetUserType[]> {
+    const isArray = Array.isArray(ids);
+    const array = isArray ? ids : [ids];
+
+    if (array.length === 0) {
+        return isArray ? {} : null;
+    }
+
+    const { clause, params } = buildSqlInClause(
+        ["id", "username", "usernameOld"], 
+        array
     );
 
-    if (!userResult.success) {
+    const result = db.users.query<UserType>(
+        `SELECT * FROM users WHERE ${clause}`, 
+        params
+    );
+
+    if (!result.success) {
         throw new AdvancedError({
             code: 500,
-            message: "An error occurred while fetching user",
-            details: userResult.error
-        })
+            message: "An error occurred while fetching users",
+            details: result.error
+        });
     }
 
-    if (userResult.rowCount < 1) {
-        throw new AdvancedError({
-            code: 404,
-            message: "User not found"
-        })
+    if (result.rowCount < 1) {
+        return isArray ? {} : null;
     }
-  
-    const badges = getBadgesById(userResult.rows[0].id);
+
+    const userIds = result.rows.map((row) => row.id);
+
+    const badgesMap = getBadgesById(userIds);
+
+    if (!isArray) {
+        const row = result.rows[0];
+        
+        return {
+            ...row,
+            tags: parseTags(row.tags),
+            badges: badgesMap[row.id] || []
+        };
+    }
+
+    const data: Record<string, GetUserType[]> = {};
+
+    for (const key of array) {
+        data[key] = [];
+    }
+
+    for (const row of result.rows) {
+        const userPayload: GetUserType = {
+            ...row,
+            tags: parseTags(row.tags),
+            badges: badgesMap[row.id] || []
+        };
+
+        for (const key of array) {
+            if (row.id === key || row.username === key || row.usernameOld === key) {
+                data[key].push(userPayload);
+            }
+        }
+    }
+
+    return data;
+}
+
+
+
+
+/*
+// DEVELOPER NEEDED: Rename to getUserProfileByIdOrUsername
+export default function GetUserType(id?: string): GetUserType {
 
     const linksResult = db.links.query<LinkType>(
         "SELECT * FROM links WHERE id = ?", 
@@ -90,3 +144,4 @@ export default function getUserByIdOrUsername(id?: string): getUserByIdOrUsernam
         // Get the count somewhere, but not as var, but count directly from the query
     };
 }
+*/
