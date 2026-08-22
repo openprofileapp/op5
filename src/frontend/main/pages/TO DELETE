@@ -1,28 +1,3 @@
-const [recommendedCharacters, setRecommendedCharacters] = useState<unknown[]>([]);
-const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
-
-useEffect(() => {
-    const fetchRecommendedCharacters = async () => {
-        try {
-            const res = await fetch(
-                `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended`, 
-                { credentials: "include" }
-            );
-            
-            const data = await res.json();
-
-            setRecommendedCharacters(data.characters);
-        } catch (err) {
-            console.error(err);
-            setRecommendedCharacters([]);
-        } finally {
-            setIsLoadingRecommendedCharacters(false);
-        }
-    };
-
-    fetchRecommendedCharacters();
-}, []);
-
 const [taggedCharacters, setTaggedCharacters] = useState<unknown[]>([]);
 const [isLoadingTaggedCharacters, setIsLoadingTaggedCharacters] = useState(true);
 const [sourceTaggedCharacter, setSourceTaggedCharacter] = useState(null);
