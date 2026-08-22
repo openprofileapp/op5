@@ -6,7 +6,7 @@ import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
-import getPublishedCharacterById from "../../services/getPublishedCharacterById.service.js";
+import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
 export const getRecentCharacters = (req: Request, res: Response) => {
     try {
@@ -82,7 +82,7 @@ export const getRecentCharacters = (req: Request, res: Response) => {
         }
 
         const characters = result.rows.map((row) => {
-            return getPublishedCharacterById(row.id);
+            return getPublishedCharactersById(row.id);
         });
 
         res.status(200).json({

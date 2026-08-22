@@ -3,8 +3,8 @@ import type { Request, Response } from 'express';
 import { AdvancedError } from 'kage-library';
 
 import { log } from '../instances.js';
-import getUserByIdOrUsername from '../services/getUserByIdOrUsername.service.js';
 import getAllUsers from '../services/getAllUsers.service.js';
+import getUsersByIdOrUsername from '../services/getUsersByIdOrUsername.service.js';
 
 export const getUsers = (req: Request, res: Response) => {
     try {
@@ -18,7 +18,7 @@ export const getUsers = (req: Request, res: Response) => {
             }
 
             res.status(200).json({
-                ...getUserByIdOrUsername(id)
+                ...getUsersByIdOrUsername(id)
             });
         } else  {
             res.status(200).json(getAllUsers());

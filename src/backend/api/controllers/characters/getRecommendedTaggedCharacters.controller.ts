@@ -7,7 +7,7 @@ import getUserInterestsById from "../../services/getUserInterestsById.service.js
 import { db } from "../../databases/db.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
-import getPublishedCharacterById from "../../services/getPublishedCharacterById.service.js";
+import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
 // ONLY IF THE USER LIKED THE CHARACTER
 export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
@@ -157,7 +157,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
         }
 
         const characters = result.rows.map((row) => {
-            return getPublishedCharacterById(row.id);
+            return getPublishedCharactersById(row.id);
         });
 
         res.status(200).json({

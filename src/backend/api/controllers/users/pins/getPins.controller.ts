@@ -5,7 +5,7 @@ import { AdvancedError } from 'kage-library';
 import { log } from '../../../instances.js';
 import getPinsByOwnerId from '../../../services/getPinsByOwnerId.service.js';
 import PlatformPermissionsService from '../../../../_common/services/platformPermissions.service.js';
-import getPublishedCharacterById from '../../../services/getPublishedCharacterById.service.js';
+import getPublishedCharactersById from '../../../services/getPublishedCharactersById.service.js';
 
 export const getPins = async (req: Request, res: Response) => {
     try {
@@ -37,7 +37,7 @@ export const getPins = async (req: Request, res: Response) => {
         const profiles = await Promise.all(
             [...pins]
                 .sort((a, b) => a.position - b.position)
-                .map(pin => getPublishedCharacterById(pin.assetId as string))
+                .map(pin => getPublishedCharactersById(pin.assetId as string))
         );
 
         return res.status(200).json({

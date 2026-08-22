@@ -5,10 +5,11 @@ import { AdvancedError } from "kage-library";
 import { log } from "../../instances.js";
 import getUserInterestsById from "../../services/getUserInterestsById.service.js";
 import { db } from "../../databases/db.js";
-import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
-import getPublishedCharacterById from "../../services/getPublishedCharacterById.service.js";
+import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
+import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 
+// Rename to "PublishedCharacterType"
 export const getCharacters = (req: Request, res: Response) => {
     try {
         const { 
@@ -48,7 +49,7 @@ export const getCharacters = (req: Request, res: Response) => {
             item.algorithmScore
         ]);
 
-        const result = db.characters.query<CharacterType>(
+        const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
                 WHERE visibility = ?
@@ -97,9 +98,9 @@ export const getCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const characters = result.rows.map((row) => {
-            return getPublishedCharacterById(row.id);
-        });
+        const characters = getPublishedCharactersById(
+            result.rows.map((row) => row.id)
+        );
 
         res.status(200).json({
             characters,
