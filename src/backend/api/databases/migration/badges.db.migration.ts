@@ -20,14 +20,21 @@ db.badges.transaction(q => {
         user: "8057185762390040",
         type: "staff",
         text: "Social Media Manager",
-        date: "2026-05-08T01:53:00Z"
+        date: "2026-05-08 01:53:00"
     });
 
     rows.push({
         user: "3912544802938547",
         type: "staff",
         text: "Graphics Designer",
-        date: "2026-06-12T00:17:00Z"
+        date: "2026-06-12 00:17:00"
+    });
+
+    rows.push({
+        user: "4665263395368921",
+        type: "unofficial",
+        text: "OpenProfile",
+        date: "2026-08-21 00:00:00"
     });
 
     for (const d of rows) {
