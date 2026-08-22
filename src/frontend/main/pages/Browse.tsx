@@ -222,7 +222,7 @@ export default function SearchProfiles() {
                                 id: d.owner.id,
                                 slug: d.owner.username,
                                 displayName: d.owner.displayName,
-                                isVerified: d.owner?.badges?.some(b => b.type === "verified"),
+                                isVerified: d.owner.isVerified,
                                 type: "user" // p.owner.type
                             }}
                             badges = { d.badges }

@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
-import { getPublishedCharacterType } from "../../../_common/types/getPublishedCharacter.type.js";
 import { Link } from "react-router-dom";
+import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 
 type Props = {
     name: string;
     assetType: "character" | "universe";
-    assets: getPublishedCharacterType[];
+    assets: GetPublishedCharacterType[];
     viewAllLink?: string;
     isLoading?: boolean;
 };
@@ -135,7 +135,7 @@ export default function AssetCarousel({
                                             id: d.owner.id,
                                             slug: d.owner.username,
                                             displayName: d.owner.displayName,
-                                            isVerified: d.owner?.badges?.some(b => b.type === "verified"),
+                                            isVerified: d.owner.isVerified,
                                             type: d.owner.type
                                         }}
                                         badges = { d.badges }
