@@ -2,7 +2,7 @@ import { AdvancedError } from "kage-library";
 
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { db } from "../databases/db.js";
-import getPublicUserById from "./getPublicUserByIdOrUsername.service.js";
+import getUserByIdOrUsername from "./getUserByIdOrUsername.service.js";
 import getUserInterestsById from "./getUserInterestsById.service.js";
 
 export default function getPublishedProfiles(visibility: string = "public", session?: ValidSessionType) {
@@ -129,7 +129,7 @@ export default function getPublishedProfiles(visibility: string = "public", sess
     // visibility: owner.visibility
 
     const profiles = result.rows.map((d) => {
-        const owner = getPublicUserById(d.ownerId);
+        const owner = getUserByIdOrUsername(d.ownerId);
 
         // Check for project too
 

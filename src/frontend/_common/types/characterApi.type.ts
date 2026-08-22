@@ -1,6 +1,6 @@
-import { CharacterWithOwnerType } from "../../../_common/types/characterWithOwner.type.js"
+import { getPublishedCharacterType } from "../../../_common/types/getPublishedCharacter.type.js"
 
 export type characterApiType = {
-    characters: CharacterWithOwnerType[];
+    characters: getPublishedCharacterType[];
     pageCount: number;
 }

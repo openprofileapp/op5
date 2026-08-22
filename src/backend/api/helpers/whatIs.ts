@@ -1,7 +1,7 @@
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import getPublicUserByIdOrUsername, { getPublicUserByIdOrUsernameType } from "../services/getPublicUserByIdOrUsername.service.js";
+import getUserByIdOrUsername, { getUserByIdOrUsernameType } from "../services/getUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../_common/types/queries/character.type.js";
 import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
 
@@ -24,7 +24,7 @@ export type WhatIsType = {
     isOfficial: boolean;
 }
 
-function hasBadge(owner: getPublicUserByIdOrUsernameType, badgeType: string): boolean {
+function hasBadge(owner: getUserByIdOrUsernameType, badgeType: string): boolean {
     return Array.isArray(owner.badges) && owner.badges.some((b) => b.type === badgeType);
 }
 
@@ -73,7 +73,7 @@ export default function whatIs(id: string): WhatIsType {
     }
 
     if (userResult.rowCount === 1) {
-        const owner = getPublicUserByIdOrUsername(id);
+        const owner = getUserByIdOrUsername(id);
 
         return {
             id,
@@ -125,7 +125,7 @@ export default function whatIs(id: string): WhatIsType {
         updatedDate &&
         ownerId
     ) {
-        const owner = getPublicUserByIdOrUsername(ownerId);
+        const owner = getUserByIdOrUsername(ownerId);
 
         if (!owner) {
             throw new AdvancedError({
