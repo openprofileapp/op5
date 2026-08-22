@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
 import { toast } from "../../_common/scripts/toast.js";
 import { useCallback, useEffect, useState } from "react";
+import { GetBadgeType } from "../../../_common/types/getBadge.type.js";
 
 type Props = {
     isPreview?: boolean;
@@ -24,6 +25,7 @@ type Props = {
         isVerified?: boolean;
         type: string;
     };
+    badges?: GetBadgeType[];
     about?: string;
     interactions?: {
         views?: {
@@ -53,6 +55,7 @@ export default function CharacterCard({
     displayName,
     slug,
     owner,
+    badges = [],
     about,
     interactions,
     notification,
@@ -787,6 +790,34 @@ export default function CharacterCard({
 
                             : ""
                         }
+
+                        {(() => {
+                            const unofficialBadge = badges.find(b => b.type === "unofficial");
+                            if (!unofficialBadge) return null;
+
+                            return (
+                                <div className="z-1 relative font-normal tooltip tooltip-top tooltip-secondary">
+                                    <a 
+                                        href={`https://${window.config.domains.support}/en-us/articles/unofficial`} 
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                        }}
+                                    >
+                                        <div className="font-nerdfont leading-none cursor-pointer text-sub text-lg">
+                                            
+                                        </div>
+                                    </a>
+                                    <div className="tooltip-content">
+                                        <div className="font-bold">Unofficial Profile</div>
+                                        <div className="text-xs">
+                                            This profile is fan-managed under fair use or informal permission, and may contain inaccurate information. All trademarks, characters, and media belong to <strong>{unofficialBadge.comment}</strong>.
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <div className="flex items-center justify-center w-full">

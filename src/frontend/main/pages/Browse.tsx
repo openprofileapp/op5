@@ -225,6 +225,7 @@ export default function SearchProfiles() {
                                 isVerified: d.owner?.badges?.some(b => b.type === "verified"),
                                 type: "user" // p.owner.type
                             }}
+                            badges = { d.badges }
                             about={d.about}
                             interactions={{
                                 views: {
