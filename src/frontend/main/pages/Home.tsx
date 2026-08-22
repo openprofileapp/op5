@@ -10,7 +10,7 @@ import Footer from "../components/Footer.js";
 import isGateway from "../../_common/helpers/isGateway.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
-import { CharacterWithOwnerType } from "../../../_common/types/characterWithOwner.type.js";
+import { getPublishedCharacterType } from "../../../_common/types/getPublishedCharacter.type.js";
 import { apiHost } from "../scripts/hosts.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
@@ -21,14 +21,16 @@ export default function Home() {
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
     const wordRef = useRef<HTMLSpanElement | null>(null);
-    const [trendingCharacters, setTrendingCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [trendingCharacters, setTrendingCharacters] = useState<getPublishedCharacterType[]>([]);
     const [isLoadingTrendingCharacters, setIsLoadingTrendingCharacters] = useState(true);
-    const [popularCharacters, setPopularCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [popularCharacters, setPopularCharacters] = useState<getPublishedCharacterType[]>([]);
     const [isLoadingPopularCharacters, setIsLoadingPopularCharacters] = useState(true);
-    const [recentCharacters, setRecentCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [recentCharacters, setRecentCharacters] = useState<getPublishedCharacterType[]>([]);
     const [isLoadingRecentCharacters, setIsLoadingRecentCharacters] = useState(true);
-    const [recentlyUpdatedCharacters, setRecentlyUpdatedCharacters] = useState<CharacterWithOwnerType[]>([]);
+    const [recentlyUpdatedCharacters, setRecentlyUpdatedCharacters] = useState<getPublishedCharacterType[]>([]);
     const [isLoadingRecentlyUpdatedCharacters, setIsLoadingRecentlyUpdatedCharacters] = useState(true);
+    const [recommendedCharacters, setRecommendedCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
 
     const words = [
         "Characters",
@@ -145,6 +147,30 @@ export default function Home() {
         };
 
         fetchRecentlyUpdatedCharacters();
+    }, []);
+
+    useEffect(() => {
+        if (!window.session.userId) return;
+
+        const fetchRecommendedCharacters = async () => {
+            try {
+                const res = await fetch(
+                    `${apiHost}/v2/characters/recommended`, 
+                    { credentials: "include" }
+                );
+                
+                const data: characterApiType = await res.json();
+
+                setRecommendedCharacters(data.characters);
+            } catch (error) {
+                log.network.error(error);
+                setRecommendedCharacters([]);
+            } finally {
+                setIsLoadingRecommendedCharacters(false);
+            }
+        };
+
+        fetchRecommendedCharacters();
     }, []);
 
     if (!ready) return null;
@@ -272,6 +298,13 @@ export default function Home() {
                         assetType={"character"} 
                         assets={recentlyUpdatedCharacters} 
                         isLoading={isLoadingRecentlyUpdatedCharacters} 
+                    />
+
+                    <AssetCarousel 
+                        name={"Recommended"} 
+                        assetType={"character"} 
+                        assets={recommendedCharacters} 
+                        isLoading={isLoadingRecommendedCharacters} 
                     />
                 </>
             )}
