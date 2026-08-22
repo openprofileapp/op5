@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 import { InteractionType } from "../../../_common/types/queries/interaction.type.js";
 import { db } from "../databases/db.js";
 import { i18n, log } from "../instances.js";
-import getPublishedProfileById from "../services/getPublishedProfileById.service.js";
+import getPublishedCharacterById from "../services/getPublishedCharacterById.service.js";
 
 export const getRandomLike = (req: Request, res: Response) => {
     try {
@@ -30,7 +30,7 @@ export const getRandomLike = (req: Request, res: Response) => {
 
         if (result.rowCount < 1) return;
 
-        const character = getPublishedProfileById(result.rows[0].target)
+        const character = getPublishedCharacterById(result.rows[0].target)
 
         res.status(200).json(character);
     } catch(error) {

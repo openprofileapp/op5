@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import { AdvancedError } from 'kage-library';
 
 import { log } from '../instances.js';
-import getPublicUserByIdOrUsername from '../services/getPublicUserByIdOrUsername.service.js';
+import getUserByIdOrUsername from '../services/getUserByIdOrUsername.service.js';
 import getAllUsers from '../services/getAllUsers.service.js';
 
 export const getUsers = (req: Request, res: Response) => {
@@ -18,7 +18,7 @@ export const getUsers = (req: Request, res: Response) => {
             }
 
             res.status(200).json({
-                ...getPublicUserByIdOrUsername(id)
+                ...getUserByIdOrUsername(id)
             });
         } else  {
             res.status(200).json(getAllUsers());
