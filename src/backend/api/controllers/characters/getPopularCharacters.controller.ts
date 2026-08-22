@@ -4,9 +4,9 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
+import getPublishedCharacterById from "../../services/getPublishedCharacterById.service.js";
 
 export const getPopularCharacters = (req: Request, res: Response) => {
     try {
@@ -77,22 +77,8 @@ export const getPopularCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const characters = result.rows.map((d) => {
-            const owner = getPublicUserByIdOrUsername(d.ownerId);
-
-            return {
-                ...d,
-
-                owner: owner
-                    ? {
-                        id: owner.id,
-                        username: owner.username,
-                        displayName: owner.displayName,
-                        badges: owner.badges,
-                        type: owner.type
-                    }
-                    : null
-            };
+        const characters = result.rows.map((row) => {
+            return getPublishedCharacterById(row.id);
         });
 
         res.status(200).json({

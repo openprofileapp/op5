@@ -4,9 +4,9 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import getPublicUserByIdOrUsername from "../../services/getPublicUserByIdOrUsername.service.js";
 import { CharacterType } from "../../../../_common/types/queries/character.type.js";
 import { config } from "../../../../../app.config.js";
+import getPublishedCharacterById from "../../services/getPublishedCharacterById.service.js";
 
 export const getTrendingCharacters = (req: Request, res: Response) => {
     try {
@@ -108,21 +108,8 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
         const totalItems = sortedCharacters.length;
         const paginatedCharacters = sortedCharacters.slice(offset, offset + limitNum);
 
-        const characters = paginatedCharacters.map((d) => {
-            const ownerUser = getPublicUserByIdOrUsername(d.ownerId);
-
-            return {
-                ...d,
-                owner: ownerUser
-                    ? {
-                        id: ownerUser.id,
-                        username: ownerUser.username,
-                        displayName: ownerUser.displayName,
-                        badges: ownerUser.badges,
-                        type: ownerUser.type
-                    }
-                    : null
-            };
+        const characters = paginatedCharacters.map((row) => {
+            return getPublishedCharacterById(row.id);
         });
 
         res.status(200).json({
