@@ -4,15 +4,16 @@ import { db } from "../databases/db.js";
 import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
 import { BadgeType } from "../../../_common/types/queries/badge.type.js";
 import { LinkType } from "../../../_common/types/queries/link.type.js";
+import getBadgesById from "./getBadgesById.service.js";
 
-export type getPublicUserByIdOrUsernameType = UserProfileType & {
-    badges: BadgeType,
+export type getUserByIdOrUsernameType = UserProfileType & {
+    badges: BadgeType[],
     links: LinkType,
     // DEVELOPER NEEDED: Create interaction type
 };
 
 // DEVELOPER NEEDED: Rename to getUserProfileByIdOrUsername
-export default function getPublicUserByIdOrUsername(id?: string): getPublicUserByIdOrUsernameType {
+export default function getUserByIdOrUsername(id?: string): getUserByIdOrUsernameType {
     const userResult = db.users.query<UserProfileType>(
         "SELECT * FROM users WHERE id = ? OR username = ? OR usernameOld = ?", 
         [id, id, id]
@@ -33,18 +34,7 @@ export default function getPublicUserByIdOrUsername(id?: string): getPublicUserB
         })
     }
   
-    const badgesResult = db.badges.query<BadgeType>(
-        "SELECT * FROM badges WHERE id = ?", 
-        [userResult.rows[0].id]
-    );
-
-    if (!badgesResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching badges",
-            details: badgesResult.error
-        })
-    }
+    const badges = getBadgesById(userResult.rows[0].id);
 
     const linksResult = db.links.query<LinkType>(
         "SELECT * FROM links WHERE id = ?", 
@@ -85,7 +75,7 @@ export default function getPublicUserByIdOrUsername(id?: string): getPublicUserB
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        badges: badgesResult.rows.map(({ id, ...badge }) => badge),
+        badges: badges.map(({ id, ...badge }) => badge),
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
