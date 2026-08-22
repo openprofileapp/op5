@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
-import { CharacterWithOwnerType } from "../../../_common/types/characterWithOwner.type.js";
+import { getPublishedCharacterType } from "../../../_common/types/getPublishedCharacter.type.js";
 import { Link } from "react-router-dom";
 
 type Props = {
     name: string;
     assetType: "character" | "universe";
-    assets: CharacterWithOwnerType[];
+    assets: getPublishedCharacterType[];
     viewAllLink?: string;
     isLoading?: boolean;
 };
@@ -83,7 +83,7 @@ export default function AssetCarousel({
                             {viewAllLink && (
                                 <Link 
                                     className="ml-2 text-sm font-medium text-accent hover:underline cursor-pointer"
-                                    to={viewAllLink}
+                                    to = {viewAllLink}
                                 >
                                     View all
                                 </Link>
@@ -91,14 +91,14 @@ export default function AssetCarousel({
                         </div>
                     )}
                     
-                    <div ref={scrollContainerRef} className="relative group flex gap-4 overflow-x-auto mb-10 scrollbar-none">
+                    <div ref = {scrollContainerRef} className="relative group flex gap-4 overflow-x-auto mb-10 scrollbar-none">
                         <div 
-                            onClick={() => {
+                            onClick = {() => {
                                 if (showLeftArrow) {
                                     scrollByPercent("left");
                                 }
                             }}
-                            className={`sticky left-0 z-10 w-0 -ml-4 h-auto self-stretch flex-shrink-0 transition-opacity duration-200 ${
+                            className = {`sticky left-0 z-10 w-0 -ml-4 h-auto self-stretch flex-shrink-0 transition-opacity duration-200 ${
                                 showLeftArrow ? "opacity-100 pointer-events-auto cursor-pointer" : "opacity-0 pointer-events-none cursor-default"
                             }`}
                         >
@@ -107,7 +107,7 @@ export default function AssetCarousel({
                                     type="button"
                                     className="ml-4 text-xl"
                                     aria-label="Scroll left"
-                                    tabIndex={showLeftArrow ? 0 : -1}
+                                    tabIndex = {showLeftArrow ? 0 : -1}
                                 >
                                     <div className="font-nerdfont leading-none cursor-pointer">
                                         
@@ -118,28 +118,29 @@ export default function AssetCarousel({
 
                         {/* DEVELOPER NEEDED: Replace CDN url with gateway check and config values */}
                         {!isLoading && assets.map((d) => (
-                            <div key={d.id} className="flex-shrink-0">
+                            <div key = {d.id} className="flex-shrink-0">
                                 {assetType === "character" && (
                                     <CharacterCard
-                                        id={d.id}
-                                        aura={{
+                                        id = { d.id }
+                                        aura = {{
                                             isEnabled: d.isAuraEnabled,
                                             type: d.auraType,
                                             primary: d.auraPrimary,
                                             secondary: d.auraSecondary
                                         }}
-                                        avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                                        displayName={d.displayName}
-                                        slug={d.slug}
-                                        owner={{
+                                        avatar = { d.avatar ? `https://cdn.openprofile.app${d.avatar}` : "" }
+                                        displayName = { d.displayName}
+                                        slug = { d.slug }
+                                        owner = {{
                                             id: d.owner.id,
                                             slug: d.owner.username,
                                             displayName: d.owner.displayName,
                                             isVerified: d.owner?.badges?.some(b => b.type === "verified"),
                                             type: d.owner.type
                                         }}
-                                        about={d.about}
-                                        interactions={{
+                                        badges = { d.badges }
+                                        about = { d.about }
+                                        interactions = {{
                                             views: {
                                                 count: 0,
                                                 interacted: true
@@ -166,12 +167,12 @@ export default function AssetCarousel({
                         )}
 
                         <div 
-                            onClick={() => {
+                            onClick = {() => {
                                 if (showRightArrow) {
                                     scrollByPercent("right");
                                 }
                             }}
-                            className={`sticky right-0 z-10 w-0 -mr-4 h-auto self-stretch flex-shrink-0 transition-opacity duration-200 ${
+                            className = {`sticky right-0 z-10 w-0 -mr-4 h-auto self-stretch flex-shrink-0 transition-opacity duration-200 ${
                                 showRightArrow ? "opacity-100 pointer-events-auto cursor-pointer" : "opacity-0 pointer-events-none cursor-default"
                             }`}
                         >
@@ -180,7 +181,7 @@ export default function AssetCarousel({
                                     type="button"
                                     className="mr-4 text-xl"
                                     aria-label="Scroll right"
-                                    tabIndex={showRightArrow ? 0 : -1}
+                                    tabIndex = {showRightArrow ? 0 : -1}
                                 >
                                     <div className="font-nerdfont leading-none cursor-pointer">
                                         
