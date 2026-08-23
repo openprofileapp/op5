@@ -193,45 +193,6 @@ hr {
     width: fit-content;
 }
 
-.mention::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-mention-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-mention-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-mention-type) 8s linear infinite;
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-}
-
-.mention::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-mention-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-mention-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-mention-type) 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.08;
-}
-
 .title-card {
     position: relative;
     height: 320px;
@@ -252,45 +213,6 @@ hr {
     background-color: var(--color-base-100);
 }
 
-.user-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-}
-
-.user-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.08;
-}
-
 .project-card {
     position: relative;
     height: 400px;
@@ -299,45 +221,6 @@ hr {
     border-radius: var(--radius-box);
     border: 1px solid var(--color-base-200);
     background-color: var(--color-base-100);
-}
-
-.project-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-}
-
-.project-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.08;
 }
 
 .character-card {
@@ -350,158 +233,49 @@ hr {
     background-color: var(--color-base-100);
 }
 
-.character-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    pointer-events: none;
-}
-
-.character-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.08;
-}
-
-.aura-box {
+.aura-effect {
     position: relative;
-    flex-shrink: 0;
-    border-radius: var(--radius-box);
-    border: 1px solid var(--color-base-200);
-    background-color: var(--color-base-100);
 }
 
-.aura-box::before {
+.aura-effect::before,
+.aura-effect::after {
     content: "";
     position: absolute;
     inset: 0;
-    padding: 1px;
     border-radius: inherit;
     background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
+        circle at center,
+        var(--aura-primary) 0%,
         var(--color-base-100) 50%,
-        var(--aura-primary) 100%
+        var(--aura-secondary) 100%
     );
-    background-size: 100%;
-    animation: var(--aura-type) 6s linear infinite;
+    background-size: 200% 200%;
+    animation: var(--aura-type) 8s linear infinite;
+    pointer-events: none;
+}
+
+.aura-effect::before {
+    padding: 1px;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
             mask-composite: exclude;
-    pointer-events: none;
 }
 
-.aura-box::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-        ellipse,
-        var(--aura-secondary) 0%,
-        var(--color-base-100) 50%,
-        var(--aura-primary) 100%
-    );
-    background-size: 100%;
-    animation: var(--aura-type) 6s linear infinite;
-    pointer-events: none;
+.aura-effect::after {
     opacity: 0.08;
 }
 
-
-@keyframes aura-flow-mention {
+@keyframes aura-flow {
     0% {
-        background-position: 0px 0px;
+        background-position: 0% 0%;
     }
     100% {
-        background-position: 221px 26px;
-    }
-}
-
-@keyframes aura-flow-user {
-    0% {
-        background-position: 0px 0px;
-    }
-    100% {
-        background-position: 458px 221px;
-    }
-}
-
-@keyframes aura-flow-project {
-    0% {
-        background-position: 0px 0px;
-    }
-    100% {
-        background-position: 458px 400px;
-    }
-}
-
-@keyframes aura-flow-character {
-    0% {
-        background-position: 0px 0px;
-    }
-    100% {
-        background-position: 221px 400px;
-    }
-}
-
-@keyframes aura-flow-aura-box {
-    0% {
-        background-position: 0px 0px;
-    }
-    100% {
-        background-position: 320px 100%;
-    }
-}
-
-@keyframes pulse {
-    0% {
-    }
-    100% {
-        background-position: 0px -1200px;
-    }
-}
-
-@keyframes stable {
-    0%, 100% {
-        background-position: 100px 0px;
-    }
-    0% {
-        background-size: 100%;
-    }
-    50% {
-        background-size: 80%;
-    }
-    0% {
-        background-size: 100%;
+        background-position: 200% 200%;
     }
 }
 
