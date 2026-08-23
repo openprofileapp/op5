@@ -30,9 +30,11 @@ export default async function isTokenOrSecretAuthorized(req: Request): Promise<b
     }
 
     // API call returns true or false
+    // DEVELOPER NEEDED: This is invalid and doesn't exist. Fix it with a db check on that API
     return await wc.callAPI(
         `https://${config.domains.auth}/tokens/access`,
         {
+            method: "POST",
             auth: `ApiSecret ${getEnv("API_SECRET")}`,
             body: { token },
         }
