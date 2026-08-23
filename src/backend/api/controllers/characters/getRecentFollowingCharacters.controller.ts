@@ -31,7 +31,7 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
             })
         }
 
-        // If not viewed OR dismissed (add dismiss interaction)
+        // If not viewed OR dismissed after the updated date
         const interactionsResult = db.interactions.query<InteractionType>(
             `
                 SELECT DISTINCT target 

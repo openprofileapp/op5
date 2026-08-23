@@ -9,7 +9,7 @@ import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 
-// Rename to "PublishedCharacterType"
+// Rename to "getPublishedCharacters"
 export const getCharacters = (req: Request, res: Response) => {
     try {
         const { 
@@ -48,6 +48,8 @@ export const getCharacters = (req: Request, res: Response) => {
             `%${item.tag}%`, 
             item.algorithmScore
         ]);
+
+        // DEVELOPER NEEDED: Only display not inside interaction "hides"
 
         const result = db.characters.query<PublishedCharacterType>(
             `
