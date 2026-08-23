@@ -13,6 +13,9 @@
     }
   },
   "responses": {
+    "error": {
+      "character": "An error occurred while fetching character"
+    },
     "emptyFields": "Please fill in all the required fields.",
     "noAccess": "You do not have permission to access this content.",
     "badGateway": "Bad gateway. Try refreshing!",
