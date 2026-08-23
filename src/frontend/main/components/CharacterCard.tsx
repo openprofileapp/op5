@@ -158,7 +158,7 @@ export default function CharacterCard({
             {
                 ["--aura-type" as string]:
                     // eslint-disable-next-line no-constant-binary-expression
-                    `aura-${aura?.type}-character` || "aura-flow-character",
+                    `aura-${aura?.type}` || "aura-flow",
 
                 ["--aura-primary" as string]:
                     aura.primary || "var(--color-accent)",
@@ -182,7 +182,7 @@ export default function CharacterCard({
 
     return (
         <div
-            className={`character-card relative p-4 shadow-sm cursor-pointer z-${index}`}
+            className={`aura-effect character-card relative p-4 shadow-sm cursor-pointer z-${index}`}
             style={auraStyle}
             onContextMenu={(e) => {
                 e.preventDefault();
