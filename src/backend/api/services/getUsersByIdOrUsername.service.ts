@@ -2,20 +2,33 @@ import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
 import getBadgesById from "./getBadgesById.service.js";
-import { GetUserType, UserType } from "../../../_common/types/user.type.js";
 import { buildSqlInClause } from "../../../_common/helpers/sql.js";
 import { parseTags } from "../helpers/parseTags.js";
+import { GetUserType, UserType } from "../../../_common/types/user.type.js";
+import getInteractionsById from "./getInteractionsById.service.js";
+import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
+import getLinksById from "./getLinksById.service.js";
+
+type Options = {
+    getAs?: string;
+    interactionTypes?: InteractionNameType[];
+    interactionMethod?: InteractionMethod;
+    interactionCountOnly?: boolean;
+}
 
 export default function getUsersByIdOrUsername(
-    id: string
+    id: string,
+    options?: Options
 ): GetUserType | null;
 
 export default function getUsersByIdOrUsername(
-    ids: string[]
+    ids: string[],
+    options?: Options
 ): Record<string, GetUserType[]>;
 
 export default function getUsersByIdOrUsername(
-    ids: string | string[]
+    ids: string | string[],
+    options?: Options
 ): GetUserType | null | Record<string, GetUserType[]> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
@@ -37,7 +50,7 @@ export default function getUsersByIdOrUsername(
     if (!result.success) {
         throw new AdvancedError({
             code: 500,
-            message: "An error occurred while fetching users",
+            message: "An error occurred while fetching user",
             details: result.error
         });
     }
@@ -46,102 +59,53 @@ export default function getUsersByIdOrUsername(
         return isArray ? {} : null;
     }
 
-    const userIds = result.rows.map((row) => row.id);
+    const badgesMap = getBadgesById(
+        result.rows.map((row) => row.id)
+    );
 
-    const badgesMap = getBadgesById(userIds);
+    const linksMap = getLinksById(
+        result.rows.map((row) => row.id)
+    )
+
+    const interactionsMap = getInteractionsById(
+        result.rows.map((row) => row.id),
+        { 
+            method: options?.interactionMethod || "target",
+            types: options?.interactionTypes || ["views", "follows"],
+            checkSourceInteraction: options?.getAs,
+            countOnly: options?.interactionCountOnly
+        }
+    );
 
     if (!isArray) {
-        const row = result.rows[0];
-        
+        const row = result.rows[0]
+
         return {
             ...row,
             tags: parseTags(row.tags),
-            badges: badgesMap[row.id] || []
+            badges: badgesMap[row.id] || [],
+            links: linksMap[row.id] || [],
+            interactions: interactionsMap[row.id] || []
         };
     }
 
     const data: Record<string, GetUserType[]> = {};
 
-    for (const key of array) {
-        data[key] = [];
+    for (const id of array) {
+        data[id] = [];
     }
 
     for (const row of result.rows) {
-        const userPayload: GetUserType = {
-            ...row,
-            tags: parseTags(row.tags),
-            badges: badgesMap[row.id] || []
-        };
-
-        for (const key of array) {
-            if (row.id === key || row.username === key || row.usernameOld === key) {
-                data[key].push(userPayload);
-            }
+        if (data[row.id]) {
+            data[row.id].push({
+                ...result.rows[0],
+                tags: parseTags(row.tags),
+                badges: badgesMap[row.id] || [],
+                links: linksMap[row.id] || [],
+                interactions: interactionsMap[row.id] || []
+            });
         }
     }
 
     return data;
 }
-
-
-
-
-/*
-// DEVELOPER NEEDED: Rename to getUserProfileByIdOrUsername
-export default function GetUserType(id?: string): GetUserType {
-
-    const linksResult = db.links.query<LinkType>(
-        "SELECT * FROM links WHERE id = ?", 
-        [userResult.rows[0].id]
-    );
-
-    if (!linksResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching links",
-            details: linksResult.error
-        })
-    }
-
-    const followingResult = db.interactions.query(
-        "SELECT * FROM follows WHERE source = ?", 
-        [userResult.rows[0].id]
-    );
-
-    const followersResult = db.interactions.query(
-        "SELECT * FROM follows WHERE target = ?", 
-        [userResult.rows[0].id]
-    );
-
-    if (!followingResult.success || !followersResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching follows",
-            details: {
-            ...(!followingResult.success && { following: followingResult.error }),
-            ...(!followersResult.success && { followers: followersResult.error }),
-            }
-        })
-    }
-    
-    return {
-        ...userResult.rows[0],
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        badges: badges.map(({ id, ...badge }) => badge),
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        links: linksResult.rows.map(({ id, ...link }) => link),
-        interactions: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            following: followingResult.rows.map(({ source, ...follow }) => follow),
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            followers: followersResult.rows.map(({ target, ...follower }) => follower),
-        }
-
-        // Get the count somewhere, but not as var, but count directly from the query
-    };
-}
-*/
