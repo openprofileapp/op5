@@ -228,7 +228,7 @@ export default function NotFound() {
             {
                 ["--aura-type" as string]:
                     // eslint-disable-next-line no-constant-binary-expression
-                    `aura-${user.auraType}-aura-box` || "aura-flow-aura-box",
+                    `aura-${user.auraType}` || "aura-flow",
 
                 ["--aura-primary" as string]:
                     user.auraPrimary || "var(--color-accent)",
@@ -415,7 +415,7 @@ Check out my character: <@6773794953695671>
                     <div className="px-0 py-8 md:px-25 md:py-20">
                         <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-4">
                             <div className="flex flex-col gap-4">
-                                <div className="aura-box p-6 h-fit" style={auraStyle}>
+                                <div className="aura-effect bg-base-100 rounded-lg z-1 p-6 h-fit" style={auraStyle}>
                                     <div className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="More">
                                         <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
                                             popoverTarget={`user-more-dropdown`} style={{ anchorName: `--user-more-anchor` }}
