@@ -1,5 +1,6 @@
 import { GetBadgeType } from "./badge.type.js";
 import { InteractionCollection, InteractionNameType } from "./interaction.type.js";
+import { GetLinkType } from "./link.type.js";
 import { OwnerType } from "./owner.type.js";
 
 export type PublishedCharacterType = {
@@ -34,6 +35,7 @@ export type GetPublishedCharacterType = Omit<
     owner: OwnerType;
     tags: string[];
     badges: GetBadgeType[];
+    links: GetLinkType[];
     interactions: Partial<Record<InteractionNameType, InteractionCollection>>;
 };
 

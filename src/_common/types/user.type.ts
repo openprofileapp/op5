@@ -1,4 +1,6 @@
 import { GetBadgeType } from "./badge.type.js";
+import { InteractionCollection, InteractionNameType } from "./interaction.type.js";
+import { GetLinkType } from "./link.type.js";
 
 export type UserType = {
     algorithmScore: string;
@@ -36,8 +38,11 @@ export type UserType = {
 
 export type GetUserType = Omit<
     UserType, 
+    "ownerId" | 
     "tags"
 > & {
     tags: string[];
     badges: GetBadgeType[];
+    links: GetLinkType[];
+    interactions: Partial<Record<InteractionNameType, InteractionCollection>>;
 };

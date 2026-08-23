@@ -6,3 +6,8 @@ export type LinkType = {
     visibility: string;
     date: string;
 };
+
+export type GetLinkType = Omit<
+    LinkType, 
+    "id"
+>;
