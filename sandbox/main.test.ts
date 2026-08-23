@@ -1,3 +1,7 @@
-import PermissionsService from "../src/backend/_common/services/permissions.service.ts"
+import PlatformPermissionsService from "../src/backend/_common/services/platformPermissions.service.ts"
 
-console.log(PermissionsService.hasPermission("1", "VIEW"));
+console.log(
+    PlatformPermissionsService.encode(
+        ["VIEW", "READ", "WRITE", "USE_INTERACTIONS"]
+    )
+);
