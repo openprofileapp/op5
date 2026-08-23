@@ -34,8 +34,12 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         const allowedTypes = satisfiesAll<InteractionNameType>()(
             "blocks",
+            "chats",
+            "dismisses",
             "follows",
             "friends",
+            "hides",
+            "hiddenCollaborations",
             "likes",
             "mutes",
             "mutes",

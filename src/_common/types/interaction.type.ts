@@ -16,8 +16,12 @@ export type GetTargetInteractionType = Omit<
 
 export type InteractionNameType = 
     | "blocks"
+    | "chats"
+    | "dismisses"
     | "follows"
     | "friends"
+    | "hides"
+    | "hiddenCollaborations"
     | "likes"
     | "mutes"
     | "reads"

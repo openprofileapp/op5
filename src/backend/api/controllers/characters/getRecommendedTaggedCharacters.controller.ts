@@ -44,11 +44,12 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
         // If not dismissed (add dismiss interaction)
         const interactionResult = db.interactions.query(
             `
-                SELECT target FROM reads WHERE source = ?
-                UNION SELECT target FROM likes WHERE source = ?
+                SELECT target FROM dismisses WHERE source = ?
                 UNION SELECT target FROM follows WHERE source = ?
+                UNION SELECT target FROM likes WHERE source = ?
+                UNION SELECT target FROM reads WHERE source = ?
             `,
-            [req.session.userId, req.session.userId, req.session.userId]
+            [req.session.userId, req.session.userId, req.session.userId, req.session.userId]
         );
 
         if (!interactionResult.success) {

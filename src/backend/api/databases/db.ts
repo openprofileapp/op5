@@ -31,6 +31,11 @@ db.audits.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     };
 
+    if (!q("SELECT * FROM chats LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/chats.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
     if (!q("SELECT * FROM follows LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/follows.sql`);
         if (!result.success) return log.db.error(result.error).save();
@@ -41,6 +46,16 @@ db.audits.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     };
 
+    if (!q("SELECT * FROM hides LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/hides.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM hiddenCollaborations LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/hiddenCollaborations.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
     if (!q("SELECT * FROM likes LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/likes.sql`);
         if (!result.success) return log.db.error(result.error).save();
@@ -48,6 +63,11 @@ db.audits.transaction(q => {
 
     if (!q("SELECT * FROM mutes LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/mutes.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM reads LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/reads.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 
@@ -141,6 +161,16 @@ db.interactions.transaction(q => {
         const result = q(`${config.folders.sql.api}/interactions/blocks.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+    
+    if (!q("SELECT * FROM chats LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/interactions/chats.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM dismisses LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/interactions/dismisses.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 
     if (!q("SELECT * FROM follows LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/interactions/follows.sql`);
@@ -149,6 +179,16 @@ db.interactions.transaction(q => {
 
     if (!q("SELECT * FROM friends LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/interactions/friends.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM hides LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/interactions/hides.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM hiddenCollaborations LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/interactions/hiddenCollaborations.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 
@@ -202,6 +242,7 @@ async function waitForMDB() {
             // Import migration files here
             import("./migration/audits/follows.db.migration.js");
             import("./migration/audits/friends.db.migration.js");
+            import("./migration/audits/hides.db.migration.js");
             import("./migration/audits/likes.db.migration.js");
             import("./migration/audits/views.db.migration.js");
 
@@ -216,6 +257,7 @@ async function waitForMDB() {
 
             import("./migration/interactions/follows.db.migration.js");
             import("./migration/interactions/friends.db.migration.js");
+            import("./migration/interactions/hides.db.migration.js");
             import("./migration/interactions/likes.db.migration.js");
             import("./migration/interactions/reads.db.migration.js");
             import("./migration/interactions/views.db.migration.js");
