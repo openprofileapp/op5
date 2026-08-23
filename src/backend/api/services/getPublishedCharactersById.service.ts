@@ -9,7 +9,9 @@ import getOwnersById from "./getOwnersById.service.js";
 import getInteractionsById from "./getInteractionsById.service.js";
 import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
 import getLinksById from "./getLinksById.service.js";
+import { i18n } from "../instances.js";
 
+// DEVELOPER NEEDED: Add an option to skip interaction and link fetching
 type Options = {
     getAs?: string;
     interactionTypes?: InteractionNameType[];
@@ -48,7 +50,7 @@ export default function getPublishedCharactersById(
     if (!result.success) {
         throw new AdvancedError({
             code: 500,
-            message: "An error occurred while fetching character",
+            message: i18n.t("responses.error.character"),
             details: result.error
         });
     }
