@@ -410,7 +410,7 @@ export default class PlatformPermissionsService {
             this.has(
                 session.permissions?.value, 
                 [
-                    "MANAGE_VISIBILITY", 
+                    "MANAGE_VISIBILITY", // DEVELOPER NEEDED: This should only be for visibility
                     "ADMIN"
                 ], 
                 "any"
@@ -431,6 +431,7 @@ export default class PlatformPermissionsService {
         // Check if following // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
         // Check if friends // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
 
+        // DEVELOPER NEEDED: This is only to be checked for asset permissions. For platform, use accounts database
         // Check the permissions database
         const permissionsResult = db.users.query<PermissionsType>(
             "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
