@@ -4,8 +4,8 @@ import { AdvancedError } from "kage-library";
 
 import { i18n, log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import { CharacterType } from "../../../../_common/types/queries/character.type.js";
-import { InteractionType } from "../../../../_common/types/queries/interaction.type.js";
+import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
+import { InteractionType } from "../../../../_common/types/interaction.type.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
@@ -74,7 +74,7 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
         const selfExcludeClause = req.session.userId ? "AND ownerId != ?" : "";
         const selfExcludeArgs = req.session.userId ? [req.session.userId] : [];
 
-        const result = db.characters.query<CharacterType>(
+        const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
                 WHERE visibility = ?
@@ -132,12 +132,19 @@ export const getRecentFollowingCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const characters = result.rows.map((row) => {
-            return getPublishedCharactersById(row.id);
-        });
+        const array = result.rows.map((row) => row.id);
+
+        const characterMap = getPublishedCharactersById(
+            array, 
+            {
+                getAs: req.session.userId,
+                interactionMethod: "target",
+                interactionCountOnly: true
+            }
+        );
 
         res.status(200).json({
-            characters,
+            characters: Array.from(characterMap.values()),
             pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
         });
     } catch(error) {
