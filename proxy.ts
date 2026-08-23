@@ -59,10 +59,23 @@ const local = https.createServer(
     getEnv("SSL"),
     async (req: IncomingMessage, res: ServerResponse) => {
         if (req.url!.startsWith("/favicon.ico")) {
-            res.writeHead(302, {
-                Location: `https://${config.domains.gateway}/cdn/${config.metadata.assets.icon}`
-            });
-            return res.end();
+            const gatewayDomain = config.domains.gateway.toLowerCase();
+            const gatewayTarget = serverMap[gatewayDomain];
+
+            if (gatewayTarget) {
+                req.url = `/cdn/${config.metadata.assets.icon}`;
+
+                return proxy.web(req, res, {
+                    target: gatewayTarget,
+                    secure: false,
+                    xfwd: true,
+                    headers: {
+                        host: gatewayDomain,
+                        "x-forwarded-host": req.headers.host || "",
+                        "x-forwarded-proto": "https"
+                    }
+                });
+            }
         }
 
         const hostname = req.headers.host?.split(":")[0].toLowerCase();
@@ -89,14 +102,12 @@ const local = https.createServer(
             res,
             {
                 target,
-                secure: config.isProduction,
-                changeOrigin: false,
+                secure: false,
+                changeOrigin: true,
+                xfwd: true,
                 headers: {
-                    host: hostname as string,
-                    "x-forwarded-for": req.headers["x-forwarded-for"] 
-                        ? `${req.headers["x-forwarded-for"]}, ${req.socket.remoteAddress}`
-                        : req.socket.remoteAddress || "",
-                    "x-real-ip": req.socket.remoteAddress || ""
+                    "x-forwarded-host": req.headers.host || "",
+                    "x-forwarded-proto": "https"
                 }
             },
             async (error: Error) => {
@@ -131,13 +142,12 @@ local.on(
 
         proxy.ws(req, socket, head, {
             target,
-            secure: config.isProduction,
+            secure: false,
+            changeOrigin: true,
+            xfwd: true,
             headers: {
-                host: hostname as string,
-                "x-forwarded-for": req.headers["x-forwarded-for"]
-                    ? `${req.headers["x-forwarded-for"]}, ${socket.remoteAddress}`
-                    : socket.remoteAddress || "",
-                "x-real-ip": socket.remoteAddress || ""
+                "x-forwarded-host": req.headers.host || "",
+                "x-forwarded-proto": "https"
             }
         });
     }
@@ -149,7 +159,7 @@ Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const port = 443
+const port = 443;
 
 local.listen(port, () => {
     log.proxy.info(`Proxy online at https://localhost:${port}`);
