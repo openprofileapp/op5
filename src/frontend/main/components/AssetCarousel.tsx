@@ -91,7 +91,7 @@ export default function AssetCarousel({
                         </div>
                     )}
                     
-                    <div ref = {scrollContainerRef} className="relative group flex gap-4 overflow-x-auto mb-10 scrollbar-none">
+                    <div ref = {scrollContainerRef} className="relative flex gap-4 overflow-x-auto mb-10 scrollbar-none">
                         <div 
                             onClick = {() => {
                                 if (showLeftArrow) {
@@ -142,12 +142,12 @@ export default function AssetCarousel({
                                         about = { d.about }
                                         interactions = {{
                                             views: {
-                                                count: 0,
-                                                interacted: true
+                                                count: d.interactions.views?.count,
+                                                interacted: d.interactions.views?.hasInteracted
                                             },
                                             likes: {
-                                                count: 0,
-                                                interacted: false
+                                                count: d.interactions.likes?.count,
+                                                interacted: d.interactions.likes?.hasInteracted
                                             }
                                         }}
                                     />
