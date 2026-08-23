@@ -118,7 +118,12 @@ cron.schedule("0 0 * * *", () => {
 
 
 // log.db.info(getUsersByIdOrUsername("5019646586243236", { getAs: "5719552362357773" })).save();
-// log.db.info(getPublishedCharactersById("6587823496323314", { getAs: "5719552362357773" })).save();
+// log.db.info(getPublishedCharactersById("1655391085225720", { getAs: "5719552362357773" })).save();
+
+/*log.db.info(getPublishedCharactersById(
+    ["6587823496323314", "1655391085225720"], 
+    { getAs: "5719552362357773" }
+)).save();*/
 
 // log.db.info(getInteractionsById(
 //     ["5719552362357773", "5019646586243236"],
