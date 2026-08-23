@@ -265,3 +265,4 @@ const i18n = await I18nService.load(
         defaultLocale: config.metadata.locale 
     }
 );
+ENSURE THAT CALLING AN API REVALIDATES SESSONS
