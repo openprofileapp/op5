@@ -4,6 +4,8 @@ import { formatNumber } from "kage-library/client"
 import { toast } from "../../_common/scripts/toast.js";
 import { useCallback, useEffect, useState } from "react";
 import { GetBadgeType } from "../../../_common/types/getBadge.type.js";
+import isGateway from "../../_common/helpers/isGateway.js";
+import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 
 type Props = {
     isPreview?: boolean;
@@ -46,6 +48,24 @@ type Props = {
 
 let index = 1;
 
+async function postInteraction(targetId: string, type: InteractionNameType) {
+    try {
+        const response = await fetch(
+            `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/interactions`, 
+            { 
+                credentials: "include", 
+                method: "POST", 
+                headers: {"Content-Type": "application/json"}, 
+                body: JSON.stringify({ targetId, type })
+            }
+        );
+
+        return await response.json()
+    } catch (error) {
+        console.error('Failed to post interaction:', error);
+    }
+}
+
 export default function CharacterCard({
     isPreview = false,
     id,
@@ -75,14 +95,17 @@ export default function CharacterCard({
 
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
-    const [isLiked, setIsLiked] = useState(false);
+
+    const [isLiked, setIsLiked] = useState(interactions?.likes?.interacted);
+    const [likeCount, setLikeCount] = useState(interactions?.likes?.count || 0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
+
     const [hidden, setHidden] = useState(false);
 
 
 
 
-
+// DEVELOPER NEEDED: Make an API response type
 
 
     useEffect(() => {
@@ -458,19 +481,43 @@ export default function CharacterCard({
                     </button>
                 </li>
 
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
-                        }}
-                    >
-                        Like
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
+                <li 
+                    onClick={async () => {
+                        if (isLikeLoading) return;
+                        closeContextMenu(id);
+
+                        setIsLikeLoading(true);
+
+                        const res = await postInteraction(id, "likes");
+
+                        if (res.ok) {
+                            setIsLikeLoading(false);
+                            setIsLiked(!isLiked);
+                            setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+                            toast.show(
+                                `You ${isLiked ? "unliked" : "liked"} ${displayName}`,
+                                { icon: "", type: isLiked ? "info" : "success" }
+                            );
+                        } else {
+                            setIsLikeLoading(false);
+                            toast.show(
+                                `Failed to ${isLiked ? "unlike" : "like"} ${displayName}`,
+                                {
+                                    subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
+                                    icon: "", 
+                                    type: "error" 
+                                }
+                            );
+                        }
+                    }}
+                >
+                    <div className={`${isLiked ? "text-accent" : "" } justify-between`}>
+                        {isLiked ? "Unlike" : "Like"}
+                        <span 
+                            className={`${isLikeLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                            {isLiked ? "" : ""}
                         </span>
-                    </button>
+                    </div>
                 </li>
 
                 <li 
@@ -554,20 +601,22 @@ export default function CharacterCard({
                     </ul>
                 </li>
                 <hr />
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4 text-error"
-                        onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
-                        }}
-                    >
-                        Not Interested
-                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰈉
-                        </span>
-                    </button>
-                </li>
+                {!isLiked && (
+                    <li>
+                        <button 
+                            className="flex items-center justify-between gap-4 text-error"
+                            onClick={() => {
+                                exampleTrigger();
+                                closeContextMenu(id);
+                            }}
+                        >
+                            Not Interested
+                            <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                󰈉
+                            </span>
+                        </button>
+                    </li>
+                )}
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4 text-error"
@@ -823,9 +872,12 @@ export default function CharacterCard({
                     <div className="flex items-center justify-center w-full">
                         <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-1.5 min-w-0 max-w-full">
                             <div className="flex min-w-0 items-center overflow-hidden">
-                                <span className="truncate text-xs leading-snug">
+                                <Link 
+                                    className="truncate text-xs leading-snug hover:underline" 
+                                    to={`/${owner.slug || owner.id}`}
+                                >
                                     {owner?.displayName || owner.slug || owner.id}
-                                </span>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -836,12 +888,12 @@ export default function CharacterCard({
                 <div className="flex flex-row gap-8 justify-center w-full">
                     <div className="absolute z-1 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1">
                         <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base ${interactions?.views?.interacted ? "text-accent" : ""}`}>󰈈</span>
+                            <span className={`font-nerdfont text-base w-4 h-6 ${interactions?.views?.interacted ? "text-accent" : ""}`}>󰈈</span>
                             <span className="text-xs ml-2">{formatNumber(interactions?.views?.count || 0).short}</span>
                         </div>
                         <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base ${interactions?.likes?.interacted ? "text-accent" : ""}`}></span>
-                            <span className="text-xs ml-2">{formatNumber(interactions?.likes?.count || 0).short}</span>
+                            <span className={`font-nerdfont text-base w-4 h-6 ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}></span>
+                            <span className="text-xs ml-2">{formatNumber(likeCount || 0).short}</span>
                         </div>
                     </div>
                 </div>
