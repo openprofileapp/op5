@@ -227,14 +227,14 @@ export default function SearchProfiles() {
                             }}
                             badges = { d.badges }
                             about={d.about}
-                            interactions={{
+                            interactions = {{
                                 views: {
-                                    count: 0,
-                                    interacted: true
+                                    count: d.interactions.views?.count,
+                                    interacted: d.interactions.views?.hasInteracted
                                 },
                                 likes: {
-                                    count: 0,
-                                    interacted: false
+                                    count: d.interactions.likes?.count,
+                                    interacted: d.interactions.likes?.hasInteracted
                                 }
                             }}
                         />
