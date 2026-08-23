@@ -79,7 +79,14 @@ export const getPopularCharacters = (req: Request, res: Response) => {
 
         const array = result.rows.map((row) => row.id);
 
-        const characterMap = getPublishedCharactersById(array);
+        const characterMap = getPublishedCharactersById(
+            array, 
+            {
+                getAs: req.session?.userId || req.ip,
+                interactionMethod: "target",
+                interactionCountOnly: true
+            }
+        );
 
         res.status(200).json({
             characters: Array.from(characterMap.values()),
