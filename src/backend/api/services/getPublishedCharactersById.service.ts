@@ -15,7 +15,7 @@ type Options = {
     interactionTypes?: InteractionNameType[];
     interactionMethod?: InteractionMethod;
     interactionCountOnly?: boolean;
-}
+};
 
 export default function getPublishedCharactersById(
     id: string,
@@ -25,17 +25,17 @@ export default function getPublishedCharactersById(
 export default function getPublishedCharactersById(
     ids: string[],
     options?: Options
-): Record<string, GetPublishedCharacterType[]>;
+): Map<string, GetPublishedCharacterType>;
 
 export default function getPublishedCharactersById(
     ids: string | string[],
     options?: Options
-): GetPublishedCharacterType | null | Record<string, GetPublishedCharacterType[]> {
+): GetPublishedCharacterType | null | Map<string, GetPublishedCharacterType> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
 
     if (array.length === 0) {
-        return isArray ? {} : null;
+        return isArray ? new Map() : null;
     }
 
     const { clause, params } = buildSqlInClause("id", array);
@@ -54,23 +54,21 @@ export default function getPublishedCharactersById(
     }
 
     if (result.rowCount < 1) {
-        return isArray ? {} : null;
+        return isArray ? new Map() : null;
     }
+
+    const characterIds = result.rows.map((row) => row.id);
 
     const ownerMap = getOwnersById(
         Array.from(new Set(result.rows.map((row) => row.ownerId)))
     );
 
-    const badgesMap = getBadgesById(
-        result.rows.map((row) => row.id)
-    );
+    const badgesMap = getBadgesById(characterIds);
 
-    const linksMap = getLinksById(
-        result.rows.map((row) => row.id)
-    )
+    const linksMap = getLinksById(characterIds);
 
     const interactionsMap = getInteractionsById(
-        result.rows.map((row) => row.id),
+        characterIds,
         { 
             method: options?.interactionMethod || "target",
             types: options?.interactionTypes || ["views", "likes"],
@@ -88,29 +86,28 @@ export default function getPublishedCharactersById(
             owner: ownerMap[ownerId]?.[0],
             badges: badgesMap[rest.id] || [],
             links: linksMap[rest.id] || [],
-            interactions: interactionsMap[rest.id] || []
+            interactions: interactionsMap[rest.id] || {}
         };
     }
 
-    const data: Record<string, GetPublishedCharacterType[]> = {};
+    const dataMap = new Map<string, GetPublishedCharacterType>();
+    const rowMap = new Map(result.rows.map(row => [row.id, row]));
 
     for (const id of array) {
-        data[id] = [];
-    }
+        const row = rowMap.get(id);
+        if (!row) continue;
 
-    for (const row of result.rows) {
         const { ownerId, ...rest } = row;
-        if (data[rest.id]) {
-            data[rest.id].push({
-                ...rest,
-                tags: parseTags(rest.tags),
-                owner: ownerMap[ownerId]?.[0],
-                badges: badgesMap[rest.id] || [],
-                links: linksMap[rest.id] || [],
-                interactions: interactionsMap[rest.id] || []
-            });
-        }
+
+        dataMap.set(rest.id, {
+            ...rest,
+            tags: parseTags(rest.tags),
+            owner: ownerMap[ownerId]?.[0],
+            badges: badgesMap[rest.id] || [],
+            links: linksMap[rest.id] || [],
+            interactions: interactionsMap[rest.id] || {}
+        });
     }
 
-    return data;
+    return dataMap;
 }

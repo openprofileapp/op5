@@ -14,7 +14,7 @@ type Options = {
     interactionTypes?: InteractionNameType[];
     interactionMethod?: InteractionMethod;
     interactionCountOnly?: boolean;
-}
+};
 
 export default function getUsersByIdOrUsername(
     id: string,
@@ -24,17 +24,17 @@ export default function getUsersByIdOrUsername(
 export default function getUsersByIdOrUsername(
     ids: string[],
     options?: Options
-): Record<string, GetUserType[]>;
+): Map<string, GetUserType>;
 
 export default function getUsersByIdOrUsername(
     ids: string | string[],
     options?: Options
-): GetUserType | null | Record<string, GetUserType[]> {
+): GetUserType | null | Map<string, GetUserType> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
 
     if (array.length === 0) {
-        return isArray ? {} : null;
+        return isArray ? new Map() : null;
     }
 
     const { clause, params } = buildSqlInClause(
@@ -56,19 +56,17 @@ export default function getUsersByIdOrUsername(
     }
 
     if (result.rowCount < 1) {
-        return isArray ? {} : null;
+        return isArray ? new Map() : null;
     }
 
-    const badgesMap = getBadgesById(
-        result.rows.map((row) => row.id)
-    );
+    const userIds = result.rows.map((row) => row.id);
 
-    const linksMap = getLinksById(
-        result.rows.map((row) => row.id)
-    )
+    const badgesMap = getBadgesById(userIds);
+
+    const linksMap = getLinksById(userIds);
 
     const interactionsMap = getInteractionsById(
-        result.rows.map((row) => row.id),
+        userIds,
         { 
             method: options?.interactionMethod || "target",
             types: options?.interactionTypes || ["views", "follows"],
@@ -77,35 +75,29 @@ export default function getUsersByIdOrUsername(
         }
     );
 
+    const formatUser = (row: UserType): GetUserType => ({
+        ...row,
+        tags: parseTags(row.tags),
+        badges: badgesMap[row.id] || [],
+        links: linksMap[row.id] || [],
+        interactions: interactionsMap[row.id] || {}
+    });
+
     if (!isArray) {
-        const row = result.rows[0]
-
-        return {
-            ...row,
-            tags: parseTags(row.tags),
-            badges: badgesMap[row.id] || [],
-            links: linksMap[row.id] || [],
-            interactions: interactionsMap[row.id] || []
-        };
+        return formatUser(result.rows[0]);
     }
 
-    const data: Record<string, GetUserType[]> = {};
+    const dataMap = new Map<string, GetUserType>();
 
-    for (const id of array) {
-        data[id] = [];
-    }
+    for (const inputKey of array) {
+        const match = result.rows.find(
+            (row) => row.id === inputKey || row.username === inputKey || row.usernameOld === inputKey
+        );
 
-    for (const row of result.rows) {
-        if (data[row.id]) {
-            data[row.id].push({
-                ...result.rows[0],
-                tags: parseTags(row.tags),
-                badges: badgesMap[row.id] || [],
-                links: linksMap[row.id] || [],
-                interactions: interactionsMap[row.id] || []
-            });
+        if (match) {
+            dataMap.set(inputKey, formatUser(match));
         }
     }
 
-    return data;
+    return dataMap;
 }
