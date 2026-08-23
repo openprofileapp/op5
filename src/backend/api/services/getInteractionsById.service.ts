@@ -13,6 +13,7 @@ import {
 } from "../../../_common/types/interaction.type.js";
 
 import { buildSqlInClause } from "../../../_common/helpers/sql.js";
+import { formatCountOnly } from "../helpers/formatCountOnly.js";
 
 const index: InteractionNameType[] = [
     "blocks",
@@ -29,6 +30,7 @@ const index: InteractionNameType[] = [
 type BaseOptions = {
     method?: InteractionMethod;
     checkSourceInteraction?: string | string[];
+    countOnly?: boolean;
 };
 
 type InteractionOptionsString = BaseOptions & {
@@ -42,24 +44,8 @@ type InteractionOptionsArray = BaseOptions & {
 
 type InteractionOptions = InteractionOptionsString | InteractionOptionsArray;
 
-
 type MultiTypeResult = Partial<Record<InteractionNameType, InteractionCollection>>;
 
-/**
- * Fetches interaction collections (e.g., likes, follows, blocks) for one or more entity IDs.
- *
- * @param id - A single entity ID or multiple of arrayed.
- * @param options - Configuration including interaction types, direction (`method`), and optional target checks.
- * @returns A single `InteractionCollection`.
- *
- * @example
- * // Get all likes and follows interactions where 'A' is source and check if user 'B' liked/followed user 'A'
- * getInteractionsById("userA", {
- *   method: "source",
- *   types: ["likes", "follows"],
- *   checkSourceInteraction: "userB" // Always checks source
- * });
- */
 export default function getInteractionsById(
     id: string,
     options?: InteractionOptionsString
@@ -88,6 +74,7 @@ export default function getInteractionsById(
     const array = isArray ? ids : [ids];
 
     const method = options?.method;
+    const countOnly = options?.countOnly ?? false;
     
     const rawTypes = options?.types ?? (options as InteractionOptionsString)?.type;
     const isMultiTypes = !rawTypes || Array.isArray(rawTypes);
@@ -104,7 +91,12 @@ export default function getInteractionsById(
 
     if (array.length === 0) {
         if (isArray) return {};
-        return isMultiTypes ? {} : { items: [], count: 0, ...(checkTargetsSet ? { hasInteracted: false } : {}) };
+        return formatCountOnly(
+            isMultiTypes ? {} 
+            : { items: [], count: 0, ...(
+                checkTargetsSet ? { hasInteracted: false } : {}
+            ) }, countOnly
+        );
     }
 
     let queryString = "";
@@ -163,7 +155,6 @@ export default function getInteractionsById(
         return row;
     };
 
-    // checkSourceInteraction strictly verifies row.source
     const isCheckMatch = (row: InteractionType): boolean => {
         return checkTargetsSet ? checkTargetsSet.has(row.source) : false;
     };
@@ -194,7 +185,7 @@ export default function getInteractionsById(
                 const collection = map[type];
 
                 if (collection) {
-                    collection.items.push(transformRow(rest));
+                    collection.items?.push(transformRow(rest));
                     collection.count++;
 
                     if (isCheckMatch(row)) {
@@ -202,19 +193,19 @@ export default function getInteractionsById(
                     }
                 }
             }
-            return map;
+            return formatCountOnly(map, countOnly);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const transformedItems = result.rows.map(({ type, ...rest }) => transformRow(rest));
         const hasInteracted = checkTargetsSet ? result.rows.some((row) => isCheckMatch(row)) : undefined;
 
-        return {
+        return formatCountOnly({
             items: transformedItems,
             count: transformedItems.length,
 
-            ...(hasInteracted !== undefined ? { hasInteracted } : {})
-        };
+            ...(hasInteracted !== undefined ? { hasInteracted } : {}), countOnly
+        }, countOnly);
     }
 
     if (isMultiTypes) {
@@ -237,7 +228,7 @@ export default function getInteractionsById(
                     const collection = multiData[id][type];
 
                     if (collection) {
-                        collection.items.push(transformed);
+                        collection.items?.push(transformed);
                         collection.count++;
 
                         if (isCheckMatch(row)) {
@@ -248,7 +239,7 @@ export default function getInteractionsById(
             }
         }
 
-        return multiData;
+        return formatCountOnly(multiData, countOnly);
     }
 
     const singleData: Record<string, InteractionCollection> = {};
@@ -269,7 +260,7 @@ export default function getInteractionsById(
 
             if (matchesSource || matchesTarget || matchesBoth) {
                 const collection = singleData[id];
-                collection.items.push(transformed);
+                collection.items?.push(transformed);
                 collection.count++;
 
                 if (isCheckMatch(row)) {
@@ -279,5 +270,5 @@ export default function getInteractionsById(
         }
     }
 
-    return singleData;
+    return formatCountOnly(singleData, countOnly);
 }

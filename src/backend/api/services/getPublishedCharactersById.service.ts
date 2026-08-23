@@ -8,11 +8,13 @@ import { GetPublishedCharacterType, PublishedCharacterType } from "../../../_com
 import getOwnersById from "./getOwnersById.service.js";
 import getInteractionsById from "./getInteractionsById.service.js";
 import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
+import getLinksById from "./getLinksById.service.js";
 
 type Options = {
     getAs?: string;
     interactionTypes?: InteractionNameType[];
     interactionMethod?: InteractionMethod;
+    interactionCountOnly?: boolean;
 }
 
 export default function getPublishedCharactersById(
@@ -46,7 +48,7 @@ export default function getPublishedCharactersById(
     if (!result.success) {
         throw new AdvancedError({
             code: 500,
-            message: "An error occurred while fetching characters",
+            message: "An error occurred while fetching character",
             details: result.error
         });
     }
@@ -63,12 +65,17 @@ export default function getPublishedCharactersById(
         result.rows.map((row) => row.id)
     );
 
+    const linksMap = getLinksById(
+        result.rows.map((row) => row.id)
+    )
+
     const interactionsMap = getInteractionsById(
         result.rows.map((row) => row.id),
         { 
             method: options?.interactionMethod || "target",
             types: options?.interactionTypes || ["views", "likes"],
-            checkSourceInteraction: options?.getAs
+            checkSourceInteraction: options?.getAs,
+            countOnly: options?.interactionCountOnly
         }
     );
 
@@ -80,6 +87,7 @@ export default function getPublishedCharactersById(
             tags: parseTags(rest.tags),
             owner: ownerMap[ownerId]?.[0],
             badges: badgesMap[rest.id] || [],
+            links: linksMap[rest.id] || [],
             interactions: interactionsMap[rest.id] || []
         };
     }
@@ -98,6 +106,7 @@ export default function getPublishedCharactersById(
                 tags: parseTags(rest.tags),
                 owner: ownerMap[ownerId]?.[0],
                 badges: badgesMap[rest.id] || [],
+                links: linksMap[rest.id] || [],
                 interactions: interactionsMap[rest.id] || []
             });
         }
