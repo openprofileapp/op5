@@ -14,7 +14,7 @@ import { fetchSessionMiddleware } from "./middlewares/fetchSession.middleware.js
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import userRoutes from "./routes/user.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
-import interactionRoutes from "./routes/interactions.routes.js";
+import interactionRoutes from "./routes/interaction.routes.js";
 import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
 import healthRoute from "../_common/routes/health.route.js";
@@ -76,7 +76,7 @@ v2.use(
 
 v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
 v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
-v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(240), interactionRoutes);
+v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
 v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
 v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
