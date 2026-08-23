@@ -3,6 +3,7 @@ export type ToastType = "info" | "success" | "error" | "warning";
 export interface Toast {
     id: number;
     message: string;
+    subtext: string;
     icon: string;
     type: ToastType;
     duration: number;
@@ -29,7 +30,8 @@ export const toast = {
     /**
      * Show a toast notification.
      *
-     * @param message - Text to display
+     * @param message - Main text to display
+     * @param subtext - Optional secondary text to display below message
      * @param icon - NerdFont icon to display
      * @param type - Visual style ("info" | "success" | "error" | "warning")
      * @param duration - Auto dismiss time in ms (default: 3000)
@@ -38,10 +40,12 @@ export const toast = {
     show: (
         message: string,
         {
+            subtext = "",
             icon = "",
             type = "info",
             duration = 3000,
         }: {
+            subtext?: string;
             icon?: string;
             type?: ToastType;
             duration?: number;
@@ -49,7 +53,7 @@ export const toast = {
     ): number => {
         const id = Date.now();
 
-        const t: Toast = { id, message, icon, type, duration };
+        const t: Toast = { id, message, subtext, icon, type, duration };
 
         listeners.forEach((l) => l(t));
 
