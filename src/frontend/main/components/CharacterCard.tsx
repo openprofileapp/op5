@@ -1,112 +1,77 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { formatNumber } from "kage-library/client"
+
+import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 import { toast } from "../../_common/scripts/toast.js";
-import { useCallback, useEffect, useState } from "react";
-import { GetBadgeType } from "../../../_common/types/getBadge.type.js";
-import isGateway from "../../_common/helpers/isGateway.js";
-import { InteractionNameType } from "../../../_common/types/interaction.type.js";
+import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
+import { postInteraction } from "../scripts/postInteraction.js";
+import { formatNumber } from "kage-library/client";
+import { studioHost } from "../scripts/hosts.js";
 
 type Props = {
+    data: GetPublishedCharacterType;
     isPreview?: boolean;
-    id: string;
-    aura?: {
-        isEnabled: boolean;
-        type?: string;
-        primary?: string;
-        secondary?: string;
-    };
-    avatar?: string;
-    animatedAvatar?: string;
-    displayName?: string;
-    slug?: string;
-    owner: {
-        id: string;
-        displayName?: string;
-        slug?: string;
-        isVerified?: boolean;
-        type: string;
-    };
-    badges?: GetBadgeType[];
-    about?: string;
-    interactions?: {
-        views?: {
-            count?: number,
-            interacted?: boolean
-        },
-        likes?: {
-            count?: number,
-            interacted?: boolean
-        }
-    },
-    notification?: {
-        isActive?: boolean,
-        time?: string
-    },
-    isPinnedPass?: boolean
+    hasNotification?: boolean;
+    isHomeScreen?: boolean
+    dragHandleProps?: unknown;
 };
 
 let index = 1;
 
-async function postInteraction(targetId: string, type: InteractionNameType) {
-    try {
-        const response = await fetch(
-            `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/interactions`, 
-            { 
-                credentials: "include", 
-                method: "POST", 
-                headers: {"Content-Type": "application/json"}, 
-                body: JSON.stringify({ targetId, type })
-            }
-        );
-
-        return await response.json()
-    } catch (error) {
-        console.error('Failed to post interaction:', error);
-    }
-}
-
 export default function CharacterCard({
+    data,
     isPreview = false,
-    id,
-    aura,
-    avatar,
-    animatedAvatar,
-    displayName,
-    slug,
-    owner,
-    badges = [],
-    about,
-    interactions,
-    notification,
-    isPinnedPass = false,
+    hasNotification = false,
+    isHomeScreen = false,
     dragHandleProps
 }: Props) {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const [isPinned, setIsPinned] = useState(isPinnedPass);
-    const [isPinLoading, setIsPinLoading] = useState(false);
+    const [isChatted, setIsChatted] = useState(data.interactions?.chats?.hasInteracted);
+    const [chatCount, setChatCount] = useState(data.interactions?.chats?.count || 0);
+    const [isChatLoading, setIsChatLoading] = useState(false);
 
+    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
+    const [isDismissLoading, setIsDismissLoading] = useState(false);
 
-
-
-    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
+    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const [isLiked, setIsLiked] = useState(interactions?.likes?.interacted);
-    const [likeCount, setLikeCount] = useState(interactions?.likes?.count || 0);
+    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
+    const [isHideLoading, setIsHideLoading] = useState(false);
+
+    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
+    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
 
-    const [hidden, setHidden] = useState(false);
+    const [isMuted, setIsMuted] = useState(data.interactions?.mutes?.hasInteracted);
+    const [muteCount, setMuteCount] = useState(data.interactions?.mutes?.count || 0);
+    const [isMuteLoading, setIsMuteLoading] = useState(false);
 
+    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
+    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
+    const [isShareLoading, setIsShareLoading] = useState(false);
 
+    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
+    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
+    const [isViewLoading, setIsViewLoading] = useState(false);
 
+    // DEVELOPER NEEDED: Add library states here
 
-// DEVELOPER NEEDED: Make an API response type
+    const [isPinned, setIsPinned] = useState(data.isPinned);
+    const [isPinLoading, setIsPinLoading] = useState(false);
 
+    const closeContextMenu = useCallback((id: string) => {
+        setIsContextMenuOpen(false);
+        document
+            .getElementById(`character-more-dropdown-${data.id}`)
+            ?.hidePopover();
+    }, [data.id]);
 
     useEffect(() => {
         if (isContextMenuOpen) {
@@ -120,17 +85,9 @@ export default function CharacterCard({
         };
     }, [isContextMenuOpen]);
 
-    // Move some of these to common
-    const closeContextMenu = useCallback((id: string) => {
-        setIsContextMenuOpen(false);
-        document
-            .getElementById(`character-more-dropdown-${id}`)
-            ?.hidePopover();
-    }, []);
-    
-   useEffect(() => {
+    useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`character-more-dropdown-${id}`);
+            const menu = document.getElementById(`character-more-dropdown-${data.id}`);
 
             if (!menu) return;
 
@@ -138,7 +95,7 @@ export default function CharacterCard({
                 return;
             }
 
-            closeContextMenu(id);
+            closeContextMenu(data.id);
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -146,7 +103,7 @@ export default function CharacterCard({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [id, closeContextMenu]);
+    }, [data.id, closeContextMenu]);
 
     const checkCollectionMenuPosition = (
         e: React.MouseEvent<HTMLLIElement>
@@ -158,50 +115,28 @@ export default function CharacterCard({
         setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
 
-    function formatDisplayNameToUrl(name: string): string {
-        return name
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9._]+/g, "-")
-            .replace(/^-+|-+$/g, "");
-    }
-
-    function exampleTrigger() {
-        toast.show("Example triggered!")
-    }
-
-    if (!ready || hidden) return null;
+    if (
+        !data.id ||
+        !data.owner ||
+        !data.owner.id ||
+        !isTranslationReady || 
+        isHidden
+    ) return null;
 
     index++
 
-    const Component = !isPreview ? Link : "div";
-
-    const auraStyle = aura?.isEnabled
-        ? 
-            {
-                ["--aura-type" as string]:
-                    // eslint-disable-next-line no-constant-binary-expression
-                    `aura-${aura?.type}` || "aura-flow",
-
-                ["--aura-primary" as string]:
-                    aura.primary || "var(--color-accent)",
-
-                ["--aura-secondary" as string]:
-                    aura.secondary || "var(--color-accent)",
-            }
-        : 
-            {
-                border: "1px solid #222222",
-            }
-        ;
-
-    if (
-        !id || 
-        !owner || 
-        !owner.id
-    ) {
-        return;
-    }
+    {/* DEVELOPER NEEDED: Clicking should open a modal, not a full page */}
+    const Component = isPreview ? "div" : Link;
+   
+    const auraStyle: React.CSSProperties = data.isAuraEnabled
+        ? {
+            ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
+            ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: data.auraSecondary || "var(--color-accent)",
+        }
+        : {
+            border: "1px solid #222222",
+        };
 
     return (
         <div
@@ -212,7 +147,7 @@ export default function CharacterCard({
                 setIsContextMenuOpen(true);
 
                 const popover = document.getElementById(
-                    `character-more-dropdown-${id}`
+                    `character-more-dropdown-${data.id}`
                 ) as HTMLElement | null;
 
                 if (!popover) return;
@@ -234,15 +169,12 @@ export default function CharacterCard({
                 });
             }}
         >
-            {
-                notification?.isActive ?
-                    <div className="absolute top-[-5px] right-[-5px] z-3 tooltip tooltip-top tooltip-accent" 
-                        data-tip={`Updated ${notification?.time}`}>
-                        <div className="absolute inset-0 rounded-full bg-accent animate-ping opacity-50" />
-                        <div className="relative rounded-full bg-accent w-5 h-5" />
-                    </div>
-
-                    : ""
+            { hasNotification ?
+                <div className="absolute top-[-5px] right-[-5px] z-3">
+                    <div className="absolute inset-0 rounded-full bg-accent animate-ping opacity-50" />
+                    <div className="relative rounded-full bg-accent w-5 h-5" />
+                </div> 
+                : ""
             }
 
             {isPinned && (
@@ -280,7 +212,7 @@ export default function CharacterCard({
                     setIsContextMenuOpen(true);
 
                     const popover = document.getElementById(
-                        `character-more-dropdown-${id}`
+                        `character-more-dropdown-${data.id}`
                     );
 
                     if (!popover) return;
@@ -307,36 +239,66 @@ export default function CharacterCard({
             <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                 popover="manual"
-                id={`character-more-dropdown-${id}`}
+                id={`character-more-dropdown-${data.id}`}
             >
-                {/* Only display on the home screen */}
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
-                        }}
-                    >
-                        Dismiss
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
-
-                <hr />
-
-                {owner.id === window.session.userId && (
+                {isHomeScreen && (
                     <>
+                        <li 
+                            onClick={async () => {
+                                if (isDismissLoading) return;
+
+                                closeContextMenu(data.id);
+                                setIsDismissLoading(true);
+
+                                const res = await postInteraction(data.id, "dismisses");
+
+                                if (res.ok) {
+                                    setIsDismissLoading(false);
+                                    setIsDismissed(true);
+                                    setIsHidden(true);
+
+                                    toast.show(
+                                        `You dismissed ${data.displayName}`,
+                                        { icon: "", type: "success" }
+                                    );
+                                } else {
+                                    setIsDismissLoading(false);
+
+                                    toast.show(
+                                        `Failed to dismiss ${data.displayName}`,
+                                        {
+                                            subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
+                                            icon: "", 
+                                            type: "error" 
+                                        }
+                                    );
+                                }
+                            }}
+                        >
+                            <button className="justify-between">
+                                Dismiss
+                                <span 
+                                    className={`${isDismissLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                                    
+                                </span>
+                            </button>
+                        </li>
+
+                        <hr />
+                    </>
+                )}
+
+                {data.owner.id === window.session.userId && (
+                    <>
+                        {/* DEVELOPER NEEDED: Also display on characters where the user has permission to open in studio (eg: write) */}
                         <li>
                             <a
-                                className="flex items-center justify-between gap-4"
-                                href={`https://studio.${window.config.domains.main}/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
+                                className="justify-between"
+                                href={`${studioHost}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => {
-                                    closeContextMenu(id);
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 View in Studio
@@ -346,92 +308,21 @@ export default function CharacterCard({
                             </a>
                         </li>
 
-                        <li>
-                            <button 
-                                className="flex items-center justify-between gap-4"
-                                disabled={isPinLoading}
-                                onClick={async () => {
-                                    try {
-                                        if (isPinLoading) return;
-                                        // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
-
-                                        setIsPinLoading(true);
-                                        let response;
-
-                                        if (isPinned) {
-                                            response = await fetch(
-                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
-                                                {
-                                                    method: "DELETE",
-                                                    headers: {
-                                                        "Content-Type": "application/json",
-                                                    },
-                                                    credentials: "include"
-                                                }
-                                            );
-
-                                            setHidden(true);
-                                        } else {
-                                            response = await fetch(
-                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${id}`,
-                                                {
-                                                    method: "POST",
-                                                    headers: {
-                                                        "Content-Type": "application/json",
-                                                    },
-                                                    credentials: "include",
-                                                    body: JSON.stringify({
-                                                        position: 1,
-                                                    }),
-                                                }
-                                            );
-                                        }
-
-                                        if (!response.ok) {
-                                            throw new Error("Failed to pin asset");
-                                        }
-
-                                        setIsPinned(!isPinned);
-
-                                        toast.show(
-                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`,
-                                            {
-                                                icon: isPinned ? "󰐄" : "󰐃",
-                                                type: isPinned ? "info" : "success",
-                                            }
-                                        );
-                                    } catch (error) {
-                                        console.error(error);
-
-                                        toast.show("Failed to pin asset", {
-                                            type: "error",
-                                        });
-                                    } finally {
-                                        setIsPinLoading(false);
-                                    }
-                        
-                                    // closeContextMenu(id);
-                                }}
-                            >
-                                <span
-                                    className={`${isPinned ? "text-error" : "text-base-content"}`}
-                                >
-                                    {isPinned ? "Unpin from Profile" : "Pin to Profile"}
-                                </span>
-                                <span className={`${isPinLoading ? "loading" : ""} font-nerdfont ${isPinned ? "text-error" : "text-base-content"} text-lg flex h-6 w-4 leading-none items-center justify-center`}>
-                                    {isPinLoading ? "" : isPinned ? "󰐄" : "󰐃"}
-                                </span>
-                            </button>
-                        </li>
+                        {/* DEVELOPER NEEDED: Pins go here only when on user or universe profile */}
 
                         <hr />
                     </>
                 )}
 
-                <li>
+                {/* DEVELOPER NEEDED: Add the interaction when landing on the pages, not here */}
+                <li
+                    onClick={() => {
+                        closeContextMenu(data.id);
+                    }}
+                >
                     <Link 
-                        className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
+                        className="justify-between" 
+                        to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                     >
                         View
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -440,10 +331,14 @@ export default function CharacterCard({
                     </Link>
                 </li>
 
-                <li>
+                <li
+                    onClick={() => {
+                        closeContextMenu(data.id);
+                    }}
+                >
                     <Link 
-                        className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}/read`}
+                        className="justify-between" 
+                        to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}/read`}
                     >
                         Read
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -452,26 +347,66 @@ export default function CharacterCard({
                     </Link>
                 </li>
 
-                <li>
-                    <Link 
-                        className="flex items-center justify-between gap-4" 
-                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}/chat`}
-                    >
+                {/* DEVELOPER NEEDED: On click, open a chat with the character */}
+                <li 
+                    className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
+                    data-tip="Coming Soon"
+                    onClick={() => {
+                        // closeContextMenu(data.id);
+
+                        // Open chat here and save to user message history
+                    }}
+                >
+                    <button className="justify-between" disabled={true}>
                         Chat
                         <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
                             󰭹
                         </span>
-                    </Link>
+                    </button>
                 </li>
 
                 <hr />
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4"
+                        className="justify-between"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Follow
@@ -484,24 +419,26 @@ export default function CharacterCard({
                 <li 
                     onClick={async () => {
                         if (isLikeLoading) return;
-                        closeContextMenu(id);
 
+                        // closeContextMenu(data.id); (SOME DO, SOME DON'T LIKE THIS ONE)
                         setIsLikeLoading(true);
 
-                        const res = await postInteraction(id, "likes");
+                        const res = await postInteraction(data.id, "likes");
 
                         if (res.ok) {
                             setIsLikeLoading(false);
                             setIsLiked(!isLiked);
                             setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+
                             toast.show(
-                                `You ${isLiked ? "unliked" : "liked"} ${displayName}`,
+                                `You ${isLiked ? "unliked" : "liked"} ${data.displayName}`,
                                 { icon: "", type: isLiked ? "info" : "success" }
                             );
                         } else {
                             setIsLikeLoading(false);
+                            
                             toast.show(
-                                `Failed to ${isLiked ? "unlike" : "like"} ${displayName}`,
+                                `Failed to ${isLiked ? "unlike" : "like"} ${data.displayName}`,
                                 {
                                     subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
                                     icon: "", 
@@ -511,20 +448,20 @@ export default function CharacterCard({
                         }
                     }}
                 >
-                    <div className={`${isLiked ? "text-accent" : "" } justify-between`}>
+                    <button className={`${isLiked ? "text-accent" : "" } justify-between`}>
                         {isLiked ? "Unlike" : "Like"}
                         <span 
                             className={`${isLikeLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                             {isLiked ? "" : ""}
                         </span>
-                    </div>
+                    </button>
                 </li>
 
                 <li 
                     className="relative group"
                     onMouseEnter={checkCollectionMenuPosition}
                 >
-                    <button className="flex items-center justify-between gap-4 w-full">
+                    <button className="justify-between w-full">
                         Add to Collection
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                             
@@ -536,10 +473,10 @@ export default function CharacterCard({
                     <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
                         <li>
                             <button 
-                                className="flex items-center justify-between gap-4"
+                                className="justify-between"
                                 onClick={() => {
-                                    exampleTrigger();
-                                    closeContextMenu(id);
+                                    
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 Favorites
@@ -551,10 +488,10 @@ export default function CharacterCard({
                         <hr />
                         <li>
                             <button 
-                                className="flex items-center justify-between gap-4"
+                                className="justify-between"
                                 onClick={() => {
-                                    exampleTrigger();
-                                    closeContextMenu(id);
+                                    
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 Superheroes
@@ -568,10 +505,10 @@ export default function CharacterCard({
                         </li>
                         <li>
                             <button 
-                                className="flex items-center justify-between gap-4"
+                                className="justify-between"
                                 onClick={() => {
-                                    exampleTrigger();
-                                    closeContextMenu(id);
+                                    
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 Featured by OpenProfile
@@ -586,10 +523,10 @@ export default function CharacterCard({
                         <hr />
                         <li>
                             <button 
-                                className="flex items-center justify-between gap-4"
+                                className="justify-between"
                                 onClick={() => {
-                                    exampleTrigger();
-                                    closeContextMenu(id);
+                                    
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 New Collection
@@ -604,10 +541,10 @@ export default function CharacterCard({
                 {!isLiked && (
                     <li>
                         <button 
-                            className="flex items-center justify-between gap-4 text-error"
+                            className="justify-between text-error"
                             onClick={() => {
-                                exampleTrigger();
-                                closeContextMenu(id);
+                                
+                                closeContextMenu(data.id);
                             }}
                         >
                             Not Interested
@@ -619,10 +556,10 @@ export default function CharacterCard({
                 )}
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4 text-error"
+                        className="justify-between text-error"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Hide Collaboration
@@ -633,10 +570,10 @@ export default function CharacterCard({
                 </li>
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4 text-error"
+                        className="justify-between text-error"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Mute
@@ -647,10 +584,10 @@ export default function CharacterCard({
                 </li>
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4 text-error"
+                        className="justify-between text-error"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Report
@@ -662,10 +599,10 @@ export default function CharacterCard({
                 <hr />
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4"
+                        className="justify-between"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Share
@@ -676,10 +613,10 @@ export default function CharacterCard({
                 </li>
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4"
+                        className="justify-between"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Copy ID
@@ -691,10 +628,10 @@ export default function CharacterCard({
                 <hr />
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4 text-warning"
+                        className="justify-between text-warning"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Moderate
@@ -705,10 +642,10 @@ export default function CharacterCard({
                 </li>
                 <li>
                     <button 
-                        className="flex items-center justify-between gap-4 text-warning"
+                        className="justify-between text-warning"
                         onClick={() => {
-                            exampleTrigger();
-                            closeContextMenu(id);
+                            
+                            closeContextMenu(data.id);
                         }}
                     >
                         Manage
@@ -719,11 +656,11 @@ export default function CharacterCard({
                 </li>
             </ul>
 
-            <Component to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}>
+            <Component to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}>
                 <div className="absolute inset-0 group">
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
-                        src={avatar}
+                        src={data.avatar}
                         alt="avatar"
                         style={{
                             maskImage: `linear-gradient(
@@ -765,10 +702,10 @@ export default function CharacterCard({
                         }}
                     />
 
-                    { animatedAvatar ?
+                    { data.animatedAvatar ?
                         <img
                             className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 group-hover:opacity-100"
-                            src={animatedAvatar}
+                            src={data.animatedAvatar}
                             alt="animated avatar"
                             style={{
                                 maskImage: `linear-gradient(
@@ -816,11 +753,11 @@ export default function CharacterCard({
                     <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold text-center w-full truncate leading-snug">
-                                {displayName || slug || id}
+                                {data.displayName || data.slug || data.id}
                             </span>
                         </div>
 
-                        {owner?.isVerified ?
+                        {data.owner?.isVerified ?
                             <div className="z-1 relative font-normal tooltip tooltip-top tooltip-accent">
                                 <a href={`https://${window.config.domains.support}/en-us/articles/verification`} target="_blank"
                                     onClick={(e) => {
@@ -841,7 +778,7 @@ export default function CharacterCard({
                         }
 
                         {(() => {
-                            const unofficialBadge = badges.find(b => b.type === "unofficial");
+                            const unofficialBadge = data.badges.find(b => b.type === "unofficial");
                             if (!unofficialBadge) return null;
 
                             return (
@@ -874,22 +811,22 @@ export default function CharacterCard({
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <Link 
                                     className="truncate text-xs leading-snug hover:underline" 
-                                    to={`/${owner.slug || owner.id}`}
+                                    to={`/${data.owner.slug || data.owner.id}`}
                                 >
-                                    {owner?.displayName || owner.slug || owner.id}
+                                    {data.owner?.displayName || data.owner.slug || data.owner.id}
                                 </Link>
                             </div>
                         </div>
                     </div>
 
-                    <div className="text-xs line-clamp-6 my-2">{about || "This character does not have an about."}</div>            
+                    <div className="text-xs line-clamp-6 my-2">{data.about || "This character does not have an about."}</div>            
                 </div>
 
                 <div className="flex flex-row gap-8 justify-center w-full">
                     <div className="absolute z-1 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1">
                         <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base w-4 h-6 ${interactions?.views?.interacted ? "text-accent" : ""}`}>󰈈</span>
-                            <span className="text-xs ml-2">{formatNumber(interactions?.views?.count || 0).short}</span>
+                            <span className={`font-nerdfont text-base w-4 h-6 ${data.interactions?.views?.interacted ? "text-accent" : ""}`}>󰈈</span>
+                            <span className="text-xs ml-2">{formatNumber(data.interactions?.views?.count || 0).short}</span>
                         </div>
                         <div className="flex items-center justify-center">
                             <span className={`font-nerdfont text-base w-4 h-6 ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}></span>
@@ -901,3 +838,90 @@ export default function CharacterCard({
         </div>
     );
 }
+
+    
+// DEVELOPER NEEDED: Make an API response type
+// DEVELOPER NEEDED: Add a popup like block/limit when clicking not interested so it says how it will affect your account
+
+/*
+ <li>
+                            <button 
+                                className="justify-between"
+                                disabled={isPinLoading}
+                                onClick={async () => {
+                                    try {
+                                        if (isPinLoading) return;
+                                        // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
+
+                                        // ONLY PIN TO PROFILE IF THE PROFILE/PROJECT
+
+                                        setIsPinLoading(true);
+                                        let response;
+
+                                        if (isPinned) {
+                                            response = await fetch(
+                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${data.id}`,
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                    credentials: "include"
+                                                }
+                                            );
+
+                                            setIsHidden(true);
+                                        } else {
+                                            response = await fetch(
+                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${data.id}`,
+                                                {
+                                                    method: "POST",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                    },
+                                                    credentials: "include",
+                                                    body: JSON.stringify({
+                                                        position: 1,
+                                                    }),
+                                                }
+                                            );
+                                        }
+
+                                        if (!response.ok) {
+                                            throw new Error("Failed to pin asset");
+                                        }
+
+                                        setIsPinned(!isPinned);
+
+                                        toast.show(
+                                            `You ${isPinned ? "unpinned" : "pinned"} ${data.displayName}`,
+                                            {
+                                                icon: isPinned ? "󰐄" : "󰐃",
+                                                type: isPinned ? "info" : "success",
+                                            }
+                                        );
+                                    } catch (error) {
+                                        console.error(error);
+
+                                        toast.show("Failed to pin asset", {
+                                            type: "error",
+                                        });
+                                    } finally {
+                                        setIsPinLoading(false);
+                                    }
+                        
+                                    // closeContextMenu(data.id);
+                                }}
+                            >
+                                <span
+                                    className={`${isPinned ? "text-error" : "text-base-content"}`}
+                                >
+                                    {isPinned ? "Unpin from Profile" : "Pin to Profile"}
+                                </span>
+                                <span className={`${isPinLoading ? "loading" : ""} font-nerdfont ${isPinned ? "text-error" : "text-base-content"} text-lg flex h-6 w-4 leading-none items-center justify-center`}>
+                                    {isPinLoading ? "" : isPinned ? "󰐄" : "󰐃"}
+                                </span>
+                            </button>
+                        </li>
+
+*/

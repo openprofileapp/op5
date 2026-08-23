@@ -21,7 +21,7 @@ export default function AssetCarousel({
     viewAllLink,
     isLoading = false
 }: Props) {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -68,7 +68,7 @@ export default function AssetCarousel({
         
     }, [isLoading, assets]);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>  
@@ -121,35 +121,8 @@ export default function AssetCarousel({
                             <div key = {d.id} className="flex-shrink-0">
                                 {assetType === "character" && (
                                     <CharacterCard
-                                        id = { d.id }
-                                        aura = {{
-                                            isEnabled: d.isAuraEnabled,
-                                            type: d.auraType,
-                                            primary: d.auraPrimary,
-                                            secondary: d.auraSecondary
-                                        }}
-                                        avatar = { d.avatar ? `https://cdn.openprofile.app${d.avatar}` : "" }
-                                        displayName = { d.displayName}
-                                        slug = { d.slug }
-                                        owner = {{
-                                            id: d.owner.id,
-                                            slug: d.owner.username,
-                                            displayName: d.owner.displayName,
-                                            isVerified: d.owner.isVerified,
-                                            type: d.owner.type
-                                        }}
-                                        badges = { d.badges }
-                                        about = { d.about }
-                                        interactions = {{
-                                            views: {
-                                                count: d.interactions.views?.count,
-                                                interacted: d.interactions.views?.hasInteracted
-                                            },
-                                            likes: {
-                                                count: d.interactions.likes?.count,
-                                                interacted: d.interactions.likes?.hasInteracted
-                                            }
-                                        }}
+                                        data={d}
+                                        isHomeScreen={true}
                                     />
                                 )}
                             </div>

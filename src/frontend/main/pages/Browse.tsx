@@ -17,7 +17,7 @@ import { Pagination } from "../components/Pagination.js";
 
 export default function SearchProfiles() {
     const { tag } = useParams();
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
     const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
     const [users, setUsers] = useState<unknown[]>([]);
@@ -91,7 +91,7 @@ export default function SearchProfiles() {
         fetchProfiles();
     }, [location.pathname, currentPage, tag, endpoint]);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <>  
@@ -208,35 +208,7 @@ export default function SearchProfiles() {
                     
                     {!loading && profiles.map((d) => (
                         <CharacterCard
-                            id={d.id}
-                            aura={{
-                                isEnabled: d.isAuraEnabled,
-                                type: d.auraType,
-                                primary: d.auraPrimary,
-                                secondary: d.auraSecondary
-                            }}
-                            avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                            displayName={d.displayName}
-                            slug={d.slug}
-                            owner={{
-                                id: d.owner.id,
-                                slug: d.owner.username,
-                                displayName: d.owner.displayName,
-                                isVerified: d.owner.isVerified,
-                                type: "user" // p.owner.type
-                            }}
-                            badges = { d.badges }
-                            about={d.about}
-                            interactions = {{
-                                views: {
-                                    count: d.interactions.views?.count,
-                                    interacted: d.interactions.views?.hasInteracted
-                                },
-                                likes: {
-                                    count: d.interactions.likes?.count,
-                                    interacted: d.interactions.likes?.hasInteracted
-                                }
-                            }}
+                            data={d}
                         />
                     ))}
                 </div>
