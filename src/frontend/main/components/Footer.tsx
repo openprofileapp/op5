@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import isGateway from "../../_common/helpers/isGateway.js";
 
 export default function Footer() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>

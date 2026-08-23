@@ -33,7 +33,7 @@ const nameToIso2: Record<string, string> = Object.fromEntries(
 );
 
 export default function WorldMap({data = {}}: Props) {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [tooltip, setTooltip] = useState<Tooltip>(null);
 
@@ -76,7 +76,7 @@ export default function WorldMap({data = {}}: Props) {
             );
     }, [countryTotals]);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <div>

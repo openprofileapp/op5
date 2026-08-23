@@ -19,9 +19,9 @@ import { CSS } from "@dnd-kit/utilities";
 import ProjectCard from "../ProjectCard.js";
 
 export default function EditProjectModal() {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
 
      const avatarInputRef = useRef(null);

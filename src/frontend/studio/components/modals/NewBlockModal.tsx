@@ -437,7 +437,7 @@ interface NewBlockModalProps {
 }
 
 export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockModalProps) {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [screen, setScreen] = useState<Screen>("menu");
     const [searchQuery, setSearchQuery] = useState("");
@@ -525,7 +525,7 @@ export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockM
         resetForm();
     }
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog id="new-block" className="modal" onClose={resetForm}>

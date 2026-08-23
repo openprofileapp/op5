@@ -7,9 +7,9 @@ import Navbar from "../../components/Navbar.js";
 import Footer from "../../components/Footer.js";
 
 export default function Partners() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <>

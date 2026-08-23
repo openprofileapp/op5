@@ -18,7 +18,7 @@ import ExternalLinks from "../components/ExternalLinks.js";
 
 export default function UserProfile() {
     const { id } = useParams();
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState("projects");

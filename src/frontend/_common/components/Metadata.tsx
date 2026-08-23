@@ -25,10 +25,10 @@ export default function Metadata({
     allowIndex = "true"
 }: Metadata ) {
     const location = useLocation();
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
     const url = new URL(window.location.origin + location.pathname);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     const formattedTitle = title 
         ? `${title} | ${window.config.metadata.name}`

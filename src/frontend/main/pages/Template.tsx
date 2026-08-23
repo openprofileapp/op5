@@ -30,7 +30,7 @@ import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 
 export default function NotFound() {
     const { id } = useParams();
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState("about");

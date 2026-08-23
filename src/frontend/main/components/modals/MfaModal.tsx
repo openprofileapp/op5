@@ -47,7 +47,7 @@ const METHODS = {
 } as const;
 
 export default function MfaModal() {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [loading, setLoading] = useState(false);
     const [loadingConnection, setLoadingConnection] = useState<string | null>(null);
@@ -252,7 +252,7 @@ export default function MfaModal() {
         }
     }
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog ref={modalRef} id="mfa" className="modal">

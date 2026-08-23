@@ -21,7 +21,7 @@ type Props = {
 export default function Navbar({ isBannerPage = false }: Props) {
     const config = window.config;
 
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [scrolled, setScrolled] = useState(false);
     const [user, setUser] = useState<UserProfileType | null>();
@@ -163,7 +163,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>

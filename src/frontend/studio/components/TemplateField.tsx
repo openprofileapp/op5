@@ -190,7 +190,7 @@ export default function TemplateField({
     comments,
     dragHandleProps
 }: Props) {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [isFocused, setIsFocused] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
@@ -454,7 +454,7 @@ export default function TemplateField({
         }
     };
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>                           

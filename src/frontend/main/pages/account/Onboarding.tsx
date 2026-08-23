@@ -6,7 +6,7 @@ import isGateway from "../../../_common/helpers/isGateway.js";
 import Metadata from "../../../_common/components/Metadata.js";
 
 export default function Onboarding() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -49,7 +49,7 @@ export default function Onboarding() {
         }
     };
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <>

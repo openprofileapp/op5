@@ -3,9 +3,9 @@ import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
 
 export default function Home() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <>  

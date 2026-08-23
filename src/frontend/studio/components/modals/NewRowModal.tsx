@@ -56,7 +56,7 @@ interface NewRowModalProps {
 }
 
 export default function NewRowModal({ onAddRow }: NewRowModalProps) {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [loading] = useState(false);
     const [screen, setScreen] = useState<Screen>("menu");
@@ -95,7 +95,7 @@ export default function NewRowModal({ onAddRow }: NewRowModalProps) {
         resetForm();
     }
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog id="new-row" className="modal" onClose={resetForm}>

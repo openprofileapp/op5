@@ -14,9 +14,9 @@ export default function Badges({
     badges = [],
     hasBackground = true
 }: Props) {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     if (badges && badges.length < 1) {
         return;

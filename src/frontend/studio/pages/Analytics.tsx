@@ -6,7 +6,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import WorldMap from "../components/WorldMap.js";
 
 export default function Analytics() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
      const dummyData = {
         reads: {
@@ -21,7 +21,7 @@ export default function Analytics() {
         },
     };
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <>

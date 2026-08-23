@@ -80,7 +80,7 @@ interface NewFieldModalProps {
 }
 
 export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModalProps) {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [loading] = useState(false);
     const [screen, setScreen] = useState<Screen>("menu");
@@ -134,7 +134,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModal
         resetForm();
     }
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog id="new-field" className="modal" onClose={resetForm}>

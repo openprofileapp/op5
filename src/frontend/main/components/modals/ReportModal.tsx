@@ -11,7 +11,7 @@ import { useObjectURL } from "../../../_common/hooks/useObjectURL.hook.js";
 // On gif upload, remove it then prompt to join premium
 
 export default function ReportModal() {
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [activeTab, setActiveTab] = useState("general");
 
@@ -35,7 +35,7 @@ export default function ReportModal() {
         setAbout("");
     }
     
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog id="report" className="modal">

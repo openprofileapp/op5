@@ -162,7 +162,7 @@ export function SortableItem({ id, children }: SortableItemProps) {
 
 export default function CharacterTemplate() {
     const { id } = useParams();
-    const { ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const isToastActiveRef = useRef(false);
     const [drawerOpen, setDrawerOpen] = useState(true);
@@ -558,7 +558,7 @@ export default function CharacterTemplate() {
         return () => window.removeEventListener("hashchange", updateBlock);
     }, []);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>

@@ -12,9 +12,9 @@ import {
 } from "../../scripts/oauth2.js";
 
 export default function LoginModal() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [loading, setLoading] = useState<string | null>(null);

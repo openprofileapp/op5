@@ -16,7 +16,7 @@ import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
 
 export default function Home() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
@@ -173,7 +173,7 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <>  

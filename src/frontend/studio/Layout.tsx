@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Outlet } from "react-router-dom";
 
 export default function Layout() {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
     const contentDetailsRef = useRef(null);
     const [drawerOpen, setDrawerOpen] = useState(true);
@@ -26,7 +26,7 @@ export default function Layout() {
         };
     }, []);
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
     
     return (
         <div className="drawer lg:drawer-open">

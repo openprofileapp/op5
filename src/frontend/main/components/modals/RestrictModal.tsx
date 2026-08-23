@@ -12,9 +12,9 @@ export default function RestrictModal({
     displayName,
     isStaff
 }: Props) {
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     return (
         <dialog id="restrict" className="modal">

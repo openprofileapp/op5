@@ -11,9 +11,9 @@ export default function Navbar({ dest }: NavbarProps) {
     let linkName = "";
     const config = window.config;
 
-    const { t, ready } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!ready) return null;
+    if (!isTranslationReady) return null;
 
     if (dest === "/") {
         linkName = t("pages.about.goHome");
