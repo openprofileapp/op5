@@ -188,7 +188,7 @@ export const getInteractionsCount = (req: Request, res: Response) => {
 
 
 // https://api.openprofile.app/v2/interactions/5719552362357773/following?page=2 (list)
-// https://api.openprofile.app/v2/interactions/5719552362357773 (all interactions count)
+// https://api.openprofile.app/v2/interactions/5719552362357773 (all interactions count; only show blocks and stuff for owner)
 // Which gives only counts; eg 500 views etc.
 
 export const getFollowing = (req: Request, res: Response) => {
@@ -277,8 +277,6 @@ export const getRelationship = (req: Request, res: Response) => {
 };
 
 
-
-export const postInteraction = (req: Request, res: Response) => {};
 
 // update this controller to take each path individually
 // https://api.openprofile.app/v2/interactions/follows -> body: { target: "5019646586243236" }

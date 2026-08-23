@@ -12,6 +12,8 @@ export const postPins = async (req: Request, res: Response) => {
         const { ownerId, assetId } = req.params;
         const { position } = req.body;
 
+        // DEVELOPER NEEDED: Pin ownerId should be req.session; lookup how postInteraction works
+        
         if (!req.session?.userId) {
             return res.status(403).json({ error: "No account" });
         }
