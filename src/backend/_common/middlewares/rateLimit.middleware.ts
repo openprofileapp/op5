@@ -48,8 +48,9 @@ export default function rateLimitMiddleware(requests: number = 240) {
                 }
             );
 
-            res.status(429).json({
-                error: "Too many requests, please try again later.",
+            return res.status(429).json({
+                code: 429,
+                message: "Too many requests, please try again later."
             });
         },
     });
