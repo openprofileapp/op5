@@ -37,6 +37,7 @@ export type GetPublishedCharacterType = Omit<
     badges: GetBadgeType[];
     links?: GetLinkType[];
     interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;
+    isPinned?: boolean;
 };
 
 // DEVELOPER NEEDED: Add DraftCharacterType here
