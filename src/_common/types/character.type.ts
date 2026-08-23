@@ -35,8 +35,8 @@ export type GetPublishedCharacterType = Omit<
     owner: OwnerType;
     tags: string[];
     badges: GetBadgeType[];
-    links: GetLinkType[];
-    interactions: Partial<Record<InteractionNameType, InteractionCollection>>;
+    links?: GetLinkType[];
+    interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;
 };
 
 // DEVELOPER NEEDED: Add DraftCharacterType here

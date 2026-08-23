@@ -43,6 +43,6 @@ export type GetUserType = Omit<
 > & {
     tags: string[];
     badges: GetBadgeType[];
-    links: GetLinkType[];
-    interactions: Partial<Record<InteractionNameType, InteractionCollection>>;
+    links?: GetLinkType[];
+    interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;
 };
