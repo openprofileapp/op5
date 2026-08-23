@@ -11,7 +11,7 @@ import { InteractionMethod, InteractionNameType } from "../../../_common/types/i
 import getLinksById from "./getLinksById.service.js";
 import { i18n } from "../instances.js";
 
-// DEVELOPER NEEDED: Add an option to skip interaction and link fetching
+// DEVELOPER NEEDED: Add an option to skip interactions, links, and pin fetching
 type Options = {
     getAs?: string;
     interactionTypes?: InteractionNameType[];
@@ -73,11 +73,22 @@ export default function getPublishedCharactersById(
         characterIds,
         { 
             method: options?.interactionMethod || "target",
-            types: options?.interactionTypes || ["views", "likes"],
+            types: options?.interactionTypes || [
+                "dismisses",
+                "follows",
+                "hiddenCollaborations",
+                "hides",
+                "likes",
+                "mutes",
+                "views"
+            ],
             checkSourceInteraction: options?.getAs,
             countOnly: options?.interactionCountOnly
         }
     );
+
+    // DEVELOPER NEEDED: Add getPinsById() // Only for users and universes, an array of pins
+    // isPinned = pins.length > 0
 
     if (!isArray) {
         const { ownerId, ...rest } = result.rows[0];
