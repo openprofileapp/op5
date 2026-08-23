@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
@@ -29,7 +29,7 @@ export const getPopularCharacters = (req: Request, res: Response) => {
         const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
-        const result = db.characters.query<CharacterType>(
+        const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
                 WHERE visibility = ?
@@ -77,12 +77,12 @@ export const getPopularCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const characters = result.rows.map((row) => {
-            return getPublishedCharactersById(row.id);
-        });
+        const array = result.rows.map((row) => row.id);
+
+        const characterMap = getPublishedCharactersById(array);
 
         res.status(200).json({
-            characters,
+            characters: Array.from(characterMap.values()),
             pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
         });
     } catch(error) {
