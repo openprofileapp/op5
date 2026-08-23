@@ -10,7 +10,7 @@ import Footer from "../components/Footer.js";
 import isGateway from "../../_common/helpers/isGateway.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
-import { getPublishedCharacterType } from "../../../_common/types/getPublishedCharacter.type.js";
+import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 import { apiHost } from "../scripts/hosts.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
@@ -21,15 +21,15 @@ export default function Home() {
     const [index, setIndex] = useState(0);
     const [width, setWidth] = useState(0);
     const wordRef = useRef<HTMLSpanElement | null>(null);
-    const [trendingCharacters, setTrendingCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [trendingCharacters, setTrendingCharacters] = useState<GetPublishedCharacterType[]>([]);
     const [isLoadingTrendingCharacters, setIsLoadingTrendingCharacters] = useState(true);
-    const [popularCharacters, setPopularCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [popularCharacters, setPopularCharacters] = useState<GetPublishedCharacterType[]>([]);
     const [isLoadingPopularCharacters, setIsLoadingPopularCharacters] = useState(true);
-    const [recentCharacters, setRecentCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [recentCharacters, setRecentCharacters] = useState<GetPublishedCharacterType[]>([]);
     const [isLoadingRecentCharacters, setIsLoadingRecentCharacters] = useState(true);
-    const [recentlyUpdatedCharacters, setRecentlyUpdatedCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [recentlyUpdatedCharacters, setRecentlyUpdatedCharacters] = useState<GetPublishedCharacterType[]>([]);
     const [isLoadingRecentlyUpdatedCharacters, setIsLoadingRecentlyUpdatedCharacters] = useState(true);
-    const [recommendedCharacters, setRecommendedCharacters] = useState<getPublishedCharacterType[]>([]);
+    const [recommendedCharacters, setRecommendedCharacters] = useState<GetPublishedCharacterType[]>([]);
     const [isLoadingRecommendedCharacters, setIsLoadingRecommendedCharacters] = useState(true);
 
     const words = [
