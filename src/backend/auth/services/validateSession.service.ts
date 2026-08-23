@@ -20,6 +20,7 @@ import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
 import { GeoIpType } from "../types/geoIp.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
+import { UserAccountType } from "../types/userAccount.type.js";
 
 function normalizeIp(ip?: string | string[]) {
     if (!ip) return undefined;
@@ -725,8 +726,31 @@ export default async function validateSession(
         })
     }
 
-    // Display member role for non-logged users
-    const role = PlatformPermissionsService.getRole("guest");
+    let permissions;
+
+    if (row.userId) {
+        const result = db.accounts.query<UserAccountType>(
+            "SELECT permissions FROM users WHERE id = ? LIMIT 1",
+            [row.userId]
+        );
+
+        if (!result.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching permissions",
+                details: result.error
+            })
+        }
+
+        permissions = {
+            value: result.rows[0].permissions,
+            array: PlatformPermissionsService.decode(
+                result.rows[0].permissions
+            )
+        }
+    } else {
+        permissions = PlatformPermissionsService.getRole("guest");
+    }
 
     if (row.delegationToken) {
         const result = db.accounts.query<SessionType>(
@@ -758,8 +782,8 @@ export default async function validateSession(
         sessionId,
         userId: row.userId,
         permissions: {
-            value: role.value,
-            array: role.array
+            value: permissions.value,
+            array: permissions.array
         },
         locale: rowGeoIpJSON.locale,
         timezone: rowGeoIpJSON.timezone,
