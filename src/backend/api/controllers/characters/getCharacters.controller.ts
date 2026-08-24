@@ -15,8 +15,10 @@ export const getCharacters = (req: Request, res: Response) => {
         const { 
             id, 
             owner, 
+            visibility = "public", 
             page, 
-            limit = config.limits.assetsPerPage 
+            limit = config.limits.assetsPerPage,
+            q: query
         } = req.query;
 
         const offset = 
@@ -38,6 +40,14 @@ export const getCharacters = (req: Request, res: Response) => {
         const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
+        const searchQuery = typeof query === "string" ? query.trim() : "";
+        const searchClause = searchQuery 
+            ? "AND (displayName LIKE ? OR about LIKE ? OR tags LIKE ?)" 
+            : "";
+        const searchParams = searchQuery 
+            ? [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`] 
+            : [];
+
         const orderClause = userInterestList.length > 0
             ? `(${userInterestList.map(
                     () => "(CASE WHEN tags LIKE ? THEN ? ELSE 0 END)"
@@ -57,6 +67,7 @@ export const getCharacters = (req: Request, res: Response) => {
                 WHERE visibility = ?
                     ${idClause}
                     ${ownerIdClause}
+                    ${searchClause}
                 ORDER BY ${orderClause}
                 LIMIT ? OFFSET ?
             `,
@@ -64,6 +75,7 @@ export const getCharacters = (req: Request, res: Response) => {
                 "public",
                 ...idParams,
                 ...ownerIdArgs,
+                ...searchParams,
                 ...orderParams,
                 limit,
                 offset
@@ -84,11 +96,13 @@ export const getCharacters = (req: Request, res: Response) => {
                 WHERE visibility = ?
                     ${idClause}
                     ${ownerIdClause}
+                    ${searchClause}
             `,
             [
-                "public",
+                visibility,
                 ...idParams,
-                ...ownerIdArgs
+                ...ownerIdArgs,
+                ...searchParams
             ]
         );
 
@@ -100,13 +114,14 @@ export const getCharacters = (req: Request, res: Response) => {
             })
         }
 
-        const characters = getPublishedCharactersById(
+        const characterRecord = getPublishedCharactersById(
             result.rows.map((row) => row.id)
         );
 
         res.status(200).json({
-            characters,
-            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
+            characters: Object.values(characterRecord),
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit)),
+            totalCount: resultCount.rows[0].count
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
