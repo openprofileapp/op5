@@ -14,14 +14,14 @@
  * });
  */
 
+import { assertNotNull } from "../asserts/notNull.assert.js";
+
 /* eslint-disable */
 export default async function terminateApp(
     log: any,
     db?: any
 ) {
-    if (!log) {
-        throw new Error("Log instance is not defined");
-    }
+    assertNotNull(log);
 
     if (db) {
         await Promise.all(db.connections.map((c: { disconnect: () => any; }) => c.disconnect()));

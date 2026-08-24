@@ -1,32 +1,30 @@
-/* eslint-disable */
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
 import { config } from "../../../app.config.js";
+import { assertNotNull } from "../asserts/notNull.assert.js";
 
 dotenv.config();
 
 /**
  * Get the value of an environment variable
  */
-export default function getEnv(key: string): any {
+export default function getEnv(key: string) {
     const value = process.env[key];
 
     if (key === "SSL") {
         return {
             cert: fs.readFileSync(
-                path.join(config.folders.root, value as string, `${config.isProduction ? "openprofile" : "openprofile"}.crt`)
+                path.join(config.folders.root, value as string, ".crt")
             ),
             key: fs.readFileSync(
-                path.join(config.folders.root, value as string, `${config.isProduction ? "openprofile" : "openprofile"}.key`)
+                path.join(config.folders.root, value as string, ".key")
             )
         }
     }
     
-    if (!value) {
-        throw new Error(`Missing environment variable: ${key}`);
-    }
+    assertNotNull(key);
 
     return value;
 }
