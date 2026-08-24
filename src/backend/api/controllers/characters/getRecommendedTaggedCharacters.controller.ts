@@ -5,7 +5,7 @@ import { AdvancedError } from "kage-library";
 import { i18n, log } from "../../instances.js";
 import getUserInterestsById from "../../services/getUserInterestsById.service.js";
 import { db } from "../../databases/db.js";
-import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
@@ -92,7 +92,7 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
             item.algorithmScore
         ]);
 
-        const result = db.characters.query<CharacterType>(
+        const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
                 WHERE visibility = ?
@@ -157,13 +157,14 @@ export const getRecommendedTaggedCharacters = (req: Request, res: Response) => {
             });
         }
 
-        const characters = result.rows.map((row) => {
+        const characterRecord = result.rows.map((row) => {
             return getPublishedCharactersById(row.id);
         });
 
         res.status(200).json({
-            characters,
-            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
+            characters: Object.values(characterRecord),
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit)),
+            totalCount: resultCount.rows[0].count
         });
     } catch(error) {
         if (error instanceof AdvancedError) {

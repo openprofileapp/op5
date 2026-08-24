@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import { CharacterType } from "../../../../_common/types/queries/character.type.js";
+import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 
@@ -69,7 +69,7 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
         const ownerIdClause = owner ? "AND ownerId != ?" : "";
         const ownerIdArgs = owner ? [owner] : [];
 
-        const result = db.characters.query<CharacterType>(
+        const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
                 WHERE visibility = ?
@@ -108,13 +108,14 @@ export const getTrendingCharacters = (req: Request, res: Response) => {
         const totalItems = sortedCharacters.length;
         const paginatedCharacters = sortedCharacters.slice(offset, offset + limitNum);
 
-        const characters = paginatedCharacters.map((row) => {
+        const characterRecord = paginatedCharacters.map((row) => {
             return getPublishedCharactersById(row.id);
         });
 
         res.status(200).json({
-            characters,
-            pageCount: Math.ceil(totalItems / limitNum)
+            characters: Object.values(characterRecord),
+            pageCount: Math.ceil(totalItems / limitNum),
+            totalCount: totalItems
         });
     } catch(error) {
         if (error instanceof AdvancedError) {

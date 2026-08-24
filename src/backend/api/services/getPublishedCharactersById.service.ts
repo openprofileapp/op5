@@ -11,7 +11,6 @@ import { InteractionMethod, InteractionNameType } from "../../../_common/types/i
 import getLinksById from "./getLinksById.service.js";
 import { i18n } from "../instances.js";
 
-// DEVELOPER NEEDED: Add an option to skip interactions, links, and pin fetching
 type Options = {
     getAs?: string;
     interactionTypes?: InteractionNameType[];
@@ -27,17 +26,17 @@ export default function getPublishedCharactersById(
 export default function getPublishedCharactersById(
     ids: string[],
     options?: Options
-): Map<string, GetPublishedCharacterType>;
+): Record<string, GetPublishedCharacterType>;
 
 export default function getPublishedCharactersById(
     ids: string | string[],
     options?: Options
-): GetPublishedCharacterType | null | Map<string, GetPublishedCharacterType> {
+): GetPublishedCharacterType | null | Record<string, GetPublishedCharacterType> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
 
     if (array.length === 0) {
-        return isArray ? new Map() : null;
+        return isArray ? {} : null;
     }
 
     const { clause, params } = buildSqlInClause("id", array);
@@ -56,7 +55,7 @@ export default function getPublishedCharactersById(
     }
 
     if (result.rowCount < 1) {
-        return isArray ? new Map() : null;
+        return isArray ? {} : null;
     }
 
     const characterIds = result.rows.map((row) => row.id);
@@ -87,9 +86,6 @@ export default function getPublishedCharactersById(
         }
     );
 
-    // DEVELOPER NEEDED: Add getPinsById() // Only for users and universes, an array of pins
-    // isPinned = pins.length > 0
-
     if (!isArray) {
         const { ownerId, ...rest } = result.rows[0];
 
@@ -103,7 +99,7 @@ export default function getPublishedCharactersById(
         };
     }
 
-    const dataMap = new Map<string, GetPublishedCharacterType>();
+    const data: Record<string, GetPublishedCharacterType> = {};
     const rowMap = new Map(result.rows.map(row => [row.id, row]));
 
     for (const id of array) {
@@ -112,15 +108,15 @@ export default function getPublishedCharactersById(
 
         const { ownerId, ...rest } = row;
 
-        dataMap.set(rest.id, {
+        data[rest.id] = {
             ...rest,
             tags: parseTags(rest.tags),
             owner: ownerMap[ownerId]?.[0],
             badges: badgesMap[rest.id] || [],
             links: linksMap[rest.id] || [],
             interactions: interactionsMap[rest.id] || {}
-        });
+        };
     }
 
-    return dataMap;
+    return data;
 }

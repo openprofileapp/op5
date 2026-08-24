@@ -79,7 +79,7 @@ export const getPopularCharacters = (req: Request, res: Response) => {
 
         const array = result.rows.map((row) => row.id);
 
-        const characterMap = getPublishedCharactersById(
+        const characterRecord = getPublishedCharactersById(
             array, 
             {
                 getAs: req.session?.userId || req.ip,
@@ -89,8 +89,9 @@ export const getPopularCharacters = (req: Request, res: Response) => {
         );
 
         res.status(200).json({
-            characters: Array.from(characterMap.values()),
-            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit))
+            characters: Object.values(characterRecord),
+            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit)),
+            totalCount: resultCount.rows[0].count
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
