@@ -99,9 +99,7 @@ export default function SearchProfiles() {
                 title="Search"
                 allowIndex="false"
             />
-            
-            <Navbar />
-            
+
             <div className="px-4 py-4 md:px-14">
 
                 <div className="mt-4 mb-6 text-xl font-bold text-left">
@@ -122,16 +120,11 @@ export default function SearchProfiles() {
 
                 <div className="flex flex-wrap gap-4">
 
-                    {loading && (
-                        <>
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                            <SkeletonCharacterCard />
-                        </>
-                    )}
+                    {loading && 
+                        Array.from({ length: 6 }).map((_, index) => (
+                            <SkeletonCharacterCard key={index} />
+                        ))
+                    }
 
                     {!loading && false && (
                         <>
@@ -219,8 +212,6 @@ export default function SearchProfiles() {
                     onPageChange={(page) => setCurrentPage(page)}
                 />
             </div>
-
-            <Footer />
         </>
     );
 }

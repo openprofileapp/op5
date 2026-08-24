@@ -129,14 +129,9 @@ export default function AssetCarousel({
                         ))}
 
                         {assetType === "character" && isLoading && (
-                            <>
-                                <SkeletonCharacterCard />
-                                <SkeletonCharacterCard />
-                                <SkeletonCharacterCard />
-                                <SkeletonCharacterCard />
-                                <SkeletonCharacterCard />
-                                <SkeletonCharacterCard />
-                            </>
+                            Array.from({ length: 6 }).map((_, index) => (
+                                <SkeletonCharacterCard key={index} />
+                            ))
                         )}
 
                         <div 
