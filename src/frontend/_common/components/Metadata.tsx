@@ -100,9 +100,12 @@ export default function Metadata({
             {/* Config */}
             <link rel="manifest" href={`https://${window.config.domains.main}/manifest.json?version=${formattedVersion}`} />
             <link rel="canonical" href={formattedUrl} />
-            <meta name="robots" content={formattedRobots} />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta charSet="utf-8" />
+            <meta name="robots" content={formattedRobots} />
+            <meta name="noai" content="true" />
+            <meta name="noimageai" content="true" />
+            <meta name="tdm-reservation" content="1" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </Helmet>
     );
 };
