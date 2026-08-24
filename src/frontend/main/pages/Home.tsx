@@ -5,8 +5,6 @@ import { useTranslation } from "react-i18next";
 import { log } from "../scripts/main.js";
 
 import Metadata from "../../_common/components/Metadata.js";
-import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
 import isGateway from "../../_common/helpers/isGateway.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
@@ -61,10 +59,14 @@ export default function Home() {
                     `${apiHost}/v2/characters/trending`, 
                     { credentials: "include" }
                 );
-                
-                const data: characterApiType = await res.json();
 
-                setTrendingCharacters(data.characters);
+                if (res.ok) {
+                    const data: characterApiType = await res.json();
+
+                    setTrendingCharacters(data.characters);
+                } else {
+                    setTrendingCharacters([]);
+                }
             } catch (error) {
                 log.network.error(error);
                 setTrendingCharacters([]);
@@ -86,9 +88,13 @@ export default function Home() {
                     { credentials: "include" }
                 );
                 
-                const data: characterApiType = await res.json();
+                if (res.ok) {
+                    const data: characterApiType = await res.json();
 
-                setPopularCharacters(data.characters);
+                    setPopularCharacters(data.characters);
+                } else {
+                    setPopularCharacters([]);
+                }
             } catch (error) {
                 log.network.error(error);
                 setPopularCharacters([]);
@@ -110,9 +116,13 @@ export default function Home() {
                     { credentials: "include" }
                 );
                 
-                const data: characterApiType = await res.json();
+                if (res.ok) {
+                    const data: characterApiType = await res.json();
 
-                setRecentCharacters(data.characters);
+                    setRecentCharacters(data.characters);
+                } else {
+                    setRecentCharacters([]);
+                }
             } catch (error) {
                 log.network.error(error);
                 setRecentCharacters([]);
@@ -135,9 +145,13 @@ export default function Home() {
                     { credentials: "include" }
                 );
                 
-                const data: characterApiType = await res.json();
+                if (res.ok) {
+                    const data: characterApiType = await res.json();
 
-                setRecentlyUpdatedCharacters(data.characters);
+                    setRecentlyUpdatedCharacters(data.characters);
+                } else {
+                    setRecentlyUpdatedCharacters([]);
+                }
             } catch (error) {
                 log.network.error(error);
                 setRecentlyUpdatedCharacters([]);
@@ -159,9 +173,13 @@ export default function Home() {
                     { credentials: "include" }
                 );
                 
-                const data: characterApiType = await res.json();
+                if (res.ok) {
+                    const data: characterApiType = await res.json();
 
-                setRecommendedCharacters(data.characters);
+                    setRecommendedCharacters(data.characters);
+                } else {
+                    setRecommendedCharacters([]);
+                }
             } catch (error) {
                 log.network.error(error);
                 setRecommendedCharacters([]);
