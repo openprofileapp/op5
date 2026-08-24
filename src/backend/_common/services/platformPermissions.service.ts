@@ -7,73 +7,87 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 
 import { AdvancedError } from "kage-library";
 
-import { db } from "../../api/databases/db.js";
-import { ValidSessionType } from "../../../_common/types/validSession.type.js";
-import { CharacterType } from "../../../_common/types/queries/character.type.js";
-import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
-import { PermissionsType } from "../../../_common/types/queries/permissions.type.js";
-
 const index = {
-    // Base
-    VIEW: 0n, // View OpenProfile and authorized assets/users overview
-    READ: 1n, // Read authorized assets beyond overview
-    WRITE: 2n, // Allows API to accept POST requests (except login, locale, and theme updates)
+    VIEW: 0n, // View user profiles and asset overviews
+    READ: 1n, // Read assets beyond overview
+    WRITE: 2n, // Edit your user profile
 
-    // Common
-    USE_INTERACTIONS: 3n, // REQUIRES "WRITE"; Allows user to follow, like, favorite, mute, block, hide, save, etc.
-    USE_SOCIAL_FEATURES: 4n, // REQUIRES "WRITE"; Comment, message, and send friend requests on/to authorized assets/users
+    USE_INTERACTIONS: 3n, // Follow/like/save/hide/mute/block users and assets etc.
+    USE_SOCIAL_FEATURES: 4n, // Send comments and messages, and send/receive friend requests
     
-    // DEVELOPER NEEDED: EMPTY PERMISSON
-    EMPTY_PERMISSION: 5n, // REQUIRES "WRITE"; Message authorized users
-    CREATE_REPORTS: 6n, // REQUIRES "WRITE"; Create reports on assets and users
-    CREATE_ASSETS: 7n, // REQUIRES "WRITE"; Create and manage owned assets completely including assigning users and deletion
-    CREATE_BOTS: 8n, // REQUIRES "WRITE"; Create and manage owned bot accounts including resetting their tokens and deletion
+    CREATE_REPORTS: 5n, // Create reports on assets and users
+    CREATE_ASSETS: 6n, // Create and manage owned assets
+    CREATE_BOTS: 7n, // Create and manage owned bots
 
-    // PIN_ASSETS: 0n,
-    // VIEW_BIRTHDAY: 0n,
+    PREMIUM_ACCESS: 8n, // Access premium perks (auras, custom themes, animated avatars, etc.)
+    BYPASS_EXTERNAL_ADS: 9n, // Do not display external ads to the user
+    USE_CUSTOM_THEMES: 10n, // Use custom themes
 
-    // Limited
-    BYPASS_EXTERNAL_ADS: 9n, // External ads will not render on client
-    PREMIUM_ACCESS: 10n, // REQUIRES "WRITE"; Access premium perks (auras, create custom themes, promotion, animated avatars, etc.)
-    USE_CUSTOM_THEMES: 11n, // REQUIRES "PREMIUM_ACCESS"; Use custom themes
-    CREATE_MEMORIES: 12n, // REQUIRES "WRITE"; Create and manage posts on authorized assets that disappears after 24 hours
-    VERIFIED_ACCESS: 13n, // ???
-    // DEVELOPER NEEDED: EMPTY PERMISSON
-    EMPTY_PERMISSIN: 14n, // ??? PREVIOUS VOUCH_USER
-    EARN_REVENUE: 15n, // Earn revenue from ads or other means
-    CASHOUT_REVENUE: 15n, // Cashout revenue to external app, bank, or in-app credits
-    ARTIST_ACCESS: 16n, // ???
-    PARTNER_ACCESS: 17n, // Access the partner stats page
+    VERIFIED_ACCESS: 11n, // ???
+    CREATE_MEMORIES: 12n, // Create and manage posts on owned assets that disappears after 24 hours
+    EARN_REVENUE: 13n, // Earn revenue from ads or other means
+    CASHOUT_REVENUE: 14n, // Cashout revenue to external app, bank, or in-app credits
+
+    PARTNER_ACCESS: 15n, // Access the partner stats page and other tools
+    TOGGLE_EXPERIMENTS: 16n, // View and toggle on-going experiments instead of being randomly rolled
+
+    VIEW_ANALYTICS: 17n, // View and compare platform analytics (minus revenue) aganist its own data
+    VIEW_REVENUE: 18n,// View and compare the platform revenue earned aganist its own data
+    AUDIT_ACCESS: 19n, // Based on permissions, view and take action on changes performed
+
+    REVIEW_TICKETS: 20n, // View, sort, accept, or deny support tickets
+    MANAGE_SUBSCRIPTIONS: 21n, // Edit, cancel, or assign account subscriptions
+    TERMINATE_SESSIONS: 23n, // Terminate active user sessions
+
+    REVIEW_REPORTS: 24n, // View, sort, accept, or deny reports
+    REVIEW_APPEALS: 25n, // View, sort, accept, or deny moderation appeals
+    MANAGE_VISIBILITY: 26n, // Manage visibility of assets or user profiles, including badges
+    REQUEST_CHANGES: 27n, // Request changes on assets or user profiles
+    WARN_ACCOUNTS: 28n, // Warn accounts using pre-defined reasons
+    SUSPEND_ACCOUNTS: 29n, // Block accounts from interacting with the platform (they can still view and download assets)
     
-    // Operations
-    VIEW_ANALYTICS: 46n, // View and compare platform analytics (minus revenue) aganist its own data
-    VIEW_REVENUE: 46n,// REQUIRES "VIEW_ANALYTICS"; View and compare the platform revenue earned aganist its own data
-    AUDIT_ACCESS: 55n, // Based on permissions, view and take action on changes performed by users
-    REVIEW_TICKETS: 18n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted tickets
-    MANAGE_SUBSCRIPTIONS: 65n, // REQUIRES "WRITE"; Edit, cancel, or assign account subscriptions
-    REVIEW_REPORTS: 18n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted reports
-    MANAGE_VISIBILITY: 77n, // REQUIRES "WRITE"; Manage visibility on assets or user profiles incluing badges
-    REQUEST_CHANGES: 77n, // REQUIRES "WRITE"; Request changes on assets or user profiles
-    WARN_ACCOUNTS: 78n, // REQUIRES "WRITE"; Warn accounts using pre-defined reasons
-    SUSPEND_ACCOUNTS: 79n, // REQUIRES "WRITE"; Block accounts from accessing most of the platform
-    LOCK_ACCOUNTS: 80n, // REQUIRES "WRITE"; Lock accounts to prevent login without further steps
-    REVIEW_APPEALS: 70n, // REQUIRES "WRITE"; View, sort, accept, or deny user submitted moderation appeals
-    TERMINATE_SESSIONS: 81n, // REQUIRES "WRITE"; Terminate active user sessions
-    MANAGE_ACCESS: 56n, // REQUIRES "WRITE"; View and filter external connections, emails, phone numbers, and ips
-    MANAGE_AUTOMOD: 57n, // REQUIRES "WRITE"; Manage blocked keyword filters and automatic actions on bypass
-    MANAGE_ASSETS: 7n, // REQUIRES "WRITE"; Manage assets overview including assigning users and deletion
-    MANAGE_BOTS: 8n, // REQUIRES "WRITE"; Manage bot accounts overview including resetting their tokens and deletion
-    MANAGE_ACCOUNTS: 64n, // REQUIRES "WRITE"; Manage user profle overview including editing private data
-    TRANSFER_OWNERSHIP: 54n, // REQUIRES "WRITE"; Transfer ownership of assets
-    VERIFY_ACCOUNT: 40n, // REQUIRES "WRITE"; Verify user accounts as official
-    PROMOTE_ASSET: 40n, // REQUIRES "WRITE"; Promote assets to be more visible across the platform
-    MANAGE_STAFF: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "VIEW_ANALYTICS", "AUDIT_ACCESS"
-    MANAGE_PARTNERS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "PARTNER_ACCESS"
-    MANAGE_SUPPORT_AGENTS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
-    MANAGE_MODERATORS: 40n, // REQUIRES "WRITE"; Assign or revoke the following permissions: "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "LOCK_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
-    ADMIN: 57n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
-    SUPER_ADMIN: 58n, // Grants all current and future permissions; complete control over the platform and can assign or revoke the following permissions: "ADMIN" 
+    MANAGE_ACCESS: 30n, // View and filter external link, emails, phone numbers, and ips
+    MANAGE_AUTOMOD: 31n, // Manage blocked keyword filters and automatic actions on bypass
+    MANAGE_ASSETS: 32n, // Manage all published assets, including modifying overview
+    MANAGE_BOTS: 33n, // Manage all bots, including resetting token
+    MANAGE_ACCOUNTS: 34n, // Manage all accounts, including modifying overview
+
+    TRANSFER_OWNERSHIP: 35n, // Transfer ownership of assets
+    VERIFY_ACCOUNT: 36n, // Verify user accounts as official
+    PROMOTE_ASSET: 37n, // Promote assets to be more visible across the platform
+    
+    MANAGE_STAFF: 38n, // Assign or revoke the following permissions: "VIEW_ANALYTICS", "AUDIT_ACCESS"
+    MANAGE_PARTNERS: 39n, // Assign or revoke the following permissions: "PARTNER_ACCESS", "TOGGLE_EXPERIMENTS"
+    MANAGE_SUPPORT_AGENTS: 40n, // Assign or revoke the following permissions: "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
+    MANAGE_MODERATORS: 41n, // Assign or revoke the following permissions: "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
+    
+    ADMIN: 42n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
+    SUPER_ADMIN: 43n, // Grants all current and future permissions; complete control over the platform and can assign or revoke the following permissions: "ADMIN" 
 } as const;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//A.L.I.C.E = "Advanced Language Interactive Content Editor"; idk lol
 
 // Move this to a database if custom roles release
 const roles = {
@@ -173,6 +187,9 @@ interface RoleResult {
     value: string;
     array: PermissionName[];
 }
+
+
+const requiredPermission = interactionPermissions[type as InteractionNameType];
 
 /**
  * Handles encoding, decoding, checking, and updating permission bitmasks.
@@ -342,121 +359,5 @@ export default class PlatformPermissionsService {
         }
 
         return permValue.toString();
-    }
-
-    /**
-     * HELP TEXT HERE
-     */
-    public static can(
-        session: ValidSessionType,
-        permissions: PermissionName | PermissionName[],
-        assetId: string
-    ) {
-        // Check if malformed
-        if (
-            !session || 
-            !permissions || 
-            !assetId
-        ) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
-        }
-
-        // Find and get the asset
-        let isAllowed: boolean = false;
-        let row: 
-            UserProfileType | 
-            CharacterType | 
-            null 
-        = null;
-
-        if (!row) {
-            const result = db.characters.query<CharacterType>(
-                "SELECT * FROM published WHERE id = ?",
-                [assetId]
-            );
-
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while fetching characters",
-                    details: result.error
-                })
-            }
-
-            row = result.rows[0]
-        }
-
-        // ADD UNIVERSES, USERS, ETC
-
-        if (!row) {
-            throw new AdvancedError({
-                code: 404,
-                message: "Asset not found"
-            })
-        }
-
-        // Check if owner
-        if (
-            session.userId === row.id ||
-            session.userId === (row.ownerId)
-        ) {
-            return true;
-        }
-
-        // Check if platform staff
-        if (
-            session.permissions &&
-            this.has(
-                session.permissions?.value, 
-                [
-                    "MANAGE_VISIBILITY", // DEVELOPER NEEDED: This should only be for visibility
-                    "ADMIN"
-                ], 
-                "any"
-            )
-        ) {
-            const allowedPermissions = this.encode(
-                ["VIEW", "READ"] // Add VIEW_BIRTHDATE etc.
-            )
-
-            isAllowed = this.has(
-                allowedPermissions,
-                permissions
-            )
-
-            if (isAllowed) return true;
-        }
-
-        // Check if following // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
-        // Check if friends // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
-
-        // DEVELOPER NEEDED: This is only to be checked for asset permissions. For platform, use accounts database
-        // Check the permissions database
-        const permissionsResult = db.users.query<PermissionsType>(
-            "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
-            [session.userId, assetId]
-        );
-
-        if (!permissionsResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching permissions",
-                details: permissionsResult.error
-            })
-        }
-
-        if (permissionsResult.rowCount > 0) {
-            isAllowed = this.has(
-                permissionsResult.rows[0].permissions,
-                permissions
-            )
-
-            if (isAllowed) return true;
-        }
-        
-        return isAllowed;
     }
 }
