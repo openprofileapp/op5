@@ -1,5 +1,5 @@
 import { db } from "../databases/db.js";
-import getUsersByIdOrUsername from "./getUsersByIdOrUsername.service.js";
+import getUsersById from "./getUsersById.service.js";
 
 export default function getPublishedProfileByOwner(id?: string) {
     if (!id) return { error: "Invalid id" };
@@ -9,7 +9,7 @@ export default function getPublishedProfileByOwner(id?: string) {
     if (!result.success) return { error: "An error occurred while fetching profile" }
     if (result.rowCount < 1) return { error: "Profile not found" }
 
-    const owner = getUsersByIdOrUsername(result.rows[0].ownerId);
+    const owner = getUsersById(result.rows[0].ownerId);
 
     // CALL THE VISIBILITY FUNCTION TO DETERMINE IF THE USER CAN VIEW DATA
     // visibility: owner.visibility
