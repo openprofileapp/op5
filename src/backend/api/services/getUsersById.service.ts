@@ -8,6 +8,7 @@ import { GetUserType, UserType } from "../../../_common/types/user.type.js";
 import getInteractionsById from "./getInteractionsById.service.js";
 import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
 import getLinksById from "./getLinksById.service.js";
+import getUsernamesById from "./geUsernamesById.service.js";
 
 type Options = {
     getAs?: string;
@@ -16,30 +17,29 @@ type Options = {
     interactionCountOnly?: boolean;
 };
 
-export default function getUsersByIdOrUsername(
+export default function getUsersById(
     id: string,
     options?: Options
 ): GetUserType | null;
 
-export default function getUsersByIdOrUsername(
+export default function getUsersById(
     ids: string[],
     options?: Options
-): Map<string, GetUserType>;
+): Record<string, GetUserType>;
 
-export default function getUsersByIdOrUsername(
+export default function getUsersById(
     ids: string | string[],
     options?: Options
-): GetUserType | null | Map<string, GetUserType> {
+): GetUserType | null | Record<string, GetUserType> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
 
     if (array.length === 0) {
-        return isArray ? new Map() : null;
+        return isArray ? {} : null;
     }
 
     const { clause, params } = buildSqlInClause(
-        ["id", "username", "usernameOld"], 
-        array
+        "id", array
     );
 
     const result = db.users.query<UserType>(
@@ -56,10 +56,12 @@ export default function getUsersByIdOrUsername(
     }
 
     if (result.rowCount < 1) {
-        return isArray ? new Map() : null;
+        return isArray ? {} : null;
     }
 
     const userIds = result.rows.map((row) => row.id);
+
+    const usernamesMap = getUsernamesById(userIds);
 
     const badgesMap = getBadgesById(userIds);
 
@@ -78,6 +80,7 @@ export default function getUsersByIdOrUsername(
     const formatUser = (row: UserType): GetUserType => ({
         ...row,
         tags: parseTags(row.tags),
+        usernames: usernamesMap[row.id] || [],
         badges: badgesMap[row.id] || [],
         links: linksMap[row.id] || [],
         interactions: interactionsMap[row.id] || {}
@@ -87,17 +90,17 @@ export default function getUsersByIdOrUsername(
         return formatUser(result.rows[0]);
     }
 
-    const dataMap = new Map<string, GetUserType>();
+    const data: Record<string, GetUserType> = {};
 
     for (const inputKey of array) {
         const match = result.rows.find(
-            (row) => row.id === inputKey || row.username === inputKey || row.usernameOld === inputKey
+            (row) => row.id === inputKey
         );
 
         if (match) {
-            dataMap.set(inputKey, formatUser(match));
+            data[inputKey] = formatUser(match);
         }
     }
 
-    return dataMap;
+    return data;
 }
