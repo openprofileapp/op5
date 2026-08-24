@@ -4,7 +4,7 @@ import { AdvancedError } from 'kage-library';
 
 import { log } from '../instances.js';
 import getAllUsers from '../services/getAllUsers.service.js';
-import getUsersByIdOrUsername from '../services/getUsersByIdOrUsername.service.js';
+import getUsersById from '../services/getUsersById.service.js';
 
 export const getUsers = (req: Request, res: Response) => {
     try {
@@ -18,7 +18,7 @@ export const getUsers = (req: Request, res: Response) => {
             }
 
             res.status(200).json({
-                ...getUsersByIdOrUsername(id)
+                ...getUsersById(id)
             });
         } else  {
             res.status(200).json(getAllUsers());

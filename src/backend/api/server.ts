@@ -23,7 +23,7 @@ import characterRoutes from "./routes/character.routes.js";
 import randomRoutes from "./routes/random.routes.js";
 import getInteractionsById from "./services/getInteractionsById.service.js";
 import getPublishedCharactersById from "./services/getPublishedCharactersById.service.js";
-import getUsersByIdOrUsername from "./services/getUsersByIdOrUsername.service.js";
+import getUsersById from "./services/getUsersById.service.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -117,7 +117,7 @@ cron.schedule("0 0 * * *", () => {
 
 
 
-// log.db.info(getUsersByIdOrUsername("5019646586243236", { getAs: "5719552362357773" })).save();
+// log.db.info(getUsersById("5019646586243236", { getAs: "5719552362357773" })).save();
 // log.db.info(getPublishedCharactersById("1655391085225720", { getAs: "5719552362357773" })).save();
 
 /*log.db.info(getPublishedCharactersById(
@@ -130,5 +130,5 @@ cron.schedule("0 0 * * *", () => {
 //     { types: ["likes", "follows"], checkInteraction: "5719552362357773" }
 // )).save();
 
-// log.db.info(getUsersByIdOrUsername("5719552362357773")).save();
-// log.db.info(getUsersByIdOrUsername(["5719552362357773", "5019646586243236"])).save();
+// log.db.info(getUsersById("5719552362357773")).save();
+// log.db.info(getUsersById(["5719552362357773", "5019646586243236"])).save();
