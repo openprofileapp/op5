@@ -1,5 +1,12 @@
 import { AdvancedError } from "kage-library";
 
+/**
+ * Asserts that a value or array of values is not null or undefined.
+ *
+ * @example
+ * assertNotNull(id);
+ * assertNotNull([id, name]);
+ */
 export function assertNotNull(targets: unknown | unknown[]): void {
     if (targets === null || targets === undefined) {
         throw new AdvancedError({
