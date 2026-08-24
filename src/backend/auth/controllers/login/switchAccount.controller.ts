@@ -3,7 +3,6 @@ import crypto from "crypto";
 
 import { AdvancedError, URL } from "kage-library";
 
-import isBearerTokenAuthorized from "../../../_common/helpers/isTokenOrSecretAuthorized.js";
 import { db } from "../../databases/db.js";
 import { log } from "../../instances.js";
 import { SessionType } from "../../types/session.type.js";
@@ -86,10 +85,6 @@ export const switchAccount = async (req: Request, res: Response) => {
     }
 
     try {
-        if (!await isBearerTokenAuthorized(req)) {
-            return res.status(401).json({ error: "Unauthorized" });
-        }
-
         if (!delegationToken) {
             return res.redirect(refererUrl);
         }
