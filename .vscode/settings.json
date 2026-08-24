@@ -48,6 +48,18 @@
       "base": "controller",
       "color": "#e53935",
       "folderNames": ["assert", "asserts"]
+    },
+    {
+      "name": "stable",
+      "base": "coverage",
+      "color": "#ce1616",
+      "folderNames": ["stable"]
+    },
+    {
+      "name": "nightly",
+      "base": "test",
+      "color": "#8515cf",
+      "folderNames": ["nightly"]
     }
   ],
   "material-icon-theme.files.customClones": [
