@@ -21,9 +21,10 @@ const index = {
 
     // Common
     USE_INTERACTIONS: 3n, // REQUIRES "WRITE"; Allows user to follow, like, favorite, mute, block, hide, save, etc.
-    SEND_COMMENTS: 4n, // REQUIRES "WRITE"; Comment on authorized assets
-    // SEND_CHATS: 5n, // REQUIRES "WRITE"; Chat authorized characters
-    SEND_MESSAGES: 5n, // REQUIRES "WRITE"; Message authorized users
+    USE_SOCIAL_FEATURES: 4n, // REQUIRES "WRITE"; Comment, message, and send friend requests on/to authorized assets/users
+    
+    // DEVELOPER NEEDED: EMPTY PERMISSON
+    EMPTY_PERMISSION: 5n, // REQUIRES "WRITE"; Message authorized users
     CREATE_REPORTS: 6n, // REQUIRES "WRITE"; Create reports on assets and users
     CREATE_ASSETS: 7n, // REQUIRES "WRITE"; Create and manage owned assets completely including assigning users and deletion
     CREATE_BOTS: 8n, // REQUIRES "WRITE"; Create and manage owned bot accounts including resetting their tokens and deletion
@@ -37,7 +38,8 @@ const index = {
     USE_CUSTOM_THEMES: 11n, // REQUIRES "PREMIUM_ACCESS"; Use custom themes
     CREATE_MEMORIES: 12n, // REQUIRES "WRITE"; Create and manage posts on authorized assets that disappears after 24 hours
     VERIFIED_ACCESS: 13n, // ???
-    EMPTY_PERMISSION: 14n, // ??? PREVIOUS VOUCH_USER
+    // DEVELOPER NEEDED: EMPTY PERMISSON
+    EMPTY_PERMISSIN: 14n, // ??? PREVIOUS VOUCH_USER
     EARN_REVENUE: 15n, // Earn revenue from ads or other means
     CASHOUT_REVENUE: 15n, // Cashout revenue to external app, bank, or in-app credits
     ARTIST_ACCESS: 16n, // ???
@@ -163,7 +165,7 @@ interface Role {
     permissions: PermissionName[];
 }
 
-type PermissionName = keyof typeof index;
+export type PermissionName = keyof typeof index;
 type RoleName = keyof typeof roles;
 
 interface RoleResult {
