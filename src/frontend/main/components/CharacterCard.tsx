@@ -126,7 +126,7 @@ export default function CharacterCard({
     index++
 
     {/* DEVELOPER NEEDED: Clicking should open a modal, not a full page */}
-    const Component = isPreview ? "div" : Link;
+    const Wrapper = isPreview ? "div" : Link;
    
     const auraStyle: React.CSSProperties = data.isAuraEnabled
         ? {
@@ -291,15 +291,16 @@ export default function CharacterCard({
                 {data.owner.id === window.session.userId && (
                     <>
                         {/* DEVELOPER NEEDED: Also display on characters where the user has permission to open in studio (eg: write) */}
-                        <li>
+                        <li
+                            onClick={() => {
+                                closeContextMenu(data.id);
+                            }}
+                        >
                             <a
                                 className="justify-between"
                                 href={`${studioHost}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                onClick={() => {
-                                    closeContextMenu(data.id);
-                                }}
                             >
                                 View in Studio
                                 <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -338,7 +339,7 @@ export default function CharacterCard({
                 >
                     <Link 
                         className="justify-between" 
-                        to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}/read`}
+                        to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                     >
                         Read
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -367,51 +368,41 @@ export default function CharacterCard({
 
                 <hr />
 
+                <li 
+                    onClick={async () => {
+                        if (isFollowLoading) return;
 
+                        setIsFollowLoading(true);
 
+                        const res = await postInteraction(data.id, "follows");
 
+                        if (res.ok) {
+                            setIsFollowLoading(false);
+                            setIsFollowing(!isFollowing);
 
-
-
-
-
-
-
-
-
-
-
-
-
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <li>
-                    <button 
-                        className="justify-between"
-                        onClick={() => {
+                            toast.show(
+                                `You ${isFollowing ? "unfollowed" : "followed"} ${data.displayName}`,
+                                { icon: "", type: isFollowing ? "info" : "success" }
+                            );
+                        } else {
+                            setIsFollowLoading(false);
                             
-                            closeContextMenu(data.id);
-                        }}
-                    >
-                        Follow
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
+                            toast.show(
+                                `Failed to ${isFollowing ? "unfollow" : "follow"} ${data.displayName}`,
+                                {
+                                    subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
+                                    icon: "", 
+                                    type: "error" 
+                                }
+                            );
+                        }
+                    }}
+                >
+                    <button className={`${isFollowing ? "text-accent" : "" } justify-between`}>
+                        {isFollowing ? "Unfollow" : "Follow"}
+                        <span 
+                            className={`${isFollowLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                            {isFollowing ? "" : ""}
                         </span>
                     </button>
                 </li>
@@ -420,7 +411,6 @@ export default function CharacterCard({
                     onClick={async () => {
                         if (isLikeLoading) return;
 
-                        // closeContextMenu(data.id); (SOME DO, SOME DON'T LIKE THIS ONE)
                         setIsLikeLoading(true);
 
                         const res = await postInteraction(data.id, "likes");
@@ -457,6 +447,7 @@ export default function CharacterCard({
                     </button>
                 </li>
 
+                {/* DEVELOPER NEEDED: Add collections then polish this  */}
                 <li 
                     className="relative group"
                     onMouseEnter={checkCollectionMenuPosition}
@@ -485,7 +476,9 @@ export default function CharacterCard({
                                 </span>
                             </button>
                         </li>
+
                         <hr />
+
                         <li>
                             <button 
                                 className="justify-between"
@@ -498,11 +491,12 @@ export default function CharacterCard({
                                 <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
                                     <img 
                                         className="rounded-full translate-x-[2px]"
-                                        src="https://cdn.openprofile.app//uploads/users/5019646586243236/5019646586243236.png"
+                                        src="https://cdn.openprofile.app/uploads/users/5019646586243236/5019646586243236.png"
                                     />
                                 </span>
                             </button>
                         </li>
+
                         <li>
                             <button 
                                 className="justify-between"
@@ -520,7 +514,9 @@ export default function CharacterCard({
                                 </span>
                             </button>
                         </li>
+
                         <hr />
+
                         <li>
                             <button 
                                 className="justify-between"
@@ -537,24 +533,54 @@ export default function CharacterCard({
                         </li>
                     </ul>
                 </li>
+
                 <hr />
-                {!isLiked && (
-                    <li>
-                        <button 
-                            className="justify-between text-error"
-                            onClick={() => {
+
+                {/* DEVELOPER NEEDED: If not added to any collections either */}
+                {(!isFollowing && !isLiked) && (
+                    <li 
+                        onClick={async () => {
+                            if (isHideLoading) return;
+
+                            closeContextMenu(data.id);
+                            setIsHideLoading(true);
+
+                            const res = await postInteraction(data.id, "hides");
+
+                            if (res.ok) {
+                                setIsHideLoading(false);
+                                setIsHidden(!isHidden);
+
+                                toast.show(
+                                    `You will no longer see ${data.displayName}`,
+                                    { icon: "", type: "info" }
+                                );
+                            } else {
+                                setIsHideLoading(false);
                                 
-                                closeContextMenu(data.id);
-                            }}
-                        >
+                                toast.show(
+                                    `Failed to hide ${data.displayName}`,
+                                    {
+                                        subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
+                                        icon: "", 
+                                        type: "error" 
+                                    }
+                                );
+                            }
+                        }}
+                    >
+                        <button className="justify-between text-accent">
                             Not Interested
-                            <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
+                            <span 
+                                className={`${isHideLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                                 󰈉
                             </span>
                         </button>
                     </li>
                 )}
-                <li>
+
+                {/* DEVELOPER NEEDED: Polish this and only show on profile page */}
+                {/*<li>
                     <button 
                         className="justify-between text-error"
                         onClick={() => {
@@ -567,7 +593,48 @@ export default function CharacterCard({
                             󰈉
                         </span>
                     </button>
-                </li>
+                </li>*/}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+
                 <li>
                     <button 
                         className="justify-between text-error"
@@ -611,20 +678,22 @@ export default function CharacterCard({
                         </span>
                     </button>
                 </li>
-                <li>
-                    <button 
-                        className="justify-between"
-                        onClick={() => {
-                            
-                            closeContextMenu(data.id);
-                        }}
-                    >
-                        Copy ID
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰅇
-                        </span>
-                    </button>
-                </li>
+                {Boolean(window.session.user?.isDeveloper) && (
+                    <li>
+                        <button 
+                            className="justify-between"
+                            onClick={() => {
+                                
+                                closeContextMenu(data.id);
+                            }}
+                        >
+                            Copy ID
+                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                󰅇
+                            </span>
+                        </button>
+                    </li>
+                )}
                 <hr />
                 <li>
                     <button 
@@ -656,11 +725,11 @@ export default function CharacterCard({
                 </li>
             </ul>
 
-            <Component to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}>
+            <Wrapper to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}>
                 <div className="absolute inset-0 group">
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
-                        src={data.avatar}
+                        src={`https://cdn.openprofile.app/${data.avatar}`}
                         alt="avatar"
                         style={{
                             maskImage: `linear-gradient(
@@ -811,9 +880,9 @@ export default function CharacterCard({
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <Link 
                                     className="truncate text-xs leading-snug hover:underline" 
-                                    to={`/${data.owner.slug || data.owner.id}`}
+                                    to={`/${data.owner.username || data.owner.id}`}
                                 >
-                                    {data.owner?.displayName || data.owner.slug || data.owner.id}
+                                    {data.owner?.displayName || data.owner.username || data.owner.id}
                                 </Link>
                             </div>
                         </div>
@@ -834,7 +903,7 @@ export default function CharacterCard({
                         </div>
                     </div>
                 </div>
-            </Component>
+            </Wrapper>
         </div>
     );
 }
