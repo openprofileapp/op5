@@ -3,9 +3,9 @@
     "reason": "We're performing updates!"
   },
   "metadata": {
-    "tagline": "Example Website",
-    "description": "This is an example description",
-    "keywords": "example, keyword",
+    "tagline": "Character Database Platform",
+    "description": "OpenProfile is a free original character database and collaboration platform made by and for writers.",
+    "keywords": "original character database, OC database, writing collaboration, character creation tool, worldbuilding platform, roleplaying character storage, digital character sheet, OC management tool, collaborative storytelling",
     "version": {
       "0.0.1": {
         "name": "First build"
