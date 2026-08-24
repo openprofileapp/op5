@@ -1,13 +1,11 @@
 import { GetBadgeType } from "./badge.type.js";
 import { InteractionCollection, InteractionNameType } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
+import { GetUsernameType } from "./username.type.js";
 
 export type UserType = {
     algorithmScore: string;
     id: string;
-    username: string;
-    usernameOld: string;
-    usernameOldExpire: string;
     displayName?: string;
     fanflair: string;
     avatar?: string;
@@ -26,6 +24,7 @@ export type UserType = {
     auraPrimary: string;
     auraSecondary: string;
     type: string;
+    isDeveloper: boolean;
     isExplicit: boolean;
     visibility: string;
     sendMessages: string;
@@ -42,6 +41,7 @@ export type GetUserType = Omit<
     "tags"
 > & {
     tags: string[];
+    usernames: GetUsernameType[];
     badges: GetBadgeType[];
     links?: GetLinkType[];
     interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;

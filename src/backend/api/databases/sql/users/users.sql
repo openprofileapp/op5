@@ -1,9 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     algorithmScore INTEGER NOT NULL DEFAULT 0,
     id TEXT PRIMARY KEY NOT NULL,
-    username TEXT,
-    usernameOld TEXT,
-    usernameOldExpire TEXT,
     displayName TEXT,
     fanflair TEXT,
     avatar TEXT,
@@ -22,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     type TEXT NOT NULL DEFAULT 'user',
+    isDeveloper INTEGER NOT NULL DEFAULT 0,
     isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'private',
     sendMessages TEXT NOT NULL DEFAULT 'public',

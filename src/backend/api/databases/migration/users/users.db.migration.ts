@@ -9,13 +9,14 @@ db.users.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
+        if (d.id === "5719552362357773") {
+            d.developer = 1
+        }
+
         const result = q(
             `INSERT INTO users (
                 algorithmScore,
                 id,
-                username,
-                usernameOld,
-                usernameOldExpire,
                 displayName,
                 fanflair,
                 avatar,
@@ -33,19 +34,17 @@ db.users.transaction(q => {
                 auraPrimary,
                 auraSecondary,
                 type,
+                isDeveloper,
                 isExplicit,
                 visibility,
                 sendMessages,
                 lastActive,
                 presenceVisibility,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.score,
                 d.id,
-                d.username,
-                d.username_old ,
-                d.username_old_expire ,
                 d.display_name,
                 d.fanflair,
                 d.avatar,
@@ -63,6 +62,7 @@ db.users.transaction(q => {
                 d.aura_primary,
                 d.aura_secondary,
                 d.type,
+                d.developer || 0,
                 d.explicit || 0,
                 d.visibility || "public",
                 d.messages,
