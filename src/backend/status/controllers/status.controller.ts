@@ -5,7 +5,7 @@ import { wc } from '../../_common/instances.js';
 
 export const statusController = async (req: Request, res: Response) => {
 
-    // ADD API SECRET AUTH HERE
+    // DEVELOPER NEEDED: ADD API SECRET AUTH HERE
 
     // Do not ping the status server
     const main = await wc.ping(`https://${config.domains.main}`);

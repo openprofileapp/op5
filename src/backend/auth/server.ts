@@ -56,6 +56,7 @@ router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenR
 router.use("/session", rateLimitMiddleware(240), sessionRoute); // No validateSessionMiddleware here
 router.use("/switch", validateSessionMiddleware, rateLimitMiddleware(10), switchRoutes);
 router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
+// DEVELOPER NEEDED: Add /logout
 router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
 
 /* 

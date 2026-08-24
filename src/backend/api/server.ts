@@ -81,6 +81,10 @@ v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisti
 // v2.use("/audits", ); // For fetching audits
 v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
 v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+// DEVELOPER NEEDED: Add /themes
+// DEVELOPER NEEDED: Set up live-template saving. The 2MB is cause the limit could be a bit large? Experiment on this a bit
+// v2.use("/templates", express.json({ limit: "2mb" }), fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+// 
 
 // DEVELOPER NEEDED: When editing your profile, assign interests based on your uploaded content and user tags,
 // This should assist with getting a head start in what you'd like to see
