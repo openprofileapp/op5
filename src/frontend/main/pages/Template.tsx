@@ -368,8 +368,6 @@ Check out my character: <@6773794953695671>
             <RestrictModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
             <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
 
-            <Navbar isBannerPage={true} />
-
             <div className={user.isAuraEnabled ? "bg-base-200" : "bg-base-200"}>
                 <div style={{backgroundColor: user.isAuraEnabled ? hexToRgba(user.auraPrimary, 0.05) : "transparent"}}>
                     <div className="hero bg-base-200">
@@ -711,7 +709,7 @@ Check out my character: <@6773794953695671>
 
                                         <div className="flex items-center justify-center gap-2 w-full">
                                             <div className="truncate text-sm text-center text-sub">
-                                                @{user.username}{user.pronouns ? ` • ${user.pronouns}` : ""}
+                                                @{user.usernames[0].username}{user.pronouns ? ` • ${user.pronouns}` : ""}
                                             </div>
                                         </div>
 
@@ -1378,8 +1376,6 @@ Check out my character: <@6773794953695671>
                     </div>
                 </div>
             </div>
-
-            <Footer />
         </>
     );
 }

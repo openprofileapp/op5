@@ -408,7 +408,7 @@ export default function UserProfile() {
             
                                 <div className="flex mb-2 items-center overflow-hidden">
                                     <span className="truncate text-sm leading-snug">
-                                        @{user.username}
+                                        @{user.usernames[0].username}
                                     </span>
                                 </div>
             
@@ -574,8 +574,6 @@ export default function UserProfile() {
                     </div>
                 </div>
             </div>
-
-            <Footer />
         </>
     );
 }

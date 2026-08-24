@@ -31,9 +31,12 @@ document.head.appendChild(style);
 // Have a display 503 scripts that re-renders the full page when recieving
 // { action: "DISPLAY_503" }
 
+import ScrollToTop from "../_common/components/ScrollToTop.js"
 import ToastContainer from "../_common/components/ToastContainer.js"
 import CaptchaPortal from "../_common/components/CaptchaPortal.js"
 import AskAlice from "../_common/components/AskAlice.js"
+import Navbar from "./components/Navbar.js"
+import Footer from "./components/Footer.js"
 
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
@@ -48,7 +51,6 @@ import NotFound from "../_common/pages/NotFound.js"
 import UserProfile from "./pages/UserProfile.js"
 
 import Template from "./pages/Template.js"
-import ScrollToTop from "../_common/components/ScrollToTop.js"
 
 async function bootstrap() {
     const response = await fetch(
@@ -80,6 +82,7 @@ async function bootstrap() {
                         <ToastContainer />
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
                         <AskAlice />
+                        <Navbar />
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/search" element={<Search />} />
@@ -104,6 +107,7 @@ async function bootstrap() {
                             <Route path="/404" element={<NotFound />} />
                             <Route path="*" element={<Navigate to="/404" replace />} />
                         </Routes>
+                        <Footer />
                     </BrowserRouter>
                 </I18nextProvider>
             </HelmetProvider>

@@ -16,8 +16,6 @@ export default function Premium() {
                 allowIndex="false"
             />
 
-            <Navbar />
-
             <span className="hidden md:block absolute top-68 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-[20] font-nerdfont text-base text-premium">
                 
             </span>
@@ -133,8 +131,6 @@ export default function Premium() {
                     </div>
                 </div>
             </div>
-
-            <Footer />
         </>
     );
 }

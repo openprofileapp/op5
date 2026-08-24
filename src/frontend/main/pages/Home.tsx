@@ -178,9 +178,7 @@ export default function Home() {
     return (
         <>  
             <Metadata />
-            
-            <Navbar isBannerPage={window.session.user ? false : true} />
-
+ 
             {!window.session.user ? (
                 <>
                     <div className="hero bg-base-200 h-140">
@@ -308,8 +306,6 @@ export default function Home() {
                     />
                 </>
             )}
-
-            <Footer />
         </>
     );
 }

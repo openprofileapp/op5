@@ -18,8 +18,6 @@ export default function Partners() {
                 allowIndex="false"
             />
 
-            <Navbar />
-
             <div className="mt-14 md:mt-0 flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
                 <div className="flex-1 flex items-center justify-center">
                     <div className="w-164 h-128 grid grid-cols-3 grid-rows-3 place-items-center text-center text-sm">
@@ -274,8 +272,6 @@ export default function Partners() {
                     </div>
                 </div>
             </div>
-
-            <Footer />
         </>
     );
 }

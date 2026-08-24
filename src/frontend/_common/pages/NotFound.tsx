@@ -18,8 +18,6 @@ export default function NotFound() {
                 allowIndex="false"
             />
 
-            <Navbar />
-                        
             <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
                 <div className="rounded-full border border-base-300 flex flex-col items-center justify-center bg-base-100 w-100 h-100 text-center gap-4 text-2xl">
 
@@ -30,8 +28,6 @@ export default function NotFound() {
                     <span>404 - Not Found</span>
                 </div>
             </div>
-
-            <Footer />
         </>
     );
 }
