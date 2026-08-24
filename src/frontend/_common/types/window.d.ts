@@ -3,7 +3,7 @@
 export {};
 
 import type { Env, Config } from "../../../../app.config.ts";
-import { UserProfileType } from "../../../_common/types/queries/userProfile.type.ts";
+import { GetUserType } from "../../../_common/types/user.type.ts";
 
 export type ClientConfig = {
     useNerdFonts: Env["USE_NERDFONTS"];
@@ -25,7 +25,7 @@ export type ClientSession = {
     locale: string;
     timezone: string;
     delegatedAccounts?: string[];
-    user?: UserProfileType
+    user?: GetUserType
 };
 
 declare global {
