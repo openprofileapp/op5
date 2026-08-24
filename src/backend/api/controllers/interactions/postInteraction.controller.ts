@@ -4,10 +4,13 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import isBearerTokenAuthorized from "../../../_common/helpers/isTokenOrSecretAuthorized.js";
-import PlatformPermissionsService from "../../../_common/services/platformPermissions.service.js";
+import { PermissionName } from "../../../_common/services/platformPermissions.service.js";
 import { InteractionNameType } from "../../../../_common/types/interaction.type.js";
 import { satisfiesAll } from "../../../_common/helpers/satisfiesAll.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
+import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 
 type Props = {
     targetId: string, 
@@ -16,21 +19,11 @@ type Props = {
 
 export const postInteraction = async (req: Request, res: Response) => {
     try {
-        if (!req.session?.userId) {
-            throw new AdvancedError({
-                code: 403,
-                message: "No account"
-            })
-        }
-
         const { targetId, type }: Props = req.body;
 
-        if (!targetId || !type) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
-        }
+        await assertBearer(req); 
+        assertAccount(req.session);
+        assertNotNull([targetId, type]);
 
         const allowedTypes = satisfiesAll<InteractionNameType>()(
             "blocks",
@@ -56,23 +49,25 @@ export const postInteraction = async (req: Request, res: Response) => {
             });
         }
 
-        if (
-            // DEVELOPER NEEDED: Once the token API is fixed, require both && over ||
-            !await isBearerTokenAuthorized(req) || 
-            !PlatformPermissionsService.has(
-                req.session.permissions.value, 
-                // DEVELOPER NEEDED: If view or read, switch to another, or use a permission type map
-                ["USE_INTERACTIONS"]
-            )
+        const interactionPermissionMap: Record<InteractionNameType, PermissionName> = {
+            blocks: "USE_INTERACTIONS",
+            chats: "USE_INTERACTIONS",
+            dismisses: "USE_INTERACTIONS",
+            follows: "USE_INTERACTIONS",
+            friends: "USE_SOCIAL_FEATURES",
+            hides: "USE_INTERACTIONS",
+            hiddenCollaborations: "USE_INTERACTIONS",
+            likes: "USE_INTERACTIONS",
+            mutes: "USE_INTERACTIONS",
+            reads: "READ",
+            restricts: "USE_INTERACTIONS",
+            shares: "USE_INTERACTIONS",
+            views: "VIEW"
+        };
 
-            // DEVELOPER NEEDED: Also to an assets permission check and interaction check to ensure the
-            // interacting user isn't blocked or limited by the asset or owner.
-        ) {
-            throw new AdvancedError({
-                code: 401,
-                message: "Unauthorized"
-            })
-        }
+        const requiredPermission = interactionPermissionMap[type as InteractionNameType];
+
+        assertPermissions(req.session, requiredPermission);
 
         db.interactions.transaction(q => {
             const result = q(
