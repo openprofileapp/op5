@@ -62,6 +62,44 @@ app.use("/uploads", express.static(path.join(config.folders.data, "uploads"),
     }
 ));
 
+// DEVELOPER NEEDED: EARLY-BETA CODE BELOW
+/*
+
+server.cdn.use("/uploads", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    express.static(folders.cdn.uploads)(req, res, (err) => {
+        if (err) return next(err);
+        // If file not found, redirect to fallback
+        res.redirect(routes.fallback);
+    });
+});
+
+server.cdn.get("/crop", async (req, res) => {
+    const url = req.query.url;
+
+    try {
+        if (!url) {throw Object.assign(new Error(messages.error.field_validation), { code: 400 });}
+
+        // Fetch and buffer the image
+        const response = await fetch(url);
+        const array = await response.arrayBuffer();
+        const buffer = Buffer.from(array);
+
+        // Convert image to a circle
+        const image = await sharp(buffer).resize(500, 500).composite([{
+            input: Buffer.from(`<svg><circle cx="250" cy="250" r="250"/></svg>`),
+            blend: 'dest-in'
+        }]).png().toBuffer();
+
+        // Return the image
+        res.set('Content-Type', 'image/png');
+        res.send(image);
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+});
+*/
+
 /* 
 ————————————————————————————————————————————————————————————————
 Start server
