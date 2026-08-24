@@ -42,6 +42,12 @@
       "base": "ui",
       "color": "#ff6f43",
       "folderNames": ["studio"]
+    },
+    {
+      "name": "asserts",
+      "base": "controller",
+      "color": "#e53935",
+      "folderNames": ["assert", "asserts"]
     }
   ],
   "material-icon-theme.files.customClones": [
@@ -64,10 +70,16 @@
       "fileExtensions": ["hook.ts", "hook.js"]
     },
     {
-      "name": "middleware",
+      "name": "middlewares",
       "base": "controller",
       "color": "#5c6bc0",
       "fileExtensions": ["middleware.ts", "middleware.js"]
+    },
+    {
+      "name": "asserts",
+      "base": "controller",
+      "color": "#e53935",
+      "fileExtensions": ["assert.ts", "assert.js"]
     },
     {
       "name": "migration",
