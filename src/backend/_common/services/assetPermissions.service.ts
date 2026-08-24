@@ -4,15 +4,27 @@ EDITING EXISTING INDEX VALUES OR REUSEING THEM WILL BREAK THE
 PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 ———————————————————————————————————————————————————————————————— 
 */
-VIEW_BIRTHDAY
-PIN_ASSETS
-REQUEST_CHANGES (WHEN A MODERATOR PLATFORM ASK FOR CHANGES, A PUBLISHER CAN HANDLE THESE CHANGES)
+
+import { AdvancedError } from "kage-library";
+
 const index = {
     VIEW: 0n, // View asset overview
     READ: 1n, // Read asset beyond overview
     WRITE: 2n, // Edit authorized values of asset
-    INTERACT: 3n, // Use interactions (follow, like, favorite, mute, block, hide, save, etc.)
-    SEND_COMMENTS: 4n, // Comment on asset
+
+    SEND_COMMENTS: 3n, // Comment on asset
+
+    FEATURE_AS_OWNER: 4n, // Display asset in collaborator's owned profile tab
+    FEATURE_AS_COLLAB: 5n, // Display asset in collaborator's collaborations profile tab, and display collaborator on the asset's collaboration list 
+
+
+
+
+
+
+
+
+
     MANAGE_MEDIA: 36n, // Manage illustrations and other media of asset
     REVIEW_CHANGES: 37n, // Accept or deny value and media edits for publishing or restore them via an auto-save or backup
     MANAGE_FIELDS: 38n, // Manage authorized fields of asset
@@ -23,6 +35,7 @@ const index = {
     MANAGE_INTERACTIONS: 43n, // Manage user interaction "INTERACT" access with asset by restricting comments or blocking "VIEW" and "READ"
     MANAGE_AUTOMOD: 44n, // Manage blocked keywords and automatic actions on asset for comments and values
     MANAGE_PUBLICATIONS: 45n, // Manage overview of asset including badges, links, featured content, update-log, and publication state // If combined with MANAGE_PUBLICATIONS, apply auras and animated avatars to asset // ASSET: If combined with MANAGE_PROMOTIONS, promote asset
+    
     VIEW_ANALYTICS: 46n, // View and compare analytics of asset
     MANAGE_PROMOTIONS: 47n, // Manage promotions of asset using the admin set budget (CURRENTLY UNLIMITED AS PREMIUM; 2 ASSETS PER ACCOUNT)
     MANAGE_BACKUPS: 48n, // Manage backups and auto-saves of asset (create/restore/delete)
@@ -37,11 +50,11 @@ const index = {
     ADMIN: 57n, // COMPLETE CONTROL OF GRANTED ASSET
     SUPER_ADMIN: 58n, // Gives complete control over all assets and assign or revoke users as admin
 
-    FEATURE_AS_OWNER: 0n, // Show asset in collaborator's owned profile tab
-    FEATURE_AS_COLLAB: 0n, // Show asset in collaborator's collaborations profile tab and on the asset's collaboration list 
-} as const;
+ } as const;
 
-
+VIEW_BIRTHDAY
+PIN_ASSETS
+REQUEST_CHANGES (WHEN A MODERATOR PLATFORM ASK FOR CHANGES, A PUBLISHER CAN HANDLE THESE CHANGES)
 
 
 
