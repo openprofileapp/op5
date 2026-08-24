@@ -4,7 +4,9 @@ EDITING EXISTING INDEX VALUES OR REUSEING THEM WILL BREAK THE
 PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 ———————————————————————————————————————————————————————————————— 
 */
-
+VIEW_BIRTHDAY
+PIN_ASSETS
+REQUEST_CHANGES (WHEN A MODERATOR PLATFORM ASK FOR CHANGES, A PUBLISHER CAN HANDLE THESE CHANGES)
 const index = {
     VIEW: 0n, // View asset overview
     READ: 1n, // Read asset beyond overview
@@ -38,6 +40,27 @@ const index = {
     FEATURE_AS_OWNER: 0n, // Show asset in collaborator's owned profile tab
     FEATURE_AS_COLLAB: 0n, // Show asset in collaborator's collaborations profile tab and on the asset's collaboration list 
 } as const;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Move this to a database if custom roles release
 const roles = {
@@ -307,5 +330,122 @@ export default class AssetPermissionsService {
         }
 
         return permValue.toString();
+    }
+
+    /**
+     * HELP TEXT HERE
+     */
+    public static can(
+        session: ValidSessionType,
+        permissions: PermissionName | PermissionName[],
+        assetId: string
+    ) {
+        // Check if malformed
+        if (
+            !session || 
+            !permissions || 
+            !assetId
+        ) {
+            throw new AdvancedError({
+                code: 400,
+                message: "Malformed request"
+            })
+        }
+
+        // Find and get the asset
+        let isAllowed: boolean = false;
+        let row: 
+            UserProfileType | 
+            CharacterType | 
+            null 
+        = null;
+
+        if (!row) {
+            const result = db.characters.query<CharacterType>(
+                "SELECT * FROM published WHERE id = ?",
+                [assetId]
+            );
+
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while fetching characters",
+                    details: result.error
+                })
+            }
+
+            row = result.rows[0]
+        }
+
+        // ADD UNIVERSES, USERS, ETC
+
+        if (!row) {
+            throw new AdvancedError({
+                code: 404,
+                message: "Asset not found"
+            })
+        }
+
+        // Check if owner
+        if (
+            session.userId === row.id ||
+            session.userId === (row.ownerId)
+        ) {
+            return true;
+        }
+
+        // Check if platform staff
+        if (
+            session.permissions &&
+            this.has(
+                session.permissions?.value, 
+                [
+                    "MANAGE_VISIBILITY", // DEVELOPER NEEDED: This should only be for visibility
+                    "ADMIN"
+                ], 
+                "any"
+            )
+        ) {
+            const allowedPermissions = this.encode(
+                ["VIEW", "READ"] // Add VIEW_BIRTHDATE etc.
+            )
+
+            isAllowed = this.has(
+                allowedPermissions,
+                permissions
+            )
+
+            if (isAllowed) return true;
+        }
+
+        // Check if following // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
+        // Check if friends // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
+        // CHECK IF BLOCKED, ETC
+
+        // DEVELOPER NEEDED: This is only to be checked for asset permissions. For platform, use accounts database
+        // Check the permissions database
+        const permissionsResult = db.users.query<PermissionsType>(
+            "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
+            [session.userId, assetId]
+        );
+
+        if (!permissionsResult.success) {
+            throw new AdvancedError({
+                code: 500,
+                message: "An error occurred while fetching permissions",
+                details: permissionsResult.error
+            })
+        }
+
+        if (permissionsResult.rowCount > 0) {
+            isAllowed = this.has(
+                permissionsResult.rows[0].permissions,
+                permissions
+            )
+
+            if (isAllowed) return true;
+        }
+        
+        return isAllowed;
     }
 }
