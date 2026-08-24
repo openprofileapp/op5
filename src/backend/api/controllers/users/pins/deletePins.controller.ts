@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../../instances.js";
 import { db } from "../../../databases/db.js";
-import isBearerTokenAuthorized from "../../../../_common/helpers/isTokenOrSecretAuthorized.js";
+import isTokenOrSecretAuthorized from "../../../../_common/helpers/isTokenOrSecretAuthorized.js";
 import PlatformPermissionsService from "../../../../_common/services/platformPermissions.service.js";
 
 export const deletePins = async (req: Request, res: Response) => {
@@ -23,7 +23,7 @@ export const deletePins = async (req: Request, res: Response) => {
         }
 
         if (
-            !await isBearerTokenAuthorized(req) || 
+            !await isTokenOrSecretAuthorized(req) || 
             req.session && !PlatformPermissionsService.can(
                 req.session, 
                 ["ADMIN"],
