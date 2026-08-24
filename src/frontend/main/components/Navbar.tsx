@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
 
@@ -18,6 +18,7 @@ type Props = {
     isBannerPage?: boolean;
 };
 
+{/* DEVELOPER NEEDED: Only enable banner page on certain URLs or conditions */}
 export default function Navbar({ isBannerPage = false }: Props) {
     const config = window.config;
 
@@ -163,6 +164,30 @@ export default function Navbar({ isBannerPage = false }: Props) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
 
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
+    
+    const [query, setQuery] = useState(initialQuery);
+
+    useEffect(() => {
+        setQuery(searchParams.get('q') || '');
+    }, [searchParams]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            const trimmed = query.trim();
+            
+            if (trimmed) {
+                navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+            } else if (query === '' && window.location.pathname === '/search') {
+                navigate('/');
+            }
+        }, 300);
+
+        return () => clearTimeout(handler);
+    }, [query, navigate]);
+
     if (!isTranslationReady) return null;
 
     return (
@@ -243,7 +268,12 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     <div className="flex flex-1 flex-col w-84">
                         <label className="input w-full">
                             <span className="font-nerdfont text-base mr-1"></span>
-                            <input type="search" placeholder="Characters, franchises, topics..." />
+                            <input 
+                                type="search" 
+                                placeholder="Characters, franchises, topics..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
                         </label>
                     </div>
                     {/* While typing, auto forward to search and display results, on clear, return home */}
@@ -302,7 +332,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 </div>
                                 <div className="tooltip-content text-center">
                                     <div className="font-bold text-xs uppercase mb-1">Premium</div>
-                                    <div className="font-bold">@{user.username}</div>
+                                    <div className="font-bold">@{user.usernames[0].username}</div>
                                 </div>
                             </>
                         ) : (
@@ -342,7 +372,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                         <li>
                             <Link 
                                 className="flex items-center justify-between gap-4" 
-                                to={`/${user.username}`}
+                                to={`/${user.usernames[0].username}`}
                             >
                                 View Profile
                                 <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
@@ -419,7 +449,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                                 window.location.href = `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/switch/${account.id}`
                                             }}
                                         >
-                                            @{account.username}
+                                            @{account.usernames[0].username}
                                             <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
                                                 <img 
                                                     className="rounded-full translate-x-[2px]"
