@@ -10,7 +10,7 @@ import { satisfiesAll } from "../../../_common/helpers/satisfiesAll.js";
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
-import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 
 type Props = {
     targetId: string, 
@@ -49,7 +49,7 @@ export const postInteraction = async (req: Request, res: Response) => {
             });
         }
 
-        const interactionPermissionMap: Record<InteractionNameType, PermissionName> = {
+        const interactionPermissions: Record<InteractionNameType, PermissionName> = {
             blocks: "USE_INTERACTIONS",
             chats: "USE_INTERACTIONS",
             dismisses: "USE_INTERACTIONS",
@@ -65,7 +65,7 @@ export const postInteraction = async (req: Request, res: Response) => {
             views: "VIEW"
         };
 
-        const requiredPermission = interactionPermissionMap[type as InteractionNameType];
+        const requiredPermission = interactionPermissions[type as InteractionNameType];
 
         assertPermissions(req.session, requiredPermission);
 
