@@ -8,9 +8,16 @@ import { PublishedCharacterType } from "../../../../_common/types/character.type
 import { InteractionType } from "../../../../_common/types/interaction.type.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
+import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
 
-export const getRecentFollowingCharacters = (req: Request, res: Response) => {
+export const getRecentFollowingCharacters = async (req: Request, res: Response) => {
     try {
+        await assertBearer(req); 
+        assertAccount(req.session); 
+        assertPermissions(req.session, "READ");
+
         const { 
             id, 
             owner, 

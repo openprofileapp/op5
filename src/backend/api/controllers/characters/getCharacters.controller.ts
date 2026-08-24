@@ -8,10 +8,15 @@ import { db } from "../../databases/db.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
 
 // Rename to "getPublishedCharacters"
-export const getCharacters = (req: Request, res: Response) => {
+export const getCharacters = async (req: Request, res: Response) => {
     try {
+        await assertBearer(req); 
+        assertPermissions(req.session, "READ");
+
         const { 
             id, 
             owner, 

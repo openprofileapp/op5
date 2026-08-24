@@ -8,9 +8,16 @@ import { PublishedCharacterType } from "../../../../_common/types/character.type
 import { config } from "../../../../../app.config.js";
 import getUserInterestsById from "../../services/getUserInterestsById.service.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
+import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
 
-export const getTaggedCharacters = (req: Request, res: Response) => {
+export const getTaggedCharacters = async (req: Request, res: Response) => {
     try {
+        await assertBearer(req); 
+        assertAccount(req.session); 
+        assertPermissions(req.session, "READ");
+        
         const { 
             id, 
             owner, 
