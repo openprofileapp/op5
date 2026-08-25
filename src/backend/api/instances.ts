@@ -1,4 +1,4 @@
-import { I18nService, Logger, Snowflake, WebClient } from "kage-library";
+import { Logger, Snowflake, WebClient } from "kage-library";
 
 import { config } from "../../../app.config.js";
 import { db } from "./databases/db.js";
@@ -8,14 +8,6 @@ export const log = new Logger({
     useNerdFonts: config.useNerdFonts,
     saveAllToFile: config.debug.logger.api
 });
-
-export const i18n = await I18nService.load(
-    { 
-        localesPath: "/public/locales", 
-        locale: "en", 
-        defaultLocale: config.metadata.locale 
-    }
-);
 
 export const snowflake = new Snowflake(config.generation.epoch, 1);
 
