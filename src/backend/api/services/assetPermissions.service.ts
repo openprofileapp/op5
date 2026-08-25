@@ -11,6 +11,8 @@ import { GetPublishedCharacterType } from "../../../_common/types/character.type
 import { GetUserType } from "../../../_common/types/user.type.js";
 import getPublishedCharactersById from "./getPublishedCharactersById.service.js";
 import getUsersById from "./getUsersById.service.js";
+import { db } from "../databases/db.js";
+import { PermissionsType } from "../../../_common/types/permissions.type.js";
 
 const index = {
     VIEW: 0n, // View asset overview
@@ -355,46 +357,9 @@ export default class AssetPermissionsService {
             return true;
         }
 
-        // DEVELOPER NEEDED: Check permissions database here
-
-        return false;
-
-
-        /*// Check if Asset staff
-        if (
-            session.permissions &&
-            this.has(
-                session.permissions?.value, 
-                [
-                    "MANAGE_VISIBILITY", // DEVELOPER NEEDED: This should only be for visibility
-                    "ADMIN"
-                ], 
-                "any"
-            )
-        ) {
-            const allowedPermissions = this.encode(
-                ["VIEW", "READ"] // Add VIEW_BIRTHDATE etc.
-            )
-
-            isAllowed = this.has(
-                allowedPermissions,
-                permissions
-            )
-
-            if (isAllowed) return true;
-        }
-
-        let isAllowed: boolean = false;
-
-        // Check if following // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
-        // Check if friends // VIEW, VIEW_BIRTHDATE, READ, INTERACT, MESSAGE, COMMENT etc.
-        // CHECK IF BLOCKED, ETC
-
-        // DEVELOPER NEEDED: This is only to be checked for asset permissions. For Asset, use accounts database
-        // Check the permissions database
         const permissionsResult = db.users.query<PermissionsType>(
             "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
-            [session.userId, assetId]
+            [userId, assetId]
         );
 
         if (!permissionsResult.success) {
@@ -406,37 +371,13 @@ export default class AssetPermissionsService {
         }
 
         if (permissionsResult.rowCount > 0) {
-            isAllowed = this.has(
+            console.log(permissionsResult.rows[0])
+            return this.has(
                 permissionsResult.rows[0].permissions,
                 permissions
             )
-
-            if (isAllowed) return true;
         }
-        
-        return isAllowed;*/
+
+        return false;
     }
 }
-
-
-/*
-    // DEVELOPER NEEDED: Take this externally to the get controllers, not here as it involves private data
-    const interactions = getInteractionsById(
-        asset.id,
-        { 
-            method: "target",
-            checkSourceInteraction: userId,
-            countOnly: true
-        }
-    );
-
-    if (
-        asset.visibility === "followers" &&
-        interactions.follows?.hasInteracted &&
-        (permissions === "VIEW" || permissions === "READ")
-    ) {
-        return true;
-    }
-
-    // If false, filter out the data from the item
-*/
