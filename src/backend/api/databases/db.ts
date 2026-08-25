@@ -21,6 +21,11 @@ db.audits.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     };
 
+    if (!q("SELECT * FROM cors LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/security/cors.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
     if (!q("SELECT * FROM rateLimits LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/security/rateLimits.sql`);
         if (!result.success) return log.db.error(result.error).save();
