@@ -2,9 +2,10 @@ import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
 import { snowflake } from "../instances.js";
+import { AuditNameType } from "../../../_common/types/audit.type.js";
 
 type Props = {
-    type: string;
+    type: AuditNameType;
     source: string;
     target?: string;
     action: string;
@@ -24,6 +25,18 @@ function serialize(value: unknown) {
     return value;
 }
 
+/**
+ * Creates and records an audit log entry.
+ * @example
+ * createAuditLog({
+ *   type: "authentications",
+ *   source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent },
+ *   target: "0000000000000000",
+ *   action: "DELETED",
+ *   changes: { new: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, old: { geoIp: rowGeoIpJSON, userAgent: rowUserAgentJSON }},
+ *   origin: req.originalUrl
+ * });
+ */
 export default function createAuditLog({
     type,
     source,
