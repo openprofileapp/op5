@@ -24,7 +24,7 @@ const index = {
     USE_CUSTOM_THEMES: 10n, // Use custom themes
 
     VERIFIED_ACCESS: 11n, // ???
-    CREATE_MEMORIES: 12n, // Create and manage posts on owned assets that disappears after 24 hours
+    UPLOAD_MEMORIES: 12n, // Upload and manage posts on owned assets that disappears after a specific interval (max 24 hours)
     EARN_REVENUE: 13n, // Earn revenue from ads or other means
     CASHOUT_REVENUE: 14n, // Cashout revenue to external app, bank, or in-app credits
 
@@ -43,8 +43,8 @@ const index = {
     REVIEW_APPEALS: 25n, // View, sort, accept, or deny moderation appeals
     MANAGE_VISIBILITY: 26n, // Manage visibility of assets or user profiles, including badges
     REQUEST_CHANGES: 27n, // Request changes on assets or user profiles
-    WARN_ACCOUNTS: 28n, // Warn accounts using pre-defined reasons
-    SUSPEND_ACCOUNTS: 29n, // Block accounts from interacting with the platform (they can still view and download assets)
+    MODERATE_ACCOUNTS: 28n, // Delete comments and warn accounts using pre-defined reasons (auto suspend eventually)
+    SUSPEND_ACCOUNTS: 29n, // Manually block accounts from interacting with the platform (they can still view and download assets)
     
     MANAGE_ACCESS: 30n, // View and filter external link, emails, phone numbers, and ips
     MANAGE_AUTOMOD: 31n, // Manage blocked keyword filters and automatic actions on bypass
@@ -52,78 +52,64 @@ const index = {
     MANAGE_BOTS: 33n, // Manage all bots, including resetting token
     MANAGE_ACCOUNTS: 34n, // Manage all accounts, including modifying overview
 
-    TRANSFER_OWNERSHIP: 35n, // Transfer ownership of assets
+    TRANSFER_OWNERSHIP: 35n, // Transfer ownership of unowned assets
     VERIFY_ACCOUNT: 36n, // Verify user accounts as official
     PROMOTE_ASSET: 37n, // Promote assets to be more visible across the platform
     
-    MANAGE_STAFF: 38n, // Assign or revoke the following permissions: "VIEW_ANALYTICS", "AUDIT_ACCESS"
-    MANAGE_PARTNERS: 39n, // Assign or revoke the following permissions: "PARTNER_ACCESS", "TOGGLE_EXPERIMENTS"
-    MANAGE_SUPPORT_AGENTS: 40n, // Assign or revoke the following permissions: "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
-    MANAGE_MODERATORS: 41n, // Assign or revoke the following permissions: "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
+    MANAGE_PARTNERS: 38n, // Assign or revoke the following permissions: "PARTNER_ACCESS", "TOGGLE_EXPERIMENTS"
+    MANAGE_SUPPORT_AGENTS: 39n, // Assign or revoke the following permissions: "AUDIT_ACCESS", "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
+    MANAGE_MODERATORS: 40n, // Assign or revoke the following permissions: "AUDIT_ACCESS", "REVIEW_REPORTS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "MODERATE_ACCOUNTS", "SUSPEND_ACCOUNTS", "REVIEW_APPEALS", "TERMINATE_SESSIONS"
     
-    ADMIN: 42n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
-    SUPER_ADMIN: 43n, // Grants all current and future permissions; complete control over the platform and can assign or revoke the following permissions: "ADMIN" 
+    ADMIN: 41n, // Grants all current and future permissions; complete control over the platform, but can't assign or revoke the following permissions: "ADMIN"
+    SUPER_ADMIN: 42n, // Grants all current and future permissions; complete control over the platform and can assign or revoke the following permissions: "ADMIN" 
 } as const;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//A.L.I.C.E = "Advanced Language Interactive Content Editor"; idk lol
-
-// Move this to a database if custom roles release
 const roles = {
-    robot: { name: "Robot", permissions: ["VIEW"] },
-    guest: { name: "Guest", permissions: ["VIEW","READ"] },
+    robot: { 
+        name: "Robot",
+        description: "Description not set.",
+        permissions: ["VIEW"]
+    },
+    guest: { 
+        name: "Guest",
+        description: "Description not set.",
+        permissions: ["VIEW", "READ"] 
+    },
     member: {
         name: "Member",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS"
         ]
     },
     premium: {
         name: "Premium",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES"
         ]
     },
     verified: {
         name: "Verified",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "CREATE_MEMORIES", "VERIFIED_ACCESS"
+            "UPLOAD_MEMORIES", "VERIFIED_ACCESS"
         ]
     },
     partner: {
         name: "Partner",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
             "CASHOUT_REVENUE", "PARTNER_ACCESS"
@@ -131,43 +117,48 @@ const roles = {
     },
     staff: {
         name: "Staff",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
         ]
     },
     supportAgent: {
         name: "Support Agent",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
         ]
     },
     moderator: {
         name: "Moderator",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS", "TERMINATE_SESSIONS"
+            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "MODERATE_ACCOUNTS", "SUSPEND_ACCOUNTS", "TERMINATE_SESSIONS"
         ]
     },
     seniorModerator: {
         name: "Senior Moderator",
+        description: "Description not set.",
         permissions: [
             "VIEW", "READ", "WRITE", 
-            "USE_INTERACTIONS", "SEND_COMMENTS", "SEND_MESSAGES", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
-            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "WARN_ACCOUNTS", "SUSPEND_ACCOUNTS",
-            "LOCK_ACCOUNTS", "REVIEW_APPEALS"
+            "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "MODERATE_ACCOUNTS", "SUSPEND_ACCOUNTS",
+            "REVIEW_APPEALS"
         ]
     },
     admin: {
         name: "Administrator",
+        description: "Description not set.",
         permissions: [
             "ADMIN"
         ]
@@ -176,20 +167,19 @@ const roles = {
 
 interface Role {
     name: string;
-    permissions: PermissionName[];
+    description: string;
+    permissions: PlatformPermissionName[];
 }
 
-export type PermissionName = keyof typeof index;
-type RoleName = keyof typeof roles;
+export type PlatformPermissionName = keyof typeof index;
+export type PlatformRoleName = keyof typeof roles;
 
 interface RoleResult {
     name: string;
+    description: string;
     value: string;
-    array: PermissionName[];
+    array: PlatformPermissionName[];
 }
-
-
-const requiredPermission = interactionPermissions[type as InteractionNameType];
 
 /**
  * Handles encoding, decoding, checking, and updating permission bitmasks.
@@ -198,7 +188,7 @@ const requiredPermission = interactionPermissions[type as InteractionNameType];
 export default class PlatformPermissionsService {
     public static permissions = index;
 
-    private static bit(permission: PermissionName): bigint {
+    private static bit(permission: PlatformPermissionName): bigint {
         if (!(permission in this.permissions)) {
             throw new AdvancedError({
                 code: 404,
@@ -213,9 +203,9 @@ export default class PlatformPermissionsService {
      * Decodes a bigint string into an array of permission names.
      *
      * @example
-     * PermissionsService.decode("1"); // ["VIEW"]
+     * PlatformPermissionsService.decode("1"); // ["VIEW"]
      */
-    public static decode(input: string): PermissionName[] {
+    public static decode(input: string): PlatformPermissionName[] {
         if (!input) {
             throw new AdvancedError({
                 code: 400,
@@ -231,21 +221,21 @@ export default class PlatformPermissionsService {
         }
 
         const userPermissions = BigInt(input);
-        const result: PermissionName[] = [];
+        const result: PlatformPermissionName[] = [];
 
         if ((userPermissions & this.bit("SUPER_ADMIN")) !== 0n) {
-            return Object.keys(this.permissions) as PermissionName[];
+            return Object.keys(this.permissions) as PlatformPermissionName[];
         }
 
         if ((userPermissions & this.bit("ADMIN")) !== 0n) {
             return Object.keys(this.permissions).filter(
                 (p) => p !== "SUPER_ADMIN"
-            ) as PermissionName[];
+            ) as PlatformPermissionName[];
         }
 
         for (const [name, shift] of Object.entries(this.permissions)) {
             if ((userPermissions & (1n << shift)) !== 0n) {
-                result.push(name as PermissionName);
+                result.push(name as PlatformPermissionName);
             }
         }
 
@@ -256,9 +246,9 @@ export default class PlatformPermissionsService {
      * Encodes a list of permissions into a bigint string.
      *
      * @example
-     * PermissionsService.encode(["VIEW", "READ"]); // "3"
+     * PlatformPermissionsService.encode(["VIEW", "READ"]); // "3"
      */
-    public static encode(input: PermissionName[]): string {
+    public static encode(input: PlatformPermissionName[]): string {
         if (!input?.length) {
             throw new AdvancedError({
                 code: 400,
@@ -279,12 +269,12 @@ export default class PlatformPermissionsService {
      * Checks whether a permission value satisfies required permissions array.
      *
      * @example
-     * PermissionsService.has("1", ["VIEW", "READ"]); // all (default)
-     * PermissionsService.has("1", ["VIEW", "READ"], "any");
+     * PlatformPermissionsService.has("1", ["VIEW", "READ"]); // all (default)
+     * PlatformPermissionsService.has("1", ["VIEW", "READ"], "any");
      */
     public static has(
         input: string,
-        compare: PermissionName | PermissionName[],
+        compare: PlatformPermissionName | PlatformPermissionName[],
         mode: "all" | "any" = "all"
     ): boolean {
         const decoded = this.decode(input);
@@ -306,14 +296,15 @@ export default class PlatformPermissionsService {
      * Resolves a role into its encoded permission value and list.
      *
      * @example
-     * PermissionsService.getRole("robot");
+     * PlatformPermissionsService.getRole("robot");
      * {
      *     name: "Robot",
+     *     description: "Description not set.",
      *     value: "1",
      *     array: ["VIEW"]
      * }
      */
-    public static getRole(input: RoleName): RoleResult {
+    public static getRole(input: PlatformRoleName): RoleResult {
         const role = roles[input];
 
         if (!role) {
@@ -325,6 +316,7 @@ export default class PlatformPermissionsService {
 
         return {
             name: role.name,
+            description: role.description,
             value: this.encode(role.permissions),
             array: role.permissions,
         };
@@ -334,12 +326,12 @@ export default class PlatformPermissionsService {
      * Adds or removes permissions from an existing permission bitmask.
      *
      * @example
-     * PermissionsService.update("1", "READ", true);
-     * PermissionsService.update("3", ["VIEW", "READ"], false);
+     * PlatformPermissionsService.update("1", "READ", true);
+     * PlatformPermissionsService.update("3", ["VIEW", "READ"], false);
      */
     public static update(
         input: string | bigint,
-        permission: PermissionName | PermissionName[],
+        permission: PlatformPermissionName | PlatformPermissionName[],
         add = true
     ): string {
         let permValue = BigInt(input);
