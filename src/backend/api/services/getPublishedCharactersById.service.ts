@@ -86,8 +86,53 @@ export default function getPublishedCharactersById(
         }
     );
 
+    const visibleCharacters = result.rows.filter((character) => {
+        if (character.ownerId === options?.getAs) return true;
+
+        if (character.visibility === "public") return true;
+
+        // DEVELOPER NEEDED: Only dsplay unlisted if on a profile directly; need an options.pageType or smth
+        if (character.visibility === "unlisted") return false;
+        if (character.visibility === "private") return false; // Only display on owner profile regardless if owner or not
+
+        if (character.visibility === "followers") {            
+            if (interactionsMap[character.id]?.follows?.hasInteracted) {
+                return true;
+            }
+        }
+
+        if (options?.getAs && character.visibility === "friends") {
+            const leftHand = getInteractionsById(
+                character.ownerId,
+                { 
+                    type: "friends",
+                    checkSourceInteraction: options?.getAs,
+                    countOnly: true
+                }
+            );
+
+            const rightHand = getInteractionsById(
+                options?.getAs,
+                { 
+                    type: "friends",
+                    checkSourceInteraction: character.ownerId,
+                    countOnly: true
+                }
+            );
+
+            if (
+                leftHand.hasInteracted &&
+                rightHand.hasInteracted
+            ) {
+                return true;
+            }
+        }
+        
+        return false;
+    });
+
     if (!isArray) {
-        const { ownerId, ...rest } = result.rows[0];
+        const { ownerId, ...rest } = visibleCharacters[0];
 
         return {
             ...rest,
@@ -100,7 +145,7 @@ export default function getPublishedCharactersById(
     }
 
     const data: Record<string, GetPublishedCharacterType> = {};
-    const rowMap = new Map(result.rows.map(row => [row.id, row]));
+    const rowMap = new Map(visibleCharacters.map(row => [row.id, row]));
 
     for (const id of array) {
         const row = rowMap.get(id);
