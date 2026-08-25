@@ -894,7 +894,7 @@ export default function CharacterCard({
                 <div className="flex flex-row gap-8 justify-center w-full">
                     <div className="absolute z-1 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1">
                         <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base w-4 h-6 ${data.interactions?.views?.interacted ? "text-accent" : ""}`}>󰈈</span>
+                            <span className={`font-nerdfont text-base w-4 h-6 ${data.interactions?.views?.hasInteracted ? "text-accent" : ""}`}>󰈈</span>
                             <span className="text-xs ml-2">{formatNumber(data.interactions?.views?.count || 0).short}</span>
                         </div>
                         <div className="flex items-center justify-center">
