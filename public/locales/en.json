@@ -14,7 +14,9 @@
   },
   "responses": {
     "error": {
-      "character": "An error occurred while fetching character"
+      "character": "An error occurred while fetching character",
+      "cors": "Not allowed by CORS",
+      "rateLimit": "Too many requests, please try again later."
     },
     "emptyFields": "Please fill in all the required fields.",
     "noAccess": "You do not have permission to access this content.",
