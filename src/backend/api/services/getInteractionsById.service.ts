@@ -6,7 +6,7 @@ import {
     InteractionType, 
     GetSourceInteractionType, 
     GetTargetInteractionType, 
-    InteractionCollection,
+    GetInteractionCollection,
     TransformedRow,
     InteractionNameType,
     InteractionMethod
@@ -44,12 +44,12 @@ type InteractionOptionsArray = BaseOptions & {
 
 type InteractionOptions = InteractionOptionsString | InteractionOptionsArray;
 
-type MultiTypeResult = Partial<Record<InteractionNameType, InteractionCollection>>;
+type MultiTypeResult = Partial<Record<InteractionNameType, GetInteractionCollection>>;
 
 export default function getInteractionsById(
     id: string,
-    options?: InteractionOptionsString
-): InteractionCollection;
+    options?: InteractionOptionsString & { type: InteractionNameType }
+): GetInteractionCollection;
 
 export default function getInteractionsById(
     id: string,
@@ -59,7 +59,7 @@ export default function getInteractionsById(
 export default function getInteractionsById(
     ids: string[],
     options?: InteractionOptionsString
-): Record<string, InteractionCollection>;
+): Record<string, GetInteractionCollection>;
 
 export default function getInteractionsById(
     ids: string[],
@@ -69,7 +69,7 @@ export default function getInteractionsById(
 export default function getInteractionsById(
     ids: string | string[],
     options?: InteractionOptions
-): InteractionCollection | MultiTypeResult | Record<string, InteractionCollection> | Record<string, MultiTypeResult> {
+): GetInteractionCollection | MultiTypeResult | Record<string, GetInteractionCollection> | Record<string, MultiTypeResult> {
     const isArray = Array.isArray(ids);
     const array = isArray ? ids : [ids];
 
@@ -159,7 +159,7 @@ export default function getInteractionsById(
         return checkTargetsSet ? checkTargetsSet.has(row.source) : false;
     };
 
-    const createEmptyCollection = (): InteractionCollection => ({
+    const createEmptyCollection = (): GetInteractionCollection => ({
         items: [],
         count: 0,
         
@@ -242,7 +242,7 @@ export default function getInteractionsById(
         return formatCountOnly(multiData, countOnly);
     }
 
-    const singleData: Record<string, InteractionCollection> = {};
+    const singleData: Record<string, GetInteractionCollection> = {};
 
     for (const id of array) {
         singleData[id] = createEmptyCollection();

@@ -33,7 +33,7 @@ export type InteractionMethod = "source" | "target"
 
 export type TransformedRow = GetSourceInteractionType | GetTargetInteractionType | InteractionType;
 
-export type InteractionCollection<T = TransformedRow> = {
+export type GetInteractionCollection<T = TransformedRow> = {
     items: T[];
     count: number;
     hasInteracted?: boolean;
