@@ -1,7 +1,8 @@
 import { GetBadgeType } from "./badge.type.js";
-import { InteractionCollection, InteractionNameType } from "./interaction.type.js";
+import { GetInteractionCollection, InteractionNameType } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
 import { OwnerType } from "./owner.type.js";
+import { VisibilityType } from "./visibility.type.js";
 
 export type PublishedCharacterType = {
     algorithmScore: number;
@@ -20,7 +21,7 @@ export type PublishedCharacterType = {
     auraPrimary: string;
     auraSecondary: string;
     isExplicit: boolean;
-    visibility: string;
+    visibility: VisibilityType;
     sendComments: string;
     isScheduled: boolean;
     updatedDate: string;
@@ -36,7 +37,7 @@ export type GetPublishedCharacterType = Omit<
     tags: string[];
     badges: GetBadgeType[];
     links?: GetLinkType[];
-    interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;
+    interactions?: Partial<Record<InteractionNameType, GetInteractionCollection>>;
     isPinned?: boolean;
 };
 

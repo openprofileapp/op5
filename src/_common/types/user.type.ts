@@ -1,7 +1,8 @@
 import { GetBadgeType } from "./badge.type.js";
-import { InteractionCollection, InteractionNameType } from "./interaction.type.js";
+import { GetInteractionCollection, InteractionNameType } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
 import { GetUsernameType } from "./username.type.js";
+import { VisibilityType } from "./visibility.type.js";
 
 export type UserType = {
     algorithmScore: string;
@@ -15,9 +16,9 @@ export type UserType = {
     tags: string;
     pronouns?: string;
     birthdate?: string;
-    birthdateVisibility: string;
+    birthdateVisibility: VisibilityType;
     foundedDate?: string;
-    foundedDateVisibility: string;
+    foundedDateVisibility: VisibilityType;
     theme: string;
     isAuraEnabled: boolean;
     auraType: string;
@@ -26,11 +27,11 @@ export type UserType = {
     type: string;
     isDeveloper: boolean;
     isExplicit: boolean;
-    visibility: string;
+    visibility: VisibilityType;
     sendMessages: string;
     sendComments: string;
     presence: string;
-    presenceVisibility: string;
+    presenceVisibility: VisibilityType;
     lastActive: string;
     createdDate: string;
 }
@@ -44,5 +45,5 @@ export type GetUserType = Omit<
     usernames: GetUsernameType[];
     badges: GetBadgeType[];
     links?: GetLinkType[];
-    interactions?: Partial<Record<InteractionNameType, InteractionCollection>>;
+    interactions?: Partial<Record<InteractionNameType, GetInteractionCollection>>;
 };
