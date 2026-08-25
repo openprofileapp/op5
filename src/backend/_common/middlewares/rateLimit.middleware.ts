@@ -3,9 +3,9 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 import { config } from "../../../../app.config.js";
 import PlatformPermissionsService from "../services/platformPermissions.service.js";
-import { wc } from "../instances.js";
+import { i18n, wc } from "../instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
+import { AuditApiType } from "../../../_common/types/audit.type.js";
 
 export default function rateLimitMiddleware(requests: number = 240) {
     return rateLimit({
@@ -20,7 +20,6 @@ export default function rateLimitMiddleware(requests: number = 240) {
         },
 
         skip: (req: Request): boolean => {
-            // Skip if super admin
             if (req.session?.permissions?.value) {
                 return PlatformPermissionsService.has(
                     req.session?.permissions?.value,
@@ -32,8 +31,7 @@ export default function rateLimitMiddleware(requests: number = 240) {
         },
 
         handler: async (req: Request, res: Response) => {
-            
-            // Create audit log
+
             await wc.callAPI(
                 `https://${config.domains.api}/v2/audit/create`,
                 {
@@ -50,7 +48,7 @@ export default function rateLimitMiddleware(requests: number = 240) {
 
             return res.status(429).json({
                 code: 429,
-                message: "Too many requests, please try again later."
+                message: i18n.t("responses.error.rateLimit")
             });
         },
     });
