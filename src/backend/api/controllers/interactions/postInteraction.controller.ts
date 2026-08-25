@@ -11,7 +11,6 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
-import { assertAssetPermissions } from "../../../_common/asserts/assetPermissions.assert.js";
 
 type Props = {
     targetId: string, 
@@ -69,7 +68,6 @@ export const postInteraction = async (req: Request, res: Response) => {
         const requiredPermission = interactionPermissions[type as InteractionNameType];
 
         assertPlatformPermissions(req.session, requiredPermission);
-        assertAssetPermissions(req.session.userId!, "READ", targetId);
 
         db.interactions.transaction(q => {
             const result = q(
