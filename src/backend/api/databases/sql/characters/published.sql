@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS published (
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
+    readVisibility TEXT NOT NULL DEFAULT 'public',
     sendComments TEXT NOT NULL DEFAULT 'public',
     isScheduled INTEGER NOT NULL DEFAULT 0, -- The scheduled conditions are in scheduled.sql
     updatedDate TEXT,

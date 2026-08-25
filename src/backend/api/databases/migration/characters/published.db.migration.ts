@@ -26,10 +26,11 @@ db.characters.transaction(q => {
                 auraSecondary,
                 isExplicit,
                 visibility,
+                readVisibility,
                 isScheduled,
                 updatedDate,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.score,
                 d.id,
@@ -45,6 +46,7 @@ db.characters.transaction(q => {
                 d.aura_primary,
                 d.aura_secondary,
                 d.explicit || 0,
+                d.visibility || "public",
                 d.visibility || "public",
                 0,
                 DateTime.fromSQL(d.updated_date as string, { zone: "utc" }).toISO(),
