@@ -90,10 +90,11 @@ export default function getPublishedCharactersById(
         if (character.ownerId === options?.getAs) return true;
 
         if (character.visibility === "public") return true;
-
         // DEVELOPER NEEDED: Only dsplay unlisted if on a profile directly; need an options.pageType or smth
         if (character.visibility === "unlisted") return false;
         if (character.visibility === "private") return false; // Only display on owner profile regardless if owner or not
+
+        if (character.visibility === "registered" && options?.getAs) return true;
 
         if (character.visibility === "followers") {            
             if (interactionsMap[character.id]?.follows?.hasInteracted) {
@@ -101,7 +102,7 @@ export default function getPublishedCharactersById(
             }
         }
 
-        if (options?.getAs && character.visibility === "friends") {
+        if (character.visibility === "friends" && options?.getAs) {
             const leftHand = getInteractionsById(
                 character.ownerId,
                 { 

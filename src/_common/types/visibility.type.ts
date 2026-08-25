@@ -1,2 +1,2 @@
 export type VisibilityType = 
-    "public" | "followers" | "friends" | "unlisted" | "private"
+    "public" | "unlisted" | "registered" | "followers" | "friends" | "private"
