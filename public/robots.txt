@@ -1,2 +1,19 @@
 User-agent: *
 Disallow: /dashboard
+
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: Anthropic-AI
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: ByteSpider
+User-agent: CCBot
+User-agent: FacebookBot
+User-agent: Applebot-Extended
+User-agent: Diffbot
+User-agent: Cohere-ai
+User-agent: Omgilibot
+User-agent: YouBot
+Disallow: /
