@@ -86,6 +86,7 @@ export default function getPublishedCharactersById(
         }
     );
 
+    // DEVELOPER NEEDED: Turn this into a resuable function
     const visibleCharacters = result.rows.filter((character) => {
         if (character.ownerId === options?.getAs) return true;
 
@@ -103,28 +104,26 @@ export default function getPublishedCharactersById(
         }
 
         if (character.visibility === "friends" && options?.getAs) {
-            const leftHand = getInteractionsById(
-                character.ownerId,
-                { 
-                    type: "friends",
-                    checkSourceInteraction: options?.getAs,
-                    countOnly: true
-                }
+            const result = db.interactions.query(
+                `
+                    SELECT 1 FROM friends 
+                        WHERE (source = ? AND target = ?) 
+                        OR (source = ? AND target = ?)
+                `,
+                [character.ownerId, options.getAs, options.getAs, character.ownerId]
             );
 
-            const rightHand = getInteractionsById(
-                options?.getAs,
-                { 
-                    type: "friends",
-                    checkSourceInteraction: character.ownerId,
-                    countOnly: true
-                }
-            );
+            console.log(result)
 
-            if (
-                leftHand.hasInteracted &&
-                rightHand.hasInteracted
-            ) {
+            if (!result.success) {
+                throw new AdvancedError({
+                    code: 500,
+                    message: "An error occurred while fetching friends",
+                    details: result.error
+                })
+            }
+
+            if (result.rowCount === 2) {
                 return true;
             }
         }
