@@ -77,6 +77,26 @@ export default function getUsersById(
         }
     );
 
+    /*
+    
+    // DEVELOPER NEEDED: Copy over the published character code and format this
+    const sanitizedCharacters = visibleCharacters.map((character) => {
+        if (character.displayName === "TEMP") {
+            const characterInteractions = interactionsMap[character.id];
+            const isFollowing = characterInteractions?.follows?.hasInteracted;
+
+            if (!isFollowing) {
+                return {
+                    ...character,
+                    displayName: undefined
+                };
+            }
+        }
+
+        return character;
+    });
+    */
+
     const formatUser = (row: UserType): GetUserType => ({
         ...row,
         tags: parseTags(row.tags),
