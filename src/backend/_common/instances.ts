@@ -1,9 +1,17 @@
 import path from "path";
 import maxmind, { CityResponse } from "maxmind";
 
-import { Identifier, WebClient } from "kage-library";
+import { I18nService, Identifier, WebClient } from "kage-library";
 
 import { config } from "../../../app.config.js";
+
+export const i18n = await I18nService.load(
+    { 
+        localesPath: "/public/locales", 
+        locale: "en", 
+        defaultLocale: config.metadata.locale 
+    }
+);
 
 export const wc = new WebClient({
     crawler: config.crawler,
