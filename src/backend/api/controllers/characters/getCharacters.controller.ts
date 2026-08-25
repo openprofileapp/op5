@@ -123,6 +123,29 @@ export const getCharacters = async (req: Request, res: Response) => {
             result.rows.map((row) => row.id)
         );
 
+        /*
+        // DEVELOPER NEEDED: Take this externally to the get controllers, not here as it involves private data
+        // or platform permissions as it isn't permission related
+        const interactions = getInteractionsById(
+            asset.id,
+            { 
+                method: "target",
+                checkSourceInteraction: userId,
+                countOnly: true
+            }
+        );
+
+        if (
+            asset.visibility === "followers" &&
+            interactions.follows?.hasInteracted &&
+            (permissions === "VIEW" || permissions === "READ")
+        ) {
+            return true;
+        }
+
+        // If false, filter out the data from the item
+        */
+
         res.status(200).json({
             characters: Object.values(characterRecord),
             pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit)),
