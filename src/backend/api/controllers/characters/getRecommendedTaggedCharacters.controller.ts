@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
 
-import { i18n, log } from "../../instances.js";
+import { log } from "../../instances.js";
 import getUserInterestsById from "../../services/getUserInterestsById.service.js";
 import { db } from "../../databases/db.js";
 import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
@@ -11,6 +11,7 @@ import getPublishedCharactersById from "../../services/getPublishedCharactersByI
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
+import { i18n } from "../../../_common/instances.js";
 
 // ONLY IF THE USER LIKED THE CHARACTER
 export const getRecommendedTaggedCharacters = async (req: Request, res: Response) => {

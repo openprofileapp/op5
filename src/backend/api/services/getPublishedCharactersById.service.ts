@@ -9,7 +9,7 @@ import getOwnersById from "./getOwnersById.service.js";
 import getInteractionsById from "./getInteractionsById.service.js";
 import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
 import getLinksById from "./getLinksById.service.js";
-import { i18n } from "../instances.js";
+import { i18n } from "../../_common/instances.js";
 
 type Options = {
     getAs?: string;
