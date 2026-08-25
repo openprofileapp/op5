@@ -4,13 +4,14 @@ import { AdvancedError } from "kage-library";
 
 import { log } from "../../instances.js";
 import { db } from "../../databases/db.js";
-import { PermissionName } from "../../../_common/services/platformPermissions.service.js";
+import { PlatformPermissionName } from "../../../_common/services/platformPermissions.service.js";
 import { InteractionNameType } from "../../../../_common/types/interaction.type.js";
 import { satisfiesAll } from "../../../_common/helpers/satisfiesAll.js";
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
-import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
+import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
+import { assertAssetPermissions } from "../../../_common/asserts/assetPermissions.assert.js";
 
 type Props = {
     targetId: string, 
@@ -49,7 +50,7 @@ export const postInteraction = async (req: Request, res: Response) => {
             });
         }
 
-        const interactionPermissions: Record<InteractionNameType, PermissionName> = {
+        const interactionPermissions: Record<InteractionNameType, PlatformPermissionName> = {
             blocks: "USE_INTERACTIONS",
             chats: "USE_INTERACTIONS",
             dismisses: "USE_INTERACTIONS",
@@ -67,7 +68,8 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         const requiredPermission = interactionPermissions[type as InteractionNameType];
 
-        assertPermissions(req.session, requiredPermission);
+        assertPlatformPermissions(req.session, requiredPermission);
+        assertAssetPermissions(req.session.userId!, "READ", targetId);
 
         db.interactions.transaction(q => {
             const result = q(

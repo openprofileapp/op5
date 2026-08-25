@@ -1,9 +1,9 @@
 import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
-import getUserByIdOrUsername, { getUserByIdOrUsernameType } from "../services/getUserByIdOrUsername.service.js";
-import { CharacterType } from "../../../_common/types/queries/character.type.js";
-import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
+import { GetUserType, UserType } from "../../../_common/types/user.type.js";
+import getUsersById from "../services/getUsersById.service.js";
+import { PublishedCharacterType } from "../../../_common/types/character.type.js";
 
 type AssetType = 
     "USER" | 
@@ -24,7 +24,7 @@ export type WhatIsType = {
     isOfficial: boolean;
 }
 
-function hasBadge(owner: getUserByIdOrUsernameType, badgeType: string): boolean {
+function hasBadge(owner: GetUserType, badgeType: string): boolean {
     return Array.isArray(owner.badges) && owner.badges.some((b) => b.type === badgeType);
 }
 
@@ -59,7 +59,7 @@ export default function whatIs(id: string): WhatIsType {
     }
 
     // USER
-    const userResult = db.users.query<UserProfileType>(
+    const userResult = db.users.query<UserType>(
         "SELECT id FROM users WHERE id = ?", 
         [id]
     );
@@ -73,17 +73,19 @@ export default function whatIs(id: string): WhatIsType {
     }
 
     if (userResult.rowCount === 1) {
-        const owner = getUserByIdOrUsername(id);
+        const owner = getUsersById(id);
 
-        return {
-            id,
-            type: "USER",
-            tags: JSON.parse(owner.tags),
-            createdDate: owner.createdDate,
-            isPremium: hasBadge(owner, "premium"),
-            isVerified: hasBadge(owner, "verified"),
-            isPromoted: hasBadge(owner, "promoted"),
-            isOfficial: hasBadge(owner, "official")
+        if (owner) {
+            return {
+                id,
+                type: "USER",
+                tags: owner.tags,
+                createdDate: owner.createdDate,
+                isPremium: hasBadge(owner, "premium"),
+                isVerified: hasBadge(owner, "verified"),
+                isPromoted: hasBadge(owner, "promoted"),
+                isOfficial: hasBadge(owner, "official")
+            }
         }
     }
 
@@ -94,7 +96,7 @@ export default function whatIs(id: string): WhatIsType {
     let updatedDate: string | undefined;
 
     // CHARACTER
-    const characterResult = db.characters.query<CharacterType>(
+    const characterResult = db.characters.query<PublishedCharacterType>(
         "SELECT * FROM drafts WHERE id = ?", 
         [id]
     );
@@ -125,7 +127,7 @@ export default function whatIs(id: string): WhatIsType {
         updatedDate &&
         ownerId
     ) {
-        const owner = getUserByIdOrUsername(ownerId);
+        const owner = getUsersById(ownerId);
 
         if (!owner) {
             throw new AdvancedError({

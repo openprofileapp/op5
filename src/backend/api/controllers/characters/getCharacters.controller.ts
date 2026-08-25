@@ -9,13 +9,13 @@ import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
-import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
+import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 
 // Rename to "getPublishedCharacters"
 export const getCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
-        assertPermissions(req.session, "READ");
+        assertPlatformPermissions(req.session, "READ");
 
         const { 
             id, 

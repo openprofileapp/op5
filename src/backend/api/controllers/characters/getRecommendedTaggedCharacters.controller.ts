@@ -10,14 +10,14 @@ import { config } from "../../../../../app.config.js";
 import getPublishedCharactersById from "../../services/getPublishedCharactersById.service.js";
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
-import { assertPermissions } from "../../../_common/asserts/permissions.assert.js";
+import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 
 // ONLY IF THE USER LIKED THE CHARACTER
 export const getRecommendedTaggedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertAccount(req.session); 
-        assertPermissions(req.session, "READ");
+        assertPlatformPermissions(req.session, "READ");
         
         const { 
             id, 
