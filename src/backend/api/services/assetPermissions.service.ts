@@ -9,7 +9,7 @@ import { AdvancedError } from "kage-library";
 import whatIs from "../helpers/whatIs.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 import { GetUserType } from "../../../_common/types/user.type.js";
-import getPublishedCharactersById from "./getPublishedCharactersById.service.js";
+import getPublishedCharactersById from "./getPublishedCharacters.service.js";
 import getUsersById from "./getUsersById.service.js";
 import { db } from "../databases/db.js";
 import { PermissionsType } from "../../../_common/types/permissions.type.js";
