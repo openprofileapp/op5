@@ -10,9 +10,11 @@ import getInteractionsById from "./getInteractionsById.service.js";
 import { InteractionMethod, InteractionNameType } from "../../../_common/types/interaction.type.js";
 import getLinksById from "./getLinksById.service.js";
 import { i18n } from "../../_common/instances.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 
 type Options = {
     getAs?: string;
+    getFrom?: string;
     interactionTypes?: InteractionNameType[];
     interactionMethod?: InteractionMethod;
     interactionCountOnly?: boolean;
@@ -49,7 +51,7 @@ export default function getPublishedCharactersById(
     if (!result.success) {
         throw new AdvancedError({
             code: 500,
-            message: i18n.t("responses.error.character"),
+            message: i18n.t("responses.character"),
             details: result.error
         });
     }
@@ -86,12 +88,17 @@ export default function getPublishedCharactersById(
         }
     );
 
-    // DEVELOPER NEEDED: Turn this into a resuable function
     const visibleCharacters = result.rows.filter((character) => {
         if (character.ownerId === options?.getAs) return true;
 
+        // DEVELOPER NEEDED: Only display hidden profiles inside /account/hidden
+        // getFrom === "/account/hidden"
+        console.log(options?.getFrom) // EXAMPLE
+        console.log(options?.getFrom === "browse") // EXAMPLE
+        if (interactionsMap[character.id]?.hides?.hasInteracted) return false;
+
         if (character.visibility === "public") return true;
-        // DEVELOPER NEEDED: Only dsplay unlisted if on a profile directly; need an options.pageType or smth
+        // DEVELOPER NEEDED: Only display unlisted if on a profile directly; need an options.pageType or smth
         if (character.visibility === "unlisted") return false;
         if (character.visibility === "private") return false; // Only display on owner profile regardless if owner or not
 
@@ -113,15 +120,7 @@ export default function getPublishedCharactersById(
                 [character.ownerId, options.getAs, options.getAs, character.ownerId]
             );
 
-            console.log(result)
-
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while fetching friends",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
             if (result.rowCount === 2) {
                 return true;
