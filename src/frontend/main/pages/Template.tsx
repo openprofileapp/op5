@@ -1251,14 +1251,14 @@ Check out my character: <@6773794953695671>
 
                                                 <fieldset className="fieldset flex-1">
                                                     <legend className="fieldset-legend">Filter</legend>
-                                                    <select defaultValue="Pick a browser" className="select w-full">
+                                                    <select className="select w-full">
                                                         <option value="updated">Recently Updated</option>
                                                         <option value="newest">Newest First</option>
                                                         <option value="oldest">Oldest First</option>
-                                                        <option value="popular-desc">Most Popular</option>
+                                                        <option value="popular-desc" selected>Most Popular</option>
                                                         <option value="popular-asc">Least Popular</option>
-                                                        <option value="name-asc">Name (A–Z)</option>
-                                                        <option value="name-desc">Name (Z–A)</option>
+                                                        <option value="name-asc">Name (A-Z)</option>
+                                                        <option value="name-desc">Name (Z-A)</option>
                                                     </select>
                                                 </fieldset>
                                             </div>
