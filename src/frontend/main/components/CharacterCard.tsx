@@ -195,7 +195,7 @@ export default function CharacterCard({
                         className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
                         data-tip="Pinned"
                     >
-                        <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
+                        <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
                             <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
                                 󰐃
                             </span>
@@ -203,6 +203,17 @@ export default function CharacterCard({
                     </div>
                 )
             )}
+
+            <div
+                className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
+                data-tip="Exclusive"
+            >
+                <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
+                    <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
+                        {data.visibility !== "public" ? "" : ""}
+                    </span>
+                </button>
+            </div>
 
             <div
                 className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent"
