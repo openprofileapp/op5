@@ -1,30 +1,19 @@
-import { AdvancedError } from "kage-library";
-
 import { db } from "../databases/db.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 
 export default function getUserInterestsById(id: string) {
-    if (!id) {
-        throw new AdvancedError({
-            code: 400,
-            message: "Invalid id"
-        })
-    }
+    assertNotNull(id);
 
     const result = db.users.query(
         "SELECT * FROM interests WHERE userId = ?", 
         [id]
     );
 
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching interests",
-            details: result.error
-        })
-    }
+    assertDbSuccess(result);
 
     return {
+        items: result.rows,
         count: result.rowCount,
-        interests: result.rows
     };
 }
