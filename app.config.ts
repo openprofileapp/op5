@@ -244,7 +244,7 @@ export const config = {
 
     // Dynamic generation (snowflake, etc.)
     generation: {
-        machine: 0, // (valid: 0–1023)
+        machine: 0, // (valid: 0-1023)
         epoch: "2026-01-01T00:00:00.000Z",
         seed: "",
         translations: [

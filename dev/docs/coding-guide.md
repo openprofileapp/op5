@@ -1,9 +1,9 @@
 ### Cron Schedule
-\* Minute (0–59)<br>
-\* Hour (0–23)<br>
-\* Day of month (1–31)<br>
-\* Month (1–12)<br>
-\* Day of week (0–7; Sunday = 0 or 7)
+\* Minute (0-59)<br>
+\* Hour (0-23)<br>
+\* Day of month (1-31)<br>
+\* Month (1-12)<br>
+\* Day of week (0-7; Sunday = 0 or 7)
 > `* * * * *` = every second<br>
 > `0 0 1 * *` = every first day of the month at 00:00
 
