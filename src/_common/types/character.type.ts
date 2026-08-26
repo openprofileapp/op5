@@ -29,7 +29,7 @@ export type PublishedCharacterType = {
     createdDate: string;
 }
 
-export type GetPublishedCharacterType = Omit<
+export type GetPublishedCharacterItemType = Omit<
     PublishedCharacterType, 
     "ownerId" | 
     "tags"
@@ -41,5 +41,10 @@ export type GetPublishedCharacterType = Omit<
     interactions?: Partial<Record<InteractionNameType, GetInteractionCollection>>;
     isPinned?: boolean;
 };
+
+export type GetPublishedCharacterType = {
+    items: GetPublishedCharacterItemType[],
+    count: number
+}
 
 // DEVELOPER NEEDED: Add DraftCharacterType here
