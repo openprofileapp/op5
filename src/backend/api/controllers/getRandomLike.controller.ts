@@ -4,7 +4,7 @@ import { AdvancedError } from "kage-library";
 import { InteractionType } from "../../../_common/types/interaction.type.js";
 import { db } from "../databases/db.js";
 import { log } from "../instances.js";
-import getPublishedCharactersById from "../services/getPublishedCharactersById.service.js";
+import getPublishedCharactersById from "../services/getPublishedCharacters.service.js";
 import { i18n } from "../../_common/instances.js";
 
 export const getRandomLike = (req: Request, res: Response) => {
