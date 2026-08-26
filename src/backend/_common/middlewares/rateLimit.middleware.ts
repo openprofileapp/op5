@@ -48,7 +48,7 @@ export default function rateLimitMiddleware(requests: number = 240) {
 
             return res.status(429).json({
                 code: 429,
-                message: i18n.t("responses.error.rateLimit")
+                message: i18n.t("responses.rateLimit")
             });
         },
     });

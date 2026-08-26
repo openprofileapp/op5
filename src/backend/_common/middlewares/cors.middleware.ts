@@ -58,7 +58,7 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
         if (error) {
             const error = new AdvancedError({
                 code: 403,
-                message: i18n.t("responses.error.cors")
+                message: i18n.t("responses.cors")
             });
 
             return res.status(error.code).json(error);
