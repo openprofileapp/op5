@@ -3,17 +3,36 @@ import { Database } from "kage-library";
 import { config } from "../../../../app.config.js";
 import { log } from "../instances.js";
 
+const paths = {
+    audits: "data/databases/audits.sqlite",
+    metadata: "data/databases/metadata.sqlite",
+    characters: "data/databases/characters.sqlite",
+    users: "data/databases/users.sqlite",
+    badges: "data/databases/badges.sqlite",
+    invites: "data/databases/invites.sqlite",
+    links: "data/databases/links.sqlite",
+    pins: "data/databases/pins.sqlite",
+    interactions: "data/databases/interactions.sqlite"
+}
+
 export const db = {
-    audits: new Database("data/databases/audits.sqlite"),
-    metadata: new Database("data/databases/metadata.sqlite"),
-    characters: new Database("data/databases/characters.sqlite"),
-    users: new Database("data/databases/users.sqlite"),
-    badges: new Database("data/databases/badges.sqlite"),
-    invites: new Database("data/databases/invites.sqlite"),
-    links: new Database("data/databases/links.sqlite"),
-    pins: new Database("data/databases/pins.sqlite"),
-    interactions: new Database("data/databases/interactions.sqlite")
+    audits: new Database(paths.audits),
+    metadata: new Database(paths.metadata),
+    characters: new Database(paths.characters),
+    users: new Database(paths.users),
+    badges: new Database(paths.badges),
+    invites: new Database(paths.invites),
+    links: new Database(paths.links),
+    pins: new Database(paths.pins),
+    interactions: new Database(paths.interactions)
 };
+
+db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
+db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
+
+db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 
 db.audits.transaction(q => {
     if (!q("SELECT * FROM authentications LIMIT 1").success) { 
