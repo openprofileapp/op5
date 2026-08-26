@@ -10,20 +10,22 @@ import getPublishedCharactersById from "../../services/getPublishedCharactersByI
 import { PublishedCharacterType } from "../../../../_common/types/character.type.js";
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
+import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
+import { i18n } from "../../../_common/instances.js";
 
-// Rename to "getPublishedCharacters"
-export const getCharacters = async (req: Request, res: Response) => {
+export const getPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
-        assertPlatformPermissions(req.session, "READ");
+        assertPlatformPermissions(req.session, "VIEW");
 
         const { 
             id, 
             owner, 
-            visibility = "public", // DEVELOPER NEEDED: Remove the default public for accept all, but still as an option
+            visibility,
             page, 
             limit = config.limits.assetsPerPage,
-            q: query
+            q: query,
+            ref
         } = req.query;
 
         const offset = 
@@ -38,6 +40,9 @@ export const getCharacters = async (req: Request, res: Response) => {
         }
 
         const userInterestList = userInterests?.interests || [];
+
+        const visibilityClause = visibility ? `visibility = ?` : `1 = 1`;
+        const visibilityParams = visibility ? [visibility] : [];
 
         const idClause = id ? "AND id = ?" : "";
         const idParams = id ? [id] : [];
@@ -64,12 +69,10 @@ export const getCharacters = async (req: Request, res: Response) => {
             item.algorithmScore
         ]);
 
-        // DEVELOPER NEEDED: Only display not inside interaction "hides"
-
         const result = db.characters.query<PublishedCharacterType>(
             `
                 SELECT * FROM published
-                WHERE visibility = ?
+                WHERE ${visibilityClause}
                     ${idClause}
                     ${ownerIdClause}
                     ${searchClause}
@@ -77,7 +80,7 @@ export const getCharacters = async (req: Request, res: Response) => {
                 LIMIT ? OFFSET ?
             `,
             [
-                "public",
+                ...visibilityParams,
                 ...idParams,
                 ...ownerIdArgs,
                 ...searchParams,
@@ -87,49 +90,20 @@ export const getCharacters = async (req: Request, res: Response) => {
             ]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching characters",
-                details: result.error
-            })
-        }
+        assertDbSuccess(result);
 
-        const resultCount = db.characters.query(
-            `
-                SELECT COUNT(*) as count FROM published
-                WHERE visibility = ?
-                    ${idClause}
-                    ${ownerIdClause}
-                    ${searchClause}
-            `,
-            [
-                visibility,
-                ...idParams,
-                ...ownerIdArgs,
-                ...searchParams
-            ]
-        );
-
-        if (!resultCount.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching characters",
-                details: resultCount.error
-            })
-        }
-
-        const characterRecord = getPublishedCharactersById(
+        const array = Object.values(getPublishedCharactersById(
             result.rows.map((row) => row.id), 
-            {
-                getAs: req.session.userId
+            { 
+                getAs: req.session.userId,
+                getFrom: ref as string
             }
-        );
+        ));
 
         res.status(200).json({
-            characters: Object.values(characterRecord),
-            pageCount: Math.ceil(resultCount.rows[0].count as number / Number(limit)),
-            totalCount: resultCount.rows[0].count
+            characters: array,
+            pageCount: Math.ceil(array.length / Number(limit)),
+            totalCount: array.length
         });
     } catch(error) {
         if (error instanceof AdvancedError) {
@@ -141,7 +115,7 @@ export const getCharacters = async (req: Request, res: Response) => {
         } else {
             log.unknown.error(error).save();
             return res.status(500).json({
-                message: "An unexpected error occurred"
+                message: i18n.t("responses.unknown"),
             });
         }
     }
