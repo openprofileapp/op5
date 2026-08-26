@@ -7,9 +7,10 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
+import { getFromType } from "../../../../_common/types/getFrom.type.js";
 import { i18n } from "../../../_common/instances.js";
 
-export const getRecentFollowingPublishedCharacters = async (req: Request, res: Response) => {
+export const getRecentPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertPlatformPermissions(req.session, "VIEW");
@@ -19,6 +20,7 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             owner, 
             page, 
             limit = config.limits.assetsPerPage,
+            ref
         } = req.query;
 
         const offset = 
@@ -33,7 +35,7 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId,
-            getFrom: "home"
+            getFrom: ref as getFromType
         })
 
         res.status(200).json({

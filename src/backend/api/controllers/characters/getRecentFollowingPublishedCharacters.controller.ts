@@ -7,9 +7,11 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
+import { SortByType } from "../../../../_common/types/sortBy.type.js";
+import { getFromType } from "../../../../_common/types/getFrom.type.js";
 import { i18n } from "../../../_common/instances.js";
 
-export const getRecentFollowingPublishedCharacters = async (req: Request, res: Response) => {
+export const getPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertPlatformPermissions(req.session, "VIEW");
@@ -17,8 +19,11 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
         const { 
             id,
             owner, 
+            sortBy,
             page, 
             limit = config.limits.assetsPerPage,
+            q: query,
+            ref
         } = req.query;
 
         const offset = 
@@ -29,11 +34,12 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
         const characters = getPublishedCharactersService({
             id: id as string, 
             ownerId: owner as string, 
-            sortBy: "recent", 
+            sortBy: sortBy as SortByType, 
             offset: offset,
             limit: limit as number, 
+            query: query as string, 
             getAs: req.session.userId,
-            getFrom: "home"
+            getFrom: ref as getFromType
         })
 
         res.status(200).json({

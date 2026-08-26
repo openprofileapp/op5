@@ -7,9 +7,10 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
+import { getFromType } from "../../../../_common/types/getFrom.type.js";
 import { i18n } from "../../../_common/instances.js";
 
-export const getRecentFollowingPublishedCharacters = async (req: Request, res: Response) => {
+export const getPopularPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertPlatformPermissions(req.session, "VIEW");
@@ -17,29 +18,19 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
         const { 
             id,
             owner, 
-            page, 
-            limit = config.limits.assetsPerPage,
+            ref
         } = req.query;
-
-        const offset = 
-            (Number(page) || 1) * 
-            Number(limit) - 
-            Number(limit);
 
         const characters = getPublishedCharactersService({
             id: id as string, 
             ownerId: owner as string, 
-            sortBy: "recent", 
-            offset: offset,
-            limit: limit as number, 
+            sortBy: "popularDesc", 
+            limit: config.limits.assetsPerPage, 
             getAs: req.session.userId,
-            getFrom: "home"
+            getFrom: ref as getFromType
         })
 
-        res.status(200).json({
-            ...characters,
-            pages: Math.ceil(characters.count / Number(limit)),
-        });
+        res.status(200).json(characters);
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

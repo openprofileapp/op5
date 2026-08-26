@@ -9,7 +9,7 @@ import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
 import { i18n } from "../../../_common/instances.js";
 
-export const getRecentFollowingPublishedCharacters = async (req: Request, res: Response) => {
+export const getRecommendedTaggedPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertPlatformPermissions(req.session, "VIEW");
@@ -21,6 +21,8 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             limit = config.limits.assetsPerPage,
         } = req.query;
 
+        const { tag } = req.params;
+
         const offset = 
             (Number(page) || 1) * 
             Number(limit) - 
@@ -29,9 +31,10 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
         const characters = getPublishedCharactersService({
             id: id as string, 
             ownerId: owner as string, 
-            sortBy: "recent", 
+            sortBy: "popularDesc", 
             offset: offset,
             limit: limit as number, 
+            tag: tag as string, 
             getAs: req.session.userId,
             getFrom: "home"
         })

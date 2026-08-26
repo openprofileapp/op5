@@ -9,7 +9,7 @@ import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
 import { i18n } from "../../../_common/instances.js";
 
-export const getRecentFollowingPublishedCharacters = async (req: Request, res: Response) => {
+export const getRecommendedPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
         assertPlatformPermissions(req.session, "VIEW");
@@ -29,7 +29,7 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
         const characters = getPublishedCharactersService({
             id: id as string, 
             ownerId: owner as string, 
-            sortBy: "recent", 
+            sortBy: "popularDesc", 
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId,
