@@ -12,6 +12,7 @@ import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Pagination } from "../components/Pagination.js";
+import { TypeableDropdownInput } from "../../studio/components/TypeableDropdownInput.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
@@ -23,6 +24,8 @@ export default function SearchProfiles() {
     const [users, setUsers] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
     const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
+    const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "recommended");
+    const [nextOffset, setNextOffset] = useState<number | null>(null);
     const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
@@ -42,6 +45,46 @@ export default function SearchProfiles() {
     } else if (isOnTagPage && tag) {
         endpoint = `/tag/${tag}`;
     }
+
+    useEffect(() => {
+        const pageParam = parseInt(searchParams.get("page") || "1");
+        const sortParam = searchParams.get("sortBy") || "recommended";
+
+        if (pageParam !== currentPage) {
+            setCurrentPage(pageParam);
+            setNextOffset(null);
+        }
+        if (sortParam !== sortBy) {
+            setSortBy(sortParam);
+            setNextOffset(null);
+        }
+    }, [searchParams]);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        setNextOffset(null);
+        setSearchParams((prev) => {
+            const params = new URLSearchParams(prev);
+            if (page === 1) {
+                params.delete("page");
+            } else {
+                params.set("page", page.toString());
+            }
+            return params;
+        });
+    };
+
+    const handleSortChange = (newSortBy: string) => {
+        setSortBy(newSortBy);
+        setCurrentPage(1);
+        setNextOffset(null);
+        setSearchParams((prev) => {
+            const params = new URLSearchParams(prev);
+            params.set("sortBy", newSortBy);
+            params.delete("page");
+            return params;
+        });
+    };
 
     // If current page change, update the browser url query
 
@@ -66,21 +109,24 @@ export default function SearchProfiles() {
     }, []);*/
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(true);
 
         const fetchProfiles = async () => {
             try {
+                const offset = nextOffset !== null ? `&offset=${nextOffset}` : "";
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters${endpoint}?ref=browse&page=${currentPage}`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
 
-                console.log(data)
+                console.log(data);
 
-                setProfiles(data.characters);
-                setCount(data.pageCount);
+                setProfiles(data.items || []);
+                setCount(data.pages || 0);
+                if (data.nextOffset !== undefined) {
+                    setNextOffset(data.nextOffset);
+                }
             } catch (err) {
                 console.error(err);
             } finally {
@@ -89,7 +135,7 @@ export default function SearchProfiles() {
         };
 
         fetchProfiles();
-    }, [location.pathname, currentPage, tag, endpoint]);
+    }, [location.pathname, currentPage, tag, endpoint, sortBy]);
 
     if (!isTranslationReady) return null;
     
@@ -101,20 +147,54 @@ export default function SearchProfiles() {
             />
 
             <div className="px-4 py-4 md:px-14">
+                <div className="px-0 md:px-4 flex flex-row gap-3">
+                    <div className="mt-4 mb-6 text-xl font-bold text-left flex-4">
+                        {isOnPopularPage ? "Popular (Top 30)" : ""}
+                        {isOnRecentPage ? "New & Updated (Last 30 Days)" : ""}
+                        {isOnTrendingPage ? "Trending (Top 30)" : ""}
+                        {isOnBrowsePage ? `Browsing All` : ""}
+                        {isOnTagPage ? `Browsing #${tag}` : ""}
+                    </div>
 
-                <div className="mt-4 mb-6 text-xl font-bold text-left">
-                    {isOnPopularPage ? "Popular (Top 100)" : ""}
-                    {isOnRecentPage ? "New & Updated (Last 30 Days)" : ""}
-                    {isOnTrendingPage ? "Trending (Top 100)" : ""}
-                    {isOnBrowsePage ? `Browsing All` : ""}
-                    {isOnTagPage ? `Browsing #${tag}` : ""}
+                    {/*export type SortByType = 
+    | "recommended"
+    | "exclusive"
+    | "verified"
+    | "popularDesc"
+    | "popularAsc"
+    | "newest"
+    | "oldest"
+    | "nameAsc"
+    | "nameDesc" */}
+
+                    {(isOnBrowsePage || isOnTagPage) && (
+                        <div className="flex-1 mt-2">
+                            <TypeableDropdownInput
+                                value={sortBy}
+                                options={[
+                                    { id: "recommended", name: "Recommended" },
+                                    { id: "exclusive", name: "Exclusive" },
+                                    { id: "verified", name: "Verified" },
+                                    { id: "newest", name: "Newest First" },
+                                    { id: "oldest", name: "Oldest First" },
+                                    { id: "popularDesc", name: "Most Popular" },
+                                    { id: "popularAsc", name: "Least Popular" },
+                                    { id: "nameAsc", name: "Name (A-Z)" },
+                                    { id: "nameDesc", name: "Name (Z-A)" }
+                                ]}
+                                placeholder="Filter Results"
+                                typeable={false}
+                                onChange={(id) => handleSortChange(id as string)}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="top-14 left-1/2 -translate-x-1/2 absolute flex justify-center">
                     <Pagination 
                         pageCount={count} 
                         currentPage={currentPage}
-                        onPageChange={(page) => setCurrentPage(page)}
+                        onPageChange={(page) => handlePageChange(page)}
                     />
                 </div>
 
@@ -168,7 +248,7 @@ export default function SearchProfiles() {
 
                     {/* Fix the inputs; eg: name -> displayName */}
 
-                    {!loading && false && users.map((d) => (
+                    {!loading && false && users.map((d: any) => (
                         <UserCard
                             id={d.id}
                             aura={{
@@ -199,7 +279,7 @@ export default function SearchProfiles() {
                         />
                     ))}
                     
-                    {!loading && profiles.map((d) => (
+                    {!loading && profiles.map((d: any, index: number) => (
                         <CharacterCard
                             data={d}
                         />
@@ -209,7 +289,7 @@ export default function SearchProfiles() {
                 <Pagination 
                     pageCount={count} 
                     currentPage={currentPage}
-                    onPageChange={(page) => setCurrentPage(page)}
+                    onPageChange={(page) => handlePageChange(page)}
                 />
             </div>
         </>
