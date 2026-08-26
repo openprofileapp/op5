@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getCharacters } from "../controllers/characters/getCharacters.controller.js";
+import { getPublishedCharacters } from "../controllers/characters/getPublishedCharacters.controller.js";
 import { getPopularCharacters } from "../controllers/characters/getPopularCharacters.controller.js";
 import { getRecommendedCharacters } from "../controllers/characters/getRecommendedCharacters.controller.js";
 import { getRecommendedTaggedCharacters } from "../controllers/characters/getRecommendedTaggedCharacters.controller.js";
@@ -12,7 +12,7 @@ import { getTaggedCharacters } from "../controllers/characters/getTaggedCharacte
 const characterRoutes = Router();
 
 // DEVELOPER NEEDED: Make it so non-public visibility can't be seen without an account and permissions/interaction check
-characterRoutes.get("/", getCharacters); // Make it tailored to preferences like recommended
+characterRoutes.get("/", getPublishedCharacters); // Make it tailored to preferences like recommended
 characterRoutes.get("/popular", getPopularCharacters);
 characterRoutes.get("/recommended", getRecommendedCharacters);
 characterRoutes.get("/recommended/:tag", getRecommendedTaggedCharacters);
