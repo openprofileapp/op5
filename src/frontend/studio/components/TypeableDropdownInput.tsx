@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 
+export type DropdownOption = string | { id: string | number; name: string };
+
 interface TypeableDropdownInputProps {
-    value?: string;
-    options?: string[];
+    value?: string | number;
+    options?: DropdownOption[] | Record<string, string>;
     placeholder?: string;
-    onChange?: (val: string) => void;
+    typeable?: boolean;
+    onChange?: (idOrValue: string | number) => void;
     onFocus?: () => void;
     onBlur?: () => void;
     onContextMenu?: (e: React.MouseEvent) => void;
@@ -14,14 +17,32 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     value = "",
     options = [],
     placeholder = "Select or type...",
+    typeable = true,
     onChange,
     onFocus,
     onBlur,
     onContextMenu,
 }) => {
+    const normalizedOptions: { id: string | number; name: string }[] = React.useMemo(() => {
+        if (Array.isArray(options)) {
+            return options.map((opt) =>
+                typeof opt === "object" && opt !== null ? opt : { id: opt, name: String(opt) }
+            );
+        }
+        if (typeof options === "object" && options !== null) {
+            return Object.entries(options).map(([id, name]) => ({ id, name }));
+        }
+        return [];
+    }, [options]);
+
+    const getDisplayName = (val: string | number) => {
+        const matched = normalizedOptions.find((opt) => opt.id === val || opt.name === val);
+        return matched ? matched.name : String(val || "");
+    };
+
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [openAbove, setOpenAbove] = useState<boolean>(false);
-    const [searchTerm, setSearchTerm] = useState<string>(value);
+    const [searchTerm, setSearchTerm] = useState<string>(() => getDisplayName(value));
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -29,16 +50,15 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     const listRef = useRef<HTMLUListElement>(null);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSearchTerm(value);
-    }, [value]);
+        setSearchTerm(getDisplayName(value));
+    }, [value, normalizedOptions]);
 
     useEffect(() => {
         if (isOpen && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             const menuMaxHeight = 250;
-            
+
             if (spaceBelow < menuMaxHeight && rect.top > menuMaxHeight) {
                 setOpenAbove(true);
             } else {
@@ -64,16 +84,16 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen, onBlur]);
 
-    const filteredOptions = (options || []).filter((opt) =>
-        String(opt).toLowerCase().includes((searchTerm || "").toLowerCase())
-    );
+    const filteredOptions = typeable
+        ? normalizedOptions.filter((opt) =>
+              opt.name.toLowerCase().includes((searchTerm || "").toLowerCase())
+          )
+        : normalizedOptions;
 
-    // Reset keyboard highlight whenever search options change
     useEffect(() => {
         setHighlightedIndex(-1);
-    }, [searchTerm]);
+    }, [searchTerm, typeable]);
 
-    // Keep highlighted keyboard option in scroll view
     useEffect(() => {
         if (highlightedIndex >= 0 && listRef.current) {
             const item = listRef.current.children[highlightedIndex] as HTMLElement;
@@ -83,9 +103,9 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         }
     }, [highlightedIndex]);
 
-    const handleSelectOption = (opt: string) => {
-        setSearchTerm(opt);
-        onChange?.(opt);
+    const handleSelectOption = (opt: { id: string | number; name: string }) => {
+        setSearchTerm(opt.name);
+        onChange?.(opt.id);
         setIsOpen(false);
         setHighlightedIndex(-1);
         onBlur?.();
@@ -95,7 +115,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         const nextState = !isOpen;
         setIsOpen(nextState);
         if (nextState) {
-            inputRef.current?.focus();
+            if (typeable) inputRef.current?.focus();
             onFocus?.();
         } else {
             onBlur?.();
@@ -104,7 +124,8 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (!isOpen) {
-            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
                 setIsOpen(true);
                 setHighlightedIndex(0);
             }
@@ -125,6 +146,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 );
                 break;
             case "Enter":
+            case " ":
                 if (isOpen && filteredOptions.length > 0) {
                     e.preventDefault();
                     if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
@@ -151,19 +173,28 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
             <input
                 ref={inputRef}
                 type="text"
+                readOnly={!typeable}
                 value={searchTerm}
                 placeholder={placeholder}
-                className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base pr-10 bg-none focus:outline-none"
+                className={`input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-sm pr-10 focus:outline-none ${
+                    !typeable ? "cursor-pointer select-none" : ""
+                }`}
                 onChange={(e) => {
+                    if (!typeable) return;
                     const newVal = e.target.value;
                     setSearchTerm(newVal);
                     onChange?.(newVal);
                     setIsOpen(true);
                 }}
-                onFocus={(e) => {
-                    e.target.select();
+                onFocus={() => {
                     onFocus?.();
-                    setIsOpen(true);
+                }}
+                onClick={() => {
+                    if (!typeable) {
+                        handleToggleMenu();
+                    } else {
+                        setIsOpen(true);
+                    }
                 }}
                 onKeyDown={handleKeyDown}
             />
@@ -185,7 +216,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 <ul
                     ref={listRef}
                     role="listbox"
-                    className={`absolute z-50 w-full max-h-60 overflow-auto rounded-md bg-base-200 border border-base-300 shadow-lg py-1 text-base focus:outline-none ${
+                    className={`absolute z-50 w-full max-h-60 overflow-auto rounded-md bg-base-200 border border-base-300 shadow-lg py-1 text-sm focus:outline-none ${
                         openAbove ? "bottom-full mb-1" : "top-full mt-1"
                     }`}
                 >
@@ -196,11 +227,11 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                     ) : (
                         filteredOptions.map((opt, i) => {
                             const isHighlighted = i === highlightedIndex;
-                            const isSelected = opt === searchTerm;
+                            const isSelected = opt.name === searchTerm || opt.id === value;
 
                             return (
                                 <li
-                                    key={i}
+                                    key={opt.id}
                                     role="option"
                                     aria-selected={isSelected}
                                     className={`px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-base-300 ${
@@ -214,7 +245,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                         handleSelectOption(opt);
                                     }}
                                 >
-                                    {opt}
+                                    {opt.name}
                                 </li>
                             );
                         })
