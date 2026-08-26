@@ -43,7 +43,7 @@ export default function Search() {
 
                 if (!isMounted) return;
 
-                const rawCharacters = data?.characters;
+                const rawCharacters = data?.items;
                 const newCharacters: GetPublishedCharacterType[] = Array.isArray(rawCharacters)
                     ? rawCharacters
                     : rawCharacters && typeof rawCharacters === "object"
@@ -51,9 +51,9 @@ export default function Search() {
                     : [];
 
                 setCharacters(newCharacters);
-                setTotalCount(data?.totalCount ?? 0);
+                setTotalCount(data?.count ?? 0);
                 setCurrentPage(1);
-                setHasMore(data?.pageCount ? 1 < data.pageCount : newCharacters.length > 0);
+                setHasMore(data?.pages ? 1 < data.pages : newCharacters.length > 0);
             } catch (err) {
                 console.error("Failed to fetch characters:", err);
 

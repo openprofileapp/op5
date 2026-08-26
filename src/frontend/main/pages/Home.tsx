@@ -63,7 +63,7 @@ export default function Home() {
                 if (res.ok) {
                     const data: characterApiType = await res.json();
 
-                    setTrendingCharacters(data.characters);
+                    setTrendingCharacters(data.items);
                 } else {
                     setTrendingCharacters([]);
                 }
@@ -91,7 +91,7 @@ export default function Home() {
                 if (res.ok) {
                     const data: characterApiType = await res.json();
 
-                    setPopularCharacters(data.characters);
+                    setPopularCharacters(data.items);
                 } else {
                     setPopularCharacters([]);
                 }
@@ -119,7 +119,7 @@ export default function Home() {
                 if (res.ok) {
                     const data: characterApiType = await res.json();
 
-                    setRecentCharacters(data.characters);
+                    setRecentCharacters(data.items);
                 } else {
                     setRecentCharacters([]);
                 }
@@ -148,7 +148,7 @@ export default function Home() {
                 if (res.ok) {
                     const data: characterApiType = await res.json();
 
-                    setRecentlyUpdatedCharacters(data.characters);
+                    setRecentlyUpdatedCharacters(data.items);
                 } else {
                     setRecentlyUpdatedCharacters([]);
                 }
@@ -176,7 +176,7 @@ export default function Home() {
                 if (res.ok) {
                     const data: characterApiType = await res.json();
 
-                    setRecommendedCharacters(data.characters);
+                    setRecommendedCharacters(data.items);
                 } else {
                     setRecommendedCharacters([]);
                 }
@@ -190,6 +190,8 @@ export default function Home() {
 
         fetchRecommendedCharacters();
     }, []);
+
+    // ^ Get a random character, then get /v2/characters/recommended/tag
 
     if (!isTranslationReady) return null;
 
