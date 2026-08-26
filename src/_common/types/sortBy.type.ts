@@ -1,0 +1,12 @@
+export type SortByType = 
+    | "recommended"
+    | "exclusive"
+    | "verified"
+    | "trending"
+    | "popularDesc"
+    | "popularAsc"
+    | "recent"
+    | "newest"
+    | "oldest"
+    | "nameAsc"
+    | "nameDesc"
