@@ -1,24 +1,23 @@
 import { Router } from "express";
 
-import { getPublishedCharacters } from "../controllers/characters/getPublishedCharacters.controller.js";
-import { getPopularCharacters } from "../controllers/characters/getPopularCharacters.controller.js";
-import { getRecommendedCharacters } from "../controllers/characters/getRecommendedCharacters.controller.js";
-import { getRecommendedTaggedCharacters } from "../controllers/characters/getRecommendedTaggedCharacters.controller.js";
-import { getTrendingCharacters } from "../controllers/characters/getTrendingCharacters.controller.js";
-import { getRecentCharacters } from "../controllers/characters/getRecentCharacters.controller.js";
-import { getRecentFollowingCharacters } from "../controllers/characters/getRecentFollowingCharacters.controller.js";
-import { getTaggedCharacters } from "../controllers/characters/getTaggedCharacters.controller.js";
+import { getPublishedCharacters } from "../controllers/characters/getRecentFollowingPublishedCharacters.controller.js";
+import { getTrendingPublishedCharacters } from "../controllers/characters/getTrendingPublishedCharacters.controller.js";
+import { getPopularPublishedCharacters } from "../controllers/characters/getPopularPublishedCharacters.controller.js";
+import { getRecentPublishedCharacters } from "../controllers/characters/getRecentPublishedCharacters.controller.js";
+import { getTaggedPublishedCharacters } from "../controllers/characters/getTaggedPublishedCharacters.controller.js";
+import { getRecentFollowingPublishedCharacters } from "../controllers/characters/getRecentFollowingCharacters.controller.js";
+import { getRecommendedPublishedCharacters } from "../controllers/characters/getRecommendedPublishedCharacters.controller.js";
+import { getRecommendedTaggedPublishedCharacters } from "../controllers/characters/getRecommendedTaggedPublishedCharacters.controller.js";
 
 const characterRoutes = Router();
 
-// DEVELOPER NEEDED: Make it so non-public visibility can't be seen without an account and permissions/interaction check
-characterRoutes.get("/", getPublishedCharacters); // Make it tailored to preferences like recommended
-characterRoutes.get("/popular", getPopularCharacters);
-characterRoutes.get("/recommended", getRecommendedCharacters);
-characterRoutes.get("/recommended/:tag", getRecommendedTaggedCharacters);
-characterRoutes.get("/trending", getTrendingCharacters);
-characterRoutes.get("/recent", getRecentCharacters);
-characterRoutes.get("/recent/following", getRecentFollowingCharacters);
-characterRoutes.get("/tag/:tag", getTaggedCharacters); // Make it tailored to preferences like recommended
+characterRoutes.get("/", getPublishedCharacters);
+characterRoutes.get("/trending", getTrendingPublishedCharacters);
+characterRoutes.get("/popular", getPopularPublishedCharacters);
+characterRoutes.get("/recent", getRecentPublishedCharacters);
+characterRoutes.get("/tag/:tag", getTaggedPublishedCharacters);
+characterRoutes.get("/recent/following", getRecentFollowingPublishedCharacters);
+characterRoutes.get("/recommended", getRecommendedPublishedCharacters);
+characterRoutes.get("/recommended/:tag", getRecommendedTaggedPublishedCharacters);
 
 export default characterRoutes;
