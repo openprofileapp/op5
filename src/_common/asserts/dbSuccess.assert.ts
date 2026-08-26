@@ -7,24 +7,19 @@ import { assertNotNull } from "./notNull.assert.js";
  *
  * @example
  * assertDbSuccess(result);
- * assertDbSuccess([characterResult, userResult]);
  */
-type SuccessfulQueryResult<T extends object = Record<string, unknown>> = Extract<QueryResult<T>, { success: true }>;
+type SuccessfulQueryResult<T extends object> = Extract<QueryResult<T>, { success: true }>;
 
 export function assertDbSuccess<T extends object>(
-    results: QueryResult<T> | QueryResult<T>[]
-): asserts results is (QueryResult<T> extends unknown ? SuccessfulQueryResult<T> : never) {
-    const list = Array.isArray(results) ? results : [results];
-    
-    list.forEach((item) => {
-        assertNotNull(item);
+    result: QueryResult<T>
+): asserts result is SuccessfulQueryResult<T> {
+    assertNotNull(result);
 
-        if (!item.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: i18n.t("responses.database"),
-                details: item.error
-            });
-        }
-    });
+    if (!result.success) {
+        throw new AdvancedError({
+            code: 500,
+            message: i18n.t("responses.database"),
+            details: result.error
+        });
+    }
 }
