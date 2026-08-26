@@ -593,8 +593,8 @@ export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockM
                                     <option value="oldest">Oldest First</option>
                                     <option value="popular-desc">Most Popular</option>
                                     <option value="popular-asc">Least Popular</option>
-                                    <option value="name-asc">Name (A–Z)</option>
-                                    <option value="name-desc">Name (Z–A)</option>
+                                    <option value="name-asc">Name (A-Z)</option>
+                                    <option value="name-desc">Name (Z-A)</option>
                                 </select>
                             </fieldset>
                         </div>
