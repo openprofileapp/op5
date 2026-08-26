@@ -1,17 +1,17 @@
-import type { Request, Response } from 'express';
+/*import type { Request, Response } from 'express';
 
 import { AdvancedError } from 'kage-library';
 
 import { log } from '../../../instances.js';
 import getPinsByOwnerId from '../../../services/getPinsByOwnerId.service.js';
-import PlatformPermissionsService from '../../../../_common/services/platformPermissions.service.js';
-import getPublishedCharactersById from '../../../services/getPublishedCharactersById.service.js';
+// import PlatformPermissionsService from '../../../../_common/services/platformPermissions.service.js';
+// import getPublishedCharactersById from '../../../services/getPublishedCharactersById.service.js';
 
 export const getPins = async (req: Request, res: Response) => {
     try {
         const { ownerId } = req.params;
 
-        /*// TEMP (DELETE)
+        // TEMP (DELETE)
         if (req.session) {
             return res.status(200).json({
                 owned: PlatformPermissionsService.can(
@@ -30,7 +30,7 @@ export const getPins = async (req: Request, res: Response) => {
                     "6587823496323314"
                 )
             });
-        }*/
+        }
 
         const pins = getPinsByOwnerId(ownerId as string).pins;
 
@@ -54,4 +54,4 @@ export const getPins = async (req: Request, res: Response) => {
             log.unknown.error(error).save();
         }
     }
-};
+};*/
