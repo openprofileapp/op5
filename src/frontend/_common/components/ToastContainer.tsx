@@ -55,7 +55,7 @@ export default function ToastContainer() {
                         `}
                     >
                         {t.icon && (<span className="flex items-center justify-center w-4 text-lg font-nerdfont leading-none shrink-0">{t.icon}</span>)}
-                        <div className="flex flex-col text-left">
+                        <div className="flex flex-col text-center">
                             <span className="font-medium text-sm leading-snug">{t.message}</span>
                             {t.subtext && (
                                 <span className="text-xs opacity-80 leading-snug mt-0.5">
