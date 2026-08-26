@@ -21,9 +21,7 @@ import healthRoute from "../_common/routes/health.route.js";
 import pinRoutes from "./routes/pin.routes.js";
 import characterRoutes from "./routes/character.routes.js";
 import randomRoutes from "./routes/random.routes.js";
-import getInteractionsById from "./services/getInteractionsById.service.js";
-import getPublishedCharactersById from "./services/getPublishedCharactersById.service.js";
-import getUsersById from "./services/getUsersById.service.js";
+import getPublishedCharacters from "./services/getPublishedCharacters.service.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -65,22 +63,22 @@ v2.use(
     userRoutes
 );
 
-v2.use(
+/*v2.use(
     "/pins", 
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     pinRoutes
-);
+);*/
 
 // ADD A ACCESS TOKEN CHECK MIDDLEWARE middleware(access OR ApiSecret)
 
 v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
 v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
-v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
+//v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
-v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
-v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+//v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
+//v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
 // DEVELOPER NEEDED: Add /themes
 // DEVELOPER NEEDED: Set up live-template saving. The 2MB is cause the limit could be a bit large? Experiment on this a bit
 // v2.use("/templates", express.json({ limit: "2mb" }), fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
@@ -121,18 +119,11 @@ cron.schedule("0 0 * * *", () => {
 
 
 
-// log.db.info(getUsersById("5019646586243236", { getAs: "5719552362357773" })).save();
-// log.db.info(getPublishedCharactersById("1655391085225720", { getAs: "5719552362357773" })).save();
 
-/*log.db.info(getPublishedCharactersById(
-    ["6587823496323314", "1655391085225720"], 
-    { getAs: "5719552362357773" }
-)).save();*/
+/*const character = getPublishedCharacters({
+    id: "6587823496323314",
+    getAs: "5719552362357773"
+})
 
-// log.db.info(getInteractionsById(
-//     ["5719552362357773", "5019646586243236"],
-//     { types: ["likes", "follows"], checkInteraction: "5719552362357773" }
-// )).save();
-
-// log.db.info(getUsersById("5719552362357773")).save();
-// log.db.info(getUsersById(["5719552362357773", "5019646586243236"])).save();
+log.unknown.info(character).save()
+*/
