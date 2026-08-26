@@ -1,5 +1,6 @@
 import { AdvancedError } from "kage-library";
 import AssetPermissionsService, { AssetPermissionName } from "../../api/services/assetPermissions.service.js";
+import { i18n } from "../instances.js";
 
 /**
  * Asserts that the current session must have the requested permissions.
@@ -19,7 +20,7 @@ export function assertAssetPermissions(
     )) {
         throw new AdvancedError({
             code: 401,
-            message: "Unauthorized"
+            message: i18n.t("responses.unauthorized")
         })
     }
 }

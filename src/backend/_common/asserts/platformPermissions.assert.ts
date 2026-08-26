@@ -1,6 +1,7 @@
 import { AdvancedError } from "kage-library";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import PlatformPermissionsService, { PlatformPermissionName } from "../services/platformPermissions.service.js";
+import { i18n } from "../instances.js";
 
 /**
  * Asserts that the current session must have the requested permissions.
@@ -18,7 +19,7 @@ export function assertPlatformPermissions(
     )) {
         throw new AdvancedError({
             code: 401,
-            message: "Unauthorized"
+            message: i18n.t("responses.unauthorized")
         })
     }
 }
