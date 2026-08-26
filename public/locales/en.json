@@ -13,16 +13,16 @@
     }
   },
   "responses": {
-    "error": {
-      "character": "An error occurred while fetching character",
-      "cors": "Not allowed by CORS",
-      "rateLimit": "Too many requests, please try again later."
-    },
-    "emptyFields": "Please fill in all the required fields.",
-    "noAccess": "You do not have permission to access this content.",
+    "character": "An error occurred while fetching character",
+    "cors": "Not allowed by CORS",
+    "rateLimit": "Too many requests, please try again later.",
+    "malformedRequest": "You need an account to perfect this action.",
+    "unauthorized": "You do not have permission to perform this action.",
     "badGateway": "Bad gateway. Try refreshing!",
     "failedCommand": "Error executing command! A report was filed and sent to the developer.",
-    "noAccount": "You need an account to perfect this action."
+    "noAccount": "You need an account to perfect this action.",
+    "database": "An error occurred while performing a database operation.",
+    "unknown": "An unknown error occurred"
   },
   "pages": {
     "languages": "Languages",
