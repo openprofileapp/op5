@@ -569,6 +569,7 @@ export default function CharacterCard({
                             }
                         }}
                     >
+                        {/* DEVELOPER NEEDED: If not interested, display interested cause of the accounts/hidden */}
                         <button className="justify-between text-accent">
                             Not Interested
                             <span 
