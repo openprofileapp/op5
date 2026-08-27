@@ -17,6 +17,8 @@ import sendNotificationService, { notificationMilestones } from "../../services/
 import { NotificationNameType } from "../../../../_common/types/notification.type.js";
 import getInteractionsService from "../../services/getInteractionsService.service.js";
 import whatIs from "../../helpers/whatIs.js";
+import AlgorithmService from "../../services/algorithm.service.js";
+import { AlgorithmEventNameType } from "../../../../_common/types/algorithm.type.js";
 
 type Props = {
     targetId: string, 
@@ -75,6 +77,8 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         assertPlatformPermissions(req.session, requiredPermission);
 
+        let newInteraction = false;
+
         db.interactions.transaction(q => {
             const result = q(
                 `DELETE FROM ${type} WHERE source = ? AND target = ?`,
@@ -84,6 +88,8 @@ export const postInteraction = async (req: Request, res: Response) => {
             assertDbSuccess(result);
 
             if (result.changes === 0) {
+                newInteraction = true;
+
                 const result = q(
                     `INSERT INTO ${type} (source, target) VALUES (?, ?)`,
                     [req.session.userId, targetId]
@@ -97,10 +103,29 @@ export const postInteraction = async (req: Request, res: Response) => {
             ok: true
         });
 
+        let algorithmEvent: AlgorithmEventNameType | undefined;
+
+        // DEVELOPER NEEDED: Add all the other types
+        switch (`${type}:${newInteraction}`) {
+            case "follows:true":
+                algorithmEvent = "FOLLOW";
+                break;
+            case "follows:false":
+                algorithmEvent = "UNFOLLOW";
+                break;
+            case "likes:true":
+                algorithmEvent = "LIKE";
+                break;
+            case "likes:false":
+                algorithmEvent = "UNLIKE";
+                break;
+        }
+
+        AlgorithmService.update(targetId, req.session.userId, algorithmEvent as AlgorithmEventNameType);
+
         const interactions = getInteractionsService({
             target: targetId,
-            type,
-            countOnly: true
+            type
         })
 
         let isMilestone = false;
@@ -112,6 +137,7 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         let notificationType: NotificationNameType | undefined;
 
+        // DEVELOPER NEEDED: Add all the other types
         switch(type) {
             case "follows":
                 notificationType = "NEW_FOLLOW"
@@ -165,11 +191,6 @@ export const postInteraction = async (req: Request, res: Response) => {
                 );
             }
         }
-
-    // DEVELOPER NEEDED
-    // Port scoreAssignmentService (w/ interests)
-    // UPDATE MIGRATION TO USE THE NEW NOTIFICATION TYPE NAMES
-    // sendPushNotificationService(); // should send for all delegated accounts
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
