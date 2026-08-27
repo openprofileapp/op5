@@ -11,6 +11,8 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
+import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
+import { i18n } from "../../../_common/instances.js";
 
 type Props = {
     targetId: string, 
@@ -75,13 +77,7 @@ export const postInteraction = async (req: Request, res: Response) => {
                 [req.session.userId, targetId]
             )
 
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while deleting interaction",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
             if (result.changes === 0) {
                 const result = q(
@@ -89,17 +85,11 @@ export const postInteraction = async (req: Request, res: Response) => {
                     [req.session.userId, targetId]
                 )
 
-                if (!result.success) {
-                    throw new AdvancedError({
-                        code: 500,
-                        message: "An error occurred while saving interaction",
-                        details: result.error
-                    })
-                }
+                assertDbSuccess(result);
             }
         });
 
-        // DEVELOPER NEEDED: After interaction, send a notification and assign score + interests
+        // Port the notificationsService and scoreAssignmentService (w/ interests)
 
         res.status(200).json({
             ok: true
@@ -113,6 +103,9 @@ export const postInteraction = async (req: Request, res: Response) => {
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
     }
 };
