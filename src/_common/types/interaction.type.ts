@@ -4,16 +4,6 @@ export type InteractionType = {
     date: string;
 }
 
-export type GetSourceInteractionType = Omit<
-    InteractionType, 
-    "source"
->;
-
-export type GetTargetInteractionType = Omit<
-    InteractionType, 
-    "target"
->;
-
 export type InteractionNameType = 
     | "blocks"
     | "chats"
@@ -27,14 +17,16 @@ export type InteractionNameType =
     | "reads"
     | "restricts"
     | "shares"
-    | "views";
+    | "views"
+;
 
 export type InteractionMethod = "source" | "target"
 
-export type TransformedRow = GetSourceInteractionType | GetTargetInteractionType | InteractionType;
-
-export type GetInteractionCollection<T = TransformedRow> = {
-    items: T[];
+export type GetInteractionsResult = {
+    items: InteractionType[];
     count: number;
     hasInteracted?: boolean;
 };
+
+export type GetInteractionCollection = Partial<
+    Record<InteractionNameType, GetInteractionsResult>>;
