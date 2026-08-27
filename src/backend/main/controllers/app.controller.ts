@@ -15,9 +15,10 @@ export const renderApp = async (req: Request, res: Response) => {
         metadata: config.metadata,
         domains: config.domains,
         integrations: {
+            webPush: config.integrations.webPush,
             hcaptcha: config.integrations.hcaptcha,
             oauth2: config.integrations.oauth2
-        }
+        },
     }
 
     try {

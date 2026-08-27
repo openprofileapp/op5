@@ -11,6 +11,7 @@ export type ClientConfig = {
     metadata: Config["metadata"];
     domains: Config["domains"];
     integrations: {
+        webPush: Config["integrations"]["webPush"]
         hcaptcha: Config["integrations"]["hcaptcha"]
         oauth2: Config["integrations"]["oauth2"]
     }

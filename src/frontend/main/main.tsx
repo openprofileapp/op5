@@ -7,6 +7,7 @@ import { I18nextProvider } from "react-i18next"
 import i18n from "../_common/i18n.js"
 
 import isGateway from "../_common/helpers/isGateway.js"
+import setupWebPushNotifications from "./scripts/webPush.js"
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -71,6 +72,8 @@ async function bootstrap() {
         );
 
         window.session.user = await response.json();
+
+        setupWebPushNotifications();
     }
 
     ReactDOM.createRoot(document.getElementById("root")!).render(
