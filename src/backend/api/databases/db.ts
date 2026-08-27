@@ -150,6 +150,16 @@ db.users.transaction(q => {
         const result = q(`${config.folders.sql.api}/users/usernames.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM webpush LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/users/webpush.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM notifications LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/users/notifications.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 db.badges.transaction(q => {
@@ -278,6 +288,8 @@ async function waitForMDB() {
             import("./migration/users/users.db.migration.js");
             import("./migration/users/interests.db.migration.js");
             import("./migration/users/usernames.db.migration.js");
+            import("./migration/users/webpush.db.migration.js");
+            import("./migration/users/notifications.db.migration.js");
 
             import("./migration/badges.db.migration.js");
             import("./migration/links.db.migration.js");
