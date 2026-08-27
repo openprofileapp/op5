@@ -8,7 +8,15 @@ import { i18n } from "../../backend/_common/instances.js";
  * assertNotNull(id);
  * assertNotNull([id, name]);
  */
-export function assertNotNull(targets: unknown | unknown[]): void {
+export function assertNotNull<T>(
+    target: T
+): asserts target is NonNullable<T>;
+
+export function assertNotNull<T>(
+    target: T[]
+): asserts target is NonNullable<T>[];
+
+export function assertNotNull(targets: unknown): void {
     if (targets === null || targets === undefined) {
         throw new AdvancedError({
             code: 400,
