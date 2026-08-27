@@ -22,6 +22,9 @@ import pinRoutes from "./routes/pin.routes.js";
 import characterRoutes from "./routes/character.routes.js";
 import randomRoutes from "./routes/random.routes.js";
 import getPublishedCharacters from "./services/getPublishedCharacters.service.js";
+import getInteractionsService from "./services/getInteractionsService.service.js";
+import { parseJson } from "../_common/helpers/parseJson.js";
+import webPushRoute from "./routes/webPush.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -75,6 +78,7 @@ v2.use(
 v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
 v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
+v2.use("/webpush", fetchSessionMiddleware, rateLimitMiddleware(8), webPushRoute);
 //v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
 //v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
@@ -126,4 +130,12 @@ cron.schedule("0 0 * * *", () => {
 })
 
 log.unknown.info(character).save()
+*/
+/*
+const interactions = getInteractionsService({
+    countOnly: true,
+    getAs: "5719552362357773"
+})
+
+log.unknown.info(parseJson(interactions)).save()
 */
