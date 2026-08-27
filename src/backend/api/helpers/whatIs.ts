@@ -14,6 +14,9 @@ type AssetType =
 
 export type WhatIsType = {
     id: string;
+    ownerId?: string;
+    displayName?: string;
+    avatar?: string;
     type: AssetType;
     tags: string[];
     createdDate: string;
@@ -41,6 +44,9 @@ function hasBadge(owner: GetUserType, badgeType: string): boolean {
  * console.log(assetType); 
  * // {
  * //   id: "00000000000000000"
+ * //   ownerId: "00000000000000000"
+ * //   displayName: "Test"
+ * //   avatar: "/avatars/00000000000000000/hash.png"
  * //   type: "USER"
  * //   tags: ["author", "writer"]
  * //   isPremium: true
@@ -78,6 +84,9 @@ export default function whatIs(id: string): WhatIsType {
         if (owner) {
             return {
                 id,
+                ownerId: id,
+                displayName: owner.displayName,
+                avatar: owner.avatar,
                 type: "USER",
                 tags: owner.tags,
                 createdDate: owner.createdDate,
@@ -89,9 +98,11 @@ export default function whatIs(id: string): WhatIsType {
         }
     }
 
+    let ownerId: string | undefined;
+    let displayName: string | undefined;
+    let avatar: string | undefined;
     let type: AssetType | undefined;
     let tags: string[] | undefined;
-    let ownerId: string | undefined;
     let createdDate: string | undefined;
     let updatedDate: string | undefined;
 
@@ -110,11 +121,14 @@ export default function whatIs(id: string): WhatIsType {
     }
 
     if (characterResult.rowCount === 1) {
+        const data = characterResult.rows[0]
+        ownerId = data.ownerId;
+        displayName = data.displayName;
+        avatar = data.avatar;
         type = "CHARACTER";
-        tags = JSON.parse(characterResult.rows[0].tags);
-        ownerId = characterResult.rows[0].ownerId;
-        createdDate = characterResult.rows[0].createdDate;
-        updatedDate = characterResult.rows[0].updatedDate;
+        tags = JSON.parse(data.tags);
+        createdDate = data.createdDate;
+        updatedDate = data.updatedDate;
     }
 
     // DEVELOPER NEEDED: Add UNIVERSE and COLLECTION
@@ -138,6 +152,9 @@ export default function whatIs(id: string): WhatIsType {
 
         return {
             id,
+            ownerId,
+            displayName,
+            avatar,
             type,
             tags,
             createdDate,
