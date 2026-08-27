@@ -13,6 +13,10 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../_common/instances.js";
+import sendNotificationService, { notificationMilestones } from "../../services/sendNotification.service.js";
+import { NotificationNameType } from "../../../../_common/types/notification.type.js";
+import getInteractionsService from "../../services/getInteractionsService.service.js";
+import whatIs from "../../helpers/whatIs.js";
 
 type Props = {
     targetId: string, 
@@ -89,11 +93,83 @@ export const postInteraction = async (req: Request, res: Response) => {
             }
         });
 
-        // Port the notificationsService and scoreAssignmentService (w/ interests)
-
         res.status(200).json({
             ok: true
         });
+
+        const interactions = getInteractionsService({
+            target: targetId,
+            type,
+            countOnly: true
+        })
+
+        let isMilestone = false;
+        const count = interactions[type]?.count
+
+        if (count && notificationMilestones.includes(count)) {
+            isMilestone = true
+        }
+
+        let notificationType: NotificationNameType | undefined;
+
+        switch(type) {
+            case "follows":
+                notificationType = "NEW_FOLLOW"
+                break;
+            case "likes":
+                notificationType = "NEW_LIKE"
+                break;
+        }
+
+        if (
+            notificationType &&
+            req.session.userId !== whatIs(targetId).ownerId
+        ) {
+            await sendNotificationService(
+                req.session.userId,
+                notificationType,
+                {
+                    sourceId: req.session.userId,
+                    targetId
+                }
+            );
+        }
+
+        if (isMilestone) {
+            switch(type) {
+                case "follows":
+                    notificationType = "FOLLOWS_MILESTONE"
+                    break;
+                case "likes":
+                    notificationType = "LIKES_MILESTONE"
+                    break;
+                case "reads":
+                    notificationType = "READS_MILESTONE"
+                    break;
+                case "shares":
+                    notificationType = "SHARES_MILESTONE"
+                    break;
+                case "views":
+                    notificationType = "VIEWS_MILESTONE"
+                    break;
+            }
+
+            if (notificationType) {
+                await sendNotificationService(
+                    req.session.userId,
+                    notificationType,
+                    {
+                        targetId,
+                        count
+                    }
+                );
+            }
+        }
+
+    // DEVELOPER NEEDED
+    // Port scoreAssignmentService (w/ interests)
+    // UPDATE MIGRATION TO USE THE NEW NOTIFICATION TYPE NAMES
+    // sendPushNotificationService(); // should send for all delegated accounts
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
