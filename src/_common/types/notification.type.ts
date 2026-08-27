@@ -1,0 +1,14 @@
+export type NotificationNameType = 
+    | "WEBPUSH_SUBSCRIBE"
+    | "NEW_LIKE"
+    | "NEW_FOLLOW"
+    | "NEW_MESSAGE"
+    | "FRIEND_REQUEST_SENT"
+    | "FRIEND_REQUEST_ACCEPTED"
+    | "CHATS_MILESTONE"
+    | "FOLLOWS_MILESTONE"
+    | "LIKES_MILESTONE"
+    | "READS_MILESTONE"
+    | "SHARES_MILESTONE"
+    | "VIEWS_MILESTONE"
+;
