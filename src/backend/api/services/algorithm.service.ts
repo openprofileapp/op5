@@ -5,6 +5,7 @@ import { AdvancedError, DurationType } from "kage-library";
 import whatIs, { WhatIsType } from "../helpers/whatIs.js";
 import { db } from "../databases/db.js";
 
+// DEVELOPER NEEDED: Move to types common folder
 type EventNameType = 
     "API" |
     "VIEW" |
