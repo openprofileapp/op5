@@ -133,7 +133,7 @@ log.unknown.info(character).save()
 */
 /*
 const interactions = getInteractionsService({
-    countOnly: true,
+    includeItems: false,
     getAs: "5719552362357773"
 })
 
