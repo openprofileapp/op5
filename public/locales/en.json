@@ -16,13 +16,14 @@
     "character": "An error occurred while fetching character",
     "cors": "Not allowed by CORS",
     "rateLimit": "Too many requests, please try again later.",
-    "malformedRequest": "You need an account to perfect this action.",
+    "malformedRequest": "Malformed request",
     "unauthorized": "You do not have permission to perform this action.",
     "badGateway": "Bad gateway. Try refreshing!",
     "failedCommand": "Error executing command! A report was filed and sent to the developer.",
     "noAccount": "You need an account to perfect this action.",
     "database": "An error occurred while performing a database operation.",
-    "unknown": "An unknown error occurred"
+    "unknown": "An unknown error occurred",
+    "webpush": "Failed to send push notification"
   },
   "pages": {
     "languages": "Languages",
