@@ -17,7 +17,7 @@ import { UserAgentType } from "../types/userAgent.type.js";
 import { SessionType } from "../types/session.type.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
-import { GeoIpType } from "../types/geoIp.type.js";
+import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { UserAccountType } from "../types/userAccount.type.js";
 import validateIp from "../../_common/helpers/validateIp.js";

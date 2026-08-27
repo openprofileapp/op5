@@ -1,4 +1,4 @@
-import { GeoIpType } from "./geoIp.type.js";
+import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { UserAgentType } from "./userAgent.type.js";
 
 export type SessionType = {

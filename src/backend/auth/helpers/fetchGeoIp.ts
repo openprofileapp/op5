@@ -3,7 +3,7 @@ import CountryLanguage from '@ladjs/country-language';
 import { log } from "../instances.js";
 import { geoip2, wc } from "../../_common/instances.js";
 import { config } from '../../../../app.config.js';
-import { GeoIpType } from '../types/geoIp.type.js';
+import { GeoIpType } from '../../../_common/types/geoIp.type.js';
 
 const empty = { 
     ip: "",
