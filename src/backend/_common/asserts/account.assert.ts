@@ -8,11 +8,15 @@ import { i18n } from "../instances.js";
  * @example
  * assertAccount(req.session);
  */
-export function assertAccount(session: ValidSessionType): void {
-    if (!session?.userId) {
+type AuthenticatedSession<T> = T & { userId: string };
+
+export function assertAccount<T extends ValidSessionType>(
+    session: T
+): asserts session is AuthenticatedSession<T> {
+    if (!session?.userId || typeof session.userId !== "string") {
         throw new AdvancedError({
             code: 403,
             message: i18n.t("responses.noAccount")
-        })
+        });
     }
 }
