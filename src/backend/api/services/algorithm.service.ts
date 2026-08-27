@@ -1,38 +1,23 @@
 import { DateTime } from "luxon";
 
-import { AdvancedError, DurationType } from "kage-library";
+import { DurationType, parseDuration } from "kage-library";
 
 import whatIs, { WhatIsType } from "../helpers/whatIs.js";
 import { db } from "../databases/db.js";
+import { AlgorithmEventNameType } from "../../../_common/types/algorithm.type.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import { InteractionNameType } from "../../../_common/types/interaction.type.js";
+import getInteractionsService from "./getInteractionsService.service.js";
 
-// DEVELOPER NEEDED: Move to types common folder
-type EventNameType = 
-    "API" |
-    "VIEW" |
-    "READ" |
-    "CHAT" |
-    "LIKE" |
-    "UNLIKE" |
-    "FOLLOW" |
-    "UNFOLLOW" |
-    "COMMENT" |
-    "UNCOMMENT" |
-    "SHARE" |
-    "UPDATE" |
-    "REPORT" |
-    "ADD_TO_COLLECTION" |
-    "REMOVE_FROM_COLLECTION" |
-    "ADD_INTEREST" |
-    "REMOVE_INTEREST"
-
-interface EventType {
+interface eventType {
     score: number;
     cooldown?: DurationType;
     scope: "global" | "user";
 }
 
 interface IndexType {
-    events: Record<string, EventType>;
+    events: Record<string, eventType>;
     multipliers: Record<string, number>;
 }
 
@@ -139,27 +124,21 @@ export default class AlgorithmService {
      * Update topic of interest score for an account
      * @param {string} userId - user id (required)
      * @param {string} whatIsData - whatIsData of the target id (required)
-     * @param {string} EVENT - type of EVENT from index (required)
+     * @param {string} event - type of event from index (required)
      */
     private static interest(
         userId: string, 
         whatIsData: WhatIsType, 
-        EVENT: EventNameType
+        event: AlgorithmEventNameType
     ) {
-        if (!userId || !whatIsData || !EVENT) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request",
-                details: { userId, whatIsData, EVENT }
-            });
-        }
+        assertNotNull([userId, whatIsData, event])
 
-        const score = index.events[EVENT].score;
+        const score = index.events[event].score;
 
         if (!score) return;
 
         for (const tag of whatIsData.tags) {
-            const userResult = db.users.query(
+            const result = db.users.query(
                 `
                     INSERT INTO interests (userId, tag, algorithmScore)
                     VALUES (?, ?, ?)
@@ -169,13 +148,7 @@ export default class AlgorithmService {
                 [userId, tag, score]
             );
 
-            if (!userResult.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while saving interests",
-                    details: userResult.error
-                })
-            }
+            assertDbSuccess(result);
         }
 
         return score;
@@ -185,42 +158,77 @@ export default class AlgorithmService {
      * Update algorithm score for an asset or account
      * @param {string} targetId - the id of the asset or account to update (required)
      * @param {string} sourceId - the id of the user causing the update (required)
-     * @param {string} EVENT - type of EVENT from index (required)
+     * @param {string} event - type of event from index (required)
      */
     public static update(
         targetId: string,
         sourceId: string,
-        EVENT: EventNameType
+        event: AlgorithmEventNameType
     ) {
-        if (!targetId || !sourceId || !EVENT) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request",
-                details: { targetId, sourceId, EVENT }
-            });
-        }
+        assertNotNull([targetId, sourceId, event]);
 
-        let score = index.events[EVENT].score;
-        const { cooldown, scope } = index.events[EVENT];
+        let score = index.events[event].score;
+        const { cooldown, scope } = index.events[event];
 
-        if (!score || !scope) return;
+        assertNotNull([score, scope]);
 
         const whatIsData = whatIs(targetId);
 
-        if (!whatIsData) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Unknown whatIsData"
-            });
-        }
+        assertNotNull(whatIsData);
 
         if (scope === "user") {
-            const score = this.interest(sourceId, whatIsData, EVENT);
+            const score = this.interest(sourceId, whatIsData, event);
 
             return score;
         }
 
-        // DEVELOPER NEEDED: Check the latest interaction of event. If less than cooldown, return. 
+        this.interest(sourceId, whatIsData, event);
+
+        let interactionName: InteractionNameType | undefined;
+
+        switch (event) {
+            case "API":
+                interactionName = "views";
+                break;
+            case "READ":
+                interactionName = "reads";
+                break;
+            case "CHAT":
+                interactionName = "chats";
+                break;
+            // DEVELOPER NEEDED: Figure out how comments work here
+            /*case "COMMENT":
+                interactionName = "COMMENT";
+                break;
+            case "UNCOMMENT":
+                interactionName = "UNCOMMENT";
+                break;*/
+            case "SHARE":
+                interactionName = "shares";
+                break;
+            /*case "UPDATE":
+                interactionName = "UPDATE";
+                break;*/
+        }
+
+        if (cooldown && interactionName) {
+            // DEVELOPER NEEDED: Do not fetch from interactions, fetch from the algorithm audits
+            const interactionsData = getInteractionsService({
+                source: sourceId,
+                target: targetId,
+                type: interactionName
+            })
+
+            const rawLatestDate = interactionsData[interactionName]?.latestDate;
+
+            if (rawLatestDate) {
+                const latestDate = DateTime.fromISO(rawLatestDate).toMillis();
+                const expiresAt = latestDate + parseDuration(cooldown);
+                const now = DateTime.now().toMillis();
+
+                if (expiresAt > now) return;
+            }
+        }
 
         score = this.calculate(whatIsData, score);
 
@@ -231,38 +239,28 @@ export default class AlgorithmService {
         // DEVELOPER NEEDED: Log the final score, target and source ids, and boost in audit
 
         if (whatIsData.type === "USER") {
-            const userResult = db.users.query(
+            const result = db.users.query(
                 "UPDATE users SET algorithmScore = algorithmScore + ? WHERE id = ?",
                 [score, targetId]
             )
 
-            if (!userResult.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while saving user",
-                    details: userResult.error
-                })
-            }
+            assertDbSuccess(result);
         }
 
         if (whatIsData.type === "CHARACTER") {
-            db.characters.query(
+            const publishedResult = db.characters.query(
                 "UPDATE published SET algorithmScore = algorithmScore + ? WHERE id = ?",
                 [score, targetId]
             )
 
-            const characterResult = db.characters.query(
+            assertDbSuccess(publishedResult);
+
+            const draftsResult = db.characters.query(
                 "UPDATE drafts SET algorithmScore = algorithmScore + ? WHERE id = ?",
                 [score, targetId]
             )
 
-            if (!characterResult.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while saving character",
-                    details: characterResult.error
-                })
-            }
+            assertDbSuccess(draftsResult);
         }
 
         return score;
