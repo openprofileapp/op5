@@ -16,6 +16,36 @@ db.users.transaction(q => {
             d.data = {}
         };
 
+        if (d.type === "FOLLOW" && d.data === "{}") {
+            d.type = "NEW_FOLLOW"
+        }
+
+        if (d.type === "FOLLOW" && d.data !== "{}") {
+            d.type = "FOLLOWS_MILESTONE"
+        }
+
+        if (d.type === "LIKE" && d.data === "{}") {
+            d.type = "NEW_LIKE"
+        }
+
+        if (d.type === "LIKE" && d.data !== "{}") {
+            d.type = "LIKES_MILESTONE"
+        }
+
+        if (d.type === "READ") {
+            d.type = "READS_MILESTONE"
+        }
+
+        if (d.type === "SHARE") {
+            d.type = "SHARES_MILESTONE"
+        }
+
+        if (d.type === "VIEW") {
+            d.type = "VIEWS_MILESTONE"
+        }
+
+        // DEVELOPER NEEDED: Maybe "FAVORITE" becomes "ADDED_TO_FAVORITES"
+
         let parsedData: Record<string, unknown> = {};
 
         if (d.data != null) {
