@@ -2,11 +2,12 @@ import { DateTime } from "luxon";
 import { config } from "../../../../app.config.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { GetPublishedCharacterItemType, GetPublishedCharacterType } from "../../../_common/types/character.type.js";
-import { getFromType } from "../../../_common/types/getFrom.type.js";
+import { GetFromType } from "../../../_common/types/getFrom.type.js";
 import { SortByType } from "../../../_common/types/sortBy.type.js";
 import { parseJson } from "../../_common/helpers/parseJson.js";
 import { db } from "../databases/db.js";
-import getUserInterestsById from "./getUserInterestsById.service.js";
+import getInterestsService from "./getInterests.service.js";
+import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 
 type Props = {
     id?: string;
@@ -17,7 +18,7 @@ type Props = {
     offset?: number;
     limit?: number;
     getAs?: string;
-    getFrom?: getFromType;
+    getFrom?: GetFromType;
     includeInteractionItems?: boolean;
 };
 
@@ -33,13 +34,13 @@ export default function getPublishedCharactersService({
     getFrom,
     includeInteractionItems = false
 }: Props): GetPublishedCharacterType {    
-    let userInterests;
+    let interests;
 
     if (getAs) {
-        userInterests = getUserInterestsById(getAs); 
+        interests = getInterestsService(getAs); 
     }
 
-    const userInterestArray = userInterests?.items || [];
+    const userInterestArray = interests?.items || [];
 
     const idClause = id ? "AND published.id = ?" : "";
     const idParams = id ? [id] : [];
@@ -224,7 +225,20 @@ export default function getPublishedCharactersService({
         visibilityParams.push(...Array(4).fill(getAs));
     }
 
+    const interactionTables: InteractionNameType[] = [
+        "follows", 
+        "likes", 
+        "mutes", 
+        "reads", 
+        "shares",
+        "views"
+    ];
+
+    const interactionParams: (string | undefined)[] = [];
+
     const buildInteractionField = (table: string) => {
+        interactionParams.push(getAs, getAs);
+
         const items = includeInteractionItems 
             ? `'items', COALESCE((SELECT json_group_array(json_object('source', source, 'target', target, 'date', date)) FROM interactions.${table} WHERE target = published.id), json('[]')),` 
             : "";
@@ -237,6 +251,8 @@ export default function getPublishedCharactersService({
             )
         `;
     };
+
+    const interactionFieldsSql = interactionTables.map(buildInteractionField).join(",");
 
     const result = db.characters.query(
         `
@@ -265,12 +281,7 @@ export default function getPublishedCharactersService({
                     json('[]')
                 ) AS badges,
                 json_object(
-                    ${buildInteractionField('follows')},
-                    ${buildInteractionField('likes')},
-                    ${buildInteractionField('mutes')},
-                    ${buildInteractionField('reads')},
-                    ${buildInteractionField('shares')},
-                    ${buildInteractionField('views')}
+                    ${interactionFieldsSql}
                 ) AS interactions
             FROM main.published
             LEFT JOIN users.users 
@@ -309,7 +320,8 @@ export default function getPublishedCharactersService({
             LIMIT ? OFFSET ?
         `,
         [
-            ...Array(16).fill(getAs),
+            ...interactionParams,
+            ...Array(4).fill(getAs),
             ...trendingParams,
             ...visibilityParams,
             ...recentParams,
