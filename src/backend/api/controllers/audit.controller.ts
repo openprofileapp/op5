@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 
 import isTokenOrSecretAuthorized from "../../_common/helpers/isTokenOrSecretAuthorized.js";
-import createAuditLog from "../services/createAuditLog.service.js";
+import createAuditLogService from "../services/createAuditLog.service.js";
 import { log } from "../instances.js";
 
 export const createAuditLogController = async (req: Request, res: Response) => {
@@ -15,7 +15,18 @@ export const createAuditLogController = async (req: Request, res: Response) => {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        createAuditLog(req.body);
+        const { type, action, source, target, changes, origin } = req.body
+
+        createAuditLogService(
+            type,
+            action,
+            source,
+            {
+                target,
+                changes,
+                origin
+            }
+        );
 
         return res.status(200).json({ ok: true });
     } catch (error) {

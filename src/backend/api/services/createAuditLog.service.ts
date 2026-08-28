@@ -1,14 +1,11 @@
-import { AdvancedError } from "kage-library";
-
 import { db } from "../databases/db.js";
 import { snowflake } from "../instances.js";
 import { AuditNameType } from "../../../_common/types/audit.type.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 
 type Props = {
-    type: AuditNameType;
-    source: string;
     target?: string;
-    action: string;
     changes?: unknown;
     origin?: string;
 };
@@ -28,29 +25,26 @@ function serialize(value: unknown) {
 /**
  * Creates and records an audit log entry.
  * @example
- * createAuditLog({
+ * createAuditLogService(
  *   type: "authentications",
- *   source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent },
- *   target: "0000000000000000",
  *   action: "DELETED",
- *   changes: { new: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, old: { geoIp: rowGeoIpJSON, userAgent: rowUserAgentJSON }},
- *   origin: req.originalUrl
- * });
+ *   source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent },
+ *   {
+ *      target: "0000000000000000",
+ *      changes: { new: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, old: { geoIp: rowGeoIpJSON, userAgent: rowUserAgentJSON }},
+ *      origin: req.originalUrl
+ *   });
  */
-export default function createAuditLog({
-    type,
-    source,
+export default function createAuditLogService(
+    type: AuditNameType,
+    action: string,
+    source: string,
+{
     target,
-    action,
     changes,
     origin
-}: Props) {
-    if (!type) {
-        throw new AdvancedError({
-            code: 400,
-            message: "type is missing"
-        });
-    }
+}: Props = {}) {
+    assertNotNull([type, action, source]);
 
     const columns = [
         "id",
@@ -78,11 +72,5 @@ export default function createAuditLog({
         values
     );
 
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while saving audit log",
-            details: result.error
-        });
-    }
+    assertDbSuccess(result);
 }
