@@ -25,7 +25,7 @@ type Props = {
     type: InteractionNameType
 }
 
-export const postInteraction = async (req: Request, res: Response) => {
+export const postInteractionController = async (req: Request, res: Response) => {
     try {
         const { targetId, type }: Props = req.body;
 
