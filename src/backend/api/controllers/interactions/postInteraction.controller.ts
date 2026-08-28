@@ -138,14 +138,16 @@ export const postInteraction = async (req: Request, res: Response) => {
         let notificationType: NotificationNameType | undefined;
 
         // DEVELOPER NEEDED: Add all the other types
-        switch(type) {
-            case "follows":
-                notificationType = "NEW_FOLLOW"
+        switch (`${type}:${newInteraction}`) {
+            case "follows:true":
+                notificationType = "NEW_FOLLOW";
                 break;
-            case "likes":
-                notificationType = "NEW_LIKE"
+            case "likes:true":
+                notificationType = "NEW_LIKE";
                 break;
         }
+
+        if (!notificationType) return;
 
         if (
             notificationType &&
