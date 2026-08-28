@@ -19,6 +19,9 @@ import healthRoute from "../_common/routes/health.route.js";
 import characterRoutes from "./routes/character.routes.js";
 import webPushRoute from "./routes/webPush.route.js";
 import getUsersService from "./services/getUsers.service.js";
+import { parseJson } from "../_common/helpers/parseJson.js";
+import getInteractionsService from "./services/getInteractions.service.js";
+import statisticsRoute from "./routes/statistics.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -70,10 +73,13 @@ v2.use(
 // ADD A ACCESS TOKEN CHECK MIDDLEWARE middleware(access OR ApiSecret)
 
 v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
-v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); // DEV NOTE: Session fetch disable due to validation recursion on auth. It needs to be fixed to allow access to stats to authed users. But not when checking invites
+
+// WARNING: Do NOT validate session here. It will cause a recursion with auth servers
+v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); 
+
 v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
 v2.use("/webpush", fetchSessionMiddleware, rateLimitMiddleware(8), webPushRoute);
-//v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
+v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
 // v2.use("/audits", ); // For fetching audits
 //v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
 //v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
@@ -129,12 +135,10 @@ log.unknown.info(user).save()
 })
 
 log.unknown.info(character).save()
-*/
-/*
+*//*
 const interactions = getInteractionsService({
-    includeItems: false,
-    type: ["likes"],
-    getRandom: 1,
+    includeItems: true,
+    ownerId: "5719552362357773",
     getAs: "5719552362357773"
 })
 
