@@ -44,6 +44,7 @@ export default async function sendPushNotificationService(
     assertNotNull([userId, type]);
 
     // FOR PUSH NOTIFICATIONS, ONLY SEND FOR THE SAME PAYLOAD PER HOUR
+    // CHECK THE SENT NOTIFICATIONS IN THE DB AND COMPARE
 
     const result = db.users.query<WebPushType>(
         `SELECT * FROM webpush WHERE userId = ?`,
@@ -89,13 +90,13 @@ export default async function sendPushNotificationService(
         }
     }
 
-    // DEVELOPER NEEDED: Move early-beta image data to local and update url
+    // DEVELOPER NEEDED: Show duo for interaction updates and solo for milestones
     const icon = 
         targetId !== userId 
-            ? `https://cdn.openprofile.app/${target?.avatar}` 
+            ? `https://${config.domains.cdn}/crop/duo?sourceUrl=https://${config.domains.cdn}${source?.avatar}&targetUrl=https://${config.domains.cdn}${target?.avatar}` 
             : source?.avatar 
-                ? `https://cdn.openprofile.app/${source?.avatar}`
-                : `https://${config.domains.cdn}${config.metadata.assets.icon}`
+                ? `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${source?.avatar}`
+                : `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${config.metadata.assets.icon}`
 
     const payload = JSON.stringify({
         title: config.metadata.name,
