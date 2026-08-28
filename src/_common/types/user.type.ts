@@ -36,9 +36,8 @@ export type UserType = {
     createdDate: string;
 }
 
-export type GetUserType = Omit<
+export type GetUserItemType = Omit<
     UserType, 
-    "ownerId" | 
     "tags"
 > & {
     tags: string[];
@@ -47,3 +46,8 @@ export type GetUserType = Omit<
     links?: GetLinkType[];
     interactions?: Partial<Record<InteractionNameType, GetInteractionCollection>>;
 };
+
+export type GetUserType = {
+    items: GetUserItemType[],
+    count: number
+}

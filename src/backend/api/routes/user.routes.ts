@@ -1,14 +1,21 @@
 import { Router } from "express";
-import type { Request, Response } from "express";
 
-import { getUsers } from "../controllers/getUsers.controller.js";
+import { getUsers } from "../controllers/users/getUsers.controller.js";
+import { getTrendingUsers } from "../controllers/users/getTrendingUsers.controller.js";
+import { getPopularUsers } from "../controllers/users/getPopularUsers.controller.js";
+import { getRecentUsers } from "../controllers/users/getRecentUsers.controller.js";
+import { getTaggedUsers } from "../controllers/users/getTaggedUsers.controller.js";
+import { getRecommendedUsers } from "../controllers/users/getRecommendedUsers.controller.js";
+import { getRecommendedTaggedUsers } from "../controllers/users/getRecommendedTaggedUsers.controller.js";
 
-const userRoute = Router();
+const userRoutes = Router();
 
-userRoute.get("/", getUsers); // DEV NOTE: Add a limit/search
+userRoutes.get("/", getUsers);
+userRoutes.get("/trending", getTrendingUsers);
+userRoutes.get("/popular", getPopularUsers);
+userRoutes.get("/recent", getRecentUsers);
+userRoutes.get("/tag/:tag", getTaggedUsers);
+userRoutes.get("/recommended", getRecommendedUsers);
+userRoutes.get("/recommended/:tag", getRecommendedTaggedUsers);
 
-userRoute.get("/:userId", async (req: Request, res: Response) => {
-    return res.status(400).json({ error: "Invalid parameter"});
-});
-
-export default userRoute;
+export default userRoutes;
