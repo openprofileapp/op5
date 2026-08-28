@@ -15,16 +15,10 @@ import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js"
 import userRoutes from "./routes/user.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import interactionRoutes from "./routes/interaction.routes.js";
-import statisticsRoute from "./routes/statistics.route.js";
-import auditRoute from "./routes/audit.route.js";
 import healthRoute from "../_common/routes/health.route.js";
-import pinRoutes from "./routes/pin.routes.js";
 import characterRoutes from "./routes/character.routes.js";
-import randomRoutes from "./routes/random.routes.js";
-import getPublishedCharacters from "./services/getPublishedCharacters.service.js";
-import getInteractionsService from "./services/getInteractionsService.service.js";
-import { parseJson } from "../_common/helpers/parseJson.js";
 import webPushRoute from "./routes/webPush.route.js";
+import getUsersService from "./services/getUsers.service.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -99,7 +93,7 @@ Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const server = https.createServer(getEnv("SSL"), app);
+const server = https.createServer(getEnv("SSL") as object, app);
 const port = config.ports.api
 
 server.listen(port, "0.0.0.0", () => {
@@ -121,10 +115,15 @@ cron.schedule("0 0 * * *", () => {
     log.cleanLogs();
 });
 
+/*
+const user = getUsersService({
+    id: "5019646586243236",
+    getAs: "5719552362357773"
+})
 
-
-
-/*const character = getPublishedCharacters({
+log.unknown.info(user).save()
+*/
+/*const character = getPublishedCharactersService({
     id: "6587823496323314",
     getAs: "5719552362357773"
 })
@@ -134,6 +133,8 @@ log.unknown.info(character).save()
 /*
 const interactions = getInteractionsService({
     includeItems: false,
+    type: ["likes"],
+    getRandom: 1,
     getAs: "5719552362357773"
 })
 
