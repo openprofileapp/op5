@@ -105,20 +105,49 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         let algorithmEvent: AlgorithmEventNameType | undefined;
 
-        // DEVELOPER NEEDED: Add all the other types
-        switch (`${type}:${newInteraction}`) {
-            case "follows:true":
-                algorithmEvent = "FOLLOW";
-                break;
-            case "follows:false":
-                algorithmEvent = "UNFOLLOW";
-                break;
-            case "likes:true":
-                algorithmEvent = "LIKE";
-                break;
-            case "likes:false":
-                algorithmEvent = "UNLIKE";
-                break;
+        // DEVELOPER NEEDED: Add collections, friend requests, and updates later
+        if (req.session.userId) {
+            switch (`${type}:${newInteraction}`) {
+                case "views:true":
+                    algorithmEvent = "VIEW";
+                    break;
+                case "reads:true":
+                    algorithmEvent = "READ";
+                    break;
+                case "shares:true":
+                    algorithmEvent = "SHARE";
+                    break;
+                case "follows:true":
+                    algorithmEvent = "FOLLOW";
+                    break;
+                case "follows:false":
+                    algorithmEvent = "UNFOLLOW";
+                    break;
+                case "likes:true":
+                    algorithmEvent = "LIKE";
+                    break;
+                case "likes:false":
+                    algorithmEvent = "UNLIKE";
+                    break;
+                case "hides:true":
+                    algorithmEvent = "HIDE";
+                    break;
+                case "hides:false":
+                    algorithmEvent = "UNHIDE";
+                    break;
+            }
+        } else {
+            switch (`${type}:${newInteraction}`) {
+                case "views:true":
+                    algorithmEvent = "API";
+                    break;
+                case "reads:true":
+                    algorithmEvent = "API";
+                    break;
+                case "shares:true":
+                    algorithmEvent = "API";
+                    break;
+            }
         }
 
         AlgorithmService.update(targetId, req.session.userId, algorithmEvent as AlgorithmEventNameType);
@@ -137,7 +166,7 @@ export const postInteraction = async (req: Request, res: Response) => {
 
         let notificationType: NotificationNameType | undefined;
 
-        // DEVELOPER NEEDED: Add all the other types
+        // DEVELOPER NEEDED: Add collections, friend requests, and updates later
         switch (`${type}:${newInteraction}`) {
             case "follows:true":
                 notificationType = "NEW_FOLLOW";
