@@ -7,8 +7,8 @@ import { db } from "../databases/db.js";
 import { AlgorithmEventNameType } from "../../../_common/types/algorithm.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import { InteractionNameType } from "../../../_common/types/interaction.type.js";
-import getInteractionsService from "./getInteractionsService.service.js";
+import createAuditLogService from "./createAuditLog.service.js";
+import { AuditType } from "../../../_common/types/audit.type.js";
 
 interface eventType {
     score: number;
@@ -64,7 +64,10 @@ export default class AlgorithmService {
     public static scores = index.events;
     public static multipliers = index.multipliers;
 
-    private static calculate(whatIsData: WhatIsType, score: number) {
+    private static calculate(
+        whatIsData: WhatIsType, 
+        score: number
+    ): { score: number, multiplier: number } {
         let multipliers = 1.0;
         const badges = [];
 
@@ -78,7 +81,10 @@ export default class AlgorithmService {
             }
         }
 
-        return score * multipliers;
+        return {
+            score: score * multipliers,
+            multiplier: multipliers
+        };
     };
 
     /**
@@ -99,11 +105,17 @@ export default class AlgorithmService {
      * @param score - Base value to decay (e.g., 1 view = 1.0).
      * @returns Decayed score/weight percentage.
      */
-    private static decay(updatedDate: string, score: number): number {
+    private static decay(
+        updatedDate: string, 
+        score: number
+    ): { score: number, decay: number } {
         const updatedDateTime = DateTime.fromISO(updatedDate);
 
         if (!updatedDateTime.isValid) {
-            return score;
+            return {
+                score,
+                decay: 0
+            };
         }
 
         const gracePeriodDays = 3;
@@ -114,10 +126,18 @@ export default class AlgorithmService {
         const age = Math.max(0, rawAge);
 
         if (age <= gracePeriodDays) {
-            return score * graceMultiplier;
+            return {
+                score: score * graceMultiplier,
+                decay: 0
+            };
         }
 
-        return score * graceMultiplier * Math.exp(-decayRate * (age - gracePeriodDays));
+        const newScore = score * graceMultiplier * Math.exp(-decayRate * (age - gracePeriodDays))
+
+        return {
+            score: newScore,
+            decay: score - newScore
+        };
     }
 
     /**
@@ -184,59 +204,50 @@ export default class AlgorithmService {
 
         this.interest(sourceId, whatIsData, event);
 
-        let interactionName: InteractionNameType | undefined;
+        if (cooldown) {
+            const result = db.audits.query<AuditType>(
+                `SELECT * FROM algorithm 
+                    WHERE source = ? AND target = ? AND action = ? 
+                    ORDER BY created_at DESC LIMIT 1`,
+                [sourceId, targetId, event]
+            );
 
-        switch (event) {
-            case "API":
-                interactionName = "views";
-                break;
-            case "READ":
-                interactionName = "reads";
-                break;
-            case "CHAT":
-                interactionName = "chats";
-                break;
-            // DEVELOPER NEEDED: Figure out how comments work here
-            /*case "COMMENT":
-                interactionName = "COMMENT";
-                break;
-            case "UNCOMMENT":
-                interactionName = "UNCOMMENT";
-                break;*/
-            case "SHARE":
-                interactionName = "shares";
-                break;
-            /*case "UPDATE":
-                interactionName = "UPDATE";
-                break;*/
-        }
+            assertDbSuccess(result);
 
-        if (cooldown && interactionName) {
-            // DEVELOPER NEEDED: Do not fetch from interactions, fetch from the algorithm audits
-            const interactionsData = getInteractionsService({
-                source: sourceId,
-                target: targetId,
-                type: interactionName
-            })
+            const latestDate = result.rows[0].date;
 
-            const rawLatestDate = interactionsData[interactionName]?.latestDate;
+            if (latestDate) {
+                const latestDateMs = DateTime.fromISO(latestDate).toMillis();
+                const expiresAtMs = latestDateMs + parseDuration(cooldown);
+                const nowMs = DateTime.now().toMillis();
 
-            if (rawLatestDate) {
-                const latestDate = DateTime.fromISO(rawLatestDate).toMillis();
-                const expiresAt = latestDate + parseDuration(cooldown);
-                const now = DateTime.now().toMillis();
-
-                if (expiresAt > now) return;
+                if (expiresAtMs > nowMs) return;
             }
         }
 
-        score = this.calculate(whatIsData, score);
+        const initialScore = score
+        let decayedResult;
+
+        const calculatedResult = this.calculate(whatIsData, score);
 
         if (!whatIsData.isPromoted && whatIsData.updatedDate) {
-            score = this.decay(whatIsData.updatedDate, score);
+            decayedResult = this.decay(whatIsData.updatedDate, score);
+            score = decayedResult.score;
         }
 
-        // DEVELOPER NEEDED: Log the final score, target and source ids, and boost in audit
+        createAuditLogService(
+            "algorithm",
+            event,
+            sourceId,
+            {
+                target: targetId,
+                changes: { 
+                    initialScore, 
+                    multiplier: calculatedResult.multiplier, 
+                    decay: decayedResult?.decay || 0
+                }
+            }
+        )
 
         if (whatIsData.type === "USER") {
             const result = db.users.query(
