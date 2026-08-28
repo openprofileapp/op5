@@ -41,7 +41,7 @@ db.accounts.transaction(q => {
 
 // Migration (old databases)
 export const mdb = {
-    accounts: new Database("data/databases/v5.0.237/accounts.db")
+    accounts: new Database("data/databases/migration/accounts.db")
 };
 
 async function waitForMDB() {

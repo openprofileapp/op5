@@ -269,10 +269,10 @@ db.interactions.transaction(q => {
 
 // Migration (old databases)
 export const mdb = {
-    profiles: new Database("data/databases/v5.0.237/profiles.db"),
-    accounts: new Database("data/databases/v5.0.237/accounts.db"),
-    partners: new Database("data/databases/v5.0.237/partners.db"),
-    interactions: new Database("data/databases/v5.0.237/interactions.db")
+    profiles: new Database("data/databases/migration/profiles.db"),
+    accounts: new Database("data/databases/migration/accounts.db"),
+    partners: new Database("data/databases/migration/partners.db"),
+    interactions: new Database("data/databases/migration/interactions.db")
 };
 
 async function waitForMDB() {
