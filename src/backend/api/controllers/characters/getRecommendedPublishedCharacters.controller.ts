@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
 import { i18n } from "../../../_common/instances.js";
+import { GetFromType } from "../../../../_common/types/getFrom.type.js";
 
 export const getRecommendedPublishedCharacters = async (req: Request, res: Response) => {
     try {
@@ -19,6 +20,7 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             owner, 
             page, 
             limit = config.limits.assetsPerPage,
+            ref
         } = req.query;
 
         const offset = 
@@ -33,7 +35,7 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId,
-            getFrom: "home"
+            getFrom: ref as GetFromType
         })
 
         res.status(200).json({

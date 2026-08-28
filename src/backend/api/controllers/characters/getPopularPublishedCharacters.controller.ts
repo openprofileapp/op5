@@ -7,7 +7,7 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
-import { getFromType } from "../../../../_common/types/getFrom.type.js";
+import { GetFromType } from "../../../../_common/types/getFrom.type.js";
 import { i18n } from "../../../_common/instances.js";
 
 export const getPopularPublishedCharacters = async (req: Request, res: Response) => {
@@ -27,7 +27,7 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
             sortBy: "popularDesc", 
             limit: config.limits.assetsPerPage, 
             getAs: req.session.userId,
-            getFrom: ref as getFromType
+            getFrom: ref as GetFromType
         })
 
         res.status(200).json(characters);

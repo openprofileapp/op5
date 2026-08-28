@@ -1,4 +1,4 @@
-export type getFromType = 
+export type GetFromType = 
     | "home"
     | "browse"
     | "userProfile"
