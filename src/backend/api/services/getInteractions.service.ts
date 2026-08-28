@@ -68,21 +68,20 @@ export default function getInteractionsService({
 
         let randomItemSql = "";
 
-        if (getRandom != null && !Number.isNaN(getRandom)) {
+        if (getRandom != null && !Number.isNaN(getRandom) && getRandom > 0) {
             selectParams.push(...conditionParams);
-            selectParams.push(...conditionParams);
+            selectParams.push(getRandom);
 
-            randomItemSql = `'randomItem', (
-                SELECT json_object('source', source, 'target', target, 'date', date) 
-                FROM ${table} ${whereSql} 
-                LIMIT 1 OFFSET (
-                    SELECT CASE 
-                        WHEN COUNT(*) > 0 THEN ABS(RANDOM()) % COUNT(*) 
-                        ELSE 0 
-                    END 
-                    FROM ${table} ${whereSql}
+            randomItemSql = `'randomItem', COALESCE((
+                SELECT json_group_array(json_object('source', source, 'target', target, 'date', date))
+                FROM (
+                    SELECT source, target, date 
+                    FROM ${table} 
+                    ${whereSql} 
+                    ORDER BY RANDOM() 
+                    LIMIT ?
                 )
-            ),`;
+            ), json('[]')),`;
         }
 
         selectParams.push(...conditionParams);
@@ -123,15 +122,15 @@ export default function getInteractionsService({
     const rawInteractions = result.rows[0]?.interactions;
     if (!rawInteractions) return {};
 
+    const parsedData = parseJson(rawInteractions) as Record<string, GetInteractionsResult>;
+
     const parsedRows = Object.fromEntries(
-        Object.entries(
-            parseJson(rawInteractions) as GetInteractionsResult[]
-        ).map(([key, value]) => {
+        Object.entries(parsedData).map(([key, value]) => {
             return [
                 key,
                 {
-                    items: parseJson(value.items) ?? [],
-                    randomItem: value.randomItem ? parseJson(value.randomItem) : null,
+                    items: typeof value.items === 'string' ? parseJson(value.items) : (value.items ?? []),
+                    randomItem: typeof value.randomItem === 'string' ? parseJson(value.randomItem) : (value.randomItem ?? null),
                     count: value.count,
                     latestDate: value.latestDate ?? null,
                     hasInteracted: value.hasInteracted,
