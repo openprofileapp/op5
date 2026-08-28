@@ -324,7 +324,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                     style={{ anchorName: "--account-anchor" }}
                                 >
                                     <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
-                                        <img src={user.avatar} />
+                                        <img src={`https://${config.domains.cdn}${user.avatar}`} />
                                     </div>
                                 </button>
                                 <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 font-nerdfont text-base text-premium pointer-events-none">
@@ -453,7 +453,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                             <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
                                                 <img 
                                                     className="rounded-full translate-x-[2px]"
-                                                    src={account.avatar}
+                                                    src={`https://${config.domains.cdn}${account.avatar}`}
                                                 />
                                             </span>
                                         </button>

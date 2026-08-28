@@ -741,7 +741,7 @@ export default function CharacterCard({
                 <div className="absolute inset-0 group">
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
-                        src={`https://cdn.openprofile.app/${data.avatar}`}
+                        src={`https://${window.config.domains.cdn}${data.avatar}`}
                         alt="avatar"
                         style={{
                             maskImage: `linear-gradient(
