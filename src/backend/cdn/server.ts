@@ -11,6 +11,7 @@ import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
+import cropRoutes from "./routes/crop.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -21,6 +22,9 @@ Create instances
 const app = express();
 app.set("trust proxy", 1);
 app.set("json spaces", 2);
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 
+    config.isProduction ? "1" : "0";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -40,6 +44,7 @@ Routes
 */
 
 app.use("/health", healthRoute);
+app.use("/crop", cropRoutes);
 
 app.use("/", express.static(path.join(config.folders.public), 
     {
@@ -62,51 +67,13 @@ app.use("/uploads", express.static(path.join(config.folders.data, "uploads"),
     }
 ));
 
-// DEVELOPER NEEDED: EARLY-BETA CODE BELOW
-/*
-
-server.cdn.use("/uploads", (req, res, next) => {
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    express.static(folders.cdn.uploads)(req, res, (err) => {
-        if (err) return next(err);
-        // If file not found, redirect to fallback
-        res.redirect(routes.fallback);
-    });
-});
-
-server.cdn.get("/crop", async (req, res) => {
-    const url = req.query.url;
-
-    try {
-        if (!url) {throw Object.assign(new Error(messages.error.field_validation), { code: 400 });}
-
-        // Fetch and buffer the image
-        const response = await fetch(url);
-        const array = await response.arrayBuffer();
-        const buffer = Buffer.from(array);
-
-        // Convert image to a circle
-        const image = await sharp(buffer).resize(500, 500).composite([{
-            input: Buffer.from(`<svg><circle cx="250" cy="250" r="250"/></svg>`),
-            blend: 'dest-in'
-        }]).png().toBuffer();
-
-        // Return the image
-        res.set('Content-Type', 'image/png');
-        res.send(image);
-    } catch (error) {
-        return res.status(500).send(error.message);
-    }
-});
-*/
-
 /* 
 ————————————————————————————————————————————————————————————————
 Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const server = https.createServer(getEnv("SSL"), app);
+const server = https.createServer(getEnv("SSL") as object, app);
 const port = config.ports.cdn
 
 server.listen(port, "0.0.0.0", () => {
