@@ -7,7 +7,7 @@ export async function postInteraction(
 ) {
     try {
         const response = await fetch(
-            `${apiHost}/v2/interactions`, 
+            `${apiHost}/v3/interactions`, 
             { 
                 credentials: "include", 
                 method: "POST", 

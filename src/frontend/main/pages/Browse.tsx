@@ -92,7 +92,7 @@ export default function SearchProfiles() {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users`,
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -115,7 +115,7 @@ export default function SearchProfiles() {
             try {
                 const offset = nextOffset !== null ? `&offset=${nextOffset}` : "";
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();

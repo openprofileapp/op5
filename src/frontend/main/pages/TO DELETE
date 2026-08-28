@@ -6,7 +6,7 @@ useEffect(() => {
     const fetchTaggedCharacters = async () => {
         try {
             const res1 = await fetch(
-                `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/random/like`, 
+                `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/random/like`, 
                 { credentials: "include" }
             );
 
@@ -28,7 +28,7 @@ useEffect(() => {
             }
 
             const res2 = await fetch(
-                `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/characters/recommended/${encodeURIComponent(randomTag)}?visibility=public`, 
+                `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/characters/recommended/${encodeURIComponent(randomTag)}?visibility=public`, 
                 { credentials: "include" }
             );
             

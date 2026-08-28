@@ -32,7 +32,7 @@ Create server
 const app = express();
 app.set("trust proxy", 1);
 app.set("json spaces", 2);
-const v2 = Router();
+const v3 = Router();
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -54,16 +54,16 @@ Routes
 */
 
 app.use("/health", healthRoute);
-app.use("/v2", v2);
+app.use("/v3", v3);
 
-v2.use(
+v3.use(
     "/users", 
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     userRoutes
 );
 
-/*v2.use(
+/*v3.use(
     "/pins", 
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
@@ -72,26 +72,26 @@ v2.use(
 
 // ADD A ACCESS TOKEN CHECK MIDDLEWARE middleware(access OR ApiSecret)
 
-v2.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
+v3.use("/characters", fetchSessionMiddleware, rateLimitMiddleware(240), characterRoutes);
 
 // WARNING: Do NOT validate session here. It will cause a recursion with auth servers
-v2.use("/invites", rateLimitMiddleware(240), inviteRoutes); 
+v3.use("/invites", rateLimitMiddleware(240), inviteRoutes); 
 
-v2.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
-v2.use("/webpush", fetchSessionMiddleware, rateLimitMiddleware(8), webPushRoute);
-v2.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
-// v2.use("/audits", ); // For fetching audits
-//v2.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
-//v2.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+v3.use("/interactions", fetchSessionMiddleware, rateLimitMiddleware(30), interactionRoutes);
+v3.use("/webpush", fetchSessionMiddleware, rateLimitMiddleware(8), webPushRoute);
+v3.use("/statistics", fetchSessionMiddleware, rateLimitMiddleware(240), statisticsRoute);
+// v3.use("/audits", ); // For fetching audits
+//v3.use("/audit", fetchSessionMiddleware, rateLimitMiddleware(240), auditRoute); // post.audits???
+//v3.use("/random", fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
 // DEVELOPER NEEDED: Add /themes
 // DEVELOPER NEEDED: Set up live-template saving. The 2MB is cause the limit could be a bit large? Experiment on this a bit
-// v2.use("/templates", express.json({ limit: "2mb" }), fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
+// v3.use("/templates", express.json({ limit: "2mb" }), fetchSessionMiddleware, rateLimitMiddleware(240), randomRoutes);
 // 
 
 // DEVELOPER NEEDED: When editing your profile, assign interests based on your uploaded content and user tags,
 // This should assist with getting a head start in what you'd like to see
 
-// MAYBE ADD INTERESTS ROUTE; /v2/interests/USER_ID?top=5 (ONLY LOGGED IN USER CAN GET THEIR INTERESTS)
+// MAYBE ADD INTERESTS ROUTE; /v3/interests/USER_ID?top=5 (ONLY LOGGED IN USER CAN GET THEIR INTERESTS)
 
 /* 
 ————————————————————————————————————————————————————————————————

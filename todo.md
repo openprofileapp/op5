@@ -316,7 +316,7 @@ if (window.user) {
                 }
 
                 try {
-                    const response = await fetch(`${routes.auth}/v2/push`, {
+                    const response = await fetch(`${routes.auth}/v3/push`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(subscription),

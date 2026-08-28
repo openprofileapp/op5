@@ -210,7 +210,7 @@ export default async function validateSession(
         
         // Create audit log
         await wc.callAPI(
-            `https://${config.domains.api}/v2/audit/create`,
+            `https://${config.domains.api}/v3/audit/create`,
             {
                 method: "POST",
                 auth: `ApiSecret ${getEnv("API_SECRET")}`,
@@ -336,7 +336,7 @@ export default async function validateSession(
         if (suspicionScore >= 100) {
             // Create audit log
             await wc.callAPI(
-                `https://${config.domains.api}/v2/audit/create`,
+                `https://${config.domains.api}/v3/audit/create`,
                 {
                     method: "POST",
                     auth: `ApiSecret ${getEnv("API_SECRET")}`,
@@ -354,8 +354,8 @@ export default async function validateSession(
             );
 
             // Send a notification to user
-            // https://api.openprofile.app/v2/notification/send
-            // https://api.openprofile.app/v2/notification/push ???
+            // https://api.openprofile.app/v3/notification/send
+            // https://api.openprofile.app/v3/notification/push ???
             // Used to send any kind of notification; uses ApiSecret auth
 
             const result = db.accounts.query(
@@ -409,7 +409,7 @@ export default async function validateSession(
 
             // Create audit log
             await wc.callAPI(
-                `https://${config.domains.api}/v2/audit/create`,
+                `https://${config.domains.api}/v3/audit/create`,
                 {
                     method: "POST",
                     auth: `ApiSecret ${getEnv("API_SECRET")}`,
@@ -468,7 +468,7 @@ export default async function validateSession(
 
             // Create audit log
             await wc.callAPI(
-                `https://${config.domains.api}/v2/audit/create`,
+                `https://${config.domains.api}/v3/audit/create`,
                 {
                     method: "POST",
                     auth: `ApiSecret ${getEnv("API_SECRET")}`,
@@ -558,7 +558,7 @@ export default async function validateSession(
 
         // Create audit log
         await wc.callAPI(
-            `https://${config.domains.api}/v2/audit/create`,
+            `https://${config.domains.api}/v3/audit/create`,
             {
                 method: "POST",
                 auth: `ApiSecret ${getEnv("API_SECRET")}`,
@@ -645,7 +645,7 @@ export default async function validateSession(
     // If invite is valid, save as cookie
     if (inviteCode !== row.inviteCode) {
         const inviteData: InviteType = await wc.callAPI(
-            `https://${config.domains.api}/v2/invites/code/${inviteCode}`,
+            `https://${config.domains.api}/v3/invites/code/${inviteCode}`,
             { auth: `Bearer ${accessToken}` }
         );
 

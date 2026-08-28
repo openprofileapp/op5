@@ -11,7 +11,7 @@ const ready = (token, data) => ({
     users: {
         get: async (id) => {
             try {
-                const response = await fetch(`https://auth.openprofile.app/v2/accounts?id=${id}`, {
+                const response = await fetch(`https://auth.openprofile.app/v3/accounts?id=${id}`, {
                     method: "GET", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`}
                 }); if (!response.ok) {const text = await response.text(); throw new Error(`Failed to fetch user: ${response.status}, ${text}`);}
                 const data = await response.json();
@@ -23,7 +23,7 @@ const ready = (token, data) => ({
     profiles: {
         get: async (id, { read = false } = {}) => {
             try {
-                const response = await fetch(`https://auth.openprofile.app/v2/profiles?id=${id}&reading=${read}`, {
+                const response = await fetch(`https://auth.openprofile.app/v3/profiles?id=${id}&reading=${read}`, {
                     method: "GET", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`}
                 }); if (!response.ok) {const text = await response.text(); throw new Error(`Failed to fetch profile: ${response.status}, ${text}`);}
                 let data = await response.json(); if (read) {data.values = accessor(data.values);}
@@ -37,7 +37,7 @@ const ready = (token, data) => ({
 const op5 = {
     login: async (id, token) => {
         try {
-            const response = await fetch("https://auth.openprofile.app/v2/session", { 
+            const response = await fetch("https://auth.openprofile.app/v3/session", { 
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`}, body: JSON.stringify({ id, token })
             }); if (!response.ok) {const text = await response.text(); throw new Error(`Login failed: ${response.status}, ${text}`);}
             const data = await response.json(); const client = ready(token, data);

@@ -941,7 +941,7 @@ export default function CharacterCard({
 
                                         if (isPinned) {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${data.id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
                                                 {
                                                     method: "DELETE",
                                                     headers: {
@@ -954,7 +954,7 @@ export default function CharacterCard({
                                             setIsHidden(true);
                                         } else {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${data.id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
                                                 {
                                                     method: "POST",
                                                     headers: {

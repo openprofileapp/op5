@@ -27,7 +27,7 @@ export default async function setupWebPushNotifications() {
             });
         }
 
-        await fetch(`https://${window.config.domains.api}/v2/webpush`, {
+        await fetch(`https://${window.config.domains.api}/v3/webpush`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

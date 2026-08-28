@@ -96,7 +96,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                 // Fetch all accounts in parallel using Promise.all
                 const requests = delegatedIds.map(async (userId) => {
-                    const res = await fetch(`${baseUrl}/v2/users?id=${userId}`, {
+                    const res = await fetch(`${baseUrl}/v3/users?id=${userId}`, {
                         credentials: "include"
                     });
                     return res.ok ? await res.json() : null;
@@ -122,7 +122,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 }
 
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${window.session.userId}`,
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${window.session.userId}`,
                     { credentials: "include" }
                 );
 

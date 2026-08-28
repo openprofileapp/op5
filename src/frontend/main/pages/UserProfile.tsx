@@ -43,7 +43,7 @@ export default function UserProfile() {
         const fetchUser = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`,
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${id}`,
                     { credentials: "include" }
                 );
                 

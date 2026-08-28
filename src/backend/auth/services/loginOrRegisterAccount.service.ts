@@ -599,7 +599,7 @@ export default function loginOrRegisterAccount({
         })
     }
 
-    // CALL THE UPDATE USERS API https://api.openprofile.app/v2/users/ID/update
+    // CALL THE UPDATE USERS API https://api.openprofile.app/v3/users/ID/update
     // USE API SECRET
 
     // Return
@@ -771,7 +771,7 @@ export default function loginOrRegisterAccount({
             res.redirect(routes.release);
         }
     } catch (error) {
-        forward_status("error", "server", "/v2/login", error.code, error.message);
+        forward_status("error", "server", "/v3/login", error.code, error.message);
         return res.status(500).send(error.message);
     }
 

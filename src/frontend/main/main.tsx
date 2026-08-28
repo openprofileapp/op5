@@ -65,7 +65,7 @@ async function bootstrap() {
 
     if (window.session.userId) {
         const response = await fetch(
-            `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${window.session.userId}`,
+            `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${window.session.userId}`,
             {
                 credentials: "include",
             }

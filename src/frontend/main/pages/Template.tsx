@@ -117,7 +117,7 @@ export default function NotFound() {
 
         updated.forEach((item, index) => {
             fetch(
-                `https://${window.config.domains.api}/v2/pins/${window.session.userId}/${item.id}`,
+                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${item.id}`,
                 {
                     method: "POST",
                     headers: {
@@ -136,7 +136,7 @@ export default function NotFound() {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/users?id=${id}`, 
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${id}`, 
                     { credentials: "include" }
                 );
 
@@ -163,7 +163,7 @@ export default function NotFound() {
         const fetchPins = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/pins/${user.id}`,
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/pins/${user.id}`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -184,7 +184,7 @@ export default function NotFound() {
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v2/profiles?owner=${user.id}`,
+                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/profiles?owner=${user.id}`,
                     { credentials: "include" }
                 );
                 const data = await res.json();

@@ -34,7 +34,7 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
                 return callback(null, true);
             }
 
-            await fetch(`https://${config.domains.api}/v2/audit/create`, {
+            await fetch(`https://${config.domains.api}/v3/audit/create`, {
                 method: "POST",
                 headers: {
                     "Authorization": `ApiSecret ${getEnv("API_SECRET")}`,

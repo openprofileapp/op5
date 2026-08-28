@@ -10,7 +10,7 @@ interface KnowledgeItem {
     action?: string;
 }
 
-// api.openprofile.app/v2/assistant
+// api.openprofile.app/v3/assistant
 //  {
 //      "body": { "Suggest me a character" }
 //  }

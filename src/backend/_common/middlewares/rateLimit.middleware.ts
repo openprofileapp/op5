@@ -33,7 +33,7 @@ export default function rateLimitMiddleware(requests: number = 240) {
         handler: async (req: Request, res: Response) => {
 
             await wc.callAPI(
-                `https://${config.domains.api}/v2/audit/create`,
+                `https://${config.domains.api}/v3/audit/create`,
                 {
                     method: "POST",
                     auth: `ApiSecret ${getEnv("API_SECRET")}`,

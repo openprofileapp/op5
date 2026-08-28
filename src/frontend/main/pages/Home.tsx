@@ -56,7 +56,7 @@ export default function Home() {
         const fetchTrendingCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v2/characters/trending`, 
+                    `${apiHost}/v3/characters/trending`, 
                     { credentials: "include" }
                 );
 
@@ -84,7 +84,7 @@ export default function Home() {
         const fetchPopularCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v2/characters/popular`, 
+                    `${apiHost}/v3/characters/popular`, 
                     { credentials: "include" }
                 );
                 
@@ -112,7 +112,7 @@ export default function Home() {
         const fetchRecentCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v2/characters/recent`, 
+                    `${apiHost}/v3/characters/recent`, 
                     { credentials: "include" }
                 );
                 
@@ -141,7 +141,7 @@ export default function Home() {
         const fetchRecentlyUpdatedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v2/characters/recent/following`, 
+                    `${apiHost}/v3/characters/recent/following`, 
                     { credentials: "include" }
                 );
                 
@@ -169,7 +169,7 @@ export default function Home() {
         const fetchRecommendedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v2/characters/recommended`, 
+                    `${apiHost}/v3/characters/recommended`, 
                     { credentials: "include" }
                 );
                 
@@ -191,7 +191,7 @@ export default function Home() {
         fetchRecommendedCharacters();
     }, []);
 
-    // ^ Get a random character, then get /v2/characters/recommended/tag
+    // ^ Get a random character, then get /v3/characters/recommended/tag
 
     if (!isTranslationReady) return null;
 
