@@ -1,41 +1,47 @@
 import type { Request, Response } from "express";
-
-import getInviteByOwner from "../services/getInviteByOwner.service.js";
-import getInviteByCode from "../services/getInviteByCode.service.js";
+import { assertBearer } from "../../_common/asserts/bearer.assert.js";
+// import { assertPlatformPermissions } from "../../_common/asserts/platformPermissions.assert.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import getInviteService from "../services/getInvite.service.js";
+import { AdvancedError } from "kage-library";
+import { log } from "../instances.js";
+import { i18n } from "../../_common/instances.js";
 
 export const getInvitesController = async (req: Request, res: Response) => {
-    // If admin, display all invites
-    // DO NOT CALL isTokenOrSecretAuthorized ANYWHERE HERE ELSE IT CALLS RECURSEIVELY. ONLY NON AUTH-CALLED CONTROLLERS
+    try {
+        const { 
+            code,
+            ownerId,
+        } = req.params as unknown as { code: string, ownerId: string };
 
-    return res.status(400).json({ error: "Invalid parameter"});
-};
+        await assertBearer(req); 
 
-export const getInviteByCodeController = async (req: Request, res: Response) => {
-    const { inviteCode } = req.params;
+        // WARNING: Do NOT validate session here. It will cause a recursion with auth servers
+        // assertPlatformPermissions(req.session, "VIEW");
 
-    if (!inviteCode) {
-        return res.status(400).json({ error: "Invalid parameter" });
+        if (!code && !ownerId) {
+            assertNotNull([code, ownerId]);
+        }
+
+        const invite = getInviteService({
+            code,
+            owner: ownerId,
+            getAs: req.session?.userId
+        })
+
+        res.status(200).json(invite);
+    } catch(error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
+        }
     }
-
-    // Only display if owner or admin
-    // DO NOT CALL isTokenOrSecretAuthorized ANYWHERE HERE ELSE IT CALLS RECURSEIVELY. ONLY NON AUTH-CALLED CONTROLLERS
-
-    res.status(200).json({
-        ...getInviteByCode(inviteCode as string)
-    });
-};
-
-export const getInvitesByOwnerController = async (req: Request, res: Response) => {
-    const { ownerId } = req.params;
-
-    // Only display if owner or admin
-    // DO NOT CALL isTokenOrSecretAuthorized ANYWHERE HERE ELSE IT CALLS RECURSEIVELY. ONLY NON AUTH-CALLED CONTROLLERS
-
-    if (!ownerId) {
-        return res.status(400).json({ error: "Invalid parameter" });
-    }
-
-    res.status(200).json({
-        ...getInviteByOwner(ownerId as string)
-    });
 };
