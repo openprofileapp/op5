@@ -35,6 +35,7 @@ const defaultRoute = `https://localhost:${config.ports.main}`;
 
 for (const [key, port] of Object.entries(config.ports)) {
     if (!port) {
+        // DEVELOPER NEEDED: Add gateway to kage-library
         log.gateway.warn(`Missing port for "${key}" key in app.config.ts`).save();
         continue;
     }
@@ -48,7 +49,7 @@ for (const [key, port] of Object.entries(config.ports)) {
 
 // HTTPS server
 const local = https.createServer(
-    getEnv("SSL"),
+    getEnv("SSL") as object,
     async (req: IncomingMessage, res: ServerResponse) => {
         if (!req.url) {
             res.writeHead(400);
@@ -57,8 +58,9 @@ const local = https.createServer(
 
         if (req.url.startsWith("/favicon.ico")) {
             res.writeHead(302, {
-                Location: `https://${config.domains.gateway}/cdn/${config.metadata.assets.icon}`
+                Location: `https://${config.domains.gateway}/cdn/crop/circle?url=https://${config.domains.gateway}/cdn${config.metadata.assets.icon}`
             });
+            
             return res.end();
         }
 
