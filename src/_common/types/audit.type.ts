@@ -13,7 +13,9 @@ export type AuditNameType =
     | "reads"
     | "restricts"
     | "shares"
-    | "views";
+    | "views"
+    | "algorithm"
+;
 
 type ChangesType = {
     new: object;

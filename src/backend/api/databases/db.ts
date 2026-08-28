@@ -109,6 +109,11 @@ db.audits.transaction(q => {
         const result = q(`${config.folders.sql.api}/audits/views.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM algorithm LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/audits/algorithm.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 db.metadata.transaction(q => {
