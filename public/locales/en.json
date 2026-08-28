@@ -22,8 +22,9 @@
     "failedCommand": "Error executing command! A report was filed and sent to the developer.",
     "noAccount": "You need an account to perfect this action.",
     "database": "An error occurred while performing a database operation.",
-    "unknown": "An unknown error occurred",
-    "webpush": "Failed to send push notification"
+    "unknown": "An unknown error occurred.",
+    "webpush": "Failed to send push notification.",
+    "pinLimit": "You've reach the maximum amount (24) of pins."
   },
   "pages": {
     "languages": "Languages",
