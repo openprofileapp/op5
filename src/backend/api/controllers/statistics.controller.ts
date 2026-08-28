@@ -1,163 +1,88 @@
 import type { Request, Response } from "express";
 
+import { assertBearer } from "../../_common/asserts/bearer.assert.js";
+import { assertPlatformPermissions } from "../../_common/asserts/platformPermissions.assert.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { AdvancedError } from "kage-library";
+import { log } from "../instances.js";
+import { i18n } from "../../_common/instances.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../databases/db.js";
 
-export const getStatistics = (req: Request, res: Response) => {
-    const { id } = req.params;
+export const getStatisticsController = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params as unknown as { id: string };
 
-    // MOVE MOST OF THIS TO AN EXTERNAL SERVICE THEN CALL IT HERE
-    // RENAME TO /STATS OR SOMETHING
+        await assertBearer(req); 
+        assertPlatformPermissions(req.session, "VIEW");
+        assertNotNull(id);
 
-    // hasPermissionsToView()??
-    // ^ isBlocked(); built-in
+        const userResult = db.interactions.query(
+            `SELECT 
+                (SELECT COUNT(*) FROM follows WHERE source = ?) AS following,
+                (SELECT COUNT(*) FROM follows WHERE target = ?) AS followers,
+                (SELECT COUNT(*) FROM shares WHERE target = ?) AS shares,
+                (SELECT COUNT(*) FROM views WHERE target = ?) AS views`,
+            [...Array(4).fill(id)]
+        );
 
-    // ONLY INCLUDE BLOCKS/FRIENDS/MUTES/RESTRICTS AND STUFF IF ITS THE OWNER OF THE ACCOUNT/ASSET
+        assertDbSuccess(userResult);
 
-    /* 
-    ————————————————————————————————————————————————————————————————
-    userProfileCounts
-    ———————————————————————————————————————————————————————————————— 
-    */
+        const characterIdsResult = db.characters.query(
+            "SELECT id FROM published WHERE ownerId = ?", 
+            [id]
+        );
 
-    // Following
-    const userProfileFollowingResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE source = ?`, 
-        [id]
-    );
+        assertDbSuccess(characterIdsResult);
 
-    if (!userProfileFollowingResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching following" }
-    );
+        const characterIds = 
+            (characterIdsResult.rows as { id: string }[]).map(c => c.id);
 
-    // Followers
-    const userProfileFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE target = ?`, 
-        [id]
-    );
+        let contentResult;
 
-    if (!userProfileFollowersResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching followers" }
-    );
+        if (characterIds.length !== 0) {
+            const placeholders = characterIds.map(() => "?").join(",");
 
-    // Shares
-    const userProfileSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE target = ?`, 
-        [id]
-    );
+            contentResult = db.interactions.query(
+                `SELECT 
+                    (SELECT COUNT(*) FROM follows WHERE target IN (${placeholders})) AS followers,
+                    (SELECT COUNT(*) FROM likes WHERE target IN (${placeholders})) AS likes,
+                    (SELECT COUNT(*) FROM reads WHERE target IN (${placeholders})) AS reads,
+                    (SELECT COUNT(*) FROM shares WHERE target IN (${placeholders})) AS shares,
+                    (SELECT COUNT(*) FROM views WHERE target IN (${placeholders})) AS views`,
+                Array(5).fill(characterIds).flat()
+            );
 
-    if (!userProfileSharesResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching shares" }
-    );
-
-    // Views
-    const userProfileViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE target = ?`, 
-        [id]
-    );
-
-    if (!userProfileViewsResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching views" }
-    );
-
-    /* 
-    ————————————————————————————————————————————————————————————————
-    contentCounts
-    ———————————————————————————————————————————————————————————————— 
-    */
-
-    const characterIdsResult = db.characters.query(
-        "SELECT id FROM published WHERE ownerId = ?", 
-        [id]
-    );
-
-    if (!characterIdsResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching characters" }
-    );
-    
-    const characterIds = (characterIdsResult.rows as { id: string }[]).map(c => c.id);
-    
-    // Followers
-    const contentFollowersResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM follows WHERE target IN (
-            ${characterIds.map(() => "?").join(",")}
-        )`, 
-        characterIds
-    );
-    
-    if (!contentFollowersResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching followers" }
-    );
-
-    // Likes
-    const contentLikesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM likes WHERE target IN (
-            ${characterIds.map(() => "?").join(",")}
-        )`, 
-        characterIds
-    );
-    
-    if (!contentLikesResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching likes" }
-    );
-
-    // Reads
-    const contentReadsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM reads WHERE target IN (
-            ${characterIds.map(() => "?").join(",")}
-        )`, 
-        characterIds
-    );
-    
-    if (!contentReadsResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching reads" }
-    );
-
-    // Shares
-    const contentSharesResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM shares WHERE target IN (
-            ${characterIds.map(() => "?").join(",")}
-        )`, 
-        characterIds
-    );
-    
-    if (!contentSharesResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching shares" }
-    );
-
-    console.log(characterIds)
-
-    // Views
-    const contentViewsResult = db.interactions.query(
-        `SELECT COUNT(*) AS count FROM views WHERE target IN (
-            ${characterIds.map(() => "?").join(",")}
-        )`, 
-        characterIds
-    );
-    
-    if (!contentViewsResult.success) return res.status(500).json(
-        { error: "An error occurred while fetching views" }
-    );
-
-    /* 
-    ————————————————————————————————————————————————————————————————
-    Response JSON
-    ———————————————————————————————————————————————————————————————— 
-    */
-
-    res.status(200).json({
-        id,
-        userProfileCounts: {
-            following: userProfileFollowingResult.rows[0].count || 0,
-            followers: userProfileFollowersResult.rows[0].count || 0,
-            shares: userProfileSharesResult.rows[0].count || 0,
-            views: userProfileViewsResult.rows[0].count || 0
-        },
-        contentCounts: {
-            followers: contentFollowersResult.rows[0].count || 0,
-            likes: contentLikesResult.rows[0].count || 0,
-            reads: contentReadsResult.rows[0].count || 0,
-            shares: contentSharesResult.rows[0].count || 0,
-            views: contentViewsResult.rows[0].count || 0
+            assertDbSuccess(contentResult);
         }
-    });
+
+        res.status(200).json({
+            user: {
+                following: userResult.rows[0].following || 0,
+                followers: userResult.rows[0].followers || 0,
+                shares: userResult.rows[0].shares || 0,
+                views: userResult.rows[0].views || 0
+            },
+            content: {
+                followers: contentResult?.rows[0].followers || 0,
+                likes: contentResult?.rows[0].likes || 0,
+                reads: contentResult?.rows[0].reads || 0,
+                shares: contentResult?.rows[0].shares || 0,
+                views: contentResult?.rows[0].views || 0
+            }
+        });
+    } catch(error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
+        }
+    }
 };
