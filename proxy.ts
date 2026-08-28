@@ -56,15 +56,15 @@ for (const [key, domain] of Object.entries(config.domains)) {
 
 // HTTPS server
 const local = https.createServer(
-    getEnv("SSL"),
+    getEnv("SSL") as object,
     async (req: IncomingMessage, res: ServerResponse) => {
         if (req.url!.startsWith("/favicon.ico")) {
             const gatewayDomain = config.domains.gateway.toLowerCase();
             const gatewayTarget = serverMap[gatewayDomain];
 
             if (gatewayTarget) {
-                req.url = `/cdn/${config.metadata.assets.icon}`;
-
+                req.url = `https://${config.domains.gateway}/cdn/crop/circle?url=https://${config.domains.gateway}/cdn${config.metadata.assets.icon}`;
+                
                 return proxy.web(req, res, {
                     target: gatewayTarget,
                     secure: false,
