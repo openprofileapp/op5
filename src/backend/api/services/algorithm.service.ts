@@ -44,8 +44,8 @@ const index: IndexType = {
         // Member; user scope
         ADD_TO_COLLECTION: { score: 4, scope: "user" },
         REMOVE_FROM_COLLECTION: { score: -4, scope: "user" },
-        ADD_INTEREST: { score: 10, scope: "user" },
-        REMOVE_INTEREST: { score: -10, scope: "user" },
+        UNHIDE: { score: 10, scope: "user" },
+        HIDE: { score: -10, scope: "user" },
     },
         
     // Multiplies the base (1.0)
