@@ -1,9 +1,12 @@
+import { AdvancedError } from "kage-library";
+
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
 import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../databases/db.js";
 import sendPushNotificationService from "./sendPushNotification.service.js";
+import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
 
 export const notificationMilestones = [ 
     10, 25, 50, 75,
@@ -42,6 +45,28 @@ export default async function isValidService(
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
 
+    const allowedTypes = satisfiesAll<NotificationNameType>()(
+        "WEBPUSH_SUBSCRIBE",
+        "NEW_LIKE",
+        "NEW_FOLLOW",
+        "NEW_MESSAGE",
+        "FRIEND_REQUEST_SENT",
+        "FRIEND_REQUEST_ACCEPTED",
+        "CHATS_MILESTONE",
+        "FOLLOWS_MILESTONE",
+        "LIKES_MILESTONE",
+        "READS_MILESTONE",
+        "SHARES_MILESTONE",
+        "VIEWS_MILESTONE"
+    );
+
+    if (!allowedTypes.has(type)) {
+        throw new AdvancedError({
+            code: 400,
+            message: `Invalid interaction type: ${type}`
+        });
+    }
+
     // Never send milestone notifications twice
 
     const data = JSON.stringify({
@@ -74,6 +99,8 @@ export default async function isValidService(
     });
 
     if (isValid) {
+        // DEVELOPER NEEDED: Send to targetId.owner (whatIs(targetId))
+        // ALSO GET THE DELGATED ACCOUNTS OF TARGED ID OWNER AND DO A FOR EACH
         await sendPushNotificationService(    
             userId,
             type,
