@@ -24,6 +24,7 @@ export type InteractionMethod = "source" | "target"
 
 export type GetInteractionsResult = {
     items: InteractionType[];
+    randomItem: InteractionType;
     count: number;
     latestDate: string;
     hasInteracted?: boolean;

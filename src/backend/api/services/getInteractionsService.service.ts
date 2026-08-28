@@ -24,6 +24,7 @@ type Props = {
     target?: string;
     type?: InteractionNameType | InteractionNameType[];
     includeItems?: boolean;
+    getRandom?: number;
     getAs?: string;
 };
 
@@ -32,6 +33,7 @@ export default function getInteractionsService({
     target,
     type,
     includeItems = false,
+    getRandom,
     getAs
 }: Props): GetInteractionCollection {
     const targetTypes: InteractionNameType[] = Array.isArray(type) 
@@ -64,8 +66,26 @@ export default function getInteractionsService({
             itemsSql = `'items', COALESCE((SELECT json_group_array(json_object('source', source, 'target', target, 'date', date)) FROM ${table} ${whereSql}), json('[]')),`;
         }
 
-        selectParams.push(...conditionParams);
+        let randomItemSql = "";
 
+        if (getRandom != null && !Number.isNaN(getRandom)) {
+            selectParams.push(...conditionParams);
+            selectParams.push(...conditionParams);
+
+            randomItemSql = `'randomItem', (
+                SELECT json_object('source', source, 'target', target, 'date', date) 
+                FROM ${table} ${whereSql} 
+                LIMIT 1 OFFSET (
+                    SELECT CASE 
+                        WHEN COUNT(*) > 0 THEN ABS(RANDOM()) % COUNT(*) 
+                        ELSE 0 
+                    END 
+                    FROM ${table} ${whereSql}
+                )
+            ),`;
+        }
+
+        selectParams.push(...conditionParams);
         selectParams.push(...conditionParams);
 
         selectParams.push(getAs ?? null, getAs ?? null);
@@ -76,6 +96,7 @@ export default function getInteractionsService({
         return `
             '${table}', json_object(
                 ${itemsSql}
+                ${randomItemSql}
                 'latestDate', (SELECT MAX(date) FROM ${table} ${whereSql}),
                 'count', (SELECT COUNT(*) FROM ${table} ${whereSql}),
                 'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM ${table} WHERE source = ? ${target != null ? "AND target = ?" : ""}) THEN json('true') ELSE json('false') END
@@ -110,6 +131,7 @@ export default function getInteractionsService({
                 key,
                 {
                     items: parseJson(value.items) ?? [],
+                    randomItem: value.randomItem ? parseJson(value.randomItem) : null,
                     count: value.count,
                     latestDate: value.latestDate ?? null,
                     hasInteracted: value.hasInteracted,
