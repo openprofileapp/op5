@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
     theme TEXT DEFAULT '4819203746571029',
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
-    auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
+    auraPrimary TEXT,
+    auraSecondary TEXT,
     type TEXT NOT NULL DEFAULT 'user',
     isDeveloper INTEGER NOT NULL DEFAULT 0,
     isExplicit INTEGER NOT NULL DEFAULT 0,

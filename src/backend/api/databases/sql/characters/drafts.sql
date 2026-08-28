@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS drafts (
     algorithmScore INTEGER NOT NULL DEFAULT 0,
     id TEXT PRIMARY KEY NOT NULL,
-    ownerId TEXT NOT NULL, -- User or project
+    ownerId TEXT NOT NULL,
     slug TEXT,
     displayName TEXT,
     avatar TEXT,
@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS drafts (
     licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
-    auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
+    auraPrimary TEXT,
+    auraSecondary TEXT,
     isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
     readVisibility TEXT NOT NULL DEFAULT 'public',

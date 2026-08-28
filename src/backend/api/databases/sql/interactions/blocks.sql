@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS blocks (
-    source TEXT NOT NULL, -- User id
-    target TEXT NOT NULL, -- User id
+    source TEXT NOT NULL,
+    target TEXT NOT NULL,
     date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 
-    UNIQUE (source, target) -- Ensure source/target do not have multiple of the same interactions
+    UNIQUE (source, target)
 );
