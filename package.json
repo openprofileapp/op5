@@ -92,6 +92,7 @@
     "react-simple-maps": "^3.0.0",
     "remark-gfm": "^4.0.1",
     "robots-parser": "^3.0.1",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.0",
     "tldts": "^7.0.28",
     "translate": "^3.0.1",
