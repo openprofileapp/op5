@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { getPins } from "../controllers/users/pins/getPins.controller.js";
-import { postPins } from "../controllers/users/pins/postPins.controller.js";
-import { deletePins } from "../controllers/users/pins/deletePins.controller.js";
+import { getPins } from "../controllers/pins/getPins.controller.js";
+import { postPins } from "../controllers/pins/postPins.controller.js";
+import { deletePins } from "../controllers/pins/deletePins.controller.js";
 
 const userRoute = Router();
 
