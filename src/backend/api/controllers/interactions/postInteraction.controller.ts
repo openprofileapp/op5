@@ -15,7 +15,7 @@ import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js
 import { i18n } from "../../../_common/instances.js";
 import sendNotificationService, { notificationMilestones } from "../../services/sendNotification.service.js";
 import { NotificationNameType } from "../../../../_common/types/notification.type.js";
-import getInteractionsService from "../../services/getInteractionsService.service.js";
+import getInteractionsService from "../../services/getInteractions.service.js";
 import whatIs from "../../helpers/whatIs.js";
 import AlgorithmService from "../../services/algorithm.service.js";
 import { AlgorithmEventNameType } from "../../../../_common/types/algorithm.type.js";

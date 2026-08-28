@@ -5,7 +5,7 @@ import { getTrendingPublishedCharacters } from "../controllers/characters/getTre
 import { getPopularPublishedCharacters } from "../controllers/characters/getPopularPublishedCharacters.controller.js";
 import { getRecentPublishedCharacters } from "../controllers/characters/getRecentPublishedCharacters.controller.js";
 import { getTaggedPublishedCharacters } from "../controllers/characters/getTaggedPublishedCharacters.controller.js";
-import { getRecentFollowingPublishedCharacters } from "../controllers/users/getRecentFollowingCharacters.controller.js";
+import { getRecentFollowingPublishedCharacters } from "../controllers/characters/getRecentFollowingPublishedCharacters.controller.js";
 import { getRecommendedPublishedCharacters } from "../controllers/characters/getRecommendedPublishedCharacters.controller.js";
 import { getRecommendedTaggedPublishedCharacters } from "../controllers/characters/getRecommendedTaggedPublishedCharacters.controller.js";
 
