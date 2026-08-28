@@ -1,14 +1,16 @@
 import { Router } from "express";
-import { postInteraction } from "../controllers/interactions/postInteraction.controller.js";
+
+import { postInteractionController } from "../controllers/interactions/postInteraction.controller.js";
+import { getRandomInteractionController } from "../controllers/interactions/getRandomInteraction.controller.js";
 
 const interactionRoutes = Router();
 
-interactionRoutes.post("/", postInteraction);
+interactionRoutes.post("/", postInteractionController);
+
+interactionRoutes.get("/random/:type/:count", getRandomInteractionController);
 
 // interactionRoutes.get("/:userId", getInteractionsCount);
 // interactionRoutes.get("/:userId/:interaction", getInteractionsCount);
-
-
 
 // interactionRoutes.get("/:userId/following", getFollowing);
 // interactionRoutes.get("/:userId/followers", getFollowers);
