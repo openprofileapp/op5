@@ -23,14 +23,7 @@ function getUserAccountByEmail(email: string) {
 
     assertDbSuccess(result);
 
-    if (result.rowCount < 1) {
-        throw new AdvancedError({ 
-            code: 404,
-            message: i18n.t("responses.emailNotFound")
-        });
-    }
-
-    return result.rows[0];
+    return result?.rows?.[0] ?? null;
 }
 
 export default function getUserAccountService({
@@ -52,29 +45,18 @@ export default function getUserAccountService({
 
         assertDbSuccess(result);
 
-        let foundAccount = false;
-
-        if (result.rowCount < 1) {
+        if (result.rowCount === 0) {
             if (externalConnectionName === "GOOGLE" && email) {
                 row = getUserAccountByEmail(email);
-
-                if (row) foundAccount = true;
             }
-
-            if (!foundAccount) {
-                throw new AdvancedError({ 
-                    code: 404,
-                    message: i18n.t("responses.connectionNotFound")
-                });
-            }
+        } else {
+            row = result.rows[0]
         }
-
-        if (!foundAccount) row = result.rows[0];
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    assertNotNull(row);
+    if (!row) return null;
 
     const result = db.accounts.query<UserAccountType>(
         "SELECT * FROM users WHERE id = ? LIMIT 1", 
