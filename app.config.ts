@@ -71,7 +71,8 @@ export const config = {
         rateLimit: 240,
         softConnectedSessions: 500,
         hardConnectedSessions: 650,
-        assetsPerPage: 30
+        assetsPerPage: 30,
+        uploadSize: 1 * 1024 * 1024 // 1 MB
     },
 
     // Displays the maintenance landing
