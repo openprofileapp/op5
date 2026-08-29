@@ -214,7 +214,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     </Link>
 
                     {window.location.hostname.startsWith('nightly') ? (
-                        <div className="badge bg-nightly border border-nightly border-1 tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
+                        <div className="badge bg-nightly border border-nightly border-1 tooltip tooltip-bottom ml-3 p-3.5 flex justify-center rounded-sm">
                             Nightly
                             <div className="tooltip-content">
                                 <div className="font-bold">{`v${config.metadata.version.full}`}</div>
