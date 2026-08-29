@@ -6,12 +6,13 @@ import { config } from "../../../../app.config.js";
 import { UserConnectionType } from "../types/userConnection.type.js";
 
 type MfaMethod =
-    | "totp"
-    | "biometric"
-    | "connection"
-    | "qr"
-    | "backup";
+    | "TOTP"
+    | "BIOMETRIC"
+    | "CONNECTION"
+    | "QR"
+    | "BACKUP";
 
+// DEVELOPER NEEDED: Finish this later
 export default async function getMfaMethods(
     userId: string
 ): Promise<{ methods: MfaMethod[] }> {
@@ -60,7 +61,7 @@ export default async function getMfaMethods(
 
     if (!userAccountResult.rows[0].isMfaEnabled) return { methods }
 
-    if (userAccountResult.rows[0].totpSecret) methods.push("totp");
+    if (userAccountResult.rows[0].totpSecret) methods.push("TOTP");
 
     // Connections
     const userConnectionsResult = db.accounts.query<UserConnectionType>(
@@ -86,11 +87,11 @@ export default async function getMfaMethods(
         })
     }
 
-    if (userConnectionsResult.rowCount > 0) methods.push("connection");
+    if (userConnectionsResult.rowCount > 0) methods.push("CONNECTION");
 
     if (methods.length > 0) {
-        methods.push("qr");
-        methods.push("backup");
+        methods.push("QR");
+        methods.push("BACKUP");
     }
 
     return { methods };
