@@ -11,7 +11,7 @@ import LoginModal from "./modals/LoginModal.js";
 import MfaModal from "./modals/MfaModal.js";
 import ReportModal from "./modals/ReportModal.js";
 import { toast } from "../../_common/scripts/toast.js";
-import { UserProfileType } from "../../../_common/types/queries/userProfile.type.js";
+import { GetUserItemType } from "../../../_common/types/user.type.js";
 import CreateAssetModal from "./modals/CreateAssetModal.js";
 
 type Props = {
@@ -25,7 +25,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const [scrolled, setScrolled] = useState(false);
-    const [user, setUser] = useState<UserProfileType | null>();
+    const [user, setUser] = useState<GetUserItemType | null>();
     const [isLoading, setIsLoading] = useState(true);
     
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
@@ -94,16 +94,15 @@ export default function Navbar({ isBannerPage = false }: Props) {
             try {
                 const baseUrl = `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}`;
 
-                // Fetch all accounts in parallel using Promise.all
                 const requests = delegatedIds.map(async (userId) => {
                     const res = await fetch(`${baseUrl}/v3/users?id=${userId}`, {
                         credentials: "include"
                     });
-                    return res.ok ? await res.json() : null;
+                    return res.ok ? await res.json().items[0] : null;
                 });
 
                 const results = await Promise.all(requests);
-                // Filter out any failed requests
+
                 setAccounts(results.filter(Boolean));
             } catch (error) {
                 console.error("Failed to fetch delegated accounts:", error);
@@ -132,7 +131,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 }
 
                 const data = await res.json();
-                setUser(data);
+
+                setUser(data.items[0]);
             } catch (error) {
                 toast.show(`Failed to fetch session: ${error}`, { type: "error" })
                 setUser(null);
