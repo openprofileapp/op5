@@ -2,11 +2,12 @@ import type { Request, Response } from "express";
 
 import { AdvancedError, URL } from "kage-library";
 
-import { log } from "../../instances.js";
-import { wc } from "../../../_common/instances.js";
+import { i18n, wc } from "../../../_common/instances.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
 import { config } from "../../../../../app.config.js";
-import loginOrRegisterAccount from "../../services/loginOrRegisterAccount.service.js";
+import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
+import loginOrRegisterAccountService from "../../services/loginOrRegisterAccount.service.js";
+import { log } from "../../instances.js";
 
 type GoogleTokenResponse = {
     access_token: string;
@@ -26,23 +27,28 @@ type GoogleAccountResponse = {
     email_verified: boolean;
 }
 
-export const googleLogin = async (req: Request, res: Response) => {
-    const { code } = req.query;
-    let googleAccount: GoogleAccountResponse = {
-        sub: "",
-        name: "",
-        given_name: "",
-        picture: "",
-        email: "",
-        email_verified: false
-    };
-
-    if (typeof code !== "string") {
-        throw new AdvancedError({ code: 400, message: "Invalid authorization code" });
-    }
-
+export const googleLoginController = async (req: Request, res: Response) => {
     try {
-        // Fetch external token and external account
+        const { code } = req.query;
+
+        assertNotNull(req.session.sessionId);
+
+        let externalResponse: GoogleAccountResponse = {
+            sub: "",
+            name: "",
+            given_name: "",
+            picture: "",
+            email: "",
+            email_verified: false
+        };
+
+        if (typeof code !== "string") {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: i18n.t("responses.invalidAuthorizationCode")
+            });
+        }
+
         const externalToken: GoogleTokenResponse = await wc.callAPI(
             "https://oauth2.googleapis.com/token",
             {
@@ -51,8 +57,8 @@ export const googleLogin = async (req: Request, res: Response) => {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
                 body: new URLSearchParams({
-                    client_id: getEnv("INTEGRATION_GOOGLE_AUTH_CLIENT"),
-                    client_secret: getEnv("INTEGRATION_GOOGLE_AUTH_SECRET"),
+                    client_id: getEnv("INTEGRATION_GOOGLE_AUTH_CLIENT") as string,
+                    client_secret: getEnv("INTEGRATION_GOOGLE_AUTH_SECRET") as string,
                     grant_type: "authorization_code",
                     code,
                     redirect_uri: `https://${config.domains.auth}/login/google`
@@ -60,34 +66,29 @@ export const googleLogin = async (req: Request, res: Response) => {
             }
         );
 
-        googleAccount = await wc.callAPI(
+        externalResponse = await wc.callAPI(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             { auth: `Bearer ${externalToken.access_token}` }
         )
 
-        // Fetch session and internal account
-        if (!req.session?.sessionId) {
-            throw new AdvancedError({ code: 400, message: "Invalid session" });
-        }
-
-        const internalToken = loginOrRegisterAccount({
+        const response = loginOrRegisterAccountService({
             session: req.session,
             delegationToken: req.cookies?.delegationToken,
-            email: googleAccount.email,
-            isEmailVerified: googleAccount.email_verified,
-            username: googleAccount.email.replace("@gmail.com", ""),
-            displayName: googleAccount.name,
-            avatar: googleAccount.picture,
-            // theme: CLIENT SIDE CODE `const theme = localStorage.getItem("theme") ?? "dark";`
-            externalConnectionName: "google",
-            externalConnectionId: googleAccount.sub,
-            externalConnectionText: googleAccount.email
+            email: externalResponse.email,
+            isEmailVerified: externalResponse.email_verified,
+            username: externalResponse.email.replace("@gmail.com", ""),
+            displayName: externalResponse.name,
+            avatar: externalResponse.picture,
+            // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
+            externalConnectionName: "GOOGLE",
+            externalConnectionId: externalResponse.sub,
+            externalConnectionText: externalResponse.email
         });
 
         const url = new URL(`https://${config.domains.main}`);
 
-        if (internalToken.type === "mfa") {
-            res.cookie("mfaToken", internalToken.value, {
+        if (response.mfaToken) {
+            res.cookie("mfaToken", response.mfaToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "none",
@@ -99,87 +100,59 @@ export const googleLogin = async (req: Request, res: Response) => {
             return res.status(200).json({
                 action: "DISPLAY_MFA"
             });
-        }
-        
-        if (internalToken.type === "session") {
-            // ALSO ADD AUDIT LOGGING FOR A SUCESSFUL LOGIN
-
-            res.cookie("sessionToken", internalToken.value, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            });
-
-            // RETURN HERE
-        }
-
-        if (internalToken.type === "delegation") {
-            // ALSO ADD AUDIT LOGGING FOR A SUCESSFUL LOGIN
-
-            res.cookie("sessionId", internalToken.sessionId, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-            });
-
-            res.cookie("sessionToken", internalToken.sessionToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            });
-
-            res.cookie("accessToken", internalToken.accessToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 5, // 5 minutes
-            });
-
-            res.cookie("delegationToken", internalToken.value, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            });
-
-            // RETURN HERE
-        }
-
-        if (internalToken.type === "mfa") {
-            return res.redirect(
-                `https://${config.domains.main}/mfa`
-            );
         } else {
-            // CREATE BACKUP CODES SQL AND TYPE
-            // getBackupCodesByUserId();
-            // MARK AS USED ON USE, DO NOT DELETE UNLESS USER REGENERATED THEM
+            if (response.sessionId) {
+                res.cookie("sessionId", response.sessionId, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    domain: `.${url.domain}`,
+                    path: "/",
+                    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+                });
+            }
 
-            // validateSesson(req, res, true);
+            if (response.accessToken) {
+                res.cookie("accessToken", response.accessToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    domain: `.${url.domain}`,
+                    path: "/",
+                    maxAge: 1000 * 60 * 5, // 5 minutes
+                });
+            }
 
-            // ON SUCCESS CALL mfa/verify; IF VALID, UPDATE THE MFA CHALLENGE DATA TO SESSION DATA/SETTING COOKIES
-            // CHECK IF EXPIRED AND IF SO REQUEST NEW LOGIN // BACKUP CODES ALWAYS PASSES body { code, backupCode }
-            // ON MFA SUBMIT, CALL VALIDATE SESSION JUST TO VERIFY ALL IS GOOD
-            // ON EVERY CALL, IT INCREASES THE ATTEMPTS AND BLOCKES YOU AFTER 5 BY KILLING THE SESSION AND MFA AND LOGGING AUDIT
-            // CREATE getSessionBySessionId(); WHICH RETURNS THE SESSION FULL; USEFUL FOR AUDIT LOGGING
+            if (response.sessionToken) {
+                res.cookie("sessionToken", response.sessionToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    domain: `.${url.domain}`,
+                    path: "/",
+                    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                });
+            }
+
+            if (response.delegationToken) {
+                res.cookie("delegationToken", response.delegationToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    domain: `.${url.domain}`,
+                    path: "/",
+                    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                });
+            }
+
+            console.log(response)
 
             return res.redirect(
+                // MAYBE ADD: hasCompletedOnboarding
                 `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
             );
         }
-    } catch (error) {
+    } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
             return res.status(error.code).json({
@@ -188,6 +161,9 @@ export const googleLogin = async (req: Request, res: Response) => {
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
-    } 
+    }
 };
