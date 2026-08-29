@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 
 import { log } from "../instances.js";
-import { wc } from "../../_common/instances.js";
+import { i18n, wc } from "../../_common/instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 
 type Hcaptcha = {
@@ -31,7 +31,7 @@ export const verifyCaptcha = async (req: Request, res: Response) => {
                         "application/x-www-form-urlencoded",
                 },
                 body: new URLSearchParams({
-                    secret: getEnv("INTEGRATION_HCAPTCHA_SECRET"),
+                    secret: getEnv("INTEGRATION_HCAPTCHA_SECRET") as string,
                     response: token,
                 }),
             }
@@ -42,13 +42,18 @@ export const verifyCaptcha = async (req: Request, res: Response) => {
         } else {
             return res.status(400).json({ ok: result.success });
         }
-
-    } catch (error) {
+    } catch(error) {
         if (error instanceof AdvancedError) {
-            log.db.error(error.stack).save();
-            return res.status(error.code).json(error.message);
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
         } else {
-            console.log(error);
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
     }
 };
