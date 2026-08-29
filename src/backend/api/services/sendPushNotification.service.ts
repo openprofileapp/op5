@@ -43,8 +43,8 @@ export default async function sendPushNotificationService(
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
 
-    // FOR PUSH NOTIFICATIONS, ONLY SEND FOR THE SAME PAYLOAD PER HOUR
-    // CHECK THE SENT NOTIFICATIONS IN THE DB AND COMPARE
+    // DEVELOPER NEEDED: Log push notifications to an audit log and clear it every hour.
+    // If the payload matches the one in the audit, do not send it.
 
     const result = db.users.query<WebPushType>(
         `SELECT * FROM webpush WHERE userId = ?`,
@@ -90,13 +90,18 @@ export default async function sendPushNotificationService(
         }
     }
 
-    // DEVELOPER NEEDED: Show duo for interaction updates and solo for milestones
-    const icon = 
-        targetId !== userId 
-            ? `https://${config.domains.cdn}/crop/duo?sourceUrl=https://${config.domains.cdn}${source?.avatar}&targetUrl=https://${config.domains.cdn}${target?.avatar}` 
-            : source?.avatar 
-                ? `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${source?.avatar}`
-                : `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${config.metadata.assets.icon}`
+    let icon;
+
+    if (type.includes("MILESTONE")) {
+        icon = `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${target?.avatar}`
+    } else {
+        icon = 
+            targetId !== userId 
+                ? `https://${config.domains.cdn}/crop/duo?sourceUrl=https://${config.domains.cdn}${source?.avatar}&targetUrl=https://${config.domains.cdn}${target?.avatar}` 
+                : source?.avatar 
+                    ? `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${source?.avatar}`
+                    : `https://${config.domains.cdn}/crop/circle?url=https://${config.domains.cdn}${config.metadata.assets.icon}`
+    }
 
     const payload = JSON.stringify({
         title: config.metadata.name,
