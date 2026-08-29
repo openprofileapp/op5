@@ -1,7 +1,9 @@
+import { GetBadgeType } from "./badge.type.js";
+
 export type OwnerType = {
     id: string;
     username: string;
     displayName?: string;
-    isVerified: boolean;
+    badges: GetBadgeType[];
     type: string;
 }
