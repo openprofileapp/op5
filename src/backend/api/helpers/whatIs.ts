@@ -1,9 +1,13 @@
 import { AdvancedError } from "kage-library";
 
+import { GetBadgeType } from "../../../_common/types/badge.type.js";
+import { GetUserItemType, UserType } from "../../../_common/types/user.type.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { db } from "../databases/db.js";
-import { GetUserType, UserType } from "../../../_common/types/user.type.js";
-// import getUsersById from "../services/getUsersById.service.js";
-import { PublishedCharacterType } from "../../../_common/types/character.type.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import getUsersService from "../services/getUsers.service.js";
+import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/character.type.js";
+import getPublishedCharactersService from "../services/getPublishedCharacters.service.js";
 
 type AssetType = 
     "USER" | 
@@ -27,8 +31,32 @@ export type WhatIsType = {
     isOfficial: boolean;
 }
 
-function hasBadge(owner: GetUserType, badgeType: string): boolean {
-    return Array.isArray(owner.badges) && owner.badges.some((b) => b.type === badgeType);
+function hasBadge(badges: GetBadgeType[], badgeType: string): boolean {
+    return badges.some((b) => b.type === badgeType);
+}
+
+function formatReturnData(
+    type: AssetType, 
+    data: GetUserItemType | GetPublishedCharacterItemType
+): WhatIsType {
+    const badges = type === "USER" 
+        ? (data as GetUserItemType).badges 
+        : (data as GetPublishedCharacterItemType).owner?.badges ?? [];
+
+    return {
+        id: data.id,
+        ...(type !== "USER" && "owner" in data && { ownerId: data.owner.id }),
+        displayName: data.displayName,
+        avatar: data.avatar,
+        type: type,
+        tags: data.tags,
+        createdDate: data.createdDate,
+        ...(type !== "USER" && "updatedDate" in data && { updatedDate: data.updatedDate }),
+        isPremium: hasBadge(badges, "premium"),
+        isVerified: hasBadge(badges, "verified"),
+        isPromoted: hasBadge(badges, "promoted"),
+        isOfficial: hasBadge(badges, "official")
+    }
 }
 
 /**
@@ -44,11 +72,13 @@ function hasBadge(owner: GetUserType, badgeType: string): boolean {
  * console.log(assetType); 
  * // {
  * //   id: "00000000000000000"
- * //   ownerId: "00000000000000000"
- * //   displayName: "Test"
- * //   avatar: "/avatars/00000000000000000/hash.png"
+ * //   ownerId?: "00000000000000000"
+ * //   displayName?: "Test"
+ * //   avatar?: "/avatars/00000000000000000/hash.png"
  * //   type: "USER"
  * //   tags: ["author", "writer"]
+ * //   createdDate: "2026-01-01T00:00:00Z";
+ * //   updatedDate?: "2026-01-01T00:00:00Z";
  * //   isPremium: true
  * //   isVerified: true
  * //   isPromoted: false
@@ -57,116 +87,46 @@ function hasBadge(owner: GetUserType, badgeType: string): boolean {
  * ```
  */
 export default function whatIs(id: string): WhatIsType {
-    if (!id) {
-        throw new AdvancedError({
-            code: 400,
-            message: "Malformed request"
-        });
-    }
+    assertNotNull(id);
 
-    // USER
     const userResult = db.users.query<UserType>(
-        "SELECT id FROM users WHERE id = ?", 
+        "SELECT * FROM users WHERE id = ?", 
         [id]
     );
 
-    if (!userResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching user",
-            details: userResult.error
-        })
-    }
+    assertDbSuccess(userResult);
 
-    if (userResult.rowCount === 1) {
-        const owner = getUsersById(id);
+    if (userResult.rowCount !== 0) {
+        const getResult = getUsersService({
+            id
+        });
 
-        if (owner) {
-            return {
-                id,
-                ownerId: id,
-                displayName: owner.displayName,
-                avatar: owner.avatar,
-                type: "USER",
-                tags: owner.tags,
-                createdDate: owner.createdDate,
-                isPremium: hasBadge(owner, "premium"),
-                isVerified: hasBadge(owner, "verified"),
-                isPromoted: hasBadge(owner, "promoted"),
-                isOfficial: hasBadge(owner, "official")
-            }
+        const data = getResult.items[0];
+
+        if (data) {
+            return formatReturnData("USER", data)
         }
     }
 
-    let ownerId: string | undefined;
-    let displayName: string | undefined;
-    let avatar: string | undefined;
-    let type: AssetType | undefined;
-    let tags: string[] | undefined;
-    let createdDate: string | undefined;
-    let updatedDate: string | undefined;
-
-    // CHARACTER
     const characterResult = db.characters.query<PublishedCharacterType>(
         "SELECT * FROM drafts WHERE id = ?", 
         [id]
     );
 
-    if (!characterResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching character",
-            details: characterResult.error
-        })
-    }
+    assertDbSuccess(characterResult);
 
-    if (characterResult.rowCount === 1) {
-        const data = characterResult.rows[0]
-        ownerId = data.ownerId;
-        displayName = data.displayName;
-        avatar = data.avatar;
-        type = "CHARACTER";
-        tags = JSON.parse(data.tags);
-        createdDate = data.createdDate;
-        updatedDate = data.updatedDate;
-    }
+    if (characterResult.rowCount !== 0) {
+        const getResult = getPublishedCharactersService({
+            id
+        });
 
-    // DEVELOPER NEEDED: Add UNIVERSE and COLLECTION
+        const data = getResult.items[0];
 
-    if (
-        type &&
-        type !== "USER" &&
-        tags &&
-        createdDate &&
-        updatedDate &&
-        ownerId
-    ) {
-        const owner = getUsersById(ownerId);
-
-        if (!owner) {
-            throw new AdvancedError({
-                code: 404,
-                message: "Owner not found",
-            })
+        if (data) {
+            return formatReturnData("CHARACTER", data)
         }
-
-        return {
-            id,
-            ownerId,
-            displayName,
-            avatar,
-            type,
-            tags,
-            createdDate,
-            updatedDate,
-            isPremium: hasBadge(owner, "premium"),
-            isVerified: hasBadge(owner, "verified"),
-            isPromoted: hasBadge(owner, "promoted"),
-            isOfficial: hasBadge(owner, "official")
-        };
     }
 
-    // NULL
     throw new AdvancedError({
         code: 404,
         message: "Id not found",
