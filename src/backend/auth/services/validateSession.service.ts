@@ -12,21 +12,26 @@ import { log } from "../instances.js";
 import { wc, id } from "../../_common/instances.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import fetchGeoIp from "../helpers/fetchGeoIp.js";
-import { InviteType } from "../../../_common/types/queries/invite.type.js";
+import { InviteType } from "../../../_common/types/invite.type.js";
 import { UserAgentType } from "../types/userAgent.type.js";
 import { SessionType } from "../types/session.type.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { AuditApiType } from "../../../_common/types/queries/audit.type.js";
+import { AuditApiType } from "../../../_common/types/audit.type.js";
 import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { UserAccountType } from "../types/userAccount.type.js";
 import validateIp from "../../_common/helpers/validateIp.js";
 
+type ActionNameType =
+    "REFRESH_PAGE" |
+    "DISPLAY_503"
+;
+
 export default async function validateSession(
     req: Request, 
     res: Response,
     returnMfaToken: boolean = false
-): Promise<ValidSessionType> {
+): Promise<ValidSessionType | { action: ActionNameType }> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
