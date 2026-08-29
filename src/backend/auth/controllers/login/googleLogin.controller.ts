@@ -71,7 +71,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
             { auth: `Bearer ${externalToken.access_token}` }
         )
 
-        const response = loginOrRegisterAccountService({
+        const response = await loginOrRegisterAccountService({
             session: req.session,
             delegationToken: req.cookies?.delegationToken,
             email: externalResponse.email,
