@@ -56,6 +56,10 @@ db.badges.transaction(q => {
             d.text = `Registration #${presursorCount}`;
         }
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        d.type = d.type?.toUpperCase();
+
         if (d.user === "0000000000000000" && d.type === "staff") continue;
 
         const result = q(
