@@ -655,8 +655,9 @@ export default async function validateSession(
         );
 
         if (
-            !inviteData?.isSuspended && inviteData?.isUnlimited ||
-            !inviteData?.isSuspended && inviteData?.usesLeft > 0
+            inviteData.code &&
+            (!inviteData?.isSuspended && inviteData?.isUnlimited ||
+            !inviteData?.isSuspended && inviteData?.usesLeft > 0)
         ) {
             res.cookie("inviteCode", inviteCode, {
                 httpOnly: true,
@@ -766,6 +767,7 @@ export default async function validateSession(
         },
         locale: rowGeoIpJSON.locale,
         timezone: rowGeoIpJSON.timezone,
+        inviteCode,
         delegatedAccounts
         // ...(returnMfaToken === true && { mfaToken })
     };

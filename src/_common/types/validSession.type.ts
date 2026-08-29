@@ -7,5 +7,6 @@ export type ValidSessionType = {
     };
     locale: string;
     timezone: string;
+    inviteCode: string;
     delegatedAccounts?: string[];
 };
