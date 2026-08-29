@@ -304,7 +304,7 @@ export default function getPublishedCharactersService({
                 AND usernames.isPrimary = 1
             LEFT JOIN badges.badges verifiedBadges
                 ON verifiedBadges.id = users.id
-                AND verifiedBadges.type = 'verified'
+                AND verifiedBadges.type = 'VERIFIED'
             LEFT JOIN interactions.hides 
                 ON hides.target = published.id 
                 AND hides.source = ?
@@ -363,7 +363,7 @@ export default function getPublishedCharactersService({
                 AND usernames.isPrimary = 1
             LEFT JOIN badges.badges verifiedBadges
                 ON verifiedBadges.id = users.id
-                AND verifiedBadges.type = 'verified'
+                AND verifiedBadges.type = 'VERIFIED'
             LEFT JOIN interactions.hides 
                 ON hides.target = published.id 
                 AND hides.source = ?

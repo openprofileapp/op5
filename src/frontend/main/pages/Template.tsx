@@ -1164,7 +1164,7 @@ Check out my character: <@6773794953695671>
                                                                         slug: profiles?.owner?.username,
                                                                         displayName: profiles?.owner?.displayName,
                                                                         isVerified: profiles?.owner?.badges?.some(
-                                                                            b => b.type === "verified"
+                                                                            b => b.type === "VERIFIED"
                                                                         ),
                                                                         type: profiles?.owner?.type
                                                                     }}
@@ -1297,7 +1297,7 @@ Check out my character: <@6773794953695671>
                                                                 slug: profiles.owner.username,
                                                                 displayName: profiles.owner.displayName,
                                                                 isVerified: profiles.owner.badges?.some(
-                                                                    (b) => b.type === "verified"
+                                                                    (b) => b.type === "VERIFIED"
                                                                 ),
                                                                 type: profiles.owner.type
                                                             }}

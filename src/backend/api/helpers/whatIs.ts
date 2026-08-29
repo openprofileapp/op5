@@ -1,6 +1,6 @@
 import { AdvancedError } from "kage-library";
 
-import { GetBadgeType } from "../../../_common/types/badge.type.js";
+import { BadgeNameType, GetBadgeType } from "../../../_common/types/badge.type.js";
 import { GetUserItemType, UserType } from "../../../_common/types/user.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { db } from "../databases/db.js";
@@ -31,7 +31,7 @@ export type WhatIsType = {
     isOfficial: boolean;
 }
 
-function hasBadge(badges: GetBadgeType[], badgeType: string): boolean {
+function hasBadge(badges: GetBadgeType[], badgeType: BadgeNameType): boolean {
     return badges.some((b) => b.type === badgeType);
 }
 
@@ -52,10 +52,10 @@ function formatReturnData(
         tags: data.tags,
         createdDate: data.createdDate,
         ...(type !== "USER" && "updatedDate" in data && { updatedDate: data.updatedDate }),
-        isPremium: hasBadge(badges, "premium"),
-        isVerified: hasBadge(badges, "verified"),
-        isPromoted: hasBadge(badges, "promoted"),
-        isOfficial: hasBadge(badges, "official")
+        isPremium: hasBadge(badges, "PREMIUM"),
+        isVerified: hasBadge(badges, "VERIFIED"),
+        isPromoted: hasBadge(badges, "PROMOTED"),
+        isOfficial: hasBadge(badges, "OFFICIAL")
     }
 }
 
