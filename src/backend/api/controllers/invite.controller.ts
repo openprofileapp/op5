@@ -16,7 +16,7 @@ export const getInvitesController = async (req: Request, res: Response) => {
 
         await assertBearer(req); 
 
-        // WARNING: Do NOT validate session here. It will cause a recursion with auth servers
+        // WARNING: Do NOT validate session here. It will cause a recursion with auth server
         // assertPlatformPermissions(req.session, "VIEW");
 
         if (!code && !ownerId) {
