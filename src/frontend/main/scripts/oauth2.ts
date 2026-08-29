@@ -9,7 +9,7 @@ export async function loginWithGoogle(token: string) {
     const scope = "openid email profile";
 
     const url =
-        "https://accounts.google.com/o/oauth2/v3/auth" +
+        "https://accounts.google.com/o/oauth2/v2/auth" +
         "?client_id=" + client_id +
         "&redirect_uri=" + encodeURIComponent(redirect_uri) +
         "&response_type=code" +
