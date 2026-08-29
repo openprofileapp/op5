@@ -21,7 +21,8 @@ import interactionRoutes from "./routes/interaction.routes.js";
 import webPushRoute from "./routes/webPush.route.js";
 import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
-
+import usernamesRoute from "./routes/usernames.route.js";
+import postregisterRoute from "./routes/postregister.route copy.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -110,6 +111,18 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     auditRoute
+);
+
+v3.use(
+    "/usernames", 
+    rateLimitMiddleware(240), 
+    usernamesRoute
+);
+
+v3.use(
+    "/postregister", 
+    rateLimitMiddleware(240), 
+    postregisterRoute
 );
 
 /* 
