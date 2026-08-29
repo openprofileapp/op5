@@ -859,7 +859,7 @@ export default function CharacterCard({
                         }
 
                         {(() => {
-                            const unofficialBadge = data.badges.find(b => b.type === "unofficial");
+                            const unofficialBadge = data.badges.find(b => b.type === "UNOFFICIAL");
                             if (!unofficialBadge) return null;
 
                             return (
