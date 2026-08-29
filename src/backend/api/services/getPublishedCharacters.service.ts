@@ -80,7 +80,6 @@ export default function getPublishedCharactersService({
 
     const isHomePage = Boolean(getAs && getFrom === "home");
 
-    // DEVELOPER NEEDED: If not added to any collection either
     const homeClause = isHomePage && sortBy !== "recent"
         ? `AND NOT EXISTS (
             SELECT 1 FROM interactions.dismisses WHERE target = published.id AND source = ?
@@ -263,7 +262,21 @@ export default function getPublishedCharactersService({
                     'username', usernames.username,
                     'displayName', users.displayName,
                     'type', users.type,
-                    'isVerified', CASE WHEN verifiedBadges.id IS NOT NULL THEN json('true') ELSE json('false') END
+                    'badges', COALESCE(
+                        (
+                            SELECT json_group_array(
+                                json_object(
+                                    'type', ob.type,
+                                    'comment', ob.comment,
+                                    'visibility', ob.visibility,
+                                    'date', ob.date
+                                )
+                            )
+                            FROM badges.badges ob
+                            WHERE ob.id = users.id
+                        ),
+                        json('[]')
+                    )
                 ) AS owner,
                 COALESCE(
                     (
@@ -397,9 +410,15 @@ export default function getPublishedCharactersService({
     const parsedRows = result.rows.map(row => {
         delete row.ownerId;
 
+        const owner = parseJson(row.owner);
+
+        if (owner && typeof owner.badges === "string") {
+            owner.badges = parseJson(owner.badges);
+        }
+
         return {
             ...row,
-            owner: parseJson(row.owner),
+            owner,
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             interactions: parseJson(row.interactions)
