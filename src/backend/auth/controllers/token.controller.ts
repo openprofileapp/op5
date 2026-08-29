@@ -6,8 +6,9 @@ import { AdvancedError } from "kage-library";
 import { db } from "../databases/db.js";
 import { log } from "../instances.js";
 import { SessionType } from "../types/session.type.js";
+import { i18n } from "../../_common/instances.js";
 
-export const isAccessTokenValid = async (req: Request, res: Response) => {
+export const isAccessTokenValidController = async (req: Request, res: Response) => {
     try {
         const hashedAccessToken = crypto.createHash("sha256").update(req.body.token).digest("hex");
 
@@ -28,7 +29,7 @@ export const isAccessTokenValid = async (req: Request, res: Response) => {
             { valid: result.rowCount > 0 }
         );
 
-    } catch (error) {
+    } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
             return res.status(error.code).json({
@@ -37,6 +38,9 @@ export const isAccessTokenValid = async (req: Request, res: Response) => {
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
-    } 
+    }
 };
