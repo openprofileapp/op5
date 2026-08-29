@@ -9,10 +9,11 @@ import { AdvancedError } from "kage-library";
 import whatIs from "../helpers/whatIs.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 import { GetUserType } from "../../../_common/types/user.type.js";
-import getPublishedCharactersById from "./getPublishedCharacters.service.js";
-import getUsersById from "./getUsersById.service.js";
+import getPublishedCharactersService from "./getPublishedCharacters.service.js";
 import { db } from "../databases/db.js";
 import { PermissionsType } from "../../../_common/types/permissions.type.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import getUsersService from "./getUsers.service.js";
 
 const index = {
     VIEW: 0n, // View asset overview
@@ -167,18 +168,10 @@ export default class AssetPermissionsService {
      * AssetPermissionsService.decode("1"); // ["VIEW"]
      */
     public static decode(input: string): AssetPermissionName[] {
-        if (!input) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
-        }
+        assertNotNull(input);
 
         if (!/^[0-9]+$/.test(input)) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
+            assertNotNull(input);
         }
 
         const userPermissions = BigInt(input);
@@ -205,10 +198,7 @@ export default class AssetPermissionsService {
      */
     public static encode(input: AssetPermissionName[]): string {
         if (!input?.length) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
+            assertNotNull(input);
         }
 
         let result = 0n;
@@ -316,43 +306,28 @@ export default class AssetPermissionsService {
         permissions: AssetPermissionName | AssetPermissionName[],
         assetId: string
     ) {
-        if (
-            !userId || 
-            !permissions || 
-            !assetId
-        ) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
-        }
+        assertNotNull([userId, permissions, assetId]);
 
         const assetType = whatIs(assetId)
 
-        if (!assetType) {
-            throw new AdvancedError({
-                code: 404,
-                message: "Asset not found"
-            })
-        }
+        assertNotNull(assetType);
 
         // DEVELOPER NEEDED: Must check drafts, not pubished ones
         const asset: GetPublishedCharacterType | GetUserType | null = 
-            assetType.type === "CHARACTER" ? getPublishedCharactersById(assetId) :
+            assetType.type === "CHARACTER" ? getPublishedCharactersService({ id: assetId }) :
             // DEVELOPER NEEDED: Add collections and universes
-            assetType.type === "USER" ? getUsersById(assetId) :
+            assetType.type === "USER" ? getUsersService({ id: assetId }) :
             null;
 
-        if (!asset) {
-            throw new AdvancedError({
-                code: 404,
-                message: "Asset not found"
-            })
-        }
+        assertNotNull(asset)
+        
+        const item = asset.items[0];
+
+        assertNotNull(item)
 
         if (
-            userId === asset.id ||
-            ("owner" in asset && asset.owner.id === userId)
+            userId === item.id ||
+            ("owner" in item && item.owner.id === userId)
         ) {
             return true;
         }
