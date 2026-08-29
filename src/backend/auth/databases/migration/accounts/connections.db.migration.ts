@@ -11,6 +11,10 @@ db.accounts.transaction(q => {
     for (const d of result.rows) {
         if (!d.verified) continue;
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        d.name = d.name?.toUpperCase();
+
         const result = q(
             `INSERT INTO connections (
                 userId,
