@@ -1,5 +1,5 @@
 :root {
-    --color-precursor: #8515cf;
+    --color-nightly: #8515cf;
     --color-premium: #ffd700;
     --color-sub: #0c0c0c;
 }
@@ -127,12 +127,12 @@ hr {
     font-weight: normal;
 }
 
-.bg-precursor {
-    background-color: var(--color-precursor);
+.bg-nightly {
+    background-color: var(--color-nightly);
 }
 
-.border-precursor {
-    border-color: var(--color-precursor);
+.border-nightly {
+    border-color: var(--color-nightly);
 }
 
 .bg-premium {
