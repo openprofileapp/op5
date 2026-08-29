@@ -24,7 +24,16 @@
     "database": "An error occurred while performing a database operation.",
     "unknown": "An unknown error occurred.",
     "webpush": "Failed to send push notification.",
-    "pinLimit": "You've reach the maximum amount (24) of pins."
+    "pinLimit": "You have reach the maximum amount (24) of pins.",
+    "delegationLimit": "You have reach the maximum amount (8) of delegated accounts.",
+    "authorizationHeader": "Missing Authorization header",
+    "accountNotFound": "Account not found",
+    "emailNotFound": "Email not found",
+    "connectionNotFound": "Connection not found",
+    "accountSuspended": "This account is suspended",
+    "invalidAuthorizationCode": "Invalid authorization code",
+    "missingEmail": "Your external account does not have a connected email.",
+    "unverifiedEmail": "Your external account email is not verified."
   },
   "pages": {
     "languages": "Languages",
