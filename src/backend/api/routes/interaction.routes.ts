@@ -6,7 +6,6 @@ import { getRandomInteractionController } from "../controllers/interactions/getR
 const interactionRoutes = Router();
 
 interactionRoutes.post("/", postInteractionController);
-
 interactionRoutes.get("/random/:type/:count", getRandomInteractionController);
 
 export default interactionRoutes;
