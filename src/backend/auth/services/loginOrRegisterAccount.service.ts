@@ -5,13 +5,21 @@ import { AdvancedError } from "kage-library";
 
 import { ValidSessionType } from '../../../_common/types/validSession.type.js';
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
-import { i18n, id } from "../../_common/instances.js";
+import { i18n, id, wc } from "../../_common/instances.js";
 import getUserAccountService from "./getUserAccount.service.js";
 import { ConnectionNameType } from "../types/connection.type.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import updateToken from "../helpers/updateToken.js";
 import { SessionType } from "../types/session.type.js";
+import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
+import { ReservedAccountType } from "../types/reservedAccount.type.js";
+import { BadgeNameType } from "../../../_common/types/badge.type.js";
+import { NotificationNameType } from "../../../_common/types/notification.type.js";
+import uploadFile from "../../_common/helpers/uploadFile.js";
+import { snowflake } from "../instances.js";
+import { config } from "../../../../app.config.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 
 type Props = {
     session: ValidSessionType;
@@ -137,7 +145,7 @@ function addDelegation(
     };
 }
 
-export default function loginOrRegisterAccountService({
+export default async function loginOrRegisterAccountService({
     session,
     delegationToken,
     email,
@@ -156,7 +164,7 @@ export default function loginOrRegisterAccountService({
     externalConnectionName,
     externalConnectionId,
     externalConnectionText
- }: Props): ReturnTokensType {
+ }: Props): Promise<ReturnTokensType> {
     let account;
 
     assertNotNull([
@@ -177,12 +185,6 @@ export default function loginOrRegisterAccountService({
             message: i18n.t("responses.unverifiedEmail")
         })
     }
-
-    /* 
-    ————————————————————————————————————————————————————————————————
-    Login to an existing account
-    ———————————————————————————————————————————————————————————————— 
-    */
 
     if (externalConnectionName && externalConnectionId) {
         account = getUserAccountService({
@@ -230,118 +232,79 @@ export default function loginOrRegisterAccountService({
             };
         }
     } else {
-        ///////////////////////////////////////
-        console.log("CREATE NEW ACCOUNT HERE");
-        ///////////////////////////////////////
-    }
-}
+        const reservedResult = db.accounts.query<ReservedAccountType>(
+            "SELECT * FROM reserved WHERE email = ? LIMIT 1", 
+            [email]
+        );
 
+        assertDbSuccess(reservedResult);
 
+        let formattedUsername = username;
+        let permissions = PlatformPermissionsService.getRole("member");
+        const badges: BadgeNameType[] = [];
+        const notifications: NotificationNameType[] = [];
+        let isAuraEnabled = 0;
 
+        if (reservedResult.rowCount !== 0) {
+            const row = reservedResult.rows[0];
 
+            formattedUsername = row.username;
+            email = row.email;
 
-
-
-
-
-
-
-
-
-
-/*
-
-    // If Google, check email for valid account and attempt to fix broken ids
-    if (externalConnectionName === "google" && 
-        externalConnectionId && 
-        email
-    ) { 
-        try {
-            userAccount = getUserAccountByEmail(email);
-        } catch {
-            userAccount = null;
-        }
-    }
-
-    // If email is valid, return
-    if (userAccount && userAccount.id) {
-        // Update incase Google have issues with their ids
-        // updateUserAccountExternalId(COMMON_VARIABES_HERE_INCLUDING_ID)
-
-        // Return session or mfa token
-        if (userAccount.mfaSecret) {
-            return createMfaChallenge(
-                userAccount.mfaSecret, 
-                userAccount.id, 
-                session.sessionId
-            );
-        } else {
-            if (session.userId) {
-                addDelegation(userAccount.id, session.sessionId, delegationToken);
+            if (row.isPartner) {
+                permissions = PlatformPermissionsService.getRole("partner");
+                badges.push("PARTNER");
+                notifications.push("PARTNER_REGISTRATION");
             }
 
-            return updateSessionToken(userAccount.id, session.sessionId);
+            if (row.isVerified) {
+                permissions = PlatformPermissionsService.getRole("verified");
+                badges.push("VERIFIED");
+                notifications.push("VERIFIED_REGISTRATION");
+            }
+
+            if (row.isPartner && row.isVerified) {
+                permissions = PlatformPermissionsService.getRole("verifiedPartner");
+                notifications.push("VERIFIED_PARTNER_REGISTRATION");
+            }
+
+            if (row.isLifetimePremium) {
+                permissions = PlatformPermissionsService.getRole("premium");
+                badges.push("PREMIUM");
+                notifications.push("LIFETIME_PREMIUM_REGISTRATION");
+                isAuraEnabled = 1;
+            }
+
+            // DEVELOPER NEEDED: If reserved, verified, or lifetime premium, provide a notfication that 
+            // tells the reason behind each on registration completion
         }
-    }
-  */
-    /* 
-    ————————————————————————————————————————————————————————————————
-    Register a new account
-    ———————————————————————————————————————————————————————————————— 
-    */
-/*
-    let formattedUsername = username;
-    const permissions = PlatformPermissionsService.getRole("member");
-    let isAuraEnabled = 0;
 
-    // Check if the account is reserved
-    const reservedResult = db.accounts.query<ReservedAccountType>(
-        "SELECT COUNT(*) AS count FROM reserved WHERE email = ? LIMIT 1", 
-        [email]
-    );
-
-    if (!reservedResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while checking reserved accounts",
-            details: reservedResult.error
-        })
-    }
-
-    if (reservedResult.rowCount === 0) {
-        // Validate email then check if taken
         const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
         if (!emailRegex.test(email)) {
             throw new AdvancedError({
                 code: 400,
-                message: "Invalid email"
+                message: i18n.t("responses.invalidEmail")
             })
         }
 
         const emailResult = db.accounts.query(
-            "SELECT COUNT(*) AS count FROM emails WHERE email = ? LIMIT 1", 
+            "SELECT 1 FROM emails WHERE email = ? LIMIT 1", 
             [email]
         );
 
-        if (!emailResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while checking emails",
-                details: emailResult.error
-            })
-        }
+        assertDbSuccess(emailResult);
 
         if (emailResult.rowCount !== 0) {
             throw new AdvancedError({
                 code: 409,
-                message: "Email taken"
+                message: i18n.t("responses.takenEmail")
             })
         }
 
-        // Validate username then check if taken; if taken, assign a random number
         if (formattedUsername) {
-            formattedUsername = formattedUsername.toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 24);
+            formattedUsername = formattedUsername.toLowerCase()
+                .replace(/[^a-z0-9_.-]/g, "").slice(0, 24);
 
             if (formattedUsername.length < 3) {
                 formattedUsername = formattedUsername.padEnd(3, "0");
@@ -350,21 +313,18 @@ export default function loginOrRegisterAccountService({
             const formattedUsernameNoSuffix = formattedUsername;
 
             while (true) {
-                const usernameResult = db.accounts.query(
-                    `SELECT COUNT(*) AS count FROM users 
-                    WHERE username = ? OR usernameOld = ? OR id = ? LIMIT 1`, 
-                    [formattedUsername, formattedUsername, formattedUsername]
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                const usernameResult: { isAvailable: boolean } = await wc.callAPI(
+                    `https://${config.domains.api}/v3/usernames`,
+                    {
+                        method: "POST",
+                        auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                        body: { username: formattedUsername },
+                    }
                 );
 
-                if (!usernameResult.success) {
-                    throw new AdvancedError({
-                        code: 500,
-                        message: "An error occurred while checking usernames",
-                        details: usernameResult.error
-                    })
-                }
-
-                if (usernameResult.rowCount !== 0) {
+                if (!usernameResult.isAvailable) {
                     const suffix = `_${Math.floor(10000 + Math.random() * 90000)}`
 
                     if (formattedUsername.length <= 18) {
@@ -377,131 +337,266 @@ export default function loginOrRegisterAccountService({
                 }
             }
         }
-    } else {
-        // Load reserved account
-        const row = reservedResult.rows[0];
-        let permissionsArray = permissions.array;
 
-        email = row.email;
-        formattedUsername = row.username;
+        let formattedDisplayName = displayName;
 
-        if (row.isPartner) {
-            permissionsArray = [
-                ...permissionsArray,
-                "CASHOUT_REVENUE",
-                "PARTNER_ACCESS"
-            ];
-
-            // ADD BADGE
-        }
-
-        if (row.isVerified) {
-            permissionsArray = [
-                ...permissionsArray,
-                "VERIFIED_ACCESS",
-                "CREATE_MEMORIES"
-            ];
-
-            // ADD BADGE
-        }
-
-        if (row.isLifetimePremium || row.isPartner) {
-            permissionsArray = [
-                ...permissionsArray,
-                "BYPASS_EXTERNAL_ADS",
-                "PREMIUM_ACCESS",
-                "USE_CUSTOM_THEMES"
-            ];
-
-            isAuraEnabled = 1;
-
-            // ADD BADGE
-        }
-
-        permissions.array = permissionsArray;
-        permissions.value = PlatformPermissionsService.encode(permissionsArray);
-
-        // SEND A NOTIFICATION TO ACCOUNT ABOUT VERIFICATION AND STUFF
-        // USE API SECRET
-    }
-
-    // Validate display name
-    let formattedDisplayName = displayName;
-
-    if (formattedDisplayName) {
-        if (formattedDisplayName.length > 32) {
-            formattedDisplayName = formattedDisplayName.slice(0, 32);
-        }
-    }
-
-    // First 500 registrations get lifetime premium (3 more to not count official accounts)
-    const registrationsResult = db.accounts.query(
-        "SELECT COUNT(*) AS count FROM users"
-    );
-
-    if (!registrationsResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while checking registrations",
-            details: registrationsResult.error
-        })
-    }
-
-    if (registrationsResult.rowCount <= 503) {
-
-
-        /*    // Save to subscribtions database
-            // add badge
-            // add precursor award
-
-            let permissionsArray = [
-                    ...permissions.array,
-                    "BYPASS_EXTERNAL_ADS",
-                    "PREMIUM_ACCESS",
-                    "USE_CUSTOM_THEMES"
-                ];
+        if (formattedDisplayName) {
+            if (formattedDisplayName.length > 32) {
+                formattedDisplayName = formattedDisplayName.slice(0, 32);
             }
+        }
 
-            permissions.array = permissionsArray;
-            permissions.value = PlatformPermissionsService.encode(permissionsArray);
+        let isPrecursor = false;
+        let isPartnerInvited = false;
+
+        const registrationsCountResult = db.accounts.query(
+            "SELECT 1 FROM users"
+        );
+
+        assertDbSuccess(registrationsCountResult);
+
+        if (registrationsCountResult.rowCount <= 503) {
+            isPrecursor = true;
+
+            permissions = PlatformPermissionsService.getRole("premium");
+
+            badges.push("PREMIUM");
+            badges.push("PRECURSOR");
+
+            notifications.push("LIFETIME_PREMIUM_REGISTRATION");
+            notifications.push("PRECURSOR_REGISTRATION");
+
+            isAuraEnabled = 1;
+        } else if (session.inviteCode) {
+            isPartnerInvited = true;
+
+            permissions = PlatformPermissionsService.getRole("premium");
+
+            badges.push("PREMIUM");
+
+            notifications.push("PREMIUM_REGISTRATION");
+            notifications.push("PARTNER_CODE_USED");
 
             isAuraEnabled = 1;
         }
-    } else {
-        // ACCEPT AND USE INVITES AND UPDATE USE
+
+        const userId = snowflake.gen();
+
+        let uploadedAvatar;
+        let uploadedBanner;
+
+        if (avatar) {
+            uploadedAvatar = await uploadFile({
+                folder: `users/avatars/${userId}`,
+                fileInput: avatar
+            });
+        }
+
+        if (banner) {
+            uploadedBanner = await uploadFile({
+                folder: `users/banners/${userId}`,
+                fileInput: banner
+            });
+        }
+        
+        db.accounts.transaction(q => {
+            const userResult = q(
+                `INSERT INTO users (
+                    id, 
+                    hasEmail,
+                    birthdate,
+                    permissions,
+                    locale,
+                    timezone
+                ) VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    userId,
+                    1,
+                    birthdate,
+                    permissions.value,
+                    session.locale,
+                    session.timezone
+                ]
+            );
+
+            assertDbSuccess(userResult);
+
+            const emailResult = q(
+                `INSERT INTO emails (
+                    userId, 
+                    email,
+                    isPrimary,
+                    isVerified
+                ) VALUES (?, ?, ?, ?)`,
+                [
+                    userId,
+                    email,
+                    1,
+                    isEmailVerified ? 1 : 0
+                ]
+            );
+
+            assertDbSuccess(emailResult);
+
+            const connectionResult = q(
+                `INSERT INTO connections (
+                    userId, 
+                    connectionId,
+                    connectionName,
+                    connectionText
+                ) VALUES (?, ?, ?, ?)`,
+                [
+                    userId,
+                    externalConnectionId,
+                    externalConnectionName,
+                    externalConnectionText
+                ]
+            );
+
+            assertDbSuccess(connectionResult);
+
+            if (isPrecursor) {
+                const subscriptionResult = q(
+                    `INSERT INTO subscriptions (
+                        id, 
+                        userId,
+                        plan,
+                        method
+                    ) VALUES (?, ?, ?, ?)`,
+                    [
+                        snowflake.gen(),
+                        userId,
+                        "lifetime-premium",
+                        "precursor"
+                    ]
+                );
+
+                assertDbSuccess(subscriptionResult);
+            } else if (isPartnerInvited) {
+                const subscriptionResult = q(
+                    `INSERT INTO subscriptions (
+                        id, 
+                        userId,
+                        plan,
+                        method
+                    ) VALUES (?, ?, ?, ?)`,
+                    [
+                        snowflake.gen(),
+                        userId,
+                        "premium-trial",
+                        "partner"
+                    ]
+                );
+                
+                assertDbSuccess(subscriptionResult);
+            }
+        });
+
+        const postRegisterResult: { ok: boolean } = await wc.callAPI(
+            `https://${config.domains.api}/v3/postregister`,
+            {
+                method: "POST",
+                auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                body: {
+                    id: userId,
+                    username: formattedUsername,
+                    displayName,
+                    avatar: uploadedAvatar?.path,
+                    banner: uploadedBanner?.path,
+                    isAuraEnabled,
+                    about,
+                    theme,
+                    badges,
+                    notifications
+                }
+            }
+        );
+
+        if (!postRegisterResult.ok) {
+            throw new AdvancedError({
+                code: 500,
+                message: i18n.t("responses.failedAccountRegistration")
+            })
+        }
+
+
+        
+        
+        
+        return console.log("ok");
+        
+        
+ 
+
+            
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+
+
+    }
+}
+
+
+/*
+
+    try {
+        if (!row) {
+            // Create a new session
+            const token = identifier.generate("TOKEN");
+            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [account.id, token, req.session.id]);
+
+            // Set a token cookie on client
+            res.cookie("token", token, {
+                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${domains.release}`
+            });
+
+            activity(account.id, null, "ACCOUNT_REGISTER");
+            
+            res.redirect(routes.release);
+        } else {
+            
+            // Create a new session
+            const token = identifier.generate("TOKEN");
+            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [row.user, token, req.session.id]);
+
+            // Set a token cookie on client
+            res.cookie("token", token, {
+                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${domains.release}`
+            });
+
+            res.redirect(routes.release);
+        }
+    } catch (error) {
+        forward_status("error", "server", "/v3/login", error.code, error.message);
+        return res.status(500).send(error.message);
     }
 
-    // Generate account info
-    const id = snowflake.gen();
+*/
 
-    // UPLOAD AVATAR AND BANNER
 
-    // Save to database
-    const result = q(
-        `INSERT INTO users (
-            id, 
-            hasEmail, 
-            permissions,
-            locale,
-            timezone
-        ) VALUES (?, ?, ?, ?, ?)`,
-        [
-            id,
-            1,
-            permissions.value,
-            session.locale,
-            session.timezone
-        ]
-    );
 
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while saving account",
-            details: result.error
-        })
-    }
 
+/*
     // CALL THE UPDATE USERS API https://api.openprofile.app/v3/users/ID/update
     // USE API SECRET
 
@@ -512,60 +607,8 @@ export default function loginOrRegisterAccountService({
 }
 */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
-
-    try {
-        if (!row) {
-            const count = Math.ceil((database.query("accounts", "SELECT COUNT(*) AS count AS length FROM public"))?.length);
-            console.log(count)
-                account.aura = 1;
-
-                // Subscribe the user to lifetime premium
-                database.query("accounts", "INSERT INTO subscriptions (user, id, plan, method) VALUES (?, ?, ?, ?)", [account.id, identifier.generate("SUBSCRIPTION"), "lifetime-premium", "precursor"]);
-                account.permissions = permissions.update(account.permissions, ["PREMIUM"]);
-                
-                // Assign precursor and premium badges
-                database.query("accounts", "INSERT INTO badges (user, type) VALUES (?, ?)", [account.id, "precursor"]);
-                database.query("accounts", "INSERT INTO badges (user, type) VALUES (?, ?)", [account.id, "premium"]);
- 
-                // Assign a join to the partner invite code
-                if (req.session.invite?.code) {
-                    const partner = database.query("partners", `SELECT * FROM codes WHERE code = ?`, [req.session.invite?.code]);
-                    if (partner) {
-                        database.query("partners", "INSERT INTO uses (user, code) VALUES (?, ?)", [account.id, partner.code]);
-                        await notification(null, partner, "PARTNER_REGISTER", partner.user);
-                    }
-                }
-
-                // Assign 3 invite codes to the account
-                database.query("accounts", "INSERT INTO invites (user, code) VALUES (?, ?)", [account.id, identifier.generate("INVITE")]);
-                database.query("accounts", "INSERT INTO invites (user, code) VALUES (?, ?)", [account.id, identifier.generate("INVITE")]);
-                database.query("accounts", "INSERT INTO invites (user, code) VALUES (?, ?)", [account.id, identifier.generate("INVITE")]);
-            } else {
-                // Accept invite code usages
-                if (req.session.invite?.code) {
+if (req.session.invite?.code) {
                     database.query("accounts", `UPDATE invites SET invited = ?, used = ?, used_date = ? WHERE code = ?`, [account.id, 1, timestamp.generate("0s", "datetime"), req.session.invite.code]);
 
                     if (req.session.invite.type == "partner") {
@@ -590,92 +633,38 @@ export default function loginOrRegisterAccountService({
                         }
                     }
 
-                    account.aura = 1;
-
-                    // Subscribe the user to premium
-                    database.query("accounts", "INSERT INTO subscriptions (user, id, plan, method, date_end) VALUES (?, ?, ?, ?, ?)", [account.id, identifier.generate("SUBSCRIPTION"), "premium", "invite", timestamp.generate(req.session.invite?.type == "partner" ? "7d" : "30d", "datetime")]);
-                    account.permissions = permissions.update(account.permissions, ["PREMIUM"]);
-
-                    // Assign premium badge
                     database.query("accounts", "INSERT INTO badges (user, type) VALUES (?, ?)", [account.id, "premium"]);
+                }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Subscribe the user to lifetime premium
+            
+            // Assign precursor and premium badges
+            database.query("accounts", "INSERT INTO badges (user, type) VALUES (?, ?)", [account.id, "precursor"]);
+            database.query("accounts", "INSERT INTO badges (user, type) VALUES (?, ?)", [account.id, "premium"]);
+
+            // Assign a join to the partner invite code
+            if (req.session.invite?.code) {
+                const partner = database.query("partners", `SELECT * FROM codes WHERE code = ?`, [req.session.invite?.code]);
+                if (partner) {
+                    database.query("partners", "INSERT INTO uses (user, code) VALUES (?, ?)", [account.id, partner.code]);
+                    await notification(null, partner, "PARTNER_REGISTER", partner.user);
                 }
             }
 
-            if (external.avatar) {account.avatar = await upload(`users/${account.id}`, identifier.generate("HASH"), external.avatar);}
-            if (external.banner) {account.banner = await upload(`users/${account.id}`, identifier.generate("HASH"), external.banner);}
 
-            // Preset the aura based on ghost color
-            switch (req.session.account.public.ghost.color) {
-                case "gray": account.aura_primary = "#aaaaaa"; break;
-                case "red": account.aura_primary = "#ce1616"; break;
-                case "orange": account.aura_primary = "#e85b0f"; break;
-                case "yellow": account.aura_primary = "#efbe0b"; break;
-                case "green": account.aura_primary = "#13a10e"; break;
-                case "blue": account.aura_primary = "#1540cf"; break;
-                case "purple": account.aura_primary = "#700cb7"; break;
-                case "pink": account.aura_primary = "#ff61b5"; break;
-            }
 
-            // Save account to the database and follow @openprofile
-            if (integration == "discord") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?)", [account.id, "discord", `@${external.username}`, external.id, 1, "public"]);}
-            if (integration == "google") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?)", [account.id, "google", null, external.sub, 1, "private"]);}
-            if (integration == "github") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?)", [account.id, "github", `@${external.username}`, external.id, 1, "public"]);}
-            database.query("accounts", "INSERT INTO emails (user, email, confirmed) VALUES (?, ?, ?)", [account.id, external.email, external.verified == true ? 1 : 0 || 1]);
-            database.query("accounts", "INSERT INTO private (id, email, birthdate, locale, timezone, permissions) VALUES (?, ?, ?, ?, ?, ?)", [account.id, 1, null, req.session.geo.last.locale, req.session.geo.last.timezone, account.permissions]);
-            database.query("accounts", "INSERT INTO public (ghost, id, username, display_name, avatar, banner, about, theme, aura, aura_primary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [req.session.account.public.ghost, account.id, account.username, account.display_name || null, account.avatar?.path || null, account.banner?.path || null, external.about || null, req.session.account.public.theme, account.aura, account.aura_primary]);
-            interact(account, "9534968913312158", "FOLLOW");
-
-            // Create a new session
-            const token = identifier.generate("TOKEN");
-            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [account.id, token, req.session.id]);
-
-            // Set a token cookie on client
-            res.cookie("token", token, {
-                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${domains.release}`
-            });
-
-            activity(account.id, null, "ACCOUNT_REGISTER");
-            
-            res.redirect(routes.release);
-        } else {
-            // Update or add the connections if needed
-            if (integration === "discord") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " + "text = VALUES(text), " + "id = VALUES(id), " + "verified = VALUES(verified), " + "visibility = VALUES(visibility)",
-                [account.id, "discord", `@${external.username}`, external.id, 1, "public"]
-            );}
-
-            if (integration === "google") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " + "text = COALESCE(VALUES(text), text), " + "id = VALUES(id), " + "verified = VALUES(verified), " + "visibility = VALUES(visibility)",
-                [account.id, "google", null, external.sub, 1, "private"]
-            );}
-
-            if (integration === "github") {database.query("accounts", "INSERT INTO connections (user, name, text, id, verified, visibility) VALUES (?, ?, ?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " + "text = COALESCE(VALUES(text), text), " + "id = VALUES(id), " + "verified = VALUES(verified), " + "visibility = VALUES(visibility)",
-                [account.id, "github", `@${external.username}`, external.id, 1, "private"]
-            );}
-
-            // Create a new session
-            const token = identifier.generate("TOKEN");
-            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [row.user, token, req.session.id]);
-
-            // Set a token cookie on client
-            res.cookie("token", token, {
-                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${domains.release}`
-            });
-
-            res.redirect(routes.release);
-        }
-    } catch (error) {
-        forward_status("error", "server", "/v3/login", error.code, error.message);
-        return res.status(500).send(error.message);
-    }
-
+// CHECK THE BADGES TO ENSURE THERE AREN'T DUPES AT THE END
 */
