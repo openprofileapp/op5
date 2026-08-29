@@ -13,7 +13,7 @@ type Hcaptcha = {
     credit: boolean;
 }
 
-export const verifyCaptcha = async (req: Request, res: Response) => {
+export const captchaController = async (req: Request, res: Response) => {
     try {
         const { token } = req.body;
 
