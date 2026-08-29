@@ -20,5 +20,5 @@ CREATE TABLE IF NOT EXISTS sessions (
     firstConnectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     lastConnectedDate TEXT,
 
-    UNIQUE (userId, delegationToken) -- Ensure accounts can't be logged in twice
+    UNIQUE (userId, delegationToken)
 );
