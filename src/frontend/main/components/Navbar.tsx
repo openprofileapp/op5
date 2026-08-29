@@ -13,6 +13,7 @@ import ReportModal from "./modals/ReportModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import CreateAssetModal from "./modals/CreateAssetModal.js";
+import React from "react";
 
 type Props = {
     isBannerPage?: boolean;
@@ -98,7 +99,12 @@ export default function Navbar({ isBannerPage = false }: Props) {
                     const res = await fetch(`${baseUrl}/v3/users?id=${userId}`, {
                         credentials: "include"
                     });
-                    return res.ok ? await res.json().items[0] : null;
+
+                    if (!res.ok) return null;
+
+                    const data = await res.json();
+
+                    return data?.items?.[0] ?? null;
                 });
 
                 const results = await Promise.all(requests);
@@ -457,29 +463,56 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                             <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
-                            {/* For each delegated account, list it here. Include the current one somewhere */}
                             <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                                {accounts.map((account) => (
-                                    <li key={account.id}>
-                                        <button 
-                                            className="flex items-center justify-between gap-4"
-                                            onClick={() => {
-                                                window.location.href = `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/switch/${account.id}`
-                                            }}
-                                        >
-                                            @{account.usernames[0].username}
-                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                                <img 
-                                                    className="rounded-full translate-x-[2px]"
-                                                    src={`https://${config.domains.cdn}${account.avatar}`}
-                                                />
-                                            </span>
-                                        </button>
-                                    </li>
-                                ))}
+                                {(() => {
+                                    const currentUserId = window.session?.userId;
+                                    
+                                    const sortedAccounts = [...accounts].sort((a, b) => {
+                                        if (a.id === currentUserId) return -1;
+                                        if (b.id === currentUserId) return 1;
+
+                                        const nameA = a.usernames?.[0]?.username || "";
+                                        const nameB = b.usernames?.[0]?.username || "";
+                                        
+                                        return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+                                    });
+
+                                    return sortedAccounts.map((account) => {
+                                        const isCurrent = account.id === currentUserId;
+                                        const username = account.usernames?.[0]?.username || "unknown";
+
+                                        return (
+                                            <React.Fragment key={account.id}>
+                                                <li>
+                                                    <button 
+                                                        className="flex items-center justify-between gap-4"
+                                                        onClick={() => {
+                                                            const authDomain = isGateway() ? window.location.host : window.config.domains.auth;
+                                                            const authPath = isGateway() ? "/auth" : "";
+                                                            const currentPage = encodeURIComponent(window.location.href);
+
+                                                            window.location.href = `https://${authDomain}${authPath}/switch/${account.id}?redirect=${currentPage}`;
+                                                        }}
+                                                    >
+                                                        @{username}
+                                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                            <img 
+                                                                className="rounded-full translate-x-[2px]"
+                                                                src={`https://${config.domains.cdn}${account.avatar || ""}`}
+                                                                alt={username}
+                                                            />
+                                                        </span>
+                                                    </button>
+                                                </li>
+                                                {isCurrent && <hr />}
+                                            </React.Fragment>
+                                        );
+                                    });
+                                })()}
 
                                 <hr />
 
+                                {/* Do not show if more or equal to 8 delegations */}
                                 <li>
                                     <button 
                                         className="flex items-center justify-between gap-4"
