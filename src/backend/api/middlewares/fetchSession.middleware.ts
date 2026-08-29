@@ -6,8 +6,13 @@ import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import { log, wc } from "../instances.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
+import { i18n } from "../../_common/instances.js";
 
-export const fetchSessionMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const fetchSessionMiddleware = async (
+    req: Request, 
+    res: Response, 
+    next: NextFunction
+) => {
     try {
         const response = await wc.callAPI<ValidSessionType>(
             `https://${config.domains.auth}/session`,
@@ -31,15 +36,18 @@ export const fetchSessionMiddleware = async (req: Request, res: Response, next: 
         req.session = response;
 
         next();
-    } catch (error) {
+    } catch(error) {
         if (error instanceof AdvancedError) {
-            log.network.error(error).save();
+            log.db.error(error).save();
             return res.status(error.code).json({
                 id: error.id,
                 message: error.message
             });
         } else {
             log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
-    } 
+    }
 };
