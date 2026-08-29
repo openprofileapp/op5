@@ -37,6 +37,11 @@ db.accounts.transaction(q => {
         const result = q(`${config.folders.sql.auth}/accounts/reserved.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM subscriptions LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.auth}/accounts/subscriptions.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 // Migration (old databases)
@@ -54,6 +59,7 @@ async function waitForMDB() {
             import("./migration/accounts/emails.db.migration.js");
             import("./migration/accounts/users.db.migration.js");
             import("./migration/accounts/bots.db.migration.js");
+            import("./migration/accounts/subscriptions.db.migration.js");
 
             return;
         }

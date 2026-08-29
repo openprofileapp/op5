@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    plan TEXT NOT NULL,
+    method TEXT NOT NULL,
+    dateStart DATETIME DEFAULT CURRENT_TIMESTAMP,
+    dateEnd DATETIME DEFAULT NULL
+);
