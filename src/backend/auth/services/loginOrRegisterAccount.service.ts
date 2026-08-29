@@ -1,20 +1,17 @@
-import type { Response } from 'express';
 import { DateTime } from "luxon";
 import crypto from "crypto";
 
 import { AdvancedError } from "kage-library";
 
-import { db } from "../databases/db.js";
-import { log, snowflake, } from "../instances.js";
-import { id, } from "../../_common/instances.js";
-import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
-import getUserAccountByExternalId from "./getUserAccountByExternalId.service.js";
-import getUserAccountByEmail from "./getUserAccountByEmail.service.js";
-import { ReservedAccountType } from "../types/reservedAccount.type.js";
-import { createMfaChallenge } from '../helpers/createMfaChallenge.js';
 import { ValidSessionType } from '../../../_common/types/validSession.type.js';
-import { SessionType } from '../types/session.type.js';
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { i18n, id } from "../../_common/instances.js";
+import getUserAccountService from "./getUserAccount.service.js";
+import { ConnectionNameType } from "../types/connection.type.js";
+import { db } from "../databases/db.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import updateToken from "../helpers/updateToken.js";
+import { SessionType } from "../types/session.type.js";
 
 type Props = {
     session: ValidSessionType;
@@ -32,166 +29,67 @@ type Props = {
     banner?: string;
     about?: string;
     theme?: string;
-    externalConnectionName?: string;
+    externalConnectionName?: ConnectionNameType;
     externalConnectionId?: string;
     externalConnectionText?: string;
 }
 
-type InternalTokenType = {
-    type: string;
-    value: string;
-    accessToken?: string;
-    sessionToken?: string;
+type ReturnTokensType = {
     sessionId?: string;
+    accessToken?: string;
+    mfaToken?: string;
+    sessionToken?: string;
+    delegationToken?: string;
 }
 
-function updateSessionToken(userId: string, sessionId: string) {
-    const sessionToken = id.gen("TOKEN");
-    const in30Days = DateTime.now().toUTC().plus({ days: 30 }).toISO();
-
-    const hashedSessionToken = crypto.createHash("sha256").update(sessionToken).digest("hex");
-
-    const result = db.accounts.query(
-        `UPDATE sessions SET 
-            userId = ?,
-            sessionToken = ?, 
-            sessionTokenExpireDate = ?
-            WHERE sessionId = ? LIMIT 1`,
-        [
-            userId,
-            hashedSessionToken,
-            in30Days,
-            sessionId,
-        ]
-    );
-
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while saving session token",
-            details: result.error
-        })
-    }
-
-    return {
-        type: "session",
-        value: sessionToken
-    };
-}
-
-function updateAccessToken(userId: string, sessionId: string) {
-    const accessToken = id.gen("TOKEN");
-    const in5Minutes = DateTime.now().toUTC().plus({ minutes: 5 }).toISO();
-
-    const hashedAccessToken = crypto.createHash("sha256").update(accessToken).digest("hex");
-
-    const result = db.accounts.query(
-        `UPDATE sessions SET 
-            userId = ?,
-            accessToken = ?, 
-            accessTokenExpireDate = ?
-            WHERE sessionId = ? LIMIT 1`,
-        [
-            userId,
-            hashedAccessToken,
-            in5Minutes,
-            sessionId,
-        ]
-    );
-
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while saving session token",
-            details: result.error
-        })
-    }
-
-    return {
-        type: "session",
-        value: accessToken
-    };
-}
-
-function addDelegation(userId: string, sessionId: string, delegationToken?: string) {
-    let hashedDelegationToken;
-
+function addDelegation(
+    userId: string, 
+    sessionId: string,
+    delegationToken?: string
+): ReturnTokensType {
     const sessionResult = db.accounts.query<SessionType>(
         `SELECT * FROM sessions WHERE sessionId = ? LIMIT 1`,
         [sessionId]
     );
 
-    if (!sessionResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching session",
-            details: sessionResult.error
-        })
-    }
+    assertDbSuccess(sessionResult)
 
-    const session = sessionResult?.rows[0];
+    const sessionRow = sessionResult?.rows[0];
 
-    if (!session) {
-        throw new AdvancedError({
-            code: 404,
-            message: "Session not found"
-        });
-    }
+    assertNotNull(sessionRow);
 
-    if (session.userId === userId) return { type: "invalid" };
+    if (sessionRow.userId === userId) return {};
 
     if (!delegationToken) {
-        delegationToken = id.gen("TOKEN");
+        delegationToken = updateToken(sessionRow.sessionId, "DELEGATION");
 
-        hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
+        const hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
 
-        const updateResult = db.accounts.query(
-            `UPDATE sessions SET 
-                delegationToken = ?
-                WHERE sessionId= ? LIMIT 1`,
+        const updateDelegationTokenResult = db.accounts.query(
+            `UPDATE sessions SET delegationToken = ? WHERE sessionId = ? LIMIT 1`,
             [
                 hashedDelegationToken,
                 sessionId,
             ]
         );
 
-        if (!updateResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while saving delegation token",
-                details: updateResult.error
-            })
-        }
-    } else {
-        hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
+        assertDbSuccess(updateDelegationTokenResult);
     }
 
-    const existingDelegationSession = db.accounts.query<SessionType>(
-        `SELECT * FROM sessions WHERE userId = ? AND delegationToken = ? LIMIT 1`,
-        [userId, hashedDelegationToken]
+    const hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
+
+    const existingDelegationsResult = db.accounts.query(
+        `SELECT 1 FROM sessions WHERE delegationToken = ?`,
+        [hashedDelegationToken]
     );
 
-    if (!existingDelegationSession.success) {
+    assertDbSuccess(existingDelegationsResult);
+
+    if (existingDelegationsResult.rowCount >= 8) {
         throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching session",
-            details: existingDelegationSession.error
+            code: 400,
+            message: i18n.t("responses.delegationLimit")
         });
-    }
-
-    const existingSession = existingDelegationSession.rows?.[0];
-
-    if (existingSession) {
-        const sessionTokenResult = updateSessionToken(userId, existingSession.sessionId);
-        const accessTokenResult = updateAccessToken(userId, existingSession.sessionId);
-
-        return {
-            type: "delegation",
-            value: delegationToken,
-            accessToken: accessTokenResult?.value,
-            sessionToken: sessionTokenResult?.value,
-            sessionId: existingSession.sessionId
-        };
     }
 
     const newSessionId = id.gen("HASH");
@@ -214,11 +112,11 @@ function addDelegation(userId: string, sessionId: string, delegationToken?: stri
         [
             newSessionId,
             userId,
-            session.geoIpLatestFetch,
-            session.geoIpLatestFetch,
-            session.geoIpLatestFetchExpireDate,
-            session.userAgent,
-            session.inviteCode,
+            sessionRow.geoIpLatestFetch,
+            sessionRow.geoIpLatestFetch,
+            sessionRow.geoIpLatestFetchExpireDate,
+            sessionRow.userAgent,
+            sessionRow.inviteCode,
             hashedDelegationToken,
             1,
             now,
@@ -226,27 +124,20 @@ function addDelegation(userId: string, sessionId: string, delegationToken?: stri
         ]
     );
 
-    if (!updateResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while saving session",
-            details: updateResult.error
-        })
-    }
+    assertDbSuccess(updateResult);
 
-    const sessionTokenResult = updateSessionToken(userId, newSessionId)
-    const accessTokenResult = updateAccessToken(userId, newSessionId)
+    const accessToken = updateToken(newSessionId, "ACCESS");
+    const sessionToken = updateToken(newSessionId, "SESSION");
 
     return {
-        type: "delegation",
-        value: delegationToken,
-        accessToken: accessTokenResult?.value,
-        sessionToken: sessionTokenResult?.value,
-        sessionId: newSessionId
+        sessionId: newSessionId,
+        accessToken,
+        sessionToken,
+        delegationToken
     };
 }
 
-export default function loginOrRegisterAccount({
+export default function loginOrRegisterAccountService({
     session,
     delegationToken,
     email,
@@ -254,43 +145,36 @@ export default function loginOrRegisterAccount({
     // phoneNumber,
     // isPhoneNumberConfirmed,
     // password,
-    // birthdate,
-    // hasReadTerms,
+    birthdate,
+    // hasReadTerms, // Never set manually unless a platform operated account
     username,
     displayName,
     avatar,
     banner,
-    // about,
+    about,
     theme,
     externalConnectionName,
     externalConnectionId,
     externalConnectionText
- }: Props): InternalTokenType {
-    let userAccount;
+ }: Props): ReturnTokensType {
+    let account;
 
-    if (
-            !session.sessionId ||
-            !session.locale ||
-            !session.timezone ||
-            !session.permissions     
-        ) {
-        throw new AdvancedError({
-            code: 400,
-            message: "Session missing"
-        })
-    }
+    assertNotNull([
+        session.sessionId,
+        session.permissions 
+    ])
 
     if (!email) {
         throw new AdvancedError({
             code: 400,
-            message: "Email missing"
+            message: i18n.t("responses.missingEmail")
         })
     }
 
     if (!isEmailVerified) {
         throw new AdvancedError({
             code: 400,
-            message: "Email not verified"
+            message: i18n.t("responses.unverifiedEmail")
         })
     }
 
@@ -300,18 +184,16 @@ export default function loginOrRegisterAccount({
     ———————————————————————————————————————————————————————————————— 
     */
 
-    // Check connections for valid account
     if (externalConnectionName && externalConnectionId) {
-        try {
-            userAccount = getUserAccountByExternalId(externalConnectionName, externalConnectionId, email);
-        } catch {
-            userAccount = null;
-        }
+        account = getUserAccountService({
+            email,
+            externalConnectionName,
+            externalConnectionId
+        });
     }
 
-    // If connections are valid, update them then return
-    if (userAccount && userAccount.id) {
-        const connectionResult = db.accounts.query(
+    if (account && account.id) {
+        const result = db.accounts.query(
             `UPDATE connections SET
                 connectionText = ?
             WHERE userId = ?
@@ -319,34 +201,55 @@ export default function loginOrRegisterAccount({
             LIMIT 1`,
             [
                 externalConnectionText,
-                userAccount.id,
+                account.id,
                 externalConnectionName
             ]
         );
 
-        if (!connectionResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while checking connections",
-                details: connectionResult.error
-            })
-        }
+        assertDbSuccess(result);
 
-        // Return session or mfa token
-        if (userAccount.isMfaEnabled) {
-            return createMfaChallenge(
-                userAccount.mfaSecret, 
-                userAccount.id,
-                session.sessionId
-            );
+        if (account.isMfaEnabled) {
+           /* return {
+                mfaToken: createMfaChallenge(
+                    account.totpSecret, 
+                    account.id,
+                    session.sessionId
+                )
+            };*/
         } else {
             if (session.userId) {
-                return addDelegation(userAccount.id, session.sessionId, delegationToken);
+                return addDelegation(account.id, session.sessionId, delegationToken);
             }
 
-            return updateSessionToken(userAccount.id, session.sessionId);
+            return {
+                sessionToken: updateToken(
+                    session.sessionId, 
+                    "SESSION", 
+                    { userId: account.id }
+                )
+            };
         }
+    } else {
+        ///////////////////////////////////////
+        console.log("CREATE NEW ACCOUNT HERE");
+        ///////////////////////////////////////
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 
     // If Google, check email for valid account and attempt to fix broken ids
     if (externalConnectionName === "google" && 
@@ -380,13 +283,13 @@ export default function loginOrRegisterAccount({
             return updateSessionToken(userAccount.id, session.sessionId);
         }
     }
-  
+  */
     /* 
     ————————————————————————————————————————————————————————————————
     Register a new account
     ———————————————————————————————————————————————————————————————— 
     */
-
+/*
     let formattedUsername = username;
     const permissions = PlatformPermissionsService.getRole("member");
     let isAuraEnabled = 0;
@@ -563,7 +466,7 @@ export default function loginOrRegisterAccount({
             permissions.value = PlatformPermissionsService.encode(permissionsArray);
 
             isAuraEnabled = 1;
-        }*/
+        }
     } else {
         // ACCEPT AND USE INVITES AND UPDATE USE
     }
@@ -607,7 +510,7 @@ export default function loginOrRegisterAccount({
         // UPDATE_SESSION_FUNCTION
     };
 }
-
+*/
 
 
 
