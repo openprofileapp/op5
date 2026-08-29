@@ -2,13 +2,41 @@ import { DateTime } from "luxon";
 
 import { db, mdb } from "../../db.js";
 import { log } from "../../../instances.js";
+import uploadFile from "../../../../_common/helpers/uploadFile.js";
+import { config } from "../../../../../../app.config.js";
 
 const result = mdb.profiles.query("SELECT * from draft");
 
-db.characters.transaction(q => {
+db.characters.transaction(async q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
+        if (d.avatar) {
+            try {
+                const uploadedAvatar = await uploadFile({
+                    folder: `characters/avatars/${d.id}`,
+                    fileInput: `https://${config.domains.cdn}${d.avatar}`
+                });
+
+                d.avatar = uploadedAvatar?.path;
+            } catch {
+                // continue
+            }
+        }
+
+        if (d.banner) {
+            try {
+                const uploadedBanner = await uploadFile({
+                    folder: `characters/banners/${d.id}`,
+                    fileInput: `https://${config.domains.cdn}${d.banner}`
+                });
+
+                d.banner = uploadedBanner?.path;
+            } catch {
+                // continue
+            }
+        }
+
         const result = q(
             `INSERT INTO drafts (
                 algorithmScore,

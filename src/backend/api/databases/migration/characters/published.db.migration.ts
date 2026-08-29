@@ -9,6 +9,18 @@ db.characters.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
+        if (d.avatar) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            d.avatar = d.avatar.replace("/uploads/profiles/", "/uploads/characters/avatars/")
+        }
+
+        if (d.banner) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            d.banner = d.banner.replace("/uploads/profiles/", "/uploads/characters/banners/")
+        }
+
         const result = q(
             `INSERT INTO published (
                 algorithmScore,

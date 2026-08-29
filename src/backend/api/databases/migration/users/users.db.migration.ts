@@ -2,15 +2,43 @@ import { DateTime } from "luxon";
 
 import { db, mdb } from "../../db.js";
 import { log } from "../../../instances.js";
+import uploadFile from "../../../../_common/helpers/uploadFile.js";
+import { config } from "../../../../../../app.config.js";
 
 const result = mdb.accounts.query("SELECT * from public");
 
-db.users.transaction(q => {
+db.users.transaction(async q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
         if (d.id === "5719552362357773") {
             d.developer = 1
+        }
+
+        if (d.avatar) {
+            try {
+                const uploadedAvatar = await uploadFile({
+                    folder: `users/avatars/${d.id}`,
+                    fileInput: `https://${config.domains.cdn}${d.avatar}`
+                });
+
+                d.avatar = uploadedAvatar?.path;
+            } catch {
+                // continue
+            }
+        }
+
+        if (d.banner) {
+            try {
+                const uploadedBanner = await uploadFile({
+                    folder: `users/banners/${d.id}`,
+                    fileInput: `https://${config.domains.cdn}${d.banner}`
+                });
+
+                d.banner = uploadedBanner?.path;
+            } catch {
+                // continue
+            }
         }
 
         const result = q(
