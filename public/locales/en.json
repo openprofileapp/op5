@@ -27,13 +27,19 @@
     "pinLimit": "You have reach the maximum amount (24) of pins.",
     "delegationLimit": "You have reach the maximum amount (8) of delegated accounts.",
     "authorizationHeader": "Missing Authorization header",
+    "fileNotFound": "File not found",
     "accountNotFound": "Account not found",
     "emailNotFound": "Email not found",
     "connectionNotFound": "Connection not found",
     "accountSuspended": "This account is suspended",
     "invalidAuthorizationCode": "Invalid authorization code",
     "missingEmail": "Your external account does not have a connected email.",
-    "unverifiedEmail": "Your external account email is not verified."
+    "unverifiedEmail": "Your external account email is not verified.",
+    "invalidEmail": "Your external account email is invalid.",
+    "takenEmail": "Your external account email is already taken.",
+    "fileUnknown": "Unknown or not supported file type",
+    "fileTooLarge": "File exceeds 1 MB limit",
+    "failedAccountRegistration": "Failed to register account"
   },
   "pages": {
     "languages": "Languages",
