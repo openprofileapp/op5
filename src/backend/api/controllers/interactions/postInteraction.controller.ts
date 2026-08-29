@@ -19,6 +19,7 @@ import getInteractionsService from "../../services/getInteractions.service.js";
 import whatIs from "../../helpers/whatIs.js";
 import AlgorithmService from "../../services/algorithm.service.js";
 import { AlgorithmEventNameType } from "../../../../_common/types/algorithm.type.js";
+import { config } from "../../../../../app.config.js";
 
 type Props = {
     targetId: string, 
@@ -178,12 +179,17 @@ export const postInteractionController = async (req: Request, res: Response) => 
 
         if (!notificationType) return;
 
+        const whatIsData = whatIs(targetId);
+
         if (
             notificationType &&
-            req.session.userId !== whatIs(targetId).ownerId
+            (
+                req.session.userId !== whatIsData.ownerId || 
+                req.session.userId !== whatIsData.id
+            )
         ) {
             await sendNotificationService(
-                req.session.userId,
+                config.isProduction ? whatIsData.ownerId || whatIsData.id : req.session.userId,
                 notificationType,
                 {
                     sourceId: req.session.userId,
