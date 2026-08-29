@@ -115,6 +115,18 @@ const roles = {
             "CASHOUT_REVENUE", "PARTNER_ACCESS"
         ]
     },
+    verifiedPartner: {
+        name: "Verified Partner",
+        description: "Description not set.",
+        permissions: [
+            "VIEW", "READ", "WRITE", 
+            "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
+            "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
+            "UPLOAD_MEMORIES", "VERIFIED_ACCESS",
+            "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
+            "CASHOUT_REVENUE", "PARTNER_ACCESS"
+        ]
+    },
     staff: {
         name: "Staff",
         description: "Description not set.",
