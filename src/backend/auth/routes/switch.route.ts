@@ -1,9 +1,9 @@
 import { Router } from "express";
 
-import { switchAccount } from "../controllers/login/switchAccount.controller.js";
+import { switchAccountController } from "../controllers/login/switchAccount.controller.js";
 
 const switchRoutes = Router();
 
-switchRoutes.get("/:userId", switchAccount);
+switchRoutes.get("/:userId", switchAccountController);
 
 export default switchRoutes;

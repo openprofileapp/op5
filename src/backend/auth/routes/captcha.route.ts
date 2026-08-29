@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { verifyCaptcha } from '../controllers/captcha.controller.js';
+import { captchaController } from '../controllers/captcha.controller.js';
 
 const captchaRoute = Router();
 
-captchaRoute.post('/verify', verifyCaptcha);
+captchaRoute.post('/verify', captchaController);
 
 export default captchaRoute;
