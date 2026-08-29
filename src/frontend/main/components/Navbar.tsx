@@ -213,13 +213,31 @@ export default function Navbar({ isBannerPage = false }: Props) {
                         />
                     </Link>
 
-                    <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
-                        Beta
-                        <div className="tooltip-content">
-                            <div className="font-bold">{`v${config.metadata.version.full}`}</div>
-                            <div className="text-xs">Released on ??/??/2026</div>
+                    {window.location.hostname.startsWith('nightly') ? (
+                        <div className="badge bg-nightly border border-nightly border-1 tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
+                            Nightly
+                            <div className="tooltip-content">
+                                <div className="font-bold">{`v${config.metadata.version.full}`}</div>
+                                <div className="text-xs">Released on {new Date(config.metadata.version.buildDate).toLocaleDateString('en-US', {
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    year: 'numeric'
+                                })}</div>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
+                            Beta
+                            <div className="tooltip-content">
+                                <div className="font-bold">{`v${config.metadata.version.semver}-${config.metadata.version.stage}`}</div>
+                                <div className="text-xs">Released on {new Date(config.metadata.version.buildDate).toLocaleDateString('en-US', {
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    year: 'numeric'
+                                })}</div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-5 ml-10 text-sm">
                         <Link className="link-hover" to="/">Home</Link>
