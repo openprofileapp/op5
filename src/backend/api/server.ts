@@ -22,7 +22,7 @@ import webPushRoute from "./routes/webPush.route.js";
 import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
 import usernamesRoute from "./routes/usernames.route.js";
-import postregisterRoute from "./routes/postregister.route copy.js";
+import postregisterRoute from "./routes/postregister.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————

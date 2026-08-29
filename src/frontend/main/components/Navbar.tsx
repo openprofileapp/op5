@@ -466,6 +466,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                             <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
                                 {(() => {
                                     const currentUserId = window.session?.userId;
+                                    const hasMultipleAccounts = accounts.length > 1;
                                     
                                     const sortedAccounts = [...accounts].sort((a, b) => {
                                         if (a.id === currentUserId) return -1;
@@ -504,7 +505,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                                         </span>
                                                     </button>
                                                 </li>
-                                                {isCurrent && <hr />}
+                                                {isCurrent && hasMultipleAccounts && <hr />}
                                             </React.Fragment>
                                         );
                                     });
