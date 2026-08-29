@@ -12,13 +12,25 @@ db.characters.transaction(q => {
         if (d.avatar) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            d.avatar = d.avatar.replace("/uploads/profiles/", "/uploads/characters/avatars/")
+            d.avatar = d.avatar
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                .replace("/uploads/profiles/", "/uploads/characters/avatars/")
+                .replace(".png", ".webp")
+                .replace(".jpg", ".webp")
+                .replace(".jpeg", ".webp")
         }
 
         if (d.banner) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            d.banner = d.banner.replace("/uploads/profiles/", "/uploads/characters/banners/")
+            d.banner = d.banner
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                .replace("/uploads/profiles/", "/uploads/characters/banners/")
+                .replace(".png", ".webp")
+                .replace(".jpg", ".webp")
+                .replace(".jpeg", ".webp")
         }
 
         const result = q(

@@ -13,8 +13,17 @@ db.characters.transaction(async q => {
     for (const d of result.rows) {
         if (d.avatar) {
             try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                const hash = d.avatar
+                    .replace(`/uploads/profiles/${d.id}/`, "")
+                    .replace(".png", "")
+                    .replace(".jpg", "")
+                    .replace(".jpeg", "")
+
                 const uploadedAvatar = await uploadFile({
                     folder: `characters/avatars/${d.id}`,
+                    name: hash,
                     fileInput: `https://${config.domains.cdn}${d.avatar}`
                 });
 
@@ -26,8 +35,17 @@ db.characters.transaction(async q => {
 
         if (d.banner) {
             try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                const hash = d.banner
+                    .replace(`/uploads/profiles/${d.id}`, "")
+                    .replace(".png", "")
+                    .replace(".jpg", "")
+                    .replace(".jpeg", "")
+
                 const uploadedBanner = await uploadFile({
                     folder: `characters/banners/${d.id}`,
+                    name: hash,
                     fileInput: `https://${config.domains.cdn}${d.banner}`
                 });
 
