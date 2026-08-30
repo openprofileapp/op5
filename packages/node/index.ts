@@ -37,6 +37,7 @@ const ready = (token, data) => ({
 const op5 = {
     login: async (id, token) => {
         try {
+            // DEVELOPER NEEEDED: Replace with https://auth.openprofile.app/login/bot
             const response = await fetch("https://auth.openprofile.app/v3/session", { 
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`}, body: JSON.stringify({ id, token })
             }); if (!response.ok) {const text = await response.text(); throw new Error(`Login failed: ${response.status}, ${text}`);}
