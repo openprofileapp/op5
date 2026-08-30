@@ -12,7 +12,11 @@ db.users.transaction(async q => {
 
     for (const d of result.rows) {
         if (d.id === "5719552362357773") {
-            d.developer = 1
+            d.developer = 1;
+        }
+
+        if (d.visibility === "followers") {
+            d.visibility = "friends";
         }
 
         if (d.avatar) {
