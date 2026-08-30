@@ -71,11 +71,8 @@ export async function loginWithX(token: string) {
     const state = crypto.randomUUID();
     const verifier = crypto.randomUUID() + crypto.randomUUID();
 
-    sessionStorage.setItem("x_oauth_state", state);
-    sessionStorage.setItem("x_oauth_verifier", verifier);
-    
     const rootDomain = window.location.hostname.split(".").slice(-2).join(".");
-    document.cookie = `x_oauth_verifier=${verifier}; path=/; domain=.${rootDomain}; max-age=600; secure; samesite=none`;
+    document.cookie = `x_oauth_verifier=${verifier}; path=/; domain=.${rootDomain}; max-age=60; secure; samesite=none`;
 
     const encoder = new TextEncoder();
     const data = encoder.encode(verifier);
@@ -99,9 +96,6 @@ export async function loginWithX(token: string) {
         "&code_challenge_method=S256";
 
     window.location.href = url;
-
-    sessionStorage.removeItem("x_oauth_state");
-    sessionStorage.removeItem("x_oauth_verifier");
 
     return { ok: true };
 }
