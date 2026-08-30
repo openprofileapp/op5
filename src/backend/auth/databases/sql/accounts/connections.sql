@@ -4,5 +4,7 @@ CREATE TABLE IF NOT EXISTS connections (
     connectionName TEXT NOT NULL,
     connectionText TEXT,
     isMfa INTEGER NOT NULL DEFAULT 0,
-    connectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    connectedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+
+    UNIQUE (userId, connectionName)
 );
