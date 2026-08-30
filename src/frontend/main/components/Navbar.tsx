@@ -318,14 +318,22 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                             <button 
                                 className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                                data-tip="Report"
+                                data-tip="Report Bugs"
                                 data-guide="report"
                                 onClick={() => {
                                     const dialog = document.getElementById("report") as HTMLDialogElement | null;
                                     dialog?.showModal();
                                 }}
                             >
-                                <span className="font-nerdfont text-xl"></span>
+                                <span className="font-nerdfont text-xl"></span>
+                            </button>
+
+                            <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
+                                <span className="font-nerdfont text-xl">󰍡</span>
+                                <div className="tooltip-content">
+                                    <div className="font-bold">Messages</div>
+                                    <div className="text-xs">No new messages!</div>
+                                </div>
                             </button>
 
                             <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
