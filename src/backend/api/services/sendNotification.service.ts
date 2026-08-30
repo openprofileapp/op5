@@ -34,7 +34,7 @@ type Props = {
  * @param {string} type - the type of notification (required)
  * @param {string} {} - additional data (optional)
  */
-export default async function isValidService(
+export default async function sendNotificationService(
     userId: string,
     type: NotificationNameType,
 {
@@ -57,7 +57,14 @@ export default async function isValidService(
         "LIKES_MILESTONE",
         "READS_MILESTONE",
         "SHARES_MILESTONE",
-        "VIEWS_MILESTONE"
+        "VIEWS_MILESTONE",
+        "VERIFIED_REGISTRATION",
+        "PARTNER_REGISTRATION",
+        "VERIFIED_PARTNER_REGISTRATION",
+        "LIFETIME_PREMIUM_REGISTRATION",
+        "PREMIUM_REGISTRATION",
+        "PRECURSOR_REGISTRATION",
+        "PARTNER_CODE_USED"
     );
 
     if (!allowedTypes.has(type)) {
@@ -99,6 +106,7 @@ export default async function isValidService(
     });
 
     if (isValid) {
+        // DEVELOPER NEEDED: Register the remaining of the push notifications
         // DEVELOPER NEEDED: Send to targetId.owner (whatIs(targetId))
         // ALSO GET THE DELGATED ACCOUNTS OF TARGED ID OWNER AND DO A FOR EACH
         await sendPushNotificationService(    
