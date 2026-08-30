@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 
-import { AdvancedError } from "kage-library";
+import { AdvancedError, URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
@@ -14,6 +14,8 @@ export const fetchSessionMiddleware = async (
     next: NextFunction
 ) => {
     try {
+        const url = new URL(`https://${config.domains.main}`);
+
         const response = await wc.callAPI<ValidSessionType>(
             `https://${config.domains.auth}/session`,
             {
@@ -33,7 +35,24 @@ export const fetchSessionMiddleware = async (
             }
         );
 
-        req.session = response;
+        const { accessToken, ...rest } = response;
+
+        if (accessToken) {
+            console.log(accessToken)
+
+            res.cookie("accessToken", accessToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
+            });
+
+            req.cookies.accessToken = accessToken;
+        }
+
+        req.session = rest;
 
         next();
     } catch(error) {

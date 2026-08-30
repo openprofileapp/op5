@@ -65,7 +65,13 @@ async function updateGeoIp(
 export default async function validateSession(
     req: Request, 
     res: Response,
-    returnMfaToken: boolean = false
+    {
+        returnMfaToken = false,
+        returnAccessToken = false
+    }: {
+        returnMfaToken?: boolean;
+        returnAccessToken?: boolean;
+    } = {}
 ): Promise<ValidSessionType | { action: ActionNameType }> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -142,7 +148,7 @@ export default async function validateSession(
             sameSite: "none",
             domain: `.${url.domain}`,
             path: "/",
-            maxAge: 1000 * 60 * 5, // 5 minutes
+            maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
         });
     } else {
         // Refesh the cookie so it doesn't expire
@@ -618,7 +624,7 @@ export default async function validateSession(
             sameSite: "none",
             domain: `.${url.domain}`,
             path: "/",
-            maxAge: 1000 * 60 * 5, // 5 minutes
+            maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
         });
     }
 
@@ -725,7 +731,8 @@ export default async function validateSession(
         locale: rowGeoIpJSON.locale,
         timezone: rowGeoIpJSON.timezone,
         inviteCode,
-        delegatedAccounts
+        delegatedAccounts,
         // ...(returnMfaToken === true && { mfaToken })
+        ...(returnAccessToken === true && { accessToken })
     };
 }

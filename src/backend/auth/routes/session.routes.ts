@@ -23,7 +23,10 @@ sessionRoute.post("/", async (req: Request, res: Response) => {
                     return this.headers?.[name.toLowerCase()];
                 }
             },
-            res
+            res,
+            {
+                returnAccessToken: !req.body?.cookies?.accessToken
+            }
         );
 
         return res.json({ ...response });
