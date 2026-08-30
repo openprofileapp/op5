@@ -8,10 +8,12 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { config } from "../../../../../app.config.js";
 import getUsersService from "../../services/getUsers.service.js";
 import { i18n } from "../../../_common/instances.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
 
 export const getRecommendedTaggedUsers = async (req: Request, res: Response) => {
     try {
-        await assertBearer(req); 
+        await assertBearer(req);
+        assertAccount(req.session);
         assertPlatformPermissions(req.session, "VIEW");
 
         const { 

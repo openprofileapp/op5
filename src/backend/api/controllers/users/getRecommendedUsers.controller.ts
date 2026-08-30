@@ -8,18 +8,18 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { config } from "../../../../../app.config.js";
 import getUsersService from "../../services/getUsers.service.js";
 import { i18n } from "../../../_common/instances.js";
-import { GetFromType } from "../../../../_common/types/getFrom.type.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
 
 export const getRecommendedUsers = async (req: Request, res: Response) => {
     try {
-        await assertBearer(req); 
+        await assertBearer(req);
+        assertAccount(req.session);
         assertPlatformPermissions(req.session, "VIEW");
 
         const { 
             id,
             page, 
             limit = config.limits.assetsPerPage,
-            ref
         } = req.query;
 
         const offset = 
@@ -33,7 +33,7 @@ export const getRecommendedUsers = async (req: Request, res: Response) => {
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId,
-            getFrom: ref as GetFromType
+            getFrom: "home"
         })
 
         res.status(200).json({

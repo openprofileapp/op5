@@ -8,19 +8,19 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
 import { i18n } from "../../../_common/instances.js";
-import { GetFromType } from "../../../../_common/types/getFrom.type.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
 
 export const getRecommendedPublishedCharacters = async (req: Request, res: Response) => {
     try {
         await assertBearer(req); 
+        assertAccount(req.session);
         assertPlatformPermissions(req.session, "VIEW");
 
         const { 
             id,
             owner, 
             page, 
-            limit = config.limits.assetsPerPage,
-            ref
+            limit = config.limits.assetsPerPage
         } = req.query;
 
         const offset = 
@@ -35,7 +35,7 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId,
-            getFrom: ref as GetFromType
+            getFrom: "home"
         })
 
         res.status(200).json({

@@ -8,10 +8,12 @@ import { assertPlatformPermissions } from "../../../_common/asserts/platformPerm
 import { config } from "../../../../../app.config.js";
 import getPublishedCharactersService from "../../services/getPublishedCharacters.service.js";
 import { i18n } from "../../../_common/instances.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
 
 export const getRecommendedTaggedPublishedCharacters = async (req: Request, res: Response) => {
     try {
-        await assertBearer(req); 
+        await assertBearer(req);
+        assertAccount(req.session);
         assertPlatformPermissions(req.session, "VIEW");
 
         const { 
