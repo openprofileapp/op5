@@ -19,10 +19,12 @@ export const postregisterController = async (req: Request, res: Response) => {
             avatar,
             banner,
             isAuraEnabled,
+            auraColor,
             about,
             theme,
             badges,
-            notifications 
+            notifications,
+            inviteCode
         } = req.body;
 
         const authHeader = req.headers.authorization;
@@ -50,8 +52,9 @@ export const postregisterController = async (req: Request, res: Response) => {
                 banner,
                 about,
                 theme,
-                isAuraEnabled
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                isAuraEnabled,
+                auraPrimary
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 id,
                 displayName,
@@ -59,7 +62,8 @@ export const postregisterController = async (req: Request, res: Response) => {
                 banner,
                 about,
                 theme,
-                isAuraEnabled
+                isAuraEnabled,
+                auraColor || "#ce1616"
             ]
         );
 
@@ -95,6 +99,35 @@ export const postregisterController = async (req: Request, res: Response) => {
             );
 
             assertDbSuccess(badgesResult);
+        }
+
+        if (inviteCode) {
+            const useResult = db.invites.query(
+                `INSERT INTO uses (
+                    userId,
+                    code
+                ) VALUES (?, ?)`,
+                [
+                    id,
+                    inviteCode
+                ]
+            );
+
+            assertDbSuccess(useResult);
+
+            const codeResult = db.invites.query(
+                `UPDATE codes 
+                SET usesLeft = CASE 
+                    WHEN isUnlimited = 0 THEN usesLeft - 1 
+                    ELSE usesLeft 
+                END
+                WHERE code = ?`,
+                [
+                    inviteCode
+                ]
+            );
+
+            assertDbSuccess(codeResult);
         }
 
         res.status(200).json({
