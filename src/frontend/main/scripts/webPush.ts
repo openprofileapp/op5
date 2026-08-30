@@ -5,7 +5,7 @@ export default async function setupWebPushNotifications() {
         const registration = await navigator.serviceWorker.register("/sw.js");
         await navigator.serviceWorker.ready;
 
-        if (Notification.permission === "default") {
+        if (window.session.userId && Notification.permission === "default") {
             Notification.requestPermission().catch(() => {});
         }
 
