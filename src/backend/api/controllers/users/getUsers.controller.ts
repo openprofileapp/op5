@@ -37,7 +37,8 @@ export const getUsers = async (req: Request, res: Response) => {
             limit: limit as number, 
             query: query as string, 
             getAs: req.session.userId,
-            getFrom: ref as GetFromType
+            getFrom: ref as GetFromType,
+            delegatedAccounts: req.session?.delegatedAccounts
         })
 
         res.status(200).json({
