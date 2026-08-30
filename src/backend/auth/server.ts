@@ -19,6 +19,7 @@ import { validateSessionMiddleware } from "./middlewares/validateSession.middlew
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
 import switchRoutes from "./routes/switch.route.js";
+import logoutRoute from "./routes/logout.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -56,7 +57,7 @@ router.use("/token", validateSessionMiddleware, rateLimitMiddleware(120), tokenR
 router.use("/session", rateLimitMiddleware(240), sessionRoute); // No validateSessionMiddleware here
 router.use("/switch", validateSessionMiddleware, rateLimitMiddleware(10), switchRoutes);
 router.use("/login", validateSessionMiddleware, rateLimitMiddleware(10), loginRoutes);
-// DEVELOPER NEEDED: Add /logout
+router.use("/logout", validateSessionMiddleware, rateLimitMiddleware(10), logoutRoute);
 // router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
 
 /* 
@@ -84,22 +85,16 @@ Scheduled events
 // Run everyday at midnight
 cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
+
     log.cleanLogs();
+
+    const sessionsResult = db.accounts.query(
+        `DELETE FROM sessions WHERE isTerminated = 1`,
+    );
+
+    if (!sessionsResult.success) {
+        log.db.error(sessionsResult.error).save();
+    }
+
+    // DEVELOPER NEEDED: On premium expire, remove badges, and edit permissions
 });
-
-/* 
-// CRON TO DELETE EXPIRED OR TERMINATED SESSIONS
-// CRON TO UNPREMIUM BADGE AND PERMS WHEN USER IS NO LONGER SUBSCRIBED (IF DATE EXISTS, ELSE SKIP)
-const result = db.accounts.query(
-    `DELETE FROM sessions WHERE sessionId = ? LIMIT 1`,
-    [sessionId]
-);
-
-if (!result.success) {
-    throw new AdvancedError({
-        code: 500,
-        message: "An error occurred while deleting session",
-        details: result.error
-    })
-}
-*/

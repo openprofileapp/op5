@@ -549,8 +549,11 @@ export default function Navbar({ isBannerPage = false }: Props) {
                             <button 
                                 className="flex items-center justify-between gap-4"
                                 onClick={() => {
-                                    exampleTrigger();
-                                    closeContextMenu();
+                                    const authDomain = isGateway() ? window.location.host : window.config.domains.auth;
+                                    const authPath = isGateway() ? "/auth" : "";
+                                    const currentPage = encodeURIComponent(window.location.href);
+
+                                    window.location.href = `https://${authDomain}${authPath}/logout?redirect=${currentPage}`;
                                 }}
                             >
                                 <span>Logout</span>
