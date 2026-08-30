@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { switchAccountController } from "../controllers/login/switchAccount.controller.js";
+import { switchAccountController } from "../controllers/switchAccount.controller.js";
 
 const switchRoutes = Router();
 
