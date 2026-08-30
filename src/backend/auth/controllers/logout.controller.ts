@@ -65,7 +65,7 @@ export const logoutController = async (req: Request, res: Response) => {
             sameSite: "none",
             domain: `.${url.domain}`,
             path: "/",
-            maxAge: 1000 * 60 * 5, // 5 minutes
+            maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
         });
 
         res.cookie("sessionToken", sessionToken, {

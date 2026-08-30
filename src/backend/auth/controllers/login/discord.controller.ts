@@ -89,7 +89,7 @@ export const discordLoginController = async (req: Request, res: Response) => {
                     sameSite: "none",
                     domain: `.${url.domain}`,
                     path: "/",
-                    maxAge: 1000 * 60 * 15 // 15 minutes
+                    maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
                 });
 
                 return res.status(200).json({
@@ -114,7 +114,7 @@ export const discordLoginController = async (req: Request, res: Response) => {
                         sameSite: "none",
                         domain: `.${url.domain}`,
                         path: "/",
-                        maxAge: 1000 * 60 * 5, // 5 minutes
+                        maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
                     });
                 }
 
