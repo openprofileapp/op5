@@ -9,4 +9,6 @@ export type ValidSessionType = {
     timezone: string;
     inviteCode: string;
     delegatedAccounts?: string[];
+    mfaToken?: string;
+    accessToken?: string;
 };
