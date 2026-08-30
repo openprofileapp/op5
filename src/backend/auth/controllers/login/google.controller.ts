@@ -9,7 +9,7 @@ import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import loginOrRegisterAccountService from "../../services/loginOrRegisterAccount.service.js";
 import { log } from "../../instances.js";
 
-type GoogleTokenResponse = {
+type ExternalTokenResponse = {
     access_token: string;
     expires_in: number;
     scope: string;
@@ -18,7 +18,7 @@ type GoogleTokenResponse = {
     refresh_token: string;
 }
 
-type GoogleAccountResponse = {
+type ExternalAccountResponse = {
     sub: string;
     name: string;
     given_name: string;
@@ -33,15 +33,6 @@ export const googleLoginController = async (req: Request, res: Response) => {
 
         assertNotNull(req.session.sessionId);
 
-        let externalResponse: GoogleAccountResponse = {
-            sub: "",
-            name: "",
-            given_name: "",
-            picture: "",
-            email: "",
-            email_verified: false
-        };
-
         if (typeof code !== "string") {
             throw new AdvancedError({ 
                 code: 400, 
@@ -49,7 +40,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
             });
         }
 
-        const externalToken: GoogleTokenResponse = await wc.callAPI(
+        const externalToken: ExternalTokenResponse = await wc.callAPI(
             "https://oauth2.googleapis.com/token",
             {
                 method: "POST",
@@ -66,7 +57,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
             }
         );
 
-        externalResponse = await wc.callAPI(
+        const externalResponse: ExternalAccountResponse = await wc.callAPI(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             { auth: `Bearer ${externalToken.access_token}` }
         )
@@ -76,7 +67,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
             delegationToken: req.cookies?.delegationToken,
             email: externalResponse.email,
             isEmailVerified: externalResponse.email_verified,
-            username: externalResponse.email.replace("@gmail.com", ""),
+            username: externalResponse.email.replace("@gmail.com", "").toLowerCase(),
             displayName: externalResponse.name,
             avatar: externalResponse.picture,
             // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
@@ -87,70 +78,70 @@ export const googleLoginController = async (req: Request, res: Response) => {
 
         const url = new URL(`https://${config.domains.main}`);
 
-        if (response.mfaToken) {
-            res.cookie("mfaToken", response.mfaToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 15 // 15 minutes
-            });
-
-            return res.status(200).json({
-                action: "DISPLAY_MFA"
-            });
-        } else {
-            if (response.sessionId) {
-                res.cookie("sessionId", response.sessionId, {
+        if (response) {
+            if (response.mfaToken) {
+                res.cookie("mfaToken", response.mfaToken, {
                     httpOnly: true,
                     secure: true,
                     sameSite: "none",
                     domain: `.${url.domain}`,
                     path: "/",
-                    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+                    maxAge: 1000 * 60 * 15 // 15 minutes
                 });
-            }
 
-            if (response.accessToken) {
-                res.cookie("accessToken", response.accessToken, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "none",
-                    domain: `.${url.domain}`,
-                    path: "/",
-                    maxAge: 1000 * 60 * 5, // 5 minutes
+                return res.status(200).json({
+                    action: "DISPLAY_MFA"
                 });
+            } else {
+                if (response.sessionId) {
+                    res.cookie("sessionId", response.sessionId, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+                    });
+                }
+
+                if (response.accessToken) {
+                    res.cookie("accessToken", response.accessToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 5, // 5 minutes
+                    });
+                }
+
+                if (response.sessionToken) {
+                    res.cookie("sessionToken", response.sessionToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                    });
+                }
+
+                if (response.delegationToken) {
+                    res.cookie("delegationToken", response.delegationToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                    });
+                }
+
+                return res.redirect(
+                    // DEVELOPER NEEDED: hasCompletedOnboarding
+                    `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
+                );
             }
-
-            if (response.sessionToken) {
-                res.cookie("sessionToken", response.sessionToken, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "none",
-                    domain: `.${url.domain}`,
-                    path: "/",
-                    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-                });
-            }
-
-            if (response.delegationToken) {
-                res.cookie("delegationToken", response.delegationToken, {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "none",
-                    domain: `.${url.domain}`,
-                    path: "/",
-                    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-                });
-            }
-
-            console.log(response)
-
-            return res.redirect(
-                // MAYBE ADD: hasCompletedOnboarding
-                `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
-            );
         }
     } catch(error) {
         if (error instanceof AdvancedError) {
