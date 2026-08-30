@@ -203,7 +203,7 @@ export default class AssetPermissionsService {
 
         let result = 0n;
 
-        for (const permission of input) {
+        for (const permission of new Set(input)) {
             result |= this.bit(permission);
         }
 

@@ -6,6 +6,7 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 import { AdvancedError } from "kage-library";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 
 const index = {
     VIEW: 0n, // View user profiles and asset overviews
@@ -262,15 +263,12 @@ export default class PlatformPermissionsService {
      */
     public static encode(input: PlatformPermissionName[]): string {
         if (!input?.length) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
+            assertNotNull(input);
         }
 
         let result = 0n;
 
-        for (const permission of input) {
+        for (const permission of new Set(input)) {
             result |= this.bit(permission);
         }
 
