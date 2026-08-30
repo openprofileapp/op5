@@ -218,7 +218,7 @@ export default async function validateSession(
 
     assertDbSuccess(sessionsResult);
 
-    if (sessionsResult.rowCount >= config.limits.softConnectedSessions) {
+    if (!row.isConnected && (sessionsResult.rowCount >= config.limits.softConnectedSessions)) {
         const result = db.accounts.query<UserAccountType>(
             "SELECT permissions FROM users WHERE id = ? LIMIT 1",
             [row.userId]
