@@ -33,8 +33,8 @@ document.head.appendChild(style);
 
 import Layout from "./Layout.js"
 import ToastContainer from "../_common/components/ToastContainer.js"
-import CaptchaPortal from "../_common/components/CaptchaPortal.js"
-import AskAlice from "../_common/components/AskAlice.js"
+import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
+import Messages from "../_common/components/Messages.js"
 
 import Dashboard from "./pages/Dashboard.js"
 import Analytics from "./pages/Analytics.js"
@@ -60,7 +60,7 @@ async function bootstrap() {
                     <BrowserRouter>
                         <ToastContainer />
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
-                        <AskAlice />
+                        <Messages />
                         <Routes>
                             <Route path="/character" element={<CharacterTemplate />} />
 

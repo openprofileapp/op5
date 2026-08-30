@@ -9,7 +9,7 @@ import isGateway from "../../_common/helpers/isGateway.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
-import { apiHost } from "../scripts/hosts.js";
+import { apiHost } from "../../_common/scripts/hosts.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
 

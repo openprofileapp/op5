@@ -1,5 +1,5 @@
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
-import { apiHost } from "./hosts.js";
+import { apiHost } from "../../_common/scripts/hosts.js";
 
 export async function postInteraction(
     targetId: string, 

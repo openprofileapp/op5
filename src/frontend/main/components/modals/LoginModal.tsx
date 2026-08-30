@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { toast } from "../../../_common/scripts/toast.js";
-import { showCaptcha } from "../../../_common/components/CaptchaPortal.js";
 
 import { 
     loginWithDiscord, 
@@ -10,6 +9,8 @@ import {
     loginWithGoogle, 
     loginWithX
 } from "../../scripts/oauth2.js";
+
+import { showCaptcha } from "../../../_common/scripts/captchaService.js";
 
 export default function LoginModal() {
     const { t, ready: isTranslationReady } = useTranslation();

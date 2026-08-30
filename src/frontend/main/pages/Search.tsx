@@ -6,7 +6,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
-import { apiHost } from "../scripts/hosts.js";
+import { apiHost } from "../../_common/scripts/hosts.js";
 
 export default function Search() {
     const { ready: isTranslationReady } = useTranslation();
