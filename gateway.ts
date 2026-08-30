@@ -152,6 +152,6 @@ Scheduled events
 // Run everyday at midnight
 cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
+
     log.cleanLogs();
-    backupService(config.folders.data, config.folders.backups);
 });
