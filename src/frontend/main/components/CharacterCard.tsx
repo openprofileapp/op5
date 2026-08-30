@@ -7,7 +7,7 @@ import { toast } from "../../_common/scripts/toast.js";
 import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../scripts/postInteraction.js";
 import { formatNumber } from "kage-library/client";
-import { studioHost } from "../scripts/hosts.js";
+import { studioHost } from "../../_common/scripts/hosts.js";
 
 type Props = {
     data: GetPublishedCharacterType;
@@ -372,7 +372,7 @@ export default function CharacterCard({
                     <button className="justify-between" disabled={true}>
                         Chat
                         <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                            󰭹
+                            󰍧
                         </span>
                     </button>
                 </li>
