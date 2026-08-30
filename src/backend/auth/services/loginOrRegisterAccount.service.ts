@@ -37,6 +37,7 @@ type Props = {
     banner?: string;
     about?: string;
     theme?: string;
+    auraColor?: string;
     externalConnectionName?: ConnectionNameType;
     externalConnectionId?: string;
     externalConnectionText?: string;
@@ -61,6 +62,7 @@ type RegisterAccountProps = {
     banner?: string;
     about?: string;
     theme?: string;
+    auraColor?: string;
     externalConnectionName?: ConnectionNameType;
     externalConnectionId?: string;
     externalConnectionText?: string;
@@ -172,6 +174,7 @@ export async function registerAccount({
     banner,
     about,
     theme,
+    auraColor,
     externalConnectionName,
     externalConnectionId,
     externalConnectionText
@@ -218,9 +221,6 @@ export async function registerAccount({
             notifications.push("LIFETIME_PREMIUM_REGISTRATION");
             isAuraEnabled = 1;
         }
-
-        // DEVELOPER NEEDED: If reserved, verified, or lifetime premium, provide a notfication that 
-        // tells the reason behind each on registration completion
     }
 
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -257,8 +257,6 @@ export async function registerAccount({
         const formattedUsernameNoSuffix = formattedUsername;
 
         while (true) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             const usernameResult: { isAvailable: boolean } = await wc.callAPI(
                 `https://${config.domains.api}/v3/usernames`,
                 {
@@ -448,10 +446,12 @@ export async function registerAccount({
                 avatar: uploadedAvatar?.path,
                 banner: uploadedBanner?.path,
                 isAuraEnabled,
+                auraColor,
                 about,
                 theme,
                 badges,
-                notifications
+                notifications,
+                inviteCode: session.inviteCode
             }
         }
     );
@@ -482,6 +482,7 @@ export default async function loginOrRegisterAccountService({
     banner,
     about,
     theme,
+    auraColor,
     externalConnectionName,
     externalConnectionId,
     externalConnectionText
@@ -517,15 +518,15 @@ export default async function loginOrRegisterAccountService({
 
     if (account && account.id) {
         const result = db.accounts.query(
-            `UPDATE connections SET
-                connectionText = ?
-            WHERE userId = ?
-            AND connectionName = ?
-            LIMIT 1`,
+            `INSERT INTO connections (userId, connectionId, connectionName, connectionText)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(userId, connectionName) 
+            DO UPDATE SET connectionText = excluded.connectionText`,
             [
-                externalConnectionText,
                 account.id,
-                externalConnectionName
+                externalConnectionId,
+                externalConnectionName,
+                externalConnectionText
             ]
         );
 
@@ -564,6 +565,7 @@ export default async function loginOrRegisterAccountService({
             banner,
             about,
             theme,
+            auraColor,
             externalConnectionName,
             externalConnectionId,
             externalConnectionText
@@ -582,79 +584,3 @@ export default async function loginOrRegisterAccountService({
         };
     }
 }
-
-
-/*
-
-    try {
-        if (!row) {
-            // Create a new session
-            const token = identifier.generate("TOKEN");
-            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [account.id, token, req.session.id]);
-
-            // Set a token cookie on client
-            res.cookie("token", token, {
-                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${domains.release}`
-            });
-
-            activity(account.id, null, "ACCOUNT_REGISTER");
-            
-            res.redirect(routes.release);
-        } else {
-            
-            // Create a new session
-            const token = identifier.generate("TOKEN");
-            database.query("sessions", `UPDATE permanent SET user = ?, token = ? WHERE id = ?`, [row.user, token, req.session.id]);
-
-            // Set a token cookie on client
-            res.cookie("token", token, {
-                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expires in 30 days
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${domains.release}`
-            });
-
-            
-  
-
-if (req.session.invite?.code) {
-                    database.query("accounts", `UPDATE invites SET invited = ?, used = ?, used_date = ? WHERE code = ?`, [account.id, 1, timestamp.generate("0s", "datetime"), req.session.invite.code]);
-
-                    if (req.session.invite.type == "partner") {
-                        // Assign a join to the partner invite code
-                        const partner = database.query("partners", `SELECT * FROM codes WHERE code = ?`, [req.session.invite?.code]);
-                        if (partner) {
-                            database.query("partners", "INSERT INTO uses (user, code) VALUES (?, ?)", [account.id, partner.code]);
-                            await notification(null, partner, "PARTNER_REGISTER", partner.user);
-                        }
-                    } else {
-                        // Check if the inviter was invited by a partner, if so give credit to the partner
-                        const invite = database.query("accounts", `SELECT * FROM invites WHERE code = ?`, [req.session.invite?.code]);
-                        if (invite) {
-                            const row = database.query("partners", `SELECT * FROM uses WHERE user = ?`, [invite.user]);
-                            if (row) {
-                                const partner = database.query("partners", `SELECT * FROM codes WHERE code = ?`, [row.code]);
-                                if (partner) {
-                                    database.query("partners", "INSERT INTO uses (user, code) VALUES (?, ?)", [account.id, partner.code]);
-                                    await notification(null, partner, "PARTNER_REGISTER", partner.user);
-                                }
-                            }
-                        }
-                    }
-                }
-        }
-
-            // Assign a join to the partner invite code
-            if (req.session.invite?.code) {
-                const partner = database.query("partners", `SELECT * FROM codes WHERE code = ?`, [req.session.invite?.code]);
-                if (partner) {
-                    database.query("partners", "INSERT INTO uses (user, code) VALUES (?, ?)", [account.id, partner.code]);
-                    await notification(null, partner, "PARTNER_REGISTER", partner.user);
-                }
-            }
-*/
