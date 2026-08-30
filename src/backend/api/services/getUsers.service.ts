@@ -8,6 +8,7 @@ import { parseJson } from "../../_common/helpers/parseJson.js";
 import { db } from "../databases/db.js";
 import getInterestsService from "./getInterests.service.js";
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
+import AssetPermissionsService from "./assetPermissions.service.js";
 
 type Props = {
     id?: string;
@@ -18,7 +19,9 @@ type Props = {
     limit?: number;
     getAs?: string;
     getFrom?: GetFromType;
+    delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
+    internalPermissionsBypass?: boolean;
 };
 
 export default function getUsersService({
@@ -30,7 +33,9 @@ export default function getUsersService({
     limit = config.limits.assetsPerPage,
     getAs,
     getFrom,
-    includeInteractionItems = false
+    delegatedAccounts,
+    includeInteractionItems = false,
+    internalPermissionsBypass = false
 }: Props): GetUserType {    
     let interests;
 
@@ -192,32 +197,51 @@ export default function getUsersService({
     if (sortBy === "exclusive") {
         visibilityCondition = `(
             users.visibility NOT IN ('public', 'private', 'registered') AND (
-                (users.visibility = 'followers' AND follows.source IS NOT NULL) OR
                 (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL)
             )
         )`;
     } else {
-        // DEVELOPER NEEDED: Check auth for delegated accounts. If the user.id is matching from an array, allow visibility
+        const hasDelegatedAccounts = Array.isArray(delegatedAccounts) && delegatedAccounts.length > 0;
+
+        let hasDirectViewPermission = false;
+        
+        if (getAs && id) {
+            hasDirectViewPermission = AssetPermissionsService.can(getAs, "VIEW", id);
+        }
+
+        let isUnlistedAllowed = getFrom === "profile";
+
+        if (internalPermissionsBypass) {
+            hasDirectViewPermission = true
+            isUnlistedAllowed = true
+        }
+
         visibilityCondition = `(
             (users.visibility = 'public') OR
             (users.visibility = 'registered' AND ? IS NOT NULL) OR
-            (users.visibility = 'followers' AND follows.source IS NOT NULL) OR
             (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
-            (users.visibility = 'unlisted' AND users.id = ?) OR
+            (users.visibility = 'unlisted' AND (${isUnlistedAllowed ? '1 = 1' : 'users.id = ?'})) OR
             (
                 users.visibility = 'private' AND 
                 (
                     users.id = ? OR 
-                    EXISTS (
-                        SELECT 1 FROM permissions 
-                        WHERE permissions.assetId = users.id 
-                        AND permissions.userId = ?
-                    )
+                    ${hasDirectViewPermission ? '1 = 1' : '1 = 0'} OR
+                    ${hasDelegatedAccounts ? 'users.id IN (' + delegatedAccounts.map(() => '?').join(',') + ')' : '1 = 0'}
                 )
             )
         )`;
 
-        visibilityParams.push(...Array(4).fill(getAs));
+        visibilityParams.push(getAs); 
+
+        if (!isUnlistedAllowed) {
+            visibilityParams.push(getAs);
+        }
+
+        visibilityParams.push(getAs);
+
+        if (hasDelegatedAccounts) {
+            visibilityParams.push(...delegatedAccounts);
+        }
     }
 
     const interactionTables: InteractionNameType[] = [

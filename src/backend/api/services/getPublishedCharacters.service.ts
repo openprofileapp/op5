@@ -8,6 +8,7 @@ import { parseJson } from "../../_common/helpers/parseJson.js";
 import { db } from "../databases/db.js";
 import getInterestsService from "./getInterests.service.js";
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
+import AssetPermissionsService from "./assetPermissions.service.js";
 
 type Props = {
     id?: string;
@@ -19,7 +20,9 @@ type Props = {
     limit?: number;
     getAs?: string;
     getFrom?: GetFromType;
+    delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
+    internalPermissionsBypass?: boolean;
 };
 
 export default function getPublishedCharactersService({
@@ -32,7 +35,9 @@ export default function getPublishedCharactersService({
     limit = config.limits.assetsPerPage,
     getAs,
     getFrom,
-    includeInteractionItems = false
+    delegatedAccounts,
+    includeInteractionItems = false,
+    internalPermissionsBypass = false
 }: Props): GetPublishedCharacterType {    
     let interests;
 
@@ -202,26 +207,48 @@ export default function getPublishedCharactersService({
             )
         )`;
     } else {
+        const hasDelegatedAccounts = Array.isArray(delegatedAccounts) && delegatedAccounts.length > 0;
+
+        let hasDirectViewPermission = false;
+        
+        if (getAs && id) {
+            hasDirectViewPermission = AssetPermissionsService.can(getAs, "VIEW", id);
+        }
+
+        let isUnlistedAllowed = getFrom === "profile";
+
+        if (internalPermissionsBypass) {
+            hasDirectViewPermission = true
+            isUnlistedAllowed = true
+        }
+
         visibilityCondition = `(
             (published.visibility = 'public') OR
             (published.visibility = 'registered' AND ? IS NOT NULL) OR
             (published.visibility = 'followers' AND follows.source IS NOT NULL) OR
             (published.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
-            (published.visibility = 'unlisted' AND published.ownerId = ? AND ${getFrom === "userProfile" ? "TRUE" : "FALSE"}) OR
+            (published.visibility = 'unlisted' AND (${isUnlistedAllowed ? '1 = 1' : 'published.ownerId = ?'})) OR
             (
                 published.visibility = 'private' AND 
-                ${getFrom === "userProfile" ? "TRUE" : "FALSE"} AND (
+                (
                     published.ownerId = ? OR 
-                    EXISTS (
-                        SELECT 1 FROM users.permissions 
-                        WHERE permissions.assetId = published.id 
-                        AND permissions.userId = ?
-                    )
+                    ${hasDirectViewPermission ? '1 = 1' : '1 = 0'} OR
+                    ${hasDelegatedAccounts ? 'published.ownerId IN (' + delegatedAccounts.map(() => '?').join(',') + ')' : '1 = 0'}
                 )
             )
         )`;
 
-        visibilityParams.push(...Array(4).fill(getAs));
+        visibilityParams.push(getAs); 
+
+        if (!isUnlistedAllowed) {
+            visibilityParams.push(getAs);
+        }
+
+        visibilityParams.push(getAs);
+
+        if (hasDelegatedAccounts) {
+            visibilityParams.push(...delegatedAccounts);
+        }
     }
 
     const interactionTables: InteractionNameType[] = [
