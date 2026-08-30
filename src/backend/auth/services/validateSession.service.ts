@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 import haversine from "haversine-distance"
 import crypto from "crypto";
 
-import { AdvancedError, URL } from "kage-library";
+import { URL } from "kage-library";
 
 import { config } from "../../../../app.config.js";
 import { db } from "../databases/db.js";
@@ -21,11 +21,46 @@ import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { UserAccountType } from "../types/userAccount.type.js";
 import validateIp from "../../_common/helpers/validateIp.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 
 type ActionNameType =
     "REFRESH_PAGE" |
     "DISPLAY_503"
 ;
+
+function clearAllCookies(
+    res: Response, 
+    cookieOptions: CookieOptions
+): void {
+    res.clearCookie("sessionId", cookieOptions);
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("sessionToken", cookieOptions);
+    res.clearCookie("delegationToken", cookieOptions);
+}
+
+async function updateGeoIp(
+    req: Request, 
+    sessionId: string
+): Promise<{ newGeoIpLatestFetch: GeoIpType; in15Minutes: string }> {
+    const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
+    const in15Minutes = DateTime.now().toUTC().plus({ minutes: 15 }).toISO();
+
+    const result = db.accounts.query(
+        `UPDATE sessions SET 
+            geoIpLatestFetch = ?,
+            geoIpLatestFetchExpireDate = ?
+            WHERE sessionId = ? LIMIT 1`,
+        [
+            JSON.stringify(newGeoIpLatestFetch),
+            in15Minutes,
+            sessionId,
+        ]
+    );
+
+    assertDbSuccess(result);
+
+    return { newGeoIpLatestFetch, in15Minutes };
+}
 
 export default async function validateSession(
     req: Request, 
@@ -46,7 +81,6 @@ export default async function validateSession(
 
     const delegationToken = req.cookies?.delegationToken;
     const delegatedAccounts: string[] = [];
-    // LIMIT UP TO 8 ACCOUNTS (INCLUDING THE ORIGINAL)
 
     const cookieOptions: CookieOptions = {
         httpOnly: true,
@@ -58,7 +92,7 @@ export default async function validateSession(
 
     const now = DateTime.now().toUTC().toISO();
 
-    // SOMEWHERE HERE HAVE AN IP BLACKLIST CHECK
+    // DEVELOPER NEEDED: Add a blacklisted IP list here later
 
     // If first visit, generate a device token then save it
     if (!sessionId) {
@@ -91,13 +125,7 @@ export default async function validateSession(
             ]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while saving session",
-                details: result.error
-            })
-        }
+        assertDbSuccess(result);
 
         res.cookie("sessionId", sessionId, {
             httpOnly: true,
@@ -133,20 +161,11 @@ export default async function validateSession(
         [sessionId]
     );
 
-    if (!result.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while fetching session",
-            details: result.error
-        })
-    }
+    assertDbSuccess(result);
 
     // If invalid session, clear cookies and restart
     if (result.rowCount < 1) {
-        res.clearCookie("sessionId", cookieOptions);
-        res.clearCookie("accessToken", cookieOptions);
-        res.clearCookie("sessionToken", cookieOptions);
-        res.clearCookie("delegationToken", cookieOptions);
+        clearAllCookies(res, cookieOptions);
 
         return { action: "REFRESH_PAGE" };
     }
@@ -158,10 +177,7 @@ export default async function validateSession(
         row.sessionTokenExpireDate && new Date(row.sessionTokenExpireDate as string) < new Date();
 
     if (isSessionVoid) {
-        res.clearCookie("sessionId", cookieOptions);
-        res.clearCookie("accessToken", cookieOptions);
-        res.clearCookie("sessionToken", cookieOptions);
-        res.clearCookie("delegationToken", cookieOptions);
+        clearAllCookies(res, cookieOptions);
 
         return { action: "REFRESH_PAGE" };
     };
@@ -186,32 +202,52 @@ export default async function validateSession(
     };
 
     // Session guard limites connected users to prevent server overflow
-    // DEV NOTE: IF STAFF OR PARTNER ACCESS PERMISSIONS AND BOTS; ALL COUNT TOWARDS HARD LIMIT
-    // ALSO, IF ALREADY LAST CONNECTED WITHIN 5 MINUTES, STILL COUNT AS CONNECTED AND ALLOW BYPSS
+    // If connected within the last 5 minutes (the time it takes to set isConnected = 0), do not block
+    setTimeout(() => {
+        const sessionsResult = db.accounts.query(
+            `UPDATE sessions SET isConnected = 0 WHERE sessionId = ? LIMIT 1`,
+            [sessionId]
+        );
+
+        assertDbSuccess(sessionsResult);
+    }, 5 * 60 * 1000); // 5 Minutes; maybe use parseDuration("5m")
+
     const sessionsResult = db.accounts.query(
-        `SELECT COUNT(*) AS count FROM sessions WHERE isConnected = 1`,
+        `SELECT 1 AS count FROM sessions WHERE isConnected = 1`,
     );
 
-    if (!sessionsResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while checking sessions",
-            details: sessionsResult.error
-        })
-    }
+    assertDbSuccess(sessionsResult);
 
-    if (Number(sessionsResult.rows[0]?.count ?? 0) >= config.limits.softConnectedSessions) {
-        log.client.warn(
-            `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
-        ).save()
-        // Renders the 503 page and refreshes every minute
-        return { action: "DISPLAY_503" };
+    if (sessionsResult.rowCount >= config.limits.softConnectedSessions) {
+        const result = db.accounts.query<UserAccountType>(
+            "SELECT permissions FROM users WHERE id = ? LIMIT 1",
+            [row.userId]
+        );
+
+        assertDbSuccess(result);
+
+        if (PlatformPermissionsService.has(result.rows[0].permissions, "BYPASS_CONNECTION_LIMIT")) {
+            if (sessionsResult.rowCount >= config.limits.hardConnectedSessions) {
+                log.client.warn(
+                    `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
+                ).save()
+
+                // Render the 503 page and refreshes every minute
+                return { action: "DISPLAY_503" };
+            }
+        } else {
+            log.client.warn(
+                `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
+            ).save()
+
+            // Render the 503 page and refreshes every minute
+            return { action: "DISPLAY_503" };
+        }
     }
 
     // If bot, return session here
     if (isUserAgentBot) {
-        const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
-        const in15Minutes = DateTime.now().toUTC().plus({ minutes: 15 }).toISO();
+        const { newGeoIpLatestFetch, in15Minutes } = await updateGeoIp(req, sessionId);
         
         // Create audit log
         await wc.callAPI(
@@ -248,13 +284,7 @@ export default async function validateSession(
             ]
         );
 
-        if (!updatedBotSessionResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while updating session",
-                details: updatedBotSessionResult.error
-            })
-        }
+        assertDbSuccess(updatedBotSessionResult);
 
         const crawlerMessages = [
             "says hi while passing through",
@@ -282,7 +312,8 @@ export default async function validateSession(
                 array: role.array
             },
             locale: rowGeoIpJSON.locale,
-            timezone: rowGeoIpJSON.timezone
+            timezone: rowGeoIpJSON.timezone,
+            inviteCode
         };
     }
 
@@ -368,42 +399,13 @@ export default async function validateSession(
                 [sessionId]
             );
 
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while deleting session",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
-            res.clearCookie("sessionId", cookieOptions);
-            res.clearCookie("accessToken", cookieOptions);
-            res.clearCookie("sessionToken", cookieOptions);
-            res.clearCookie("delegationToken", cookieOptions);
+            clearAllCookies(res, cookieOptions);
 
             return { action: "REFRESH_PAGE" };
         } else {
-            const in15Minutes = DateTime.now().toUTC().plus({ minutes: 15 }).toISO();
-
-            const result = db.accounts.query(
-                `UPDATE sessions SET 
-                    geoIpLatestFetch = ?,
-                    geoIpLatestFetchExpireDate = ?
-                    WHERE sessionId = ? LIMIT 1`,
-                [
-                    JSON.stringify(newGeoIpLatestFetch),
-                    in15Minutes,
-                    sessionId,
-                ]
-            );
-
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while updating geo ip",
-                    details: result.error
-                })
-            }
+            await updateGeoIp(req, sessionId);
         }
     }
 
@@ -436,18 +438,9 @@ export default async function validateSession(
                 [sessionId]
             );
 
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while deleting session",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
-            res.clearCookie("sessionId", cookieOptions);
-            res.clearCookie("accessToken", cookieOptions);
-            res.clearCookie("sessionToken", cookieOptions);
-            res.clearCookie("delegationToken", cookieOptions);
+            clearAllCookies(res, cookieOptions);
 
             return { action: "REFRESH_PAGE" };
         } else {
@@ -464,7 +457,7 @@ export default async function validateSession(
         }
     }
 
-    // CREATE A MFA TOKEN CHECK HERE
+    // DEVELOPER NEEDED: Create an MFA token check here later
 
     // If modified session token, delete session, clear cookies, and restart
     if (sessionToken) {
@@ -495,18 +488,9 @@ export default async function validateSession(
                 [sessionId]
             );
 
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while deleting session",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
-            res.clearCookie("sessionId", cookieOptions);
-            res.clearCookie("accessToken", cookieOptions);
-            res.clearCookie("sessionToken", cookieOptions);
-            res.clearCookie("delegationToken", cookieOptions);
+            clearAllCookies(res, cookieOptions);
 
             return { action: "REFRESH_PAGE" };
         } else if (
@@ -531,13 +515,7 @@ export default async function validateSession(
                 ]
             );
 
-            if (!result.success) {
-                throw new AdvancedError({
-                    code: 500,
-                    message: "An error occurred while rotating session token",
-                    details: result.error
-                })
-            }
+            assertDbSuccess(result);
 
             res.cookie("sessionToken", sessionToken, {
                 httpOnly: true,
@@ -552,6 +530,7 @@ export default async function validateSession(
 
     // If modified access token, delete session, clear cookies, and restart
     if (
+        // DEVELOPER NEEDED: Fix this when possible, if possible
         // DISABLED DUE TO FALSE RESETS (LIKELY DUE TO CONCURRENT CALLS)
         // eslint-disable-next-line no-constant-condition
         false
@@ -585,13 +564,7 @@ export default async function validateSession(
             [sessionId]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while deleting session",
-                details: result.error
-            })
-        }
+        assertDbSuccess(result);
 
         const options: CookieOptions  = {
             httpOnly: true,
@@ -629,13 +602,7 @@ export default async function validateSession(
             ]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while rotating access token",
-                details: result.error
-            })
-        }
+        assertDbSuccess(result);
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
@@ -698,13 +665,7 @@ export default async function validateSession(
         ]
     );
 
-    if (!updatedUserSessionResult.success) {
-        throw new AdvancedError({
-            code: 500,
-            message: "An error occurred while updating session",
-            details: updatedUserSessionResult.error
-        })
-    }
+    assertDbSuccess(updatedUserSessionResult);
 
     let permissions;
 
@@ -714,13 +675,7 @@ export default async function validateSession(
             [row.userId]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching permissions",
-                details: result.error
-            })
-        }
+        assertDbSuccess(result);
 
         permissions = {
             value: result.rows[0].permissions,
@@ -738,13 +693,7 @@ export default async function validateSession(
             [row.delegationToken]
         );
 
-        if (!result.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching session",
-                details: result.error
-            });
-        }
+        assertDbSuccess(result);
 
         if (result.rows?.length) {
             result.rows.forEach(row => {
