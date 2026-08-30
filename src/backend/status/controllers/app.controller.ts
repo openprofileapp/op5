@@ -9,6 +9,9 @@ import { vite } from "../server.js"
 import { log } from "../instances.js"
 
 export const renderApp = async (req: Request, res: Response) => {
+    // DEVELOPER NEEDED: Complete status.openprofile.app later
+    return;
+
     const clientConfig = {
         useNerdFonts: config.useNerdFonts,
         theme: config.theme,
