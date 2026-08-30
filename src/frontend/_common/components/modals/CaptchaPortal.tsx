@@ -1,22 +1,17 @@
-import { createPortal } from "react-dom";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
-type CaptchaResult = { token: string };
+import { 
+    CaptchaResult,
+    registerCaptchaHandler,
+    unregisterCaptchaHandler
+} from "../../scripts/captchaService.js";
 
-let externalOpen: (() => Promise<CaptchaResult>) | null = null;
+export default function CaptchaPortal({ siteKey }: { siteKey: string }) {
+    const { t, ready: isTranslationReady } = useTranslation();
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function showCaptcha(): Promise<CaptchaResult> {
-    if (!externalOpen) throw new Error("CaptchaPortal not mounted");
-    return externalOpen();
-}
-
-export default function CaptchaPortal({
-    siteKey,
-}: {
-    siteKey: string;
-}) {
     const [open, setOpen] = useState(false);
     const [closing, setClosing] = useState(false);
 
@@ -25,7 +20,7 @@ export default function CaptchaPortal({
     const finished = useRef(false);
 
     useEffect(() => {
-        externalOpen = () => {
+        registerCaptchaHandler(() => {
             setOpen(true);
             finished.current = false;
 
@@ -33,10 +28,10 @@ export default function CaptchaPortal({
                 resolver.current = resolve;
                 rejecter.current = reject;
             });
-        };
+        });
 
         return () => {
-            externalOpen = null;
+            unregisterCaptchaHandler();
         };
     }, []);
 
@@ -44,7 +39,6 @@ export default function CaptchaPortal({
         if (finished.current) return;
 
         finished.current = true;
-
         setClosing(true);
 
         setTimeout(() => {
@@ -69,18 +63,14 @@ export default function CaptchaPortal({
         setOpen(false);
     };
 
-    if (!open) return null;
+    if (!isTranslationReady || !open) return null;
 
     return createPortal(
-        <div className="modal modal-open">
-            <div className="modal-backdrop bg-black/09" onClick={close} />
+        <div className="modal modal-open z-9999">
+            <div className="modal-backdrop" onClick={close} />
 
             <div
-                className={`modal-box w-fit p-8 relative origin-center transition-all duration-200 ease-out ${
-                    closing
-                        ? "opacity-0 scale-95 translate-y-2"
-                        : "opacity-100 scale-100 translate-y-0"
-                }`}
+                className="modal-box w-fit"
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
@@ -92,7 +82,7 @@ export default function CaptchaPortal({
 
                 <h3 className="font-nerdfont text-6xl text-center mb-4">󰚩</h3>
                 <h3 className="font-bold text-2xl text-center pb-8">
-                    Are you a robot?
+                    {t("components.modals.captchaHeader")}
                 </h3>
 
                 <div className="flex justify-center">
