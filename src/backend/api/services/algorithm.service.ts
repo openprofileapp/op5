@@ -185,7 +185,9 @@ export default class AlgorithmService {
         sourceId: string,
         event: AlgorithmEventNameType
     ) {
-        assertNotNull([targetId, sourceId, event]);
+        assertNotNull([targetId, sourceId]);
+
+        if (!event) return;
 
         let score = index.events[event].score;
         const { cooldown, scope } = index.events[event];
