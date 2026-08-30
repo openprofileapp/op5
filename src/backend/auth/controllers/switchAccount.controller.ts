@@ -3,13 +3,13 @@ import crypto from "crypto";
 
 import { AdvancedError, URL } from "kage-library";
 
-import { db } from "../../databases/db.js";
-import { log } from "../../instances.js";
-import { SessionType } from "../../types/session.type.js";
-import { config } from "../../../../../app.config.js";
-import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
-import updateToken from "../../helpers/updateToken.js";
-import { i18n } from "../../../_common/instances.js";
+import { db } from "../databases/db.js";
+import { log } from "../instances.js";
+import { SessionType } from "../types/session.type.js";
+import { config } from "../../../../app.config.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import updateToken from "../helpers/updateToken.js";
+import { i18n } from "../../_common/instances.js";
 
 export const switchAccountController = async (req: Request, res: Response) => {
     try {
