@@ -16,15 +16,15 @@ import "./scripts/main.js";
 const style = document.createElement("style");
 
 style.textContent = `
-@font-face {
-    font-family: "Alexandria";
-    src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
-}
+    @font-face {
+        font-family: "Alexandria";
+        src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
+    }
 
-@font-face {
-    font-family: "NerdFont";
-    src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
-}
+    @font-face {
+        font-family: "NerdFont";
+        src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
+    }
 `;
 
 document.head.appendChild(style);
@@ -34,8 +34,8 @@ document.head.appendChild(style);
 
 import ScrollToTop from "../_common/components/ScrollToTop.js"
 import ToastContainer from "../_common/components/ToastContainer.js"
-import CaptchaPortal from "../_common/components/CaptchaPortal.js"
-import AskAlice from "../_common/components/AskAlice.js"
+import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
+import Messages from "../_common/components/Messages.js"
 import Navbar from "./components/Navbar.js"
 import Footer from "./components/Footer.js"
 
@@ -86,7 +86,7 @@ async function bootstrap() {
                         <ScrollToTop />
                         <ToastContainer />
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
-                        <AskAlice />
+                        <Messages />
                         <Navbar />
                         <Routes>
                             <Route path="/" element={<Home />} />
