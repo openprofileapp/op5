@@ -54,8 +54,10 @@ import UserProfile from "./pages/UserProfile.js"
 import Template from "./pages/Template.js"
 
 async function bootstrap() {
+    const inviteCode = new URLSearchParams(window.location.search).get("invite");
+
     const response = await fetch(
-        `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/session`,
+        `https://${isGateway() ? window.location.host : window.config.domains.auth}${isGateway() ? "/auth" : ""}/session${inviteCode ? `?invite=${encodeURIComponent(inviteCode)}` : ""}`,
         {
             credentials: "include",
         }
