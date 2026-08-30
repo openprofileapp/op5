@@ -32,7 +32,7 @@ export const vite = await createViteServer({
     isProduction: config.isProduction,
     host: config.domains.studio,
     port: vitePort,
-    ssl: getEnv("SSL"),
+    ssl: getEnv("SSL") as object,
     root: "src/frontend",
 });
 
@@ -67,7 +67,7 @@ Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const server = https.createServer(getEnv("SSL"), app);
+const server = https.createServer(getEnv("SSL") as object, app);
 const port = config.ports.studio
 
 server.listen(port, "0.0.0.0", () => {
