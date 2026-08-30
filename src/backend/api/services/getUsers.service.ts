@@ -197,15 +197,16 @@ export default function getUsersService({
             )
         )`;
     } else {
+        // DEVELOPER NEEDED: Check auth for delegated accounts. If the user.id is matching from an array, allow visibility
         visibilityCondition = `(
             (users.visibility = 'public') OR
             (users.visibility = 'registered' AND ? IS NOT NULL) OR
             (users.visibility = 'followers' AND follows.source IS NOT NULL) OR
             (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
-            (users.visibility = 'unlisted' AND users.id = ? AND ${getFrom === "userProfile" ? "TRUE" : "FALSE"}) OR
+            (users.visibility = 'unlisted' AND users.id = ?) OR
             (
                 users.visibility = 'private' AND 
-                ${getFrom === "userProfile" ? "TRUE" : "FALSE"} AND (
+                (
                     users.id = ? OR 
                     EXISTS (
                         SELECT 1 FROM permissions 
