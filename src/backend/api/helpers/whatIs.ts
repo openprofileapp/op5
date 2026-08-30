@@ -86,7 +86,9 @@ function formatReturnData(
  * // }
  * ```
  */
-export default function whatIs(id: string): WhatIsType {
+export default function whatIs(
+    id: string
+): WhatIsType {
     assertNotNull(id);
 
     const userResult = db.users.query<UserType>(
@@ -98,7 +100,8 @@ export default function whatIs(id: string): WhatIsType {
 
     if (userResult.rowCount !== 0) {
         const getResult = getUsersService({
-            id
+            id,
+            internalPermissionsBypass: true
         });
 
         const data = getResult.items[0];
@@ -117,7 +120,8 @@ export default function whatIs(id: string): WhatIsType {
 
     if (characterResult.rowCount !== 0) {
         const getResult = getPublishedCharactersService({
-            id
+            id,
+            internalPermissionsBypass: true
         });
 
         const data = getResult.items[0];

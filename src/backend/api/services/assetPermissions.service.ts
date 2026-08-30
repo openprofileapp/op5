@@ -308,15 +308,23 @@ export default class AssetPermissionsService {
     ) {
         assertNotNull([userId, permissions, assetId]);
 
-        const assetType = whatIs(assetId)
+        const assetType = whatIs(
+            assetId
+        )
 
         assertNotNull(assetType);
 
         // DEVELOPER NEEDED: Must check drafts, not pubished ones
         const asset: GetPublishedCharacterType | GetUserType | null = 
-            assetType.type === "CHARACTER" ? getPublishedCharactersService({ id: assetId }) :
+            assetType.type === "CHARACTER" ? getPublishedCharactersService({ 
+                id: assetId,
+                internalPermissionsBypass: true
+            }) :
             // DEVELOPER NEEDED: Add collections and universes
-            assetType.type === "USER" ? getUsersService({ id: assetId }) :
+            assetType.type === "USER" ? getUsersService({ 
+                id: assetId,
+                internalPermissionsBypass: true
+            }) :
             null;
 
         assertNotNull(asset)
