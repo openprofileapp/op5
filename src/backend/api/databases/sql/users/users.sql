@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     banner TEXT,
     status TEXT,
     about TEXT,
-    tags TEXT,
+    tags TEXT DEFAULT '[]',
     pronouns TEXT,
     birthdate TEXT,
     birthdateVisibility TEXT NOT NULL DEFAULT 'private',

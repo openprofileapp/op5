@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS drafts (
     animatedAvatar TEXT,
     banner TEXT,
     about TEXT,
-    tags TEXT,
+    tags TEXT DEFAULT '[]',
     licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
