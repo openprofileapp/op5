@@ -14,7 +14,7 @@ import sessionRoute from "./routes/session.routes.js";
 import loginRoutes from "./routes/login.routes.js";
 import captchaRoute from "./routes/captcha.route.js";
 import tokenRoute from "./routes/token.route.js";
-import mfaRoutes from "./routes/mfa.routes.js";
+// import mfaRoutes from "./routes/mfa.routes.js";
 import { validateSessionMiddleware } from "./middlewares/validateSession.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
@@ -65,7 +65,7 @@ Start server
 ———————————————————————————————————————————————————————————————— 
 */
 
-const server = https.createServer(getEnv("SSL"), app);
+const server = https.createServer(getEnv("SSL") as object, app);
 const port = config.ports.auth
 
 server.listen(port, "0.0.0.0", () => {
