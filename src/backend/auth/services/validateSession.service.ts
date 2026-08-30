@@ -410,8 +410,12 @@ export default async function validateSession(
     }
 
     // If modified delegation token, delete session, clear cookies, and restart
-    if (delegationToken) {
-        if (crypto.createHash("sha256").update(delegationToken).digest("hex") !== row.delegationToken) {
+    if (row.delegationToken) {
+        const hashedToken = typeof delegationToken === "string"
+            ? crypto.createHash("sha256").update(delegationToken).digest("hex")
+            : null;
+
+        if (!delegationToken || hashedToken !== row.delegationToken) {
             const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
 
             // Create audit log
@@ -425,7 +429,7 @@ export default async function validateSession(
                         source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, 
                         action: "DELETED",
                         changes: { 
-                            new: { delegationToken: crypto.createHash("sha256").update(delegationToken).digest("hex") }, 
+                            new: { delegationToken: hashedToken }, 
                             old: { delegationToken: row.delegationToken }
                         },
                         origin: req.originalUrl
@@ -460,8 +464,12 @@ export default async function validateSession(
     // DEVELOPER NEEDED: Create an MFA token check here later
 
     // If modified session token, delete session, clear cookies, and restart
-    if (sessionToken) {
-        if (crypto.createHash("sha256").update(sessionToken).digest("hex") !== row.sessionToken) {
+    if (row.sessionToken) {
+        const hashedToken = typeof sessionToken === "string"
+            ? crypto.createHash("sha256").update(sessionToken).digest("hex")
+            : null;
+
+        if (!sessionToken || hashedToken !== row.sessionToken) {
             const newGeoIpLatestFetch = await fetchGeoIp(validateIp(req));
 
             // Create audit log
@@ -475,7 +483,7 @@ export default async function validateSession(
                         source: { geoIp: newGeoIpLatestFetch, userAgent: formattedUserAgent }, 
                         action: "DELETED",
                         changes: { 
-                            new: { sessionToken: crypto.createHash("sha256").update(sessionToken).digest("hex") }, 
+                            new: { sessionToken: hashedToken }, 
                             old: { sessionToken: row.sessionToken }
                         },
                         origin: req.originalUrl
