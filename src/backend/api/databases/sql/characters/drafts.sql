@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS drafts (
     auraSecondary TEXT,
     isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
-    readVisibility TEXT NOT NULL DEFAULT 'public',
-    sendComments TEXT NOT NULL DEFAULT 'public',
+    readVisibility TEXT NOT NULL DEFAULT 'default',
+    sendComments TEXT NOT NULL DEFAULT 'default',
     isScheduled INTEGER NOT NULL DEFAULT 0, -- The scheduled conditions are in scheduled.sql
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
