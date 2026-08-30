@@ -1,5 +1,4 @@
 import type { Request, Response } from "express";
-import { assertBearer } from "../../_common/asserts/bearer.assert.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { AdvancedError } from "kage-library";
 import { log } from "../instances.js";
@@ -8,6 +7,8 @@ import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import postInteractionService from "../services/postInteraction.service.js";
+import sendNotificationService from "../services/sendNotification.service.js";
+import { NotificationNameType } from "../../../_common/types/notification.type.js";
 
 export const postregisterController = async (req: Request, res: Response) => {
     try {
@@ -62,28 +63,58 @@ export const postregisterController = async (req: Request, res: Response) => {
             ]
         );
 
-        // USERNAMES HERE
-
         assertDbSuccess(userResult);
+
+        const usernameResult = db.users.query(
+            `INSERT INTO usernames (
+                userId, 
+                username,
+                isPrimary
+            ) VALUES (?, ?, ?)`,
+            [
+                id,
+                username,
+                1
+            ]
+        );
+
+        assertDbSuccess(usernameResult);
+
+        const uniqueBadges = Array.from(new Set(badges));
+
+        if (uniqueBadges.length > 0) {
+            const placeholders = uniqueBadges.map(() => "(?, ?)").join(", ");
+            const values = uniqueBadges.flatMap((badge) => [id, badge]);
+
+            const badgesResult = db.users.query(
+                `INSERT INTO badges (
+                    id, 
+                    type
+                ) VALUES ${placeholders}`,
+                values
+            );
+
+            assertDbSuccess(badgesResult);
+        }
+
+        res.status(200).json({
+            ok: true
+        });
+
+        const uniqueNotifications = Array.from(new Set(notifications));
+
+        for (const notification of uniqueNotifications) {
+            await sendNotificationService(
+                id,
+                notification as NotificationNameType
+            );
+        }
 
         await postInteractionService(
             id,
             "9534968913312158", 
             "follows"
         );
-
-        // BADGES HERE
-
-        
-
-
-
-
-
-
-        res.status(200).json({
-            ok: true
-        });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
