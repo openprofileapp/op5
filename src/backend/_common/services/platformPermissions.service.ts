@@ -31,13 +31,14 @@ const index = {
 
     PARTNER_ACCESS: 15n, // Access the partner stats page and other tools
     TOGGLE_EXPERIMENTS: 16n, // View and toggle on-going experiments instead of being randomly rolled
+    BYPASS_CONNECTION_LIMIT: 17n, // Do not display a 503 page if the maximum connected sessions is reached
 
-    VIEW_ANALYTICS: 17n, // View and compare platform analytics (minus revenue) aganist its own data
-    VIEW_REVENUE: 18n,// View and compare the platform revenue earned aganist its own data
-    AUDIT_ACCESS: 19n, // Based on permissions, view and take action on changes performed
+    VIEW_ANALYTICS: 18n, // View and compare platform analytics (minus revenue) aganist its own data
+    VIEW_REVENUE: 19n,// View and compare the platform revenue earned aganist its own data
+    AUDIT_ACCESS: 20n, // Based on permissions, view and take action on changes performed
 
-    REVIEW_TICKETS: 20n, // View, sort, accept, or deny support tickets
-    MANAGE_SUBSCRIPTIONS: 21n, // Edit, cancel, or assign account subscriptions
+    REVIEW_TICKETS: 21n, // View, sort, accept, or deny support tickets
+    MANAGE_SUBSCRIPTIONS: 22n, // Edit, cancel, or assign account subscriptions
     TERMINATE_SESSIONS: 23n, // Terminate active user sessions
 
     REVIEW_REPORTS: 24n, // View, sort, accept, or deny reports
@@ -113,7 +114,8 @@ const roles = {
             "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
-            "CASHOUT_REVENUE", "PARTNER_ACCESS"
+            "CASHOUT_REVENUE", "PARTNER_ACCESS",
+            "BYPASS_CONNECTION_LIMIT"
         ]
     },
     verifiedPartner: {
@@ -125,7 +127,8 @@ const roles = {
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "UPLOAD_MEMORIES", "VERIFIED_ACCESS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
-            "CASHOUT_REVENUE", "PARTNER_ACCESS"
+            "CASHOUT_REVENUE", "PARTNER_ACCESS",
+            "BYPASS_CONNECTION_LIMIT"
         ]
     },
     staff: {
@@ -136,6 +139,7 @@ const roles = {
             "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
             "BYPASS_EXTERNAL_ADS", "PREMIUM_ACCESS", "USE_CUSTOM_THEMES",
+            "BYPASS_CONNECTION_LIMIT"
         ]
     },
     supportAgent: {
@@ -145,6 +149,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
+            "BYPASS_CONNECTION_LIMIT",
             "REVIEW_TICKETS", "MANAGE_SUBSCRIPTIONS", "MANAGE_VISIBILITY"
         ]
     },
@@ -155,6 +160,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
+            "BYPASS_CONNECTION_LIMIT",
             "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "MODERATE_ACCOUNTS", "SUSPEND_ACCOUNTS", "TERMINATE_SESSIONS"
         ]
     },
@@ -165,6 +171,7 @@ const roles = {
             "VIEW", "READ", "WRITE", 
             "USE_INTERACTIONS", "USE_SOCIAL_FEATURES", 
             "CREATE_REPORTS", "CREATE_ASSETS", "CREATE_BOTS",
+            "BYPASS_CONNECTION_LIMIT",
             "REVIEW_REPORTS", "AUDIT_ACCESS", "MANAGE_VISIBILITY", "REQUEST_CHANGES", "MODERATE_ACCOUNTS", "SUSPEND_ACCOUNTS",
             "REVIEW_APPEALS"
         ]
@@ -219,18 +226,10 @@ export default class PlatformPermissionsService {
      * PlatformPermissionsService.decode("1"); // ["VIEW"]
      */
     public static decode(input: string): PlatformPermissionName[] {
-        if (!input) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
-        }
+        assertNotNull(input);
 
         if (!/^[0-9]+$/.test(input)) {
-            throw new AdvancedError({
-                code: 400,
-                message: "Malformed request"
-            })
+            assertNotNull(input);
         }
 
         const userPermissions = BigInt(input);
