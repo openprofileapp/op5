@@ -40,7 +40,7 @@ export default function AssetCarousel({
         if (!scrollContainerRef.current) return;
 
         const container = scrollContainerRef.current;
-        const distance = container.clientWidth * 0.9;
+        const distance = container.clientWidth * 0.8;
 
         container.scrollBy({
             left: direction === "right" ? distance : -distance,
