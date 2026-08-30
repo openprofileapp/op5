@@ -41,6 +41,11 @@
     "fileTooLarge": "File exceeds 1 MB limit",
     "failedAccountRegistration": "Failed to register account"
   },
+  "components": {
+    "modals": {
+      "captchaHeader": "Are you a robot?"
+    }
+  },
   "pages": {
     "languages": "Languages",
     "404": {
