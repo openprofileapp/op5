@@ -15,12 +15,17 @@ import { NotificationNameType } from "../../../_common/types/notification.type.j
 import whatIs from "../helpers/whatIs.js";
 import { config } from "../../../../app.config.js";
 
-export default async function postInteractionService(
+interface InteractionEventResult {
+    newInteraction: boolean;
+    count?: number;
+}
+
+async function postInteractionEvent(
     sourceId: string,
     targetId: string, 
     type: InteractionNameType,
     session?: ValidSessionType
-) {   
+): Promise<InteractionEventResult> {   
     const allowedTypes = satisfiesAll<InteractionNameType>()(
         "blocks",
         "chats",
@@ -73,7 +78,7 @@ export default async function postInteractionService(
         const result = q(
             `DELETE FROM ${type} WHERE source = ? AND target = ?`,
             [sourceId, targetId]
-        )
+        );
 
         assertDbSuccess(result);
 
@@ -83,7 +88,7 @@ export default async function postInteractionService(
             const result = q(
                 `INSERT INTO ${type} (source, target) VALUES (?, ?)`,
                 [sourceId, targetId]
-            )
+            );
 
             assertDbSuccess(result);
         }
@@ -138,21 +143,22 @@ export default async function postInteractionService(
 
     AlgorithmService.update(targetId, sourceId, algorithmEvent as AlgorithmEventNameType);
 
-    const interactions = getInteractionsService({
-        target: targetId,
-        type
-    })
+    const interactions = getInteractionsService({ target: targetId, type });
+    const count = interactions[type]?.count;
 
-    let isMilestone = false;
-    const count = interactions[type]?.count
+    return { newInteraction, count };
+}
 
-    if (count && notificationMilestones.includes(count)) {
-        isMilestone = true
-    }
+async function postInteractionNotification(
+    sourceId: string,
+    targetId: string,
+    type: InteractionNameType,
+    eventData: InteractionEventResult
+) {
+    const { newInteraction, count } = eventData;
 
     let notificationType: NotificationNameType | undefined;
 
-    // DEVELOPER NEEDED: Add collections, friend requests, and updates later
     switch (`${type}:${newInteraction}`) {
         case "follows:true":
             notificationType = "NEW_FOLLOW";
@@ -162,55 +168,64 @@ export default async function postInteractionService(
             break;
     }
 
-    if (!notificationType) return;
-
     const whatIsData = whatIs(targetId);
 
     if (
         notificationType &&
-        (
-            sourceId !== whatIsData.ownerId || 
-            sourceId !== whatIsData.id
-        )
+        (sourceId !== whatIsData.ownerId || sourceId !== whatIsData.id)
     ) {
         await sendNotificationService(
             config.isProduction ? whatIsData.ownerId || whatIsData.id : sourceId,
             notificationType,
-            {
-                sourceId: sourceId,
-                targetId
-            }
+            { sourceId, targetId }
         );
     }
 
+    const isMilestone = count ? notificationMilestones.includes(count) : false;
+
     if (isMilestone) {
+        let milestoneType: NotificationNameType | undefined;
+
         switch(type) {
             case "follows":
-                notificationType = "FOLLOWS_MILESTONE"
+                milestoneType = "FOLLOWS_MILESTONE";
                 break;
             case "likes":
-                notificationType = "LIKES_MILESTONE"
+                milestoneType = "LIKES_MILESTONE";
                 break;
             case "reads":
-                notificationType = "READS_MILESTONE"
+                milestoneType = "READS_MILESTONE";
                 break;
             case "shares":
-                notificationType = "SHARES_MILESTONE"
+                milestoneType = "SHARES_MILESTONE";
                 break;
             case "views":
-                notificationType = "VIEWS_MILESTONE"
+                milestoneType = "VIEWS_MILESTONE";
                 break;
         }
 
-        if (notificationType) {
+        if (milestoneType) {
             await sendNotificationService(
                 sourceId,
-                notificationType,
-                {
-                    targetId,
-                    count
-                }
+                milestoneType,
+                { targetId, count }
             );
         }
     }
+}
+
+export default async function postInteractionService(
+    sourceId: string,
+    targetId: string, 
+    type: InteractionNameType,
+    session?: ValidSessionType
+): Promise<InteractionEventResult> {
+    const result = await postInteractionEvent(sourceId, targetId, type, session);
+
+    // Returns the result instantly and processes the notification in the background
+    postInteractionNotification(sourceId, targetId, type, result).catch(err => {
+        console.error("Failed to process postInteraction notification in background:", err);
+    });
+
+    return result;
 }
