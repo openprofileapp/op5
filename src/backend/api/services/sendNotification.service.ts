@@ -7,6 +7,7 @@ import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../databases/db.js";
 import sendPushNotificationService from "./sendPushNotification.service.js";
 import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
+import whatIs from "../helpers/whatIs.js";
 
 export const notificationMilestones = [ 
     10, 25, 50, 75,
@@ -44,6 +45,17 @@ export default async function sendNotificationService(
     geoIp
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
+
+    let whatIsData;
+
+    if (targetId) {
+        whatIsData = whatIs(targetId);
+
+        if (
+            (userId === whatIsData.ownerId) ||
+            (userId === whatIsData.id)
+        ) return;
+    }
 
     const allowedTypes = satisfiesAll<NotificationNameType>()(
         "WEBPUSH_SUBSCRIBE",
@@ -105,12 +117,11 @@ export default async function sendNotificationService(
         }
     });
 
-    if (isValid) {
+    if (isValid && whatIsData) {
         // DEVELOPER NEEDED: Register the remaining of the push notifications
-        // DEVELOPER NEEDED: Send to targetId.owner (whatIs(targetId))
         // ALSO GET THE DELGATED ACCOUNTS OF TARGED ID OWNER AND DO A FOR EACH
         await sendPushNotificationService(    
-            userId,
+            whatIsData.ownerId as string || whatIsData.id as string,
             type,
             {
                 sourceId,
