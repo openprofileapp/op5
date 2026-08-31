@@ -1,5 +1,5 @@
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
-import { apiHost } from "../../_common/scripts/hosts.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 export async function postInteraction(
     targetId: string, 
@@ -7,7 +7,7 @@ export async function postInteraction(
 ) {
     try {
         const response = await fetch(
-            `${apiHost}/v3/interactions`, 
+            `${apiBaseUrl}/v3/interactions`, 
             { 
                 credentials: "include", 
                 method: "POST", 

@@ -5,11 +5,10 @@ import { useTranslation } from "react-i18next";
 import { log } from "../scripts/main.js";
 
 import Metadata from "../../_common/components/Metadata.js";
-import isGateway from "../../_common/helpers/isGateway.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
-import { apiHost } from "../../_common/scripts/hosts.js";
+import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
 
@@ -56,7 +55,7 @@ export default function Home() {
         const fetchTrendingCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v3/characters/trending`, 
+                    `${apiBaseUrl}/v3/characters/trending`, 
                     { credentials: "include" }
                 );
 
@@ -84,7 +83,7 @@ export default function Home() {
         const fetchPopularCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v3/characters/popular`, 
+                    `${apiBaseUrl}/v3/characters/popular`, 
                     { credentials: "include" }
                 );
                 
@@ -112,7 +111,7 @@ export default function Home() {
         const fetchRecentCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v3/characters/recent`, 
+                    `${apiBaseUrl}/v3/characters/recent`, 
                     { credentials: "include" }
                 );
                 
@@ -141,7 +140,7 @@ export default function Home() {
         const fetchRecentlyUpdatedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v3/characters/recent/following`, 
+                    `${apiBaseUrl}/v3/characters/recent/following`, 
                     { credentials: "include" }
                 );
                 
@@ -169,7 +168,7 @@ export default function Home() {
         const fetchRecommendedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiHost}/v3/characters/recommended`, 
+                    `${apiBaseUrl}/v3/characters/recommended`, 
                     { credentials: "include" }
                 );
                 
@@ -205,7 +204,7 @@ export default function Home() {
                         <div
                             className="absolute top-[64px] inset-0 bg-cover bg-center h-140"
                             style={{
-                                backgroundImage: `url(https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/media/hero.png)`,
+                                backgroundImage: `url(${cdnBaseUrl}/media/hero.png)`,
                                 opacity: 0.1
                             }}
                         />

@@ -6,8 +6,6 @@ import { I18nextProvider } from "react-i18next"
 
 import i18n from "../_common/i18n.js"
 
-import isGateway from "../_common/helpers/isGateway.js"
-
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
 import "./scripts/main.js";
@@ -15,15 +13,15 @@ import "./scripts/main.js";
 const style = document.createElement("style");
 
 style.textContent = `
-@font-face {
-    font-family: "Alexandria";
-    src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
-}
+    @font-face {
+        font-family: "Alexandria";
+        src: url("${cdnBaseUrl}/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
+    }
 
-@font-face {
-    font-family: "NerdFont";
-    src: url("https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
-}
+    @font-face {
+        font-family: "NerdFont";
+        src: url("${cdnBaseUrl}/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
+    }
 `;
 
 document.head.appendChild(style);
@@ -42,10 +40,11 @@ import CharacterTemplate from "./components/CharacterTemplate.js"
 
 import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
+import { authBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
 
 async function bootstrap() {
     const response = await fetch(
-        `https://${isGateway() ? window.location.host : window.config.domains.auth}/session`,
+        `${authBaseUrl}/session`,
         {
             credentials: "include",
         }

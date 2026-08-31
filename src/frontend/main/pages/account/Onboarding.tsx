@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import isGateway from "../../../_common/helpers/isGateway.js";
-
 import Metadata from "../../../_common/components/Metadata.js";
+import { cdnBaseUrl } from "../../../_common/scripts/domains.js";
 
 export default function Onboarding() {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -23,7 +22,7 @@ export default function Onboarding() {
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
     useEffect(() => {
-        fetch(`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/terms-of-service.txt`)
+        fetch(`${cdnBaseUrl}/terms-of-service.txt`)
             .then((res) => res.text())
             .then((data) => {
                 setText(data);

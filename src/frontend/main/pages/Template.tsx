@@ -10,11 +10,8 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { formatNumber } from "kage-library/client";
 
-import isGateway from "../../_common/helpers/isGateway.js";
 
 import Metadata from "../../_common/components/Metadata.js";
-import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
 import ProjectCard from "../components/ProjectCard.js";
 import Badges from "../components/Badges.js";
 import { toast } from "../../_common/scripts/toast.js";
@@ -27,6 +24,7 @@ import Mention from "../components/Mention.js";
 import React from "react";
 import TitleCard from "../components/TitleCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -117,7 +115,7 @@ export default function NotFound() {
 
         updated.forEach((item, index) => {
             fetch(
-                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${item.id}`,
+                `${apiBaseUrl}/v3/pins/${window.session.userId}/${item.id}`,
                 {
                     method: "POST",
                     headers: {
@@ -136,7 +134,7 @@ export default function NotFound() {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${id}`, 
+                    `${apiBaseUrl}/v3/users?id=${id}`, 
                     { credentials: "include" }
                 );
 
@@ -163,7 +161,7 @@ export default function NotFound() {
         const fetchPins = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/pins/${user.id}`,
+                    `${apiBaseUrl}/v3/pins/${user.id}`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -184,7 +182,7 @@ export default function NotFound() {
         const fetchProfiles = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/profiles?owner=${user.id}`,
+                    `${apiBaseUrl}/v3/profiles?owner=${user.id}`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -639,7 +637,7 @@ Check out my character: <@6773794953695671>
                                                     <div className="flex justify-center w-full">
                                                         <img
                                                             className="h-32 w-32 object-contain"
-                                                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                            src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
                                                             alt="avatar"
                                                         />
                                                     </div>
@@ -648,7 +646,7 @@ Check out my character: <@6773794953695671>
                                                 </div>
                                                 <img
                                                     className="h-38 w-38 object-contain"
-                                                    src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                    src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
                                                     alt="avatar"
                                                 />
                                             </div>

@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
 
-import isGateway from "./helpers/isGateway.js";
+import { cdnBaseUrl } from "./scripts/domains.js";
 
 const config = window.config;
 
@@ -28,7 +28,7 @@ i18n
         ],
 
         backend: {
-            loadPath: `https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/locales/{{lng}}.json?v=${config.metadata.version.full}`,
+            loadPath: `${cdnBaseUrl}/locales/{{lng}}.json?v=${config.metadata.version.semver}`,
         },
 
         interpolation: {

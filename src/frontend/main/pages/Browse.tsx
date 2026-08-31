@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import isGateway from "../../_common/helpers/isGateway.js";
-
 import Metadata from "../../_common/components/Metadata.js";
-import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import ProjectCard from "../components/ProjectCard.js";
@@ -13,6 +9,7 @@ import UserCard from "../components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Pagination } from "../components/Pagination.js";
 import { TypeableDropdownInput } from "../../studio/components/TypeableDropdownInput.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
@@ -92,7 +89,7 @@ export default function SearchProfiles() {
         const fetchUsers = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users`,
+                    `${apiBaseUrl}/v3/users`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
@@ -115,7 +112,7 @@ export default function SearchProfiles() {
             try {
                 const offset = nextOffset !== null ? `&offset=${nextOffset}` : "";
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
+                    `${apiBaseUrl}/v3/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();

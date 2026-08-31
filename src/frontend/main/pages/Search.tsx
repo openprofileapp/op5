@@ -6,7 +6,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
-import { apiHost } from "../../_common/scripts/hosts.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 export default function Search() {
     const { ready: isTranslationReady } = useTranslation();
@@ -37,7 +37,7 @@ export default function Search() {
                 if (query) params.set("q", query);
                 params.set("page", "1");
 
-                const url = `${apiHost}/v3/characters?${params.toString()}`;
+                const url = `${apiBaseUrl}/v3/characters?${params.toString()}`;
                 const res = await fetch(url, { credentials: "include" });
                 const data = await res.json();
 
@@ -95,7 +95,7 @@ export default function Search() {
                     if (query) params.set("q", query);
                     params.set("page", nextPage.toString());
 
-                    const url = `${apiHost}/v3/characters?${params.toString()}`;
+                    const url = `${apiBaseUrl}/v3/characters?${params.toString()}`;
                     const res = await fetch(url, { credentials: "include" });
                     const data = await res.json();
 

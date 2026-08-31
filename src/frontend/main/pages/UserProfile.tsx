@@ -5,11 +5,8 @@ import Confetti from "react-confetti";
 
 import { formatNumber } from "kage-library/client";
 
-import isGateway from "../../_common/helpers/isGateway.js";
 
 import Metadata from "../../_common/components/Metadata.js";
-import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
 import Badges from "../components/Badges.js";
 import ProjectCard from "../components/ProjectCard.js";
 import ExternalLinks from "../components/ExternalLinks.js";
@@ -43,7 +40,7 @@ export default function UserProfile() {
         const fetchUser = async () => {
             try {
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${id}`,
+                    `${apiBaseUrl}/v3/users?id=${id}`,
                     { credentials: "include" }
                 );
                 
@@ -134,8 +131,6 @@ export default function UserProfile() {
                     }}
                 />
             )}
-                        
-            <Navbar isBannerPage={true} />
 
             <div className={user.isAuraEnabled ? "bg-base-100" : "bg-base-200"}>
                 <div style={{backgroundColor: user.isAuraEnabled ? hexToRgba(user.auraPrimary, 0.05) : "transparent"}}>

@@ -7,7 +7,7 @@ import { toast } from "../../_common/scripts/toast.js";
 import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../scripts/postInteraction.js";
 import { formatNumber } from "kage-library/client";
-import { studioHost } from "../../_common/scripts/hosts.js";
+import { studioBaseUrl } from "../../_common/scripts/domains.js";
 
 type Props = {
     data: GetPublishedCharacterType;
@@ -309,7 +309,7 @@ export default function CharacterCard({
                         >
                             <a
                                 className="justify-between"
-                                href={`${studioHost}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                                href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
