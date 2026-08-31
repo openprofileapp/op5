@@ -144,7 +144,7 @@ export default function SearchProfiles() {
             />
 
             <div className="px-4 py-4 md:px-14">
-                <div className="px-0 md:px-4 flex flex-row gap-3">
+                <div className="px-0 flex flex-row gap-3">
                     <div className="mt-4 mb-6 text-xl font-bold text-left flex-4">
                         {isOnPopularPage ? "Popular (Top 30)" : ""}
                         {isOnRecentPage ? "New & Updated (Last 30 Days)" : ""}
@@ -152,17 +152,6 @@ export default function SearchProfiles() {
                         {isOnBrowsePage ? `Browsing All` : ""}
                         {isOnTagPage ? `Browsing #${tag}` : ""}
                     </div>
-
-                    {/*export type SortByType = 
-    | "recommended"
-    | "exclusive"
-    | "verified"
-    | "popularDesc"
-    | "popularAsc"
-    | "newest"
-    | "oldest"
-    | "nameAsc"
-    | "nameDesc" */}
 
                     {(isOnBrowsePage || isOnTagPage) && (
                         <div className="flex-1 mt-2">
@@ -172,10 +161,10 @@ export default function SearchProfiles() {
                                     { id: "recommended", name: "Recommended" },
                                     { id: "exclusive", name: "Exclusive" },
                                     { id: "verified", name: "Verified" },
-                                    { id: "newest", name: "Newest First" },
-                                    { id: "oldest", name: "Oldest First" },
                                     { id: "popularDesc", name: "Most Popular" },
                                     { id: "popularAsc", name: "Least Popular" },
+                                    { id: "newest", name: "Newest First" },
+                                    { id: "oldest", name: "Oldest First" },
                                     { id: "nameAsc", name: "Name (A-Z)" },
                                     { id: "nameDesc", name: "Name (Z-A)" }
                                 ]}
