@@ -3,6 +3,11 @@
     "reason": "We're performing updates!"
   },
   "metadata": {
+    "titles": {
+      "construction": "Under Construction",
+      "notFound": "404 - Page Not Found",
+      "unavailable": "503 - Temporarily Unavailable"
+    },
     "tagline": "Character Database Platform",
     "description": "OpenProfile is a free original character database and collaboration platform made by and for writers.",
     "keywords": "original character database, OC database, writing collaboration, character creation tool, worldbuilding platform, roleplaying character storage, digital character sheet, OC management tool, collaborative storytelling",
@@ -48,21 +53,32 @@
   },
   "pages": {
     "languages": "Languages",
-    "404": {
-      "status": "Code 404: NOT FOUND"
+    "goHome": "Go Home",
+    "seconds": "seconds",
+    "construction": {
+      "subtext": "Join our Discord for live-updates or check the nightly build!",
+      "subtextNightly": "Join our Discord for live-updates!",
+      "nightly": "Visit Nightly",
+      "updates": "Get Live Updates",
+      "marquee": {
+        "1": "WORK IN PROGRESS",
+        "2": "UNDER CONSTRUCTION",
+        "3": "WIP"
+      }
+    },
+    "notFound": {
+      "subtext": "This page does not exist.",
+      "marquee": "PAGE NOT FOUND"
+    },
+    "unavailable": {
+      "subtext": "Our servers are currently experiencing heavy load.",
+      "update": "Your page will refresh automatically in",
+      "marquee": "TEMPORARILY UNAVAILABLE"
     },
     "home": {
       "title": "Example Page",
       "body": "To edit this page, visit ./src/frontend/main/pages/Home.tsx",
-      "button": "Click Me",
-      "goAbout": "Go to About"
-    },
-    "about": {
-      "helmet": {
-        "title": "About"
-      },
-      "description": "Nothing to see here...",
-      "goHome": "Go to Home"
+      "button": "Click Me"
     }
   }
 }
