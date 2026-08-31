@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client"
 import Badges from "./Badges.js";
+import { GetBadgeType } from "../../../_common/types/badge.type.js";
 
 type Props = {
     isPreview?: boolean;
@@ -17,7 +18,7 @@ type Props = {
     displayName?: string;
     username?: string;
     status?: string;
-    badges?: string[];
+    badges?: GetBadgeType[];
     about?: string;
     isExplicit?: boolean;
     visibility?: string;

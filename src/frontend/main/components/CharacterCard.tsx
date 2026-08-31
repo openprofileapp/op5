@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../scripts/postInteraction.js";
@@ -10,7 +10,7 @@ import { formatNumber } from "kage-library/client";
 import { studioBaseUrl } from "../../_common/scripts/domains.js";
 
 type Props = {
-    data: GetPublishedCharacterType;
+    data: GetPublishedCharacterItemType;
     isPreview?: boolean;
     hasNotification?: boolean;
     isHomeScreen?: boolean
