@@ -1,3 +1,9 @@
+export type SessionActionType =
+    | "DISPLAY_503"
+    | "DISPLAY_503_BYPASS"
+    | "REFRESH_PAGE"
+;
+
 export type ValidSessionType = {
     sessionId: string;
     userId?: string;
@@ -11,4 +17,5 @@ export type ValidSessionType = {
     delegatedAccounts?: string[];
     mfaToken?: string;
     accessToken?: string;
+    action?: SessionActionType;
 };
