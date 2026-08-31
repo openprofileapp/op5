@@ -37,6 +37,24 @@ export const fetchSessionMiddleware = async (
 
         const { accessToken, ...rest } = response;
 
+        if (rest.action) {
+            await wc.callAPI(
+                `https://${config.domains.main}/websocket`,
+                {
+                    method: "POST",
+                    auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                    body: {
+                        sessionId: rest.sessionId,
+                        action: rest.action
+                    }
+                }
+            );
+
+            if (rest.action !== "DISPLAY_503_BYPASS") {
+                return res.status(200).json(rest);
+            }
+        }
+
         if (accessToken) {
             console.log(accessToken)
 
