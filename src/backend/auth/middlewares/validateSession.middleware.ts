@@ -10,15 +10,17 @@ export const validateSessionMiddleware = async (req: Request, res: Response, nex
     try {
         const response = await validateSession(req, res);
 
-        if ("action" in response && response.action === "REFRESH_PAGE") {
+        if (response.action === "REFRESH_PAGE") {
             return res.redirect(
-                req.originalUrl || "/"
+                req.originalUrl || "/session"
             );
         }
 
-        if (!("action" in response)) {
-            req.session = response;
+        if (response.action) {
+            return res.status(200).json(response);
         }
+
+        req.session = response;
 
         next();
     } catch(error) {

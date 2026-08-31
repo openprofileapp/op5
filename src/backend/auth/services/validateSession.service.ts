@@ -18,15 +18,10 @@ import { SessionType } from "../types/session.type.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import { AuditApiType } from "../../../_common/types/audit.type.js";
 import { GeoIpType } from "../../../_common/types/geoIp.type.js";
-import { ValidSessionType } from "../../../_common/types/validSession.type.js";
+import { SessionActionType, ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { UserAccountType } from "../types/userAccount.type.js";
 import validateIp from "../../_common/helpers/validateIp.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-
-type ActionNameType =
-    "REFRESH_PAGE" |
-    "DISPLAY_503"
-;
 
 function clearAllCookies(
     res: Response, 
@@ -72,7 +67,7 @@ export default async function validateSession(
         returnMfaToken?: boolean;
         returnAccessToken?: boolean;
     } = {}
-): Promise<ValidSessionType | { action: ActionNameType }> {
+): Promise<ValidSessionType | { action: SessionActionType }> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const detector = new DeviceDetector();
@@ -224,6 +219,8 @@ export default async function validateSession(
 
     assertDbSuccess(sessionsResult);
 
+    let action;
+
     if (!row.isConnected && (sessionsResult.rowCount >= config.limits.softConnectedSessions)) {
         const result = db.accounts.query<UserAccountType>(
             "SELECT permissions FROM users WHERE id = ? LIMIT 1",
@@ -232,22 +229,30 @@ export default async function validateSession(
 
         assertDbSuccess(result);
 
-        if (PlatformPermissionsService.has(result.rows[0].permissions, "BYPASS_CONNECTION_LIMIT")) {
+        const userPermissions = result.rows[0]?.permissions;
+
+        if (userPermissions && PlatformPermissionsService.has(userPermissions, "BYPASS_CONNECTION_LIMIT")) {
             if (sessionsResult.rowCount >= config.limits.hardConnectedSessions) {
                 log.client.warn(
                     `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
                 ).save()
 
-                // Render the 503 page and refreshes every minute
-                return { action: "DISPLAY_503" };
+                return {
+                    sessionId: sessionId || row?.sessionId,
+                    action: "DISPLAY_503" 
+                };
+            } else {
+                action = "DISPLAY_503_BYPASS";
             }
         } else {
             log.client.warn(
                 `Soft connected sessions limit reached: "${sessionId}" is being displayed a 503`
             ).save()
 
-            // Render the 503 page and refreshes every minute
-            return { action: "DISPLAY_503" };
+            return { 
+                sessionId: sessionId || row?.sessionId,
+                action: "DISPLAY_503" 
+            };
         }
     }
 
@@ -733,6 +738,9 @@ export default async function validateSession(
         inviteCode,
         delegatedAccounts,
         // ...(returnMfaToken === true && { mfaToken })
-        ...(returnAccessToken === true && { accessToken })
+        ...(returnAccessToken === true && { accessToken }),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        action
     };
 }
