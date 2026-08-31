@@ -223,7 +223,12 @@ export default async function postInteractionService(
     const result = await postInteractionEvent(sourceId, targetId, type, session);
 
     // Returns the result instantly and processes the notification in the background
-    postInteractionNotification(sourceId, targetId, type, result).catch(err => {
+    postInteractionNotification(
+        sourceId, 
+        targetId, 
+        type, 
+        result
+    ).catch(err => {
         console.error("Failed to process postInteraction notification in background:", err);
     });
 
