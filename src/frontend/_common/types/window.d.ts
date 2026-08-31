@@ -1,9 +1,8 @@
-/* eslint-disable */
-
 export {};
 
 import type { Env, Config } from "../../../../app.config.ts";
 import { GetUserType } from "../../../_common/types/user.type.ts";
+import { SessionActionType } from "../../../_common/types/validSession.type.ts";
 
 export type ClientConfig = {
     useNerdFonts: Env["USE_NERDFONTS"];
@@ -27,12 +26,13 @@ export type ClientSession = {
     timezone: string;
     delegatedAccounts?: string[];
     user?: GetUserType
+    action?: SessionActionType
 };
 
 declare global {
     interface Window {
         config: ClientConfig,
         session: ClientSession,
-        ws: any;
+        ws: unknown;
     }
 }
