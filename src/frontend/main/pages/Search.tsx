@@ -1,12 +1,50 @@
 import { useTranslation } from "react-i18next";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
-import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { GetUserItemType } from "../../../_common/types/user.type.js";
+import UserCard from "../components/UserCard.js";
+
+type TabType = "characters" | "users";
+
+interface FetchResult<T> {
+    items: T[];
+    count: number;
+    pages: number;
+}
+
+async function fetchData<T>(
+    endpoint: string,
+    query: string,
+    page: number
+): Promise<FetchResult<T>> {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    params.set("page", page.toString());
+
+    const res = await fetch(`${apiBaseUrl}/v3/${endpoint}?${params.toString()}`, {
+        credentials: "include",
+    });
+    const data = await res.json();
+
+    const rawItems = data?.items ?? data?.characters;
+    const items: T[] = Array.isArray(rawItems)
+        ? rawItems
+        : rawItems && typeof rawItems === "object"
+        ? Object.values(rawItems)
+        : [];
+
+    return {
+        items,
+        count: data?.count ?? 0,
+        pages: data?.pages ?? data?.pageCount ?? 1,
+    };
+}
 
 export default function Search() {
     const { ready: isTranslationReady } = useTranslation();
@@ -14,14 +52,24 @@ export default function Search() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get("q") || "";
 
+    const [activeTab, setActiveTab] = useState<TabType>("characters");
+
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    const [characters, setCharacters] = useState<GetPublishedCharacterType[]>([]);
+    const [characters, setCharacters] = useState<GetPublishedCharacterItemType[]>([]);
+    const [users, setUsers] = useState<GetUserItemType[]>([]);
+
+    const [characterCount, setCharacterCount] = useState<number>(0);
+    const [userCount, setUserCount] = useState<number>(0);
+
+    const [characterPage, setCharacterPage] = useState<number>(1);
+    const [userPage, setUserPage] = useState<number>(1);
+
+    const [hasMoreCharacters, setHasMoreCharacters] = useState<boolean>(true);
+    const [hasMoreUsers, setHasMoreUsers] = useState<boolean>(true);
+
     const [searchTime, setSearchTime] = useState<number>(0);
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const [totalCount, setTotalCount] = useState<number>(0);
-    const [hasMore, setHasMore] = useState<boolean>(true);
 
     const isFetchingRef = useRef(false);
 
@@ -29,117 +77,165 @@ export default function Search() {
         let isMounted = true;
         isFetchingRef.current = true;
 
-        const fetchInitialCharacters = async () => {
+        const fetchInitialData = async () => {
             const startTime = performance.now();
 
             try {
-                const params = new URLSearchParams();
-                if (query) params.set("q", query);
-                params.set("page", "1");
-
-                const url = `${apiBaseUrl}/v3/characters?${params.toString()}`;
-                const res = await fetch(url, { credentials: "include" });
-                const data = await res.json();
+                const [characterData, userData] = await Promise.all([
+                    fetchData<GetPublishedCharacterItemType>("characters", query, 1),
+                    fetchData<GetUserItemType>("users", query, 1),
+                ]);
 
                 if (!isMounted) return;
 
-                const rawCharacters = data?.items;
-                const newCharacters: GetPublishedCharacterType[] = Array.isArray(rawCharacters)
-                    ? rawCharacters
-                    : rawCharacters && typeof rawCharacters === "object"
-                    ? Object.values(rawCharacters)
-                    : [];
+                const cCount = characterData.count;
+                const uCount = userData.count;
 
-                setCharacters(newCharacters);
-                setTotalCount(data?.count ?? 0);
-                setCurrentPage(1);
-                setHasMore(data?.pages ? 1 < data.pages : newCharacters.length > 0);
+                setCharacters(characterData.items);
+                setCharacterCount(cCount);
+                setCharacterPage(1);
+                setHasMoreCharacters(1 < characterData.pages);
+
+                setUsers(userData.items);
+                setUserCount(uCount);
+                setUserPage(1);
+                setHasMoreUsers(1 < userData.pages);
+
+                if (cCount === 0 && uCount > 0) {
+                    setActiveTab("users");
+                } else {
+                    setActiveTab("characters");
+                }
             } catch (err) {
-                console.error("Failed to fetch characters:", err);
-
-                if (isMounted) setCharacters([]);
+                console.error("Failed to fetch search results:", err);
+                if (isMounted) {
+                    setCharacters([]);
+                    setCharacterCount(0);
+                    setUsers([]);
+                    setUserCount(0);
+                }
             } finally {
                 if (isMounted) {
                     const endTime = performance.now();
                     setSearchTime(Number(((endTime - startTime) / 1000).toFixed(2)));
                     setIsLoading(false);
                 }
-
                 isFetchingRef.current = false;
             }
         };
 
-        fetchInitialCharacters();
+        fetchInitialData();
 
         return () => {
             isMounted = false;
         };
     }, [query]);
 
-    useEffect(() => {
-        const handleScroll = async () => {
-            if (isLoading || isLoadingMore || !hasMore || isFetchingRef.current) return;
+    const loadMore = useCallback(async () => {
+        const isCharacters = activeTab === "characters";
+        const currentHasMore = isCharacters ? hasMoreCharacters : hasMoreUsers;
 
+        if (isLoading || isLoadingMore || !currentHasMore || isFetchingRef.current) return;
+
+        isFetchingRef.current = true;
+        setIsLoadingMore(true);
+
+        const nextPage = (isCharacters ? characterPage : userPage) + 1;
+        const startTime = performance.now();
+
+        try {
+            if (isCharacters) {
+                const data = await fetchData<GetPublishedCharacterItemType>("characters", query, nextPage);
+                setCharacters((prev) => [...prev, ...data.items]);
+                setCharacterPage(nextPage);
+                setHasMoreCharacters(nextPage < data.pages);
+            } else {
+                const data = await fetchData<GetUserItemType>("users", query, nextPage);
+                setUsers((prev) => [...prev, ...data.items]);
+                setUserPage(nextPage);
+                setHasMoreUsers(nextPage < data.pages);
+            }
+        } catch (err) {
+            console.error(`Failed to fetch more ${activeTab}:`, err);
+        } finally {
+            const endTime = performance.now();
+            setSearchTime(Number(((endTime - startTime) / 1000).toFixed(2)));
+            setIsLoadingMore(false);
+            isFetchingRef.current = false;
+        }
+    }, [
+        isLoading,
+        isLoadingMore,
+        activeTab,
+        hasMoreCharacters,
+        hasMoreUsers,
+        characterPage,
+        userPage,
+        query,
+    ]);
+
+    useEffect(() => {
+        const handleScroll = () => {
             const scrollPosition = window.innerHeight + window.scrollY;
             const threshold = document.documentElement.offsetHeight - 300;
 
             if (scrollPosition >= threshold) {
-                isFetchingRef.current = true;
-                setIsLoadingMore(true);
-
-                const nextPage = currentPage + 1;
-                const startTime = performance.now();
-
-                try {
-                    const params = new URLSearchParams();
-                    if (query) params.set("q", query);
-                    params.set("page", nextPage.toString());
-
-                    const url = `${apiBaseUrl}/v3/characters?${params.toString()}`;
-                    const res = await fetch(url, { credentials: "include" });
-                    const data = await res.json();
-
-                    const rawCharacters = data?.characters;
-                    const newCharacters: GetPublishedCharacterType[] = Array.isArray(rawCharacters)
-                        ? rawCharacters
-                        : rawCharacters && typeof rawCharacters === "object"
-                        ? Object.values(rawCharacters)
-                        : [];
-
-                    setCharacters((prev) => [...prev, ...newCharacters]);
-                    setCurrentPage(nextPage);
-                    setHasMore(data?.pageCount ? nextPage < data.pageCount : newCharacters.length > 0);
-                } catch (err) {
-                    console.error("Failed to fetch more characters:", err);
-                } finally {
-                    const endTime = performance.now();
-                    setSearchTime(Number(((endTime - startTime) / 1000).toFixed(2)));
-                    setIsLoadingMore(false);
-                    isFetchingRef.current = false;
-                }
+                loadMore();
             }
         };
 
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [isLoading, isLoadingMore, hasMore, currentPage, query]);
+    }, [loadMore]);
 
     if (!isTranslationReady) return null;
 
+    const totalCombinedCount = characterCount + userCount;
+
     return (
-        <>  
+        <>
             <Metadata
-                title={query ? `Search: ${query}` : "Search"}
+                title={query ? `Searching "${query}"` : "Search"}
                 allowIndex="false"
             />
-            
+
             <div className="px-4 py-4 md:px-14">
                 <div className="mt-4 text-xl font-bold">
-                    {query ? `Searching for "${query}"` : "All Characters"}
+                    {query ? `Searching "${query}"` : "Search"}
                 </div>
 
-                <div className="mb-6 text-xs text-sub">
-                    Found {totalCount} results in {searchTime}s
+                <div className="mb-2 text-xs text-sub">
+                    Found {totalCombinedCount} results in {searchTime}s
+                </div>
+
+                {!isLoading && totalCombinedCount > 0 && (
+                    <div className="relative tabs tabs-border mb-4 right-3">
+                        {characterCount > 0 && (
+                            <input
+                                type="radio"
+                                name="search_tabs"
+                                className="tab"
+                                aria-label={`Characters (${characterCount})`}
+                                checked={activeTab === "characters"}
+                                onChange={() => setActiveTab("characters")}
+                            />
+                        )}
+
+                        {userCount > 0 && (
+                            <input
+                                type="radio"
+                                name="search_tabs"
+                                className="tab"
+                                aria-label={`Users (${userCount})`}
+                                checked={activeTab === "users"}
+                                onChange={() => setActiveTab("users")}
+                            />
+                        )}
+                    </div>
+                )}
+
+                <div className="mb-4">
+                    <hr />
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -147,20 +243,40 @@ export default function Search() {
                         Array.from({ length: 24 }).map((_, index) => (
                             <SkeletonCharacterCard key={index} />
                         ))
-                    ) : characters.length > 0 ? (
-                        characters.map((profile, index) => (
-                            <CharacterCard key={profile.id || index} data={profile} />
+                    ) : activeTab === "characters" && characterCount > 0 ? (
+                        characters.map((profile) => (
+                            <CharacterCard key={profile.id} data={profile} />
+                        ))
+                    ) : activeTab === "users" && userCount > 0 ? (
+                        users.map((d) => (
+                            <UserCard
+                                key={d.id}
+                                id={d.id}
+                                aura={{
+                                    isEnabled: d.isAuraEnabled,
+                                    type: d.auraType,
+                                    primary: d.auraPrimary,
+                                    secondary: d.auraSecondary,
+                                }}
+                                avatar={d.avatar ? `https://cdn.dev.openprofile.app${d.avatar}` : ""}
+                                banner={d.banner ? `https://cdn.dev.openprofile.app${d.banner}` : ""}
+                                displayName={d.displayName}
+                                username={d.usernames?.[0]?.username}
+                                status={d.status}
+                                badges={d.badges}
+                                about={d.about}
+                                isExplicit={d.isExplicit}
+                                visibility={d.visibility}
+                            />
                         ))
                     ) : (
                         <div className="flex w-full flex-col items-center justify-center py-16 text-center">
                             <p className="text-lg font-medium">
                                 No results found {query && `for "${query}"`}
                             </p>
-
                             <p className="mt-1 text-sm text-sub">
                                 Be the first to bring this character to life!
                             </p>
-
                             <button className="mt-6 rounded btn btn-accent px-6 py-2 text-sm font-medium">
                                 {/* DEVELOPER NEEDED: Make this functional */}
                                 Create Character
@@ -177,7 +293,8 @@ export default function Search() {
                             ))}
                         </div>
                     ) : (
-                        !hasMore && characters.length > 0 && (
+                        ((activeTab === "characters" && !hasMoreCharacters && characters.length > 0) ||
+                            (activeTab === "users" && !hasMoreUsers && users.length > 0)) && (
                             <div className="px-0 md:px-4 text-xl">
                                 You've reached the end!
                             </div>
