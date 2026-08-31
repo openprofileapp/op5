@@ -1,6 +1,5 @@
 import QRCodeStyling from "qr-code-styling";
-
-import isGateway from "../../_common/helpers/isGateway.js";
+import { cdnBaseUrl } from "../../_common/scripts/domains.js";
 
 type Props = {
     format?: "png" | "svg";
@@ -43,7 +42,7 @@ export async function generateQrCode(
             margin: 40 * upscale,
             hideBackgroundDots: true,
         },
-        image: `https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}/branding/logo.svg`,
+        image: `${cdnBaseUrl}/branding/logo.svg`,
         cornersSquareOptions: {
             type: "dot",
             color: dotsColor,

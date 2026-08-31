@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
+import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
-
-import isGateway from "../../_common/helpers/isGateway.js";
 
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
@@ -13,7 +12,8 @@ import ReportModal from "./modals/ReportModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import CreateAssetModal from "./modals/CreateAssetModal.js";
-import React from "react";
+
+import { apiBaseUrl, authBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 
 type Props = {
     isBannerPage?: boolean;
@@ -93,7 +93,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
             }
 
             try {
-                const baseUrl = `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}`;
+                const baseUrl = `${apiBaseUrl}`;
 
                 const requests = delegatedIds.map(async (userId) => {
                     const res = await fetch(`${baseUrl}/v3/users?id=${userId}`, {
@@ -127,7 +127,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 }
 
                 const res = await fetch(
-                    `https://${isGateway() ? window.location.host : window.config.domains.api}${isGateway() ? "/api" : ""}/v3/users?id=${window.session.userId}`,
+                    `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
                     { credentials: "include" }
                 );
 
@@ -215,7 +215,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 <div className="flex flex-1 items-center">
                     <Link className="cursor-pointer w-42" to="/">
                         <img alt="OpenProfile wordmark"
-                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${config.metadata.assets.wordmark}`} 
+                            src={`${cdnBaseUrl}${config.metadata.assets.wordmark}`} 
                         />
                     </Link>
 
@@ -418,7 +418,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                         <li>
                             <a
                                 className="flex items-center justify-between gap-4"
-                                href={`https://${isGateway() ? window.location.host : window.config.domains.studio}${isGateway() ? "/studio" : ""}`}
+                                href={`${studioBaseUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => {
@@ -458,6 +458,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
                         <hr />
 
+                        {/* Show language and theme switcher when not logged in, else display in settings popup or smth */}
+
                         <li 
                             className="relative group"
                             onMouseEnter={checkCollectionMenuPosition}
@@ -496,11 +498,9 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                                     <button 
                                                         className="flex items-center justify-between gap-4"
                                                         onClick={() => {
-                                                            const authDomain = isGateway() ? window.location.host : window.config.domains.auth;
-                                                            const authPath = isGateway() ? "/auth" : "";
                                                             const currentPage = encodeURIComponent(window.location.href);
 
-                                                            window.location.href = `https://${authDomain}${authPath}/switch/${account.id}?redirect=${currentPage}`;
+                                                            window.location.href = `${authBaseUrl}/switch/${account.id}?redirect=${currentPage}`;
                                                         }}
                                                     >
                                                         @{username}
@@ -557,11 +557,9 @@ export default function Navbar({ isBannerPage = false }: Props) {
                             <button 
                                 className="flex items-center justify-between gap-4"
                                 onClick={() => {
-                                    const authDomain = isGateway() ? window.location.host : window.config.domains.auth;
-                                    const authPath = isGateway() ? "/auth" : "";
                                     const currentPage = encodeURIComponent(window.location.href);
 
-                                    window.location.href = `https://${authDomain}${authPath}/logout?redirect=${currentPage}`;
+                                    window.location.href = `${authBaseUrl}/logout?redirect=${currentPage}`;
                                 }}
                             >
                                 <span>Logout</span>
@@ -600,7 +598,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 <div className="navbar-center">
                     <Link className="cursor-pointer w-42" to="/">
                         <img alt="OpenProfile wordmark"
-                            src={`https://${isGateway() ? window.location.host : window.config.domains.cdn}${isGateway() ? "/cdn" : ""}${config.metadata.assets.wordmark}`} 
+                            src={`${cdnBaseUrl}${config.metadata.assets.wordmark}`} 
                         />
                     </Link>
                     <div className="badge badge-accent tooltip tooltip-bottom tooltip-accent ml-3 p-3.5 flex justify-center rounded-sm">
