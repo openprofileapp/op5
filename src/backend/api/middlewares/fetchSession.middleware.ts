@@ -56,8 +56,6 @@ export const fetchSessionMiddleware = async (
         }
 
         if (accessToken) {
-            console.log(accessToken)
-
             res.cookie("accessToken", accessToken, {
                 httpOnly: true,
                 secure: true,
