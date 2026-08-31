@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
-export function useObjectURL(file: File | null) {
-    const [url, setUrl] = useState<string>("");
+export function useObjectURL(file: File | null | undefined) {
+    const url = useMemo(() => {
+        if (!file) return "";
+        return URL.createObjectURL(file);
+    }, [file]);
 
     useEffect(() => {
-        if (!file) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setUrl("");
-            return;
-        }
-
-        const objectUrl = URL.createObjectURL(file);
-        setUrl(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [file]);
+        if (!url) return;
+        return () => {
+            URL.revokeObjectURL(url);
+        };
+    }, [url]);
 
     return url;
 }
