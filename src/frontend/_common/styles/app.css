@@ -338,3 +338,25 @@ hr {
     border-radius: 9999px;
     background-color: var(--color-accent);
 }
+
+.animate-marquee-left {
+    display: flex;
+    width: max-content;
+    animation: marquee-left 120s linear infinite;
+}
+
+.animate-marquee-right {
+    display: flex;
+    width: max-content;
+    animation: marquee-right 120s linear infinite;
+}
+
+@keyframes marquee-left {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+}
