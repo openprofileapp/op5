@@ -316,17 +316,19 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 <span className="font-nerdfont text-xl"></span>
                             </button>
 
-                            <button 
-                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
-                                data-tip="Report Bugs"
-                                data-guide="report"
-                                onClick={() => {
-                                    const dialog = document.getElementById("report") as HTMLDialogElement | null;
-                                    dialog?.showModal();
-                                }}
-                            >
-                                <span className="font-nerdfont text-xl"></span>
-                            </button>
+                            {window.location.hostname.startsWith('nightly') && (
+                                <button 
+                                    className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                                    data-tip="Report Bugs"
+                                    data-guide="report"
+                                    onClick={() => {
+                                        const dialog = document.getElementById("report") as HTMLDialogElement | null;
+                                        dialog?.showModal();
+                                    }}
+                                >
+                                    <span className="font-nerdfont text-xl"></span>
+                                </button>
+                            )}
 
                             <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
                                 <span className="font-nerdfont text-xl">󰍡</span>
