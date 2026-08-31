@@ -52,8 +52,12 @@ export default async function sendNotificationService(
         whatIsData = whatIs(targetId);
 
         if (
-            (userId === whatIsData.ownerId) ||
-            (userId === whatIsData.id)
+            (userId === whatIsData.ownerId || userId === whatIsData.id) &&
+            (
+                type === "NEW_FOLLOW" || 
+                type === "NEW_LIKE"
+                // DEVELOPER NEEDED: Add collection here
+            )
         ) return;
     }
 
