@@ -16,6 +16,7 @@ import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middle
 import appRoute from "./routes/app.route.js";
 import commonRoutes from "../_common/routes/common.routes.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
+import websocketRoute from "./routes/websocket.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -61,6 +62,7 @@ if (!vite) app.use(express.static(path.join(config.folders.root, "src", "fronten
 app.use("/", router);
 
 router.use("/", commonRoutes);
+router.use("/websocket", websocketRoute);
 router.use("/", appRoute);
 
 /* 
@@ -86,13 +88,23 @@ Websocket
 ———————————————————————————————————————————————————————————————— 
 */
 
-const connectedClients = new Map<string, WebSocket>();
+export const connectedClients = new Map<string, WebSocket>();
 
 const wss = new WebSocketServer({ server });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
-    const clientId = crypto.randomUUID();
+    const rawCookies = req.headers.cookie || "";
+
+    const cookies = Object.fromEntries(
+        rawCookies.split("; ").filter(Boolean).map((cookie) => {
+            const [key, ...val] = cookie.split("=");
+            return [key.trim(), decodeURIComponent(val.join("="))];
+        })
+    );
+
+    const clientId = cookies.sessionId;
+
+    if (!clientId) return;
 
     ws.id = clientId;
 
@@ -126,7 +138,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         log.ws.info("Client disconnected:", ws.id);
 
         // DEVELOPER NEEDED: Update totalDuration when leaving the site both in audit (stats purposes) and session
-        // Requires an API: https://auth.openprofile.app/disconnect;
+        // Requires an API: https://auth.openprofile.app/disconnect/:sessionId;
         // Its similair to: https://auth.openprofile.app/logout
     });
 
