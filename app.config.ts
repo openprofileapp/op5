@@ -174,13 +174,12 @@ export const config = {
         api: 10525,
         cdn: 10526,
         support: 10527,
-        nightly: 10528,
+        nightly: 10521,
         ws: {
             main: 39551,
             studio: 39552,
             status: 39553,
-            support: 39554,
-            nightly: 39555
+            support: 39554
         }
     },
 
