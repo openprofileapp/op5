@@ -2,11 +2,12 @@ import type { Request, Response } from "express"
 import path from "path"
 import fs from "fs"
 
-import { getReqUrl } from "kage-library";
+import { AdvancedError, getReqUrl } from "kage-library";
 
 import { config } from "../../../../app.config.js"
 import { vite } from "../server.js"
 import { log } from "../instances.js"
+import { i18n } from "../../_common/instances.js";
 
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {
@@ -37,8 +38,18 @@ export const renderApp = async (req: Request, res: Response) => {
         }
 
         res.status(200).set({ "Content-Type": "text/html" }).end(html)
-    } catch (error: unknown) {
-        log.client.error(error).save()
-        res.status(500).end("Internal Server Error")
+    } catch(error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
+        }
     }
 }
