@@ -1,5 +1,5 @@
 import { GetBadgeType } from "./badge.type.js";
-import { GetInteractionCollection, InteractionNameType } from "./interaction.type.js";
+import { GetInteractionCollection } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
 import { GetUsernameType } from "./username.type.js";
 import { VisibilityType } from "./visibility.type.js";
@@ -44,7 +44,7 @@ export type GetUserItemType = Omit<
     usernames: GetUsernameType[];
     badges: GetBadgeType[];
     links?: GetLinkType[];
-    interactions?: Partial<Record<InteractionNameType, GetInteractionCollection>>;
+    interactions?: Partial<GetInteractionCollection>;
 };
 
 export type GetUserType = {
