@@ -14,6 +14,7 @@ import sendNotificationService, { notificationMilestones } from "./sendNotificat
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
 import whatIs from "../helpers/whatIs.js";
 import { config } from "../../../../app.config.js";
+import { i18n } from "../../_common/instances.js";
 
 interface InteractionEventResult {
     newInteraction: boolean;
@@ -26,6 +27,37 @@ async function postInteractionEvent(
     type: InteractionNameType,
     session?: ValidSessionType
 ): Promise<InteractionEventResult> {   
+    let whatIsData;
+
+    if (targetId) {
+        whatIsData = whatIs(targetId);
+
+        const isOwner = sourceId === whatIsData.ownerId || sourceId === whatIsData.id
+
+        if (isOwner && type === "follows") {
+            throw new AdvancedError({
+                code: 403,
+                message: i18n.t("responses.ownerInteraction.follow")
+            });
+        }
+
+        if (isOwner && type === "likes") {
+            throw new AdvancedError({
+                code: 403,
+                message: i18n.t("responses.ownerInteraction.like")
+            });
+        }
+
+        if (isOwner && type === "mutes") {
+            throw new AdvancedError({
+                code: 403,
+                message: i18n.t("responses.ownerInteraction.mute")
+            });
+        }
+
+        // DEVELOPER NEEDED: Add no self-blocks and stuff here
+    }
+
     const allowedTypes = satisfiesAll<InteractionNameType>()(
         "blocks",
         "chats",
@@ -220,7 +252,12 @@ export default async function postInteractionService(
     type: InteractionNameType,
     session?: ValidSessionType
 ): Promise<InteractionEventResult> {
-    const result = await postInteractionEvent(sourceId, targetId, type, session);
+    const result = await postInteractionEvent(
+        sourceId, 
+        targetId, 
+        type, 
+        session
+    );
 
     // Returns the result instantly and processes the notification in the background
     postInteractionNotification(
