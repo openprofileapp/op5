@@ -15,6 +15,13 @@ export default function ToastContainer() {
         error: "bg-error text-error-content border-error",
     };
 
+    const defaultIcons: Record<Toast["type"], string> = {
+        info: "",
+        success: "",
+        warning: "",
+        error: "",
+    };
+
     const removeToast = (id: number) => {
         if (timerRef.current) {
             clearTimeout(timerRef.current);
@@ -78,9 +85,9 @@ export default function ToastContainer() {
                         `}
                     >
                         <div className="flex items-center gap-4 mx-auto">
-                            {activeToast.icon && (
+                            {(activeToast.icon || defaultIcons[activeToast.type]) && (
                                 <span className="flex items-center justify-center w-4 text-lg font-nerdfont leading-none shrink-0">
-                                    {activeToast.icon}
+                                    {activeToast.icon || defaultIcons[activeToast.type]}
                                 </span>
                             )}
 
