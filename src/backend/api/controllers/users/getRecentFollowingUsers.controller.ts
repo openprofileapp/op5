@@ -26,7 +26,7 @@ export const getRecentFollowingUsers = async (req: Request, res: Response) => {
             Number(limit);
 
         const characters = getUsersService({
-            id: id as string, 
+            idOrUsername: id as string, 
             sortBy: "recent", 
             offset: offset,
             limit: limit as number, 

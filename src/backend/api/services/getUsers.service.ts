@@ -9,9 +9,10 @@ import { db } from "../databases/db.js";
 import getInterestsService from "./getInterests.service.js";
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 import AssetPermissionsService from "./assetPermissions.service.js";
+import { UsernameType } from "../../../_common/types/username.type.js";
 
 type Props = {
-    id?: string;
+    idOrUsername?: string;
     query?: string;
     tag?: string;
     sortBy?: SortByType;
@@ -25,7 +26,7 @@ type Props = {
 };
 
 export default function getUsersService({
-    id,
+    idOrUsername,
     query,
     tag,
     sortBy,
@@ -38,6 +39,19 @@ export default function getUsersService({
     internalPermissionsBypass = false
 }: Props): GetUserType {    
     let interests;
+
+    let id = idOrUsername
+
+    const idResult = db.users.query<UsernameType>(
+        "SELECT * FROM usernames WHERE username = ? LIMIT 1",
+        [idOrUsername]
+    )
+
+    assertDbSuccess(idResult);
+
+    if (idResult.rowCount > 0) {
+        id = idResult.rows[0].userId
+    }
 
     if (getAs) {
         interests = getInterestsService(getAs); 

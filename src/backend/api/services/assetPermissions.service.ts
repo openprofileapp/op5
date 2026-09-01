@@ -322,7 +322,7 @@ export default class AssetPermissionsService {
             }) :
             // DEVELOPER NEEDED: Add collections and universes
             assetType.type === "USER" ? getUsersService({ 
-                id: assetId,
+                idOrUsername: assetId,
                 internalPermissionsBypass: true
             }) :
             null;

@@ -21,7 +21,7 @@ export const getPopularUsers = async (req: Request, res: Response) => {
         } = req.query;
 
         const characters = getUsersService({
-            id: id as string, 
+            idOrUsername: id as string, 
             sortBy: "popularDesc", 
             limit: config.limits.assetsPerPage, 
             getAs: req.session.userId,

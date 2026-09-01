@@ -28,7 +28,7 @@ export const getRecommendedUsers = async (req: Request, res: Response) => {
             Number(limit);
 
         const characters = getUsersService({
-            id: id as string, 
+            idOrUsername: id as string, 
             sortBy: "popularDesc", 
             offset: offset,
             limit: limit as number, 

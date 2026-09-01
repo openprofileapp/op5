@@ -100,7 +100,7 @@ export default function whatIs(
 
     if (userResult.rowCount !== 0) {
         const getResult = getUsersService({
-            id,
+            idOrUsername: id,
             internalPermissionsBypass: true
         });
 

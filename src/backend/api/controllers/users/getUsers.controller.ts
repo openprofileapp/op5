@@ -31,7 +31,7 @@ export const getUsers = async (req: Request, res: Response) => {
             Number(limit);
 
         const characters = getUsersService({
-            id: id as string, 
+            idOrUsername: id as string, 
             sortBy: sortBy as SortByType, 
             offset: offset,
             limit: limit as number, 

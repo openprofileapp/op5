@@ -28,7 +28,7 @@ export const getTrendingUsers = async (req: Request, res: Response) => {
             Number(limit);
 
         const characters = getUsersService({
-            id: id as string, 
+            idOrUsername: id as string, 
             sortBy: "trending", 
             offset: offset,
             limit: limit as number, 
