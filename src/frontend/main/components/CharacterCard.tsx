@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -8,70 +8,100 @@ import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../scripts/postInteraction.js";
 import { formatNumber } from "kage-library/client";
 import { studioBaseUrl } from "../../_common/scripts/domains.js";
+import { CharacterModalRef } from "./modals/CharacterModal.js";
 
-type Props = {
-    data: GetPublishedCharacterItemType;
+type Props = GetPublishedCharacterItemType & {
     isPreview?: boolean;
+    isPinnedVisible?: boolean,
     hasNotification?: boolean;
     isHomeScreen?: boolean
     dragHandleProps?: unknown;
+    onOpenModal: (id: string) => void;
 };
 
 let index = 1;
 
 export default function CharacterCard({
-    data,
+    algorithmScore,
+    id,
+    slug,
+    displayName,
+    avatar,
+    animatedAvatar,
+    banner,
+    about,
+    licenseId,
+    isAuraEnabled,
+    auraType,
+    auraPrimary,
+    auraSecondary,
+    isExplicit,
+    visibility,
+    readVisibility,
+    sendComments,
+    isScheduled,
+    updatedDate,
+    createdDate,
+    owner,
+    tags,
+    badges,
+    links,
+    interactions,
+    isPinnedVisible = false,
     isPreview = false,
     hasNotification = false,
     isHomeScreen = false,
-    dragHandleProps
+    dragHandleProps,
+    onOpenModal
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const [isChatted, setIsChatted] = useState(data.interactions?.chats?.hasInteracted);
-    const [chatCount, setChatCount] = useState(data.interactions?.chats?.count || 0);
+    const characterModalRef = useRef<CharacterModalRef>(null);
+
+    const [isChatted, setIsChatted] = useState(interactions?.chats?.hasInteracted);
+    const [chatCount, setChatCount] = useState(interactions?.chats?.count || 0);
     const [isChatLoading, setIsChatLoading] = useState(false);
 
-    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
+    const [isDismissed, setIsDismissed] = useState(interactions?.dismisses?.hasInteracted);
     const [isDismissLoading, setIsDismissLoading] = useState(false);
 
-    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
-    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
+    const [isFollowing, setIsFollowing] = useState(interactions?.follows?.hasInteracted);
+    const [followCount, setFollowCount] = useState(interactions?.follows?.count || 0);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
+    const [isHidden, setIsHidden] = useState(interactions?.hides?.hasInteracted);
     const [isHideLoading, setIsHideLoading] = useState(false);
 
-    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
-    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
+    const [isLiked, setIsLiked] = useState(interactions?.likes?.hasInteracted);
+    const [likeCount, setLikeCount] = useState(interactions?.likes?.count || 0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
 
-    const [isMuted, setIsMuted] = useState(data.interactions?.mutes?.hasInteracted);
-    const [muteCount, setMuteCount] = useState(data.interactions?.mutes?.count || 0);
+    const [isMuted, setIsMuted] = useState(interactions?.mutes?.hasInteracted);
+    const [muteCount, setMuteCount] = useState(interactions?.mutes?.count || 0);
     const [isMuteLoading, setIsMuteLoading] = useState(false);
 
-    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
-    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
+    const [isShared, setIsShared] = useState(interactions?.shares?.hasInteracted);
+    const [shareCount, setShareCount] = useState(interactions?.shares?.count || 0);
     const [isShareLoading, setIsShareLoading] = useState(false);
 
-    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
-    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
+    const [isViewed, setIsViewed] = useState(interactions?.views?.hasInteracted);
+    const [viewCount, setViewCount] = useState(interactions?.views?.count || 0);
     const [isViewLoading, setIsViewLoading] = useState(false);
 
     // DEVELOPER NEEDED: Add library states here
 
-    const [isPinned, setIsPinned] = useState(data.isPinned);
+    const [isPinned, setIsPinned] = useState(isPinnedVisible);
     const [isPinLoading, setIsPinLoading] = useState(false);
 
     const closeContextMenu = useCallback((id: string) => {
         setIsContextMenuOpen(false);
         document
-            .getElementById(`character-more-dropdown-${data.id}`)
+            .getElementById(`character-more-dropdown-${id}`)
             ?.hidePopover();
-    }, [data.id]);
+    }, []);
 
     useEffect(() => {
         if (isContextMenuOpen) {
@@ -87,7 +117,7 @@ export default function CharacterCard({
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`character-more-dropdown-${data.id}`);
+            const menu = document.getElementById(`character-more-dropdown-${id}`);
 
             if (!menu) return;
 
@@ -95,7 +125,7 @@ export default function CharacterCard({
                 return;
             }
 
-            closeContextMenu(data.id);
+            closeContextMenu(id);
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -103,7 +133,7 @@ export default function CharacterCard({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [data.id, closeContextMenu]);
+    }, [id, closeContextMenu]);
 
     const checkCollectionMenuPosition = (
         e: React.MouseEvent<HTMLLIElement>
@@ -115,10 +145,40 @@ export default function CharacterCard({
         setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
 
+    // DEVELOPER NEEDED: Move these to interactions.ts with input and return states and the initial id
+    const handleLikeInteraction = async () => {
+        if (isLikeLoading) return;
+
+        setIsLikeLoading(true);
+
+        const res = await postInteraction(id, "likes");
+
+        if (res.ok) {
+            setIsLikeLoading(false);
+            setIsLiked(!isLiked);
+            setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+
+            toast.show(
+                `You ${isLiked ? "unliked" : "liked"} ${displayName}`,
+                { type: isLiked ? "warning" : "success" }
+            );
+        } else {
+            setIsLikeLoading(false);
+            
+            toast.show(
+                `Failed to ${isLiked ? "unlike" : "like"} ${displayName}`,
+                {
+                    subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
+                    type: "error" 
+                }
+            );
+        }
+    };
+
     if (
-        !data.id ||
-        !data.owner ||
-        !data.owner.id ||
+        !id ||
+        !owner ||
+        !owner.id ||
         !isTranslationReady || 
         isHidden
     ) return null;
@@ -128,11 +188,11 @@ export default function CharacterCard({
     {/* DEVELOPER NEEDED: Clicking should open a modal, not a full page */}
     const Wrapper = isPreview ? "div" : Link;
    
-    const auraStyle: React.CSSProperties = data.isAuraEnabled
+    const auraStyle: React.CSSProperties = isAuraEnabled
         ? {
-            ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
-            ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
-            ["--aura-secondary" as string]: data.auraSecondary || "var(--color-accent)",
+            ["--aura-type" as string]: `aura-${auraType || "flow"}`,
+            ["--aura-primary" as string]: auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: auraSecondary || "var(--color-accent)",
         }
         : {
             border: "1px solid #222222",
@@ -147,7 +207,7 @@ export default function CharacterCard({
                 setIsContextMenuOpen(true);
 
                 const popover = document.getElementById(
-                    `character-more-dropdown-${data.id}`
+                    `character-more-dropdown-${id}`
                 ) as HTMLElement | null;
 
                 if (!popover) return;
@@ -210,7 +270,7 @@ export default function CharacterCard({
             >
                 <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
                     <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                        {data.visibility !== "public" ? "" : ""}
+                        {visibility !== "public" ? "" : ""}
                     </span>
                 </button>
             </div>
@@ -223,7 +283,7 @@ export default function CharacterCard({
                     setIsContextMenuOpen(true);
 
                     const popover = document.getElementById(
-                        `character-more-dropdown-${data.id}`
+                        `character-more-dropdown-${id}`
                     );
 
                     if (!popover) return;
@@ -250,7 +310,7 @@ export default function CharacterCard({
             <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                 popover="manual"
-                id={`character-more-dropdown-${data.id}`}
+                id={`character-more-dropdown-${id}`}
             >
                 {isHomeScreen && (
                     <>
@@ -258,10 +318,10 @@ export default function CharacterCard({
                             onClick={async () => {
                                 if (isDismissLoading) return;
 
-                                closeContextMenu(data.id);
+                                closeContextMenu(id);
                                 setIsDismissLoading(true);
 
-                                const res = await postInteraction(data.id, "dismisses");
+                                const res = await postInteraction(id, "dismisses");
 
                                 if (res.ok) {
                                     setIsDismissLoading(false);
@@ -269,17 +329,16 @@ export default function CharacterCard({
                                     setIsHidden(true);
 
                                     toast.show(
-                                        `You dismissed ${data.displayName}`,
-                                        { icon: "", type: "success" }
+                                        `You dismissed ${displayName}`,
+                                        { type: "success" }
                                     );
                                 } else {
                                     setIsDismissLoading(false);
 
                                     toast.show(
-                                        `Failed to dismiss ${data.displayName}`,
+                                        `Failed to dismiss ${displayName}`,
                                         {
                                             subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                            icon: "", 
                                             type: "error" 
                                         }
                                     );
@@ -299,17 +358,17 @@ export default function CharacterCard({
                     </>
                 )}
 
-                {data.owner.id === window.session.userId && (
+                {owner.id === window.session.userId && (
                     <>
                         {/* DEVELOPER NEEDED: Also display on characters where the user has permission to open in studio (eg: write) */}
                         <li
                             onClick={() => {
-                                closeContextMenu(data.id);
+                                closeContextMenu(id);
                             }}
                         >
                             <a
                                 className="justify-between"
-                                href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                                href={`${studioBaseUrl}/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -329,12 +388,12 @@ export default function CharacterCard({
                 {/* DEVELOPER NEEDED: Add the interaction when landing on the pages, not here */}
                 <li
                     onClick={() => {
-                        closeContextMenu(data.id);
+                        closeContextMenu(id);
                     }}
                 >
                     <Link 
                         className="justify-between" 
-                        to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                        to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
                     >
                         View
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -345,12 +404,12 @@ export default function CharacterCard({
 
                 <li
                     onClick={() => {
-                        closeContextMenu(data.id);
+                        closeContextMenu(id);
                     }}
                 >
                     <Link 
                         className="justify-between" 
-                        to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                        to={`/read/${id}-${formatDisplayNameToUrl(displayName || "")}`}
                     >
                         Read
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -364,7 +423,7 @@ export default function CharacterCard({
                     className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
                     data-tip="Coming Soon"
                     onClick={() => {
-                        // closeContextMenu(data.id);
+                        // closeContextMenu(id);
 
                         // Open chat here and save to user message history
                     }}
@@ -379,30 +438,33 @@ export default function CharacterCard({
 
                 <hr />
 
+                {/* Can't follow or like your own characters; auto display as liked or smth */}
+                { /* This will also help make notifications better */}
+                {/* "You can not unlike your own content. Why else would you upload it?" */}
+
                 <li 
                     onClick={async () => {
                         if (isFollowLoading) return;
 
                         setIsFollowLoading(true);
 
-                        const res = await postInteraction(data.id, "follows");
+                        const res = await postInteraction(id, "follows");
 
                         if (res.ok) {
                             setIsFollowLoading(false);
                             setIsFollowing(!isFollowing);
 
                             toast.show(
-                                `You ${isFollowing ? "unfollowed" : "followed"} ${data.displayName}`,
-                                { icon: "", type: isFollowing ? "info" : "success" }
+                                `You ${isFollowing ? "unfollowed" : "followed"} ${displayName}`,
+                                { type: isFollowing ? "info" : "success" }
                             );
                         } else {
                             setIsFollowLoading(false);
                             
                             toast.show(
-                                `Failed to ${isFollowing ? "unfollow" : "follow"} ${data.displayName}`,
+                                `Failed to ${isFollowing ? "unfollow" : "follow"} ${displayName}`,
                                 {
                                     subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                    icon: "", 
                                     type: "error" 
                                 }
                             );
@@ -412,6 +474,7 @@ export default function CharacterCard({
                     <button className={`${isFollowing ? "text-accent" : "" } justify-between`}>
                         {isFollowing ? "Unfollow" : "Follow"}
                         <span 
+                            /* DEVELOPER NEEDED: Turn this into context-menu and context-menu-item classes */
                             className={`${isFollowLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                             {isFollowing ? "" : ""}
                         </span>
@@ -420,33 +483,7 @@ export default function CharacterCard({
 
                 <li 
                     onClick={async () => {
-                        if (isLikeLoading) return;
-
-                        setIsLikeLoading(true);
-
-                        const res = await postInteraction(data.id, "likes");
-
-                        if (res.ok) {
-                            setIsLikeLoading(false);
-                            setIsLiked(!isLiked);
-                            setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-
-                            toast.show(
-                                `You ${isLiked ? "unliked" : "liked"} ${data.displayName}`,
-                                { icon: "", type: isLiked ? "info" : "success" }
-                            );
-                        } else {
-                            setIsLikeLoading(false);
-                            
-                            toast.show(
-                                `Failed to ${isLiked ? "unlike" : "like"} ${data.displayName}`,
-                                {
-                                    subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                    icon: "", 
-                                    type: "error" 
-                                }
-                            );
-                        }
+                        await handleLikeInteraction();
                     }}
                 >
                     <button className={`${isLiked ? "text-accent" : "" } justify-between`}>
@@ -478,7 +515,7 @@ export default function CharacterCard({
                                 className="justify-between"
                                 onClick={() => {
                                     
-                                    closeContextMenu(data.id);
+                                    closeContextMenu(id);
                                 }}
                             >
                                 Favorites
@@ -495,7 +532,7 @@ export default function CharacterCard({
                                 className="justify-between"
                                 onClick={() => {
                                     
-                                    closeContextMenu(data.id);
+                                    closeContextMenu(id);
                                 }}
                             >
                                 Superheroes
@@ -513,7 +550,7 @@ export default function CharacterCard({
                                 className="justify-between"
                                 onClick={() => {
                                     
-                                    closeContextMenu(data.id);
+                                    closeContextMenu(id);
                                 }}
                             >
                                 Featured by OpenProfile
@@ -533,7 +570,7 @@ export default function CharacterCard({
                                 className="justify-between"
                                 onClick={() => {
                                     
-                                    closeContextMenu(data.id);
+                                    closeContextMenu(id);
                                 }}
                             >
                                 New Collection
@@ -553,27 +590,26 @@ export default function CharacterCard({
                         onClick={async () => {
                             if (isHideLoading) return;
 
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                             setIsHideLoading(true);
 
-                            const res = await postInteraction(data.id, "hides");
+                            const res = await postInteraction(id, "hides");
 
                             if (res.ok) {
                                 setIsHideLoading(false);
                                 setIsHidden(!isHidden);
 
                                 toast.show(
-                                    `You will no longer see ${data.displayName}`,
-                                    { icon: "", type: "info" }
+                                    `You will no longer see ${displayName}`,
+                                    { type: "info" }
                                 );
                             } else {
                                 setIsHideLoading(false);
                                 
                                 toast.show(
-                                    `Failed to hide ${data.displayName}`,
+                                    `Failed to hide ${displayName}`,
                                     {
                                         subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                        icon: "", 
                                         type: "error" 
                                     }
                                 );
@@ -597,7 +633,7 @@ export default function CharacterCard({
                         className="justify-between text-error"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Hide Collaboration
@@ -652,7 +688,7 @@ export default function CharacterCard({
                         className="justify-between text-error"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Mute
@@ -666,7 +702,7 @@ export default function CharacterCard({
                         className="justify-between text-error"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Report
@@ -681,7 +717,7 @@ export default function CharacterCard({
                         className="justify-between"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Share
@@ -696,7 +732,7 @@ export default function CharacterCard({
                             className="justify-between"
                             onClick={() => {
                                 
-                                closeContextMenu(data.id);
+                                closeContextMenu(id);
                             }}
                         >
                             Copy ID
@@ -712,7 +748,7 @@ export default function CharacterCard({
                         className="justify-between text-warning"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Moderate
@@ -726,7 +762,7 @@ export default function CharacterCard({
                         className="justify-between text-warning"
                         onClick={() => {
                             
-                            closeContextMenu(data.id);
+                            closeContextMenu(id);
                         }}
                     >
                         Manage
@@ -737,11 +773,13 @@ export default function CharacterCard({
                 </li>
             </ul>
 
-            <Wrapper to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}>
+            <Wrapper 
+                onClick={() => onOpenModal(id)}
+            >
                 <div className="absolute inset-0 group">
                     <img
                         className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
-                        src={`https://${window.config.domains.cdn}${data.avatar}`}
+                        src={`https://${window.config.domains.cdn}${avatar}`}
                         alt="avatar"
                         style={{
                             maskImage: `linear-gradient(
@@ -783,10 +821,10 @@ export default function CharacterCard({
                         }}
                     />
 
-                    { data.animatedAvatar ?
+                    { animatedAvatar ?
                         <img
                             className="absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 group-hover:opacity-100"
-                            src={data.animatedAvatar}
+                            src={animatedAvatar}
                             alt="animated avatar"
                             style={{
                                 maskImage: `linear-gradient(
@@ -834,11 +872,11 @@ export default function CharacterCard({
                     <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold text-center w-full truncate leading-snug">
-                                {data.displayName || data.slug || data.id}
+                                {displayName || slug || id}
                             </span>
                         </div>
 
-                        {data.owner?.isVerified ?
+                        {owner?.badges?.some(badge => badge.type === "VERIFIED") && (
                             <div className="z-1 relative font-normal tooltip tooltip-top tooltip-accent">
                                 <a href={`https://${window.config.domains.support}/en-us/articles/verification`} target="_blank"
                                     onClick={(e) => {
@@ -854,12 +892,10 @@ export default function CharacterCard({
                                     <div className="text-xs">This profile is managed by its intellectual property owners or authorized individuals.</div>
                                 </div>
                             </div>
-
-                            : ""
-                        }
+                        )}
 
                         {(() => {
-                            const unofficialBadge = data.badges.find(b => b.type === "UNOFFICIAL");
+                            const unofficialBadge = badges.find(b => b.type === "UNOFFICIAL");
                             if (!unofficialBadge) return null;
 
                             return (
@@ -892,30 +928,37 @@ export default function CharacterCard({
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <Link 
                                     className="truncate text-xs leading-snug hover:underline" 
-                                    to={`/${data.owner.username || data.owner.id}`}
+                                    to={`/user/${owner.username || owner.id}`}
                                 >
-                                    {data.owner?.displayName || data.owner.username || data.owner.id}
+                                    {owner?.displayName || owner.username || owner.id}
                                 </Link>
                             </div>
                         </div>
                     </div>
 
-                    <div className="text-xs line-clamp-6 my-2">{data.about || "This character does not have an about."}</div>            
-                </div>
-
-                <div className="flex flex-row gap-8 justify-center w-full">
-                    <div className="absolute z-1 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1">
-                        <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base w-4 h-6 ${data.interactions?.views?.hasInteracted ? "text-accent" : ""}`}>󰈈</span>
-                            <span className="text-xs ml-2">{formatNumber(data.interactions?.views?.count || 0).short}</span>
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <span className={`font-nerdfont text-base w-4 h-6 ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}></span>
-                            <span className="text-xs ml-2">{formatNumber(likeCount || 0).short}</span>
-                        </div>
-                    </div>
+                    <div className="text-xs line-clamp-6 my-2">{about || "This character does not have an about."}</div>            
                 </div>
             </Wrapper>
+
+            <div className="flex flex-row gap-8 justify-center w-full">
+                <div className="absolute z-10 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1 pointer-events-auto">
+                    <div className="flex items-center justify-center">
+                        <span className={`font-nerdfont text-base w-4 h-6 ${interactions?.views?.hasInteracted ? "text-accent" : ""}`}>󰈈</span>
+                        <span className="text-xs ml-2">{formatNumber(interactions?.views?.count || 0).short}</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                        <span 
+                            className={`font-nerdfont text-base w-4 h-6 cursor-pointer pointer-events-auto inline-block ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}
+                            onClick={async () => {
+                                await handleLikeInteraction();
+                            }}
+                        >
+                            
+                        </span>
+                        <span className="text-xs ml-2">{formatNumber(likeCount || 0).short}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -941,7 +984,7 @@ export default function CharacterCard({
 
                                         if (isPinned) {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${id}`,
                                                 {
                                                     method: "DELETE",
                                                     headers: {
@@ -954,7 +997,7 @@ export default function CharacterCard({
                                             setIsHidden(true);
                                         } else {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${id}`,
                                                 {
                                                     method: "POST",
                                                     headers: {
@@ -975,7 +1018,7 @@ export default function CharacterCard({
                                         setIsPinned(!isPinned);
 
                                         toast.show(
-                                            `You ${isPinned ? "unpinned" : "pinned"} ${data.displayName}`,
+                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`,
                                             {
                                                 icon: isPinned ? "󰐄" : "󰐃",
                                                 type: isPinned ? "info" : "success",
@@ -991,7 +1034,7 @@ export default function CharacterCard({
                                         setIsPinLoading(false);
                                     }
                         
-                                    // closeContextMenu(data.id);
+                                    // closeContextMenu(id);
                                 }}
                             >
                                 <span
