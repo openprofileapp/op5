@@ -9,8 +9,12 @@ import { GetPublishedCharacterItemType } from "../../../_common/types/character.
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import UserCard from "../components/UserCard.js";
+import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
 
-type TabType = "characters" | "users";
+type TabType = 
+    | "characters"
+    | "users"
+;
 
 interface FetchResult<T> {
     items: T[];
@@ -72,6 +76,11 @@ export default function Search() {
     const [searchTime, setSearchTime] = useState<number>(0);
 
     const isFetchingRef = useRef(false);
+    const characterModalRef = useRef<CharacterModalRef>(null);
+
+    const handleOpenModal = (id: string) => {
+        characterModalRef.current?.open(id);
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -199,6 +208,8 @@ export default function Search() {
                 allowIndex="false"
             />
 
+            <CharacterModal ref={characterModalRef} />
+
             <div className="px-4 py-4 md:px-14">
                 <div className="mt-4 text-xl font-bold">
                     {query ? `Searching "${query}"` : "Search"}
@@ -244,8 +255,13 @@ export default function Search() {
                             <SkeletonCharacterCard key={index} />
                         ))
                     ) : activeTab === "characters" && characterCount > 0 ? (
-                        characters.map((profile) => (
-                            <CharacterCard key={profile.id} data={profile} />
+                        characters.map((d) => (
+                            <CharacterCard 
+                                {...d}
+                                isPreview={true}
+                                hasNotification={false}
+                                onOpenModal={handleOpenModal}
+                            />
                         ))
                     ) : activeTab === "users" && userCount > 0 ? (
                         users.map((d) => (
