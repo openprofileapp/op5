@@ -144,7 +144,7 @@ export default function NotFound() {
                 }
 
                 const data = await res.json();
-                setUser(data);
+                setUser(data.items[0]);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -353,7 +353,7 @@ Check out my character: <@6773794953695671>
 
     const isStaff = user.badges?.some(badge => badge.type === "staff") ?? false;
 
-    if (!ready || loading) return null;
+    if (!isTranslationReady || loading) return null;
 
     return (
         <>
