@@ -22,6 +22,7 @@ type Props = {
     getFrom?: GetFromType;
     delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
+    includeMedia?: boolean;
     internalPermissionsBypass?: boolean;
 };
 
@@ -37,6 +38,7 @@ export default function getPublishedCharactersService({
     getFrom,
     delegatedAccounts,
     includeInteractionItems = false,
+    includeMedia = false,
     internalPermissionsBypass = false
 }: Props): GetPublishedCharacterType {    
     let interests;
@@ -218,8 +220,8 @@ export default function getPublishedCharactersService({
         let isUnlistedAllowed = getFrom === "profile";
 
         if (internalPermissionsBypass) {
-            hasDirectViewPermission = true
-            isUnlistedAllowed = true
+            hasDirectViewPermission = true;
+            isUnlistedAllowed = true;
         }
 
         visibilityCondition = `(
@@ -280,6 +282,29 @@ export default function getPublishedCharactersService({
 
     const interactionFieldsSql = interactionTables.map(buildInteractionField).join(",");
 
+    const mediaSelectSql = includeMedia 
+        ? `
+            COALESCE(
+                (
+                    SELECT json_group_array(
+                        json_object(
+                            'url', m.url,
+                            'description', m.description,
+                            'credit', m.credit,
+                            'position', m.position,
+                            'visibility', m.visibility,
+                            'addedBy', m.addedBy,
+                            'addedDate', m.addedDate
+                        )
+                    )
+                    FROM media.published m
+                    WHERE m.assetId = published.id
+                ),
+                json('[]')
+            ) AS media
+        ` 
+        : "NULL AS media";
+
     const result = db.characters.query(
         `
             SELECT 
@@ -322,7 +347,8 @@ export default function getPublishedCharactersService({
                 ) AS badges,
                 json_object(
                     ${interactionFieldsSql}
-                ) AS interactions
+                ) AS interactions,
+                ${mediaSelectSql}
             FROM main.published
             LEFT JOIN users.users 
                 ON users.id = published.ownerId
@@ -443,13 +469,21 @@ export default function getPublishedCharactersService({
             owner.badges = parseJson(owner.badges);
         }
 
-        return {
+        const formattedRow: any = {
             ...row,
             owner,
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             interactions: parseJson(row.interactions)
-        } as GetPublishedCharacterItemType;
+        };
+
+        if (includeMedia) {
+            formattedRow.media = parseJson(row.media) || [];
+        } else {
+            delete formattedRow.media;
+        }
+
+        return formattedRow as GetPublishedCharacterItemType;
     });
 
     return {

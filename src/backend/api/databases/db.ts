@@ -12,7 +12,8 @@ const paths = {
     invites: "data/databases/invites.sqlite",
     links: "data/databases/links.sqlite",
     pins: "data/databases/pins.sqlite",
-    interactions: "data/databases/interactions.sqlite"
+    interactions: "data/databases/interactions.sqlite",
+    media: "data/databases/media.sqlite"
 }
 
 export const db = {
@@ -24,12 +25,14 @@ export const db = {
     invites: new Database(paths.invites),
     links: new Database(paths.links),
     pins: new Database(paths.pins),
-    interactions: new Database(paths.interactions)
+    interactions: new Database(paths.interactions),
+    media: new Database(paths.media)
 };
 
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
+db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
@@ -131,6 +134,18 @@ db.characters.transaction(q => {
 
     if (!q("SELECT * FROM drafts LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/characters/drafts.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
+db.media.transaction(q => {
+    if (!q("SELECT * FROM published LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/published.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/drafts.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 });
@@ -300,6 +315,8 @@ async function waitForMDB() {
             import("./migration/links.db.migration.js");
             import("./migration/characters/published.db.migration.js");
             import("./migration/characters/drafts.db.migration.js");
+            import("./migration/media/published.db.migration.js");
+            import("./migration/media/drafts.db.migration.js");
             import("./migration/invites/codes.db.migration.js");
             import("./migration/invites/uses.db.migration.js");
 
