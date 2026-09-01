@@ -44,7 +44,11 @@
     "takenEmail": "Your external account email is already taken.",
     "fileUnknown": "Unknown or not supported file type",
     "fileTooLarge": "File exceeds 1 MB limit",
-    "failedAccountRegistration": "Failed to register account"
+    "failedAccountRegistration": "Failed to register account",
+    "ownerInteraction": {
+      "follow": "You cannot follow your own content.",
+      "like": "You cannot like your own content."
+    }
   },
   "components": {
     "modals": {
