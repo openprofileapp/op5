@@ -125,7 +125,8 @@ export const config = {
             logo: "/branding/logo.svg",
             icon: "/branding/icon.svg",
             banner: "/branding/banner.svg",
-            wordmark: "/branding/wordmark.svg"
+            wordmark: "/branding/wordmark.svg",
+            noImage: "/media/no-image.png"
         },
 
         legal: {
