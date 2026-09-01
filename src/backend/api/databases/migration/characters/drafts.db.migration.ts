@@ -16,6 +16,8 @@ db.characters.transaction(async q => {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 const hash = d.avatar
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     .replace(`/uploads/profiles/${d.id}/`, "")
                     .replace(".png", "")
                     .replace(".jpg", "")
@@ -35,9 +37,9 @@ db.characters.transaction(async q => {
 
         if (d.banner) {
             try {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
                 const hash = d.banner
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     .replace(`/uploads/profiles/${d.id}`, "")
                     .replace(".png", "")
                     .replace(".jpg", "")
