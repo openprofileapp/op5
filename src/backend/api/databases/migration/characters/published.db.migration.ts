@@ -2,35 +2,59 @@ import { DateTime } from "luxon";
 
 import { db, mdb } from "../../db.js";
 import { log } from "../../../instances.js";
+import uploadFile from "../../../../_common/helpers/uploadFile.js";
+import { config } from "../../../../../../app.config.js";
 
 const result = mdb.profiles.query("SELECT * from published");
 
-db.characters.transaction(q => {
+db.characters.transaction(async q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
         if (d.avatar) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            d.avatar = d.avatar
+            try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                .replace("/uploads/profiles/", "/uploads/characters/avatars/")
-                .replace(".png", ".webp")
-                .replace(".jpg", ".webp")
-                .replace(".jpeg", ".webp")
+                const hash = d.avatar
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    .replace(`/uploads/profiles/${d.id}/`, "")
+                    .replace(".png", "")
+                    .replace(".jpg", "")
+                    .replace(".jpeg", "")
+
+                const uploadedAvatar = await uploadFile({
+                    folder: `characters/avatars/${d.id}`,
+                    name: hash,
+                    fileInput: `https://${config.domains.cdn}${d.avatar}`
+                });
+
+                d.avatar = uploadedAvatar?.path;
+            } catch {
+                // continue
+            }
         }
 
         if (d.banner) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            d.banner = d.banner
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                .replace("/uploads/profiles/", "/uploads/characters/banners/")
-                .replace(".png", ".webp")
-                .replace(".jpg", ".webp")
-                .replace(".jpeg", ".webp")
+            try {
+                const hash = d.banner
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    .replace(`/uploads/profiles/${d.id}`, "")
+                    .replace(".png", "")
+                    .replace(".jpg", "")
+                    .replace(".jpeg", "")
+
+                const uploadedBanner = await uploadFile({
+                    folder: `characters/banners/${d.id}`,
+                    name: hash,
+                    fileInput: `https://${config.domains.cdn}${d.banner}`
+                });
+
+                d.banner = uploadedBanner?.path;
+            } catch {
+                // continue
+            }
         }
 
         const result = q(
