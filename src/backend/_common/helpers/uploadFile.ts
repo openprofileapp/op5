@@ -26,30 +26,26 @@ export interface UploadResult {
 
 async function compressToFitLimit(
     buffer: Buffer,
-    originalMime: string
+    mimeType: string
 ): Promise<{ buffer: Buffer; ext: string; mime: string }> {
     let quality = 80;
     let maxDimension = 1920;
     let currentBuffer = buffer;
 
-    let outputMime = "image/webp";
-    let ext = "webp";
+    const outputMime = mimeType;
+    const ext = mimeType === "image/jpeg" ? "jpg" : "webp";
 
     while (currentBuffer.length > config.limits.uploadSize && quality >= 20) {
-        const pipeline = sharp(buffer).resize({
+        const pipeline = sharp(currentBuffer).resize({
             width: maxDimension,
             height: maxDimension,
             fit: "inside",
             withoutEnlargement: true
         });
 
-        if (originalMime === "image/jpeg") {
-            outputMime = "image/jpeg";
-            ext = "jpg";
+        if (mimeType === "image/jpeg") {
             currentBuffer = await pipeline.jpeg({ quality, progressive: true }).toBuffer();
         } else {
-            outputMime = "image/webp";
-            ext = "webp";
             currentBuffer = await pipeline.webp({ quality, effort: 4 }).toBuffer();
         }
 
@@ -120,7 +116,18 @@ export default async function uploadFile({
     let finalMime = type.mime;
 
     if (type.mime.startsWith("image")) {
-        finalBuffer = await sharp(fileBuffer)
+        const imageInstance = sharp(fileBuffer, { failOn: "none", limitInputPixels: false });
+        const metadata = await imageInstance.metadata();
+
+        let pipeline = imageInstance;
+
+        if (metadata.orientation) {
+            pipeline = pipeline.rotate();
+        } else {
+            pipeline = pipeline.rotate();
+        }
+
+        finalBuffer = await pipeline
             .resize({
                 width: 1920,
                 height: 1920,
