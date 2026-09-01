@@ -1,7 +1,7 @@
 export {};
 
 import type { Env, Config } from "../../../../app.config.ts";
-import { GetUserType } from "../../../_common/types/user.type.ts";
+import { GetUserItemType } from "../../../_common/types/user.type.ts";
 import { SessionActionType } from "../../../_common/types/validSession.type.ts";
 
 export type ClientConfig = {
@@ -25,7 +25,7 @@ export type ClientSession = {
     locale: string;
     timezone: string;
     delegatedAccounts?: string[];
-    user?: GetUserType
+    user?: GetUserItemType
     action?: SessionActionType
 };
 
