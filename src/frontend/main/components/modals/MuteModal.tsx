@@ -22,8 +22,13 @@ export default function MuteModal({
                 <form method="dialog">
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
-                <h3 className="font-bold text-2xl text-center">Mute {displayName}</h3>
-                <p className="pb-5 py-4 text-sub text-sm text-center">You will not get notifed when {displayName}:</p>
+                <h3 className="font-bold text-2xl text-center">
+                    {t("components.modals.mute.title")} {displayName}
+                </h3>
+
+                <p className="pb-5 py-4 text-sub text-sm text-center">
+                    {t("components.modals.mute.subtext")} {displayName}:
+                </p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
@@ -38,9 +43,13 @@ export default function MuteModal({
                             />
                         </label>
                         <div>
-                            Publishes new or updates existing content.
+                            {t("components.modals.mute.rowOneTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">This does not prevent content from appearing on your feed.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.mute.rowOneSubtext")}
+                            </span>
                         </div>
                     </div>
 
@@ -56,9 +65,13 @@ export default function MuteModal({
                             />
                         </label>
                         <div>
-                            Interacts or comments on your publications.
+                            {t("components.modals.mute.rowTwoTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">This will not remove new or existing comments.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.mute.rowTwoSubtext")}
+                            </span>
                         </div>
                     </div>
 
@@ -74,29 +87,15 @@ export default function MuteModal({
                             />
                         </label>
                         <div>
-                            Sends you private messages.
+                            {t("components.modals.mute.rowThreeTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">You will still recieve notifications for shared group chats.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.mute.rowThreeSubtext")}
+                            </span>
                         </div>
                     </div>
-
-                    {/*<div className="flex gap-6 flex-row items-center">
-                        <label className="shrink-0">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                // checked={false}
-                                onChange={(e) => {
-                                    // CALL HERE
-                                }}
-                            />
-                        </label>
-                        <div>
-                            Follows you or sends you friend requests.
-                            <br/>
-                            <span className="text-sub text-xs">This does not block friend requests from being sent.</span>
-                        </div>
-                    </div>*/}
                 </div>
 
                 <div className="pt-2 flex gap-2 flex-row relative">
@@ -106,7 +105,7 @@ export default function MuteModal({
                             (document.getElementById("mute") as HTMLDialogElement)?.close();
                         }}
                     >
-                        Close
+                        {t("components.modals.close")}
                     </button>
 
                     {/* Display loading class while awaiting API */}
@@ -114,10 +113,13 @@ export default function MuteModal({
                         className={`btn flex-1 bg-accent text-white border-accent`}
                         onClick={() => {
                             (document.getElementById("mute") as HTMLDialogElement)?.close();
-                            toast.show(`You muted ${displayName}`, { icon: "󰂛", type: "error" });
+                            toast.show(
+                                `${t("components.modals.mute.result")} ${displayName}`, 
+                                { icon: "󰂛", type: "error" }
+                            );
                         }}
                     >
-                        Mute {displayName}
+                        {t("components.modals.mute.title")} {displayName}
                     </button>
                 </div>
             </div>
@@ -125,6 +127,5 @@ export default function MuteModal({
                 <button>close</button>
             </form>
         </dialog>
-        
     );
 }

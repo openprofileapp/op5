@@ -10,7 +10,7 @@ type Props = {
 export default function BlockModal({ 
     userId, 
     displayName,
-    isStaff
+    isStaff = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -22,18 +22,30 @@ export default function BlockModal({
                 <form method="dialog">
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
-                <h3 className="font-bold text-2xl text-center">Block {displayName}</h3>
-                <p className="pb-5 py-4 text-sub text-sm text-center">{displayName} will not be able to:</p>
+                
+                <h3 className="font-bold text-2xl text-center">
+                    {t("components.modals.block.title")} {displayName}
+                </h3>
+
+                <p className="pb-5 py-4 text-sub text-sm text-center">
+                    {displayName} {t("components.modals.limit.subtext")}
+                </p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
+
                         <div>
-                            {isStaff ? "I" : "View or i"}nteract with your account or publications.
+                            {isStaff && (t("components.modals.block.rowOneTitleStaff"))}
+                            {!isStaff && (t("components.modals.block.rowOneTitle"))}
+
                             <br/>
-                            <span className="text-sub text-xs">This will remove or hide existing interactions.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.block.rowOneSubtext")}
+                            </span>
                         </div>
                     </div>
 
@@ -41,15 +53,22 @@ export default function BlockModal({
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             󱙍
                         </div>
+
                         <div>
-                            Send you private messages.
+                            {t("components.modals.limit.messagesTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">Existing conversations can still be read.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.limit.messagesSubtext")}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <p className="pb-6 text-sub text-sm text-center">{displayName} may still be able to:</p>
+                <p className="pb-6 text-sub text-sm text-center">
+                    {displayName} {t("components.modals.limit.subtextTwo")}
+                </p>
                 
                 <div className="flex gap-5 pb-8 pt-2 flex-col">
                     {isStaff && (
@@ -57,34 +76,51 @@ export default function BlockModal({
                             <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 
                             </div>
+
                             <div>
-                                Manage your account and publications.
+                                {t("components.modals.block.rowStaffOneTitle")}
+
                                 <br/>
-                                <span className="text-sub text-xs">Staff members can still view your account and publications.</span>
+
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.block.rowStaffOneSubtext")}
+                                </span>
                             </div>
                         </div>
                     )}
+
                     {isStaff && (
                         <div className="flex gap-6 flex-row items-center">
                             <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 
                             </div>
+
                             <div>
-                                Respond to your reports and tickets.
+                                {t("components.modals.block.rowStaffTwoTitle")}
+
                                 <br/>
-                                <span className="text-sub text-xs">Staff members can still interact with you for platform support.</span>
+
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.block.rowStaffTwoSubtext")}
+                                </span>
                             </div>
                         </div>
                     )}
+
                     {!isStaff && (
                         <div className="flex gap-6 flex-row items-center">
                             <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 󰈈
                             </div>
+
                             <div>
-                                View your account or publications logged out
+                                {t("components.modals.block.rowThreeTitle")}
+
                                 <br/>
-                                <span className="text-sub text-xs">Set your account to "private" or "friends" to prevent this.</span>
+
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.block.rowThreeSubtext")}
+                                </span>
                             </div>
                         </div>
                     )}
@@ -98,7 +134,7 @@ export default function BlockModal({
                             (document.getElementById("restrict") as HTMLDialogElement)?.show();
                         }}
                     >
-                        Too Much? Try Restricting Instead!
+                        {t("components.modals.block.tooMuch")}
                     </button>
                 </div>
 
@@ -109,18 +145,21 @@ export default function BlockModal({
                             (document.getElementById("block") as HTMLDialogElement)?.close();
                         }}
                     >
-                        Close
+                        {t("components.modals.close")}
                     </button>
 
-                    {/* Display loading class while awaiting API */}
+                    {/* DEVELOPER NEEDED: Display loading class while awaiting API */}
                     <button
                         className={`btn flex-1 bg-accent text-white border-accent`}
                         onClick={() => {
                             (document.getElementById("block") as HTMLDialogElement)?.close();
-                            toast.show(`You blocked ${displayName}`, { icon: "", type: "error" });
+                            toast.show(`
+                                ${t("components.modals.block.result")} ${displayName}`, 
+                                { icon: "", type: "error" }
+                            );
                         }}
                     >
-                        Block {displayName}
+                        {t("components.modals.block.title")} {displayName}
                     </button>
                 </div>
             </div>
@@ -128,6 +167,5 @@ export default function BlockModal({
                 <button>close</button>
             </form>
         </dialog>
-        
     );
 }

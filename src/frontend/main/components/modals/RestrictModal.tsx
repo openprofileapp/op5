@@ -10,7 +10,7 @@ type Props = {
 export default function RestrictModal({ 
     userId,
     displayName,
-    isStaff
+    isStaff = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -22,18 +22,28 @@ export default function RestrictModal({
                 <form method="dialog">
                     <button className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont"></button>
                 </form>
-                <h3 className="font-bold text-2xl text-center">Restrict {displayName}</h3>
-                <p className="pb-5 py-4 text-sub text-sm text-center">{displayName} will not be able to:</p>
+                <h3 className="font-bold text-2xl text-center">
+                    {t("components.modals.restrict.title")} {displayName}
+                </h3>
+
+                <p className="pb-5 py-4 text-sub text-sm text-center">
+                    {displayName} {t("components.modals.limit.subtext")}
+                </p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
                     <div className="flex gap-6 flex-row items-center">
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
+
                         <div>
-                            Comment on your publications.
+                            {t("components.modals.restrict.rowOneTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">This will not remove existing comments.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.restrict.rowOneSubtext")}
+                            </span>
                         </div>
                     </div>
 
@@ -41,10 +51,15 @@ export default function RestrictModal({
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             󱙍
                         </div>
+
                         <div>
-                            Send you private messages.
+                            {t("components.modals.limit.messagesTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">Existing conversations can still be read.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.limit.messagesSubtext")}
+                            </span>
                         </div>
                     </div>
 
@@ -52,25 +67,37 @@ export default function RestrictModal({
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
+
                         <div>
-                            Send you friend requests.
+                            {t("components.modals.restrict.rowThreeTitle")}
+
                             <br/>
-                            <span className="text-sub text-xs">If already friends, the connection will not be removed.</span>
+
+                            <span className="text-sub text-xs">
+                                {t("components.modals.restrict.rowThreeSubtext")}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <p className="pb-6 text-sub text-sm text-center">{displayName} may still be able to:</p>
+                <p className="pb-6 text-sub text-sm text-center">
+                    {displayName} {t("components.modals.limit.subtextTwo")}
+                </p>
                 
                 <div className="flex gap-5 pb-8 pt-2 flex-col">
                     <div className="flex gap-6 flex-row items-center">
                         <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                             
                         </div>
+
                         <div>
-                            Comment on your shared drafts and publications.
+                            {t("components.modals.restrict.rowFourTitle")}
+                            
                             <br/>
-                            <span className="text-sub text-xs">Remove "Send Comments" permission to revoke this.</span>
+                            
+                            <span className="text-sub text-xs">
+                                {t("components.modals.restrict.rowFourSubtext")}
+                            </span>
                         </div>
                     </div>
                     {isStaff && (
@@ -78,10 +105,15 @@ export default function RestrictModal({
                             <div className="w-6 flex items-center justify-center text-xl font-nerdfont shrink-0">
                                 
                             </div>
+
                             <div>
-                                Respond to your reports and tickets.
+                                {t("components.modals.restrict.rowStaffOneTitle")}
+
                                 <br/>
-                                <span className="text-sub text-xs">Staff members can still interact with you for platform support.</span>
+
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.restrict.rowStaffOneSubtext")}
+                                </span>
                             </div>
                         </div>
                     )}
@@ -95,7 +127,7 @@ export default function RestrictModal({
                             (document.getElementById("block") as HTMLDialogElement)?.show();
                         }}
                     >
-                        Not Enough? Try Blocking Instead!
+                        {t("components.modals.restrict.notEnough")}
                     </button>
                 </div>
 
@@ -106,7 +138,7 @@ export default function RestrictModal({
                             (document.getElementById("restrict") as HTMLDialogElement)?.close();
                         }}
                     >
-                        Close
+                        {t("components.modals.close")}
                     </button>
 
                     {/* Display loading class while awaiting API */}
@@ -114,10 +146,13 @@ export default function RestrictModal({
                         className={`btn flex-1 bg-accent text-white border-accent`}
                         onClick={() => {
                             (document.getElementById("restrict") as HTMLDialogElement)?.close();
-                            toast.show(`You restricted ${displayName}`, { icon: "", type: "error" });
+                            toast.show(
+                                `${t("components.modals.restrict.result")} ${displayName}`, 
+                                { icon: "", type: "error" }
+                            );
                         }}
                     >
-                        Restrict {displayName}
+                        {t("components.modals.restrict.title")} {displayName}
                     </button>
                 </div>
             </div>
@@ -125,6 +160,5 @@ export default function RestrictModal({
                 <button>close</button>
             </form>
         </dialog>
-        
     );
 }
