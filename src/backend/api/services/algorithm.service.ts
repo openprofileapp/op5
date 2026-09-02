@@ -21,7 +21,7 @@ interface IndexType {
     multipliers: Record<string, number>;
 }
 
-const index: IndexType = {
+export const index: IndexType = {
     events: {
         // Guest; cooldown per IP
         API: { score: 0.25, cooldown: "24h", scope: "global" },
@@ -210,13 +210,13 @@ export default class AlgorithmService {
             const result = db.audits.query<AuditType>(
                 `SELECT * FROM algorithm 
                     WHERE source = ? AND target = ? AND action = ? 
-                    ORDER BY created_at DESC LIMIT 1`,
+                    ORDER BY date DESC LIMIT 1`,
                 [sourceId, targetId, event]
             );
 
             assertDbSuccess(result);
 
-            const latestDate = result.rows[0].date;
+            const latestDate = result.rows[0]?.date;
 
             if (latestDate) {
                 const latestDateMs = DateTime.fromISO(latestDate).toMillis();
