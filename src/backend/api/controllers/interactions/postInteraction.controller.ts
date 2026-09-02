@@ -19,12 +19,23 @@ export const postInteractionController = async (req: Request, res: Response) => 
     try {
         const { targetId, type }: Props = req.body;
 
-        await assertBearer(req); 
-        assertAccount(req.session);
+        await assertBearer(req);
+
+        const noAccountNeededType: InteractionNameType[] = [
+            "chats",
+            "reads",
+            "shares",
+            "views"
+        ];
+
+        if (!noAccountNeededType.includes(type)) {
+            assertAccount(req.session);
+        }
+
         assertNotNull([targetId, type]);
 
         await postInteractionService(
-            req.session.userId,
+            req.session.userId || req.ip as string,
             targetId, 
             type,
             req.session
