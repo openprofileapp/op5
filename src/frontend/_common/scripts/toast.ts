@@ -1,15 +1,20 @@
-export type ToastType = "info" | "success" | "error" | "warning";
+type ToastNameType = 
+    | "info"
+    | "success"
+    | "error"
+    | "warning"
+;
 
-export interface Toast {
+export type ToastType = {
     id: number;
     message: string;
     subtext: string;
     icon: string;
-    type: ToastType;
+    type: ToastNameType;
     duration: number;
 }
 
-type Listener = (toast: Toast) => void;
+type Listener = (toast: ToastType) => void;
 
 let listeners: Listener[] = [];
 
@@ -47,13 +52,13 @@ export const toast = {
         }: {
             subtext?: string;
             icon?: string;
-            type?: ToastType;
+            type?: ToastNameType;
             duration?: number;
         } = {}
     ): number => {
         const id = Date.now();
 
-        const t: Toast = { id, message, subtext, icon, type, duration };
+        const t: ToastType = { id, message, subtext, icon, type, duration };
 
         listeners.forEach((l) => l(t));
 
