@@ -29,14 +29,6 @@ export const db = {
     media: new Database(paths.media)
 };
 
-db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
-db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
-db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
-db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
-
-db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
-db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
-
 db.audits.transaction(q => {
     if (!q("SELECT * FROM authentications LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/security/authentications.sql`);
@@ -281,6 +273,14 @@ db.interactions.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     };
 });
+
+db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
+db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
+db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
+
+db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 
 // Migration (old databases)
 export const mdb = {
