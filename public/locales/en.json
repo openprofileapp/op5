@@ -17,6 +17,10 @@
       }
     }
   },
+  "banners": {
+    "beta": "OpenProfile is in beta and some features are not yet available, but will be rolling out soon.",
+    "locale": "This translation is unverified and some words may be inaccurate."
+  },
   "responses": {
     "character": "An error occurred while fetching character",
     "cors": "Not allowed by CORS",
@@ -46,13 +50,75 @@
     "fileTooLarge": "File exceeds 1 MB limit",
     "failedAccountRegistration": "Failed to register account",
     "ownerInteraction": {
-      "follow": "You cannot follow your own content.",
-      "like": "You cannot like your own content."
+      "follow": "You cannot unfollow your own content.",
+      "like": "You cannot unlike your own content."
     }
+  },
+  "words": {
+    "You": "You",
+    "FailedTo": "Failed to",
+    "liked": "liked",
+    "unliked": "unliked",
+    "like": "like",
+    "unlike": "unlike",
+    "followed": "followed",
+    "unfollowed": "unfollowed",
+    "follow": "follow",
+    "unfollow": "unfollow"
   },
   "components": {
     "modals": {
-      "captchaHeader": "Are you a robot?"
+      "close": "Close",
+      "captchaHeader": "Are you a robot?",
+      "limit": {
+        "subtext": "will not be able to:",
+        "messagesTitle": "Send you private messages.",
+        "messagesSubtext": "Existing conversations can still be read.",
+        "subtextTwo": "may still be able to:"
+      },
+      "block": {
+        "title": "Block",
+        "rowOneTitleStaff": "Interact with your account or publications.",
+        "rowOneTitle": "View or interact with your account or publications.",
+        "rowOneSubtext": "This will remove or hide existing interactions.",
+        "rowThreeTitle": "View your account or publications logged out.",
+        "rowThreeSubtext": "Set your account to \"private\" or \"friends\" to prevent this.",
+        "rowStaffOneTitle": "Manage your account and publications.",
+        "rowStaffOneSubtext": "Staff members can still view your account and publications.",
+        "rowStaffTwoTitle": "Respond to your reports and tickets.",
+        "rowStaffTwoSubtext": "Staff members can still interact with you for platform support.",
+        "tooMuch": "Too Much? Try Restricting Instead!",
+        "result": "You blocked"
+      },
+      "restrict": {
+        "title": "Restrict",
+        "rowOneTitle": "Comment on your publications.",
+        "rowOneSubtext": "This will not remove existing comments.",
+        "rowThreeTitle": "Send you friend requests.",
+        "rowThreeSubtext": "If already friends, the connection will not be removed.",
+        "rowFourTitle": "Comment on your shared drafts and publications.",
+        "rowFourSubtext": "Remove \"Send Comments\" permission to revoke this.",
+        "rowStaffOneTitle": "Respond to your reports and tickets.",
+        "rowStaffOneSubtext": "Staff members can still interact with you for platform support.",
+        "notEnough": "Not Enough? Try Blocking Instead!",
+        "result": "You restricted"
+      },
+      "mute": {
+        "title": "Mute",
+        "subtext": "You will not get notifed when",
+        "rowOneTitle": "Publishes new or updates existing content.",
+        "rowOneSubtext": "This does not prevent content from appearing on your feed.",
+        "rowTwoTitle": "Interacts or comments on your publications.",
+        "rowTwoSubtext": "This will not remove new or existing comments.",
+        "rowThreeTitle": "Sends you private messages.",
+        "rowThreeSubtext": "You will still recieve notifications for shared group chats.",
+        "result": "You muted"
+      },
+      "share": {
+        "title": "Share",
+        "subtext": "Click the image to download it!",
+        "copied": "Link copied to clipboard!"
+      }
     }
   },
   "pages": {
