@@ -47,10 +47,48 @@ import Unavailable from "../_common/pages/Unavailable.js"
 import Template from "./pages/Template.js"
 import { verifySession } from "../_common/scripts/session.js"
 
-async function bootstrap() {    
+async function bootstrap() {
+    await verifySession();
+
+    if (!localStorage.getItem("locale")) {
+        localStorage.setItem(
+            "locale", 
+            window.session.locale || window.config.metadata.locale
+        );
+    }
+
+    if (localStorage.getItem("locale")) {
+        await i18n.changeLanguage(localStorage.getItem("locale") as string);
+
+        if (
+            (
+                localStorage.getItem("locale")?.startsWith("zh") ||
+                localStorage.getItem("locale")?.startsWith("es") ||
+                localStorage.getItem("locale")?.startsWith("hi") ||
+                localStorage.getItem("locale")?.startsWith("ar") ||
+                localStorage.getItem("locale")?.startsWith("ru") ||
+                localStorage.getItem("locale")?.startsWith("id") ||
+                localStorage.getItem("locale")?.startsWith("ja")
+            ) &&
+            !localStorage.getItem("hasSeenLocaleBanner")
+        ) {
+            banner.show(
+                i18n.t("banners.locale"),
+                {
+                    type: "warning",
+                    closeAction: { 
+                        onClick: () => {
+                            localStorage.setItem("hasSeenLocaleBanner", "true");
+                        } 
+                    }
+                }
+            );
+        }
+    }
+
     if (!localStorage.getItem("hasSeenBetaBanner")) {
         banner.show(
-            "OpenProfile is in beta and some features are not yet available, but will be rolling out soon.",
+            i18n.t("banners.beta"),
             {
                 type: "error",
                 button: { 
@@ -68,8 +106,6 @@ async function bootstrap() {
         );
     }
 
-    await verifySession();
-
     if (window.session.userId) {
         const response = await fetch(
             `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
@@ -78,7 +114,9 @@ async function bootstrap() {
             }
         );
 
-        window.session.user = await response.json();
+        const data = await response.json()
+
+        window.session.user = data.items[0];
 
         setupWebPushNotifications();
     }
