@@ -162,7 +162,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                 cacheBust: true,
                 canvasWidth: currentPreset.width,
                 canvasHeight: currentPreset.height,
-                pixelRatio: 2,
+                pixelRatio: 1,
             });
 
             const link = document.createElement("a");
