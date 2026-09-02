@@ -68,6 +68,7 @@ db.characters.transaction(async q => {
                 banner,
                 about,
                 tags,
+                license,
                 isAuraEnabled,
                 auraType,
                 auraPrimary,
@@ -78,7 +79,7 @@ db.characters.transaction(async q => {
                 isScheduled,
                 updatedDate,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.score,
                 d.id,
@@ -89,6 +90,7 @@ db.characters.transaction(async q => {
                 d.banner,
                 d.about,
                 JSON.stringify((d.tags as string ?? '').split(',').map(tag => tag.trim()).filter(Boolean)),
+                d.license,
                 d.aura || 0,
                 "flow",
                 d.aura_primary,

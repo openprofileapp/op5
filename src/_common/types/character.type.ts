@@ -16,6 +16,7 @@ export type PublishedCharacterType = {
     banner?: string;
     about?: string;
     tags: string;
+    license: string;
     licenseId: string;
     isAuraEnabled: boolean;
     auraType: string;

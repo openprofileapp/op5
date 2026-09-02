@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS drafts (
     banner TEXT,
     about TEXT,
     tags TEXT DEFAULT '[]',
+    license TEXT,
     licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
