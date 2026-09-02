@@ -10,7 +10,6 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { formatNumber } from "kage-library/client";
 
-
 import Metadata from "../../_common/components/Metadata.js";
 import ProjectCard from "../components/ProjectCard.js";
 import Badges from "../components/Badges.js";
@@ -24,7 +23,7 @@ import Mention from "../components/Mention.js";
 import React from "react";
 import TitleCard from "../components/TitleCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
-import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -351,7 +350,7 @@ I am the founder of OpenProfile and the producer of Dragonights at J9 Studios.
 Check out my character: <@6773794953695671>
 `.trim();
 
-    const isStaff = user.badges?.some(badge => badge.type === "staff") ?? false;
+    const isStaff = user.badges?.some(badge => badge.type === "STAFF") ?? false;
 
     if (!isTranslationReady || loading) return null;
 
@@ -372,7 +371,7 @@ Check out my character: <@6773794953695671>
                         <div
                             className="absolute top-[64px] inset-0 bg-cover bg-center h-96"
                             style={{
-                                backgroundImage: `url(https://cdn.openprofile.app${user.banner})`,
+                                backgroundImage: `url(${cdnBaseUrl}${user.banner})`,
                             }}
                         />
                         
@@ -657,7 +656,7 @@ Check out my character: <@6773794953695671>
                                         <div className="relative">
                                             <img
                                                 className="rounded-full h-32 w-32 object-cover"
-                                                src={`https://cdn.openprofile.app/${user.avatar}`}
+                                                src={`${cdnBaseUrl}/${user.avatar}`}
                                                 alt="avatar"
                                             />
 
@@ -1077,7 +1076,7 @@ Check out my character: <@6773794953695671>
                                                                                 key={index}
                                                                                 id={part}
                                                                                 name="Cornelia"
-                                                                                avatar="https://cdn.openprofile.app/uploads/profiles/6773794953695671/4k2jGxq2utoquol17wG9HZ54LgLTUfVc.png"
+                                                                                avatar="${cdnBaseUrl}/uploads/profiles/6773794953695671/4k2jGxq2utoquol17wG9HZ54LgLTUfVc.png"
                                                                                 aura={{
                                                                                     isEnabled: true,
                                                                                     primary: "#fce1969f"
@@ -1150,7 +1149,7 @@ Check out my character: <@6773794953695671>
 
                                                                     avatar={
                                                                         d.avatar
-                                                                            ? `https://cdn.openprofile.app${d.avatar}`
+                                                                            ? `${cdnBaseUrl}${d.avatar}`
                                                                             : ""
                                                                     }
 
@@ -1285,7 +1284,7 @@ Check out my character: <@6773794953695671>
                                                             }}
                                                             avatar={
                                                                 d.avatar
-                                                                    ? `https://cdn.openprofile.app${d.avatar}`
+                                                                    ? `${cdnBaseUrl}${d.avatar}`
                                                                     : ""
                                                             }
                                                             displayName={d?.displayName}
