@@ -202,7 +202,7 @@ export default function ZoomableMedia({
                                 onPointerMove={handlePointerMove}
                                 onPointerUp={handlePointerUp}
                                 onPointerCancel={handlePointerUp}
-                                className={`max-w-[85vw] max-h-[80vh] object-contain will-change-transform cursor-zoom-in transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                className={`rounded max-w-[85vw] max-h-[80vh] object-contain will-change-transform cursor-zoom-in transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                                     isAnimating ? "scale-100 opacity-100" : "scale-90 opacity-0"
                                 }`}
                             />
