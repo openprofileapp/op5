@@ -6,10 +6,11 @@ import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../components/CharacterCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
-import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import UserCard from "../components/UserCard.js";
 import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
+import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
 
 type TabType = 
     | "characters"
@@ -77,14 +78,24 @@ export default function Search() {
 
     const isFetchingRef = useRef(false);
     const characterModalRef = useRef<CharacterModalRef>(null);
+    const ShareModalRef = useRef<ShareModalRef>(null);
 
     const handleOpenModal = (id: string) => {
         characterModalRef.current?.open(id);
     };
 
+    const handleShareModal = (id: string) => {
+        ShareModalRef.current?.open(id);
+    };
+
     useEffect(() => {
         let isMounted = true;
         isFetchingRef.current = true;
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsLoading(true);
+        setCharacters([]);
+        setUsers([]);
 
         const fetchInitialData = async () => {
             const startTime = performance.now();
@@ -209,6 +220,7 @@ export default function Search() {
             />
 
             <CharacterModal ref={characterModalRef} />
+            <ShareModal ref={ShareModalRef} />
 
             <div className="px-4 py-4 md:px-14">
                 <div className="mt-4 text-xl font-bold">
@@ -252,15 +264,17 @@ export default function Search() {
                 <div className="flex flex-wrap gap-4">
                     {isLoading ? (
                         Array.from({ length: 24 }).map((_, index) => (
-                            <SkeletonCharacterCard key={index} />
+                            <SkeletonCharacterCard key={`skeleton-initial-${index}`} />
                         ))
                     ) : activeTab === "characters" && characterCount > 0 ? (
                         characters.map((d) => (
                             <CharacterCard 
+                                key={d.id}
                                 {...d}
                                 isPreview={true}
                                 hasNotification={false}
                                 onOpenModal={handleOpenModal}
+                                onShareModal={handleShareModal}
                             />
                         ))
                     ) : activeTab === "users" && userCount > 0 ? (
@@ -274,8 +288,8 @@ export default function Search() {
                                     primary: d.auraPrimary,
                                     secondary: d.auraSecondary,
                                 }}
-                                avatar={d.avatar ? `https://cdn.dev.openprofile.app${d.avatar}` : ""}
-                                banner={d.banner ? `https://cdn.dev.openprofile.app${d.banner}` : ""}
+                                avatar={d.avatar ? `${cdnBaseUrl}${d.avatar}` : ""}
+                                banner={d.banner ? `${cdnBaseUrl}${d.banner}` : ""}
                                 displayName={d.displayName}
                                 username={d.usernames?.[0]?.username}
                                 status={d.status}
@@ -305,7 +319,7 @@ export default function Search() {
                     {isLoadingMore ? (
                         <div className="flex flex-wrap gap-4 justify-center">
                             {Array.from({ length: 6 }).map((_, index) => (
-                                <SkeletonCharacterCard key={index} />
+                                <SkeletonCharacterCard key={`skeleton-more-${index}`} />
                             ))}
                         </div>
                     ) : (
