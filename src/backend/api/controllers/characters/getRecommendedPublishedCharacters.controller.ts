@@ -34,7 +34,7 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             sortBy: "popularDesc", 
             offset: offset,
             limit: limit as number, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: "home"
         })
 

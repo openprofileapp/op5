@@ -34,7 +34,7 @@ export const getRecentPublishedCharacters = async (req: Request, res: Response) 
             sortBy: "recent", 
             offset: offset,
             limit: limit as number, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType
         })
 

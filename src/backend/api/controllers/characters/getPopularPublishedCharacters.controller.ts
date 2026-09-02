@@ -26,7 +26,7 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
             ownerId: owner as string, 
             sortBy: "popularDesc", 
             limit: config.limits.assetsPerPage, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType
         })
 

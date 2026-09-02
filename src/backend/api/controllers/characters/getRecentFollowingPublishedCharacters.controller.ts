@@ -32,7 +32,7 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             sortBy: "recent", 
             offset: offset,
             limit: limit as number, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: "home"
         })
 

@@ -35,7 +35,7 @@ export const getRecommendedTaggedUsers = async (req: Request, res: Response) => 
             offset: offset,
             limit: limit as number, 
             tag: tag as string, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: "home"
         })
 

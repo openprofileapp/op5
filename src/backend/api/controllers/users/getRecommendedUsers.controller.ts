@@ -32,7 +32,7 @@ export const getRecommendedUsers = async (req: Request, res: Response) => {
             sortBy: "popularDesc", 
             offset: offset,
             limit: limit as number, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: "home"
         })
 

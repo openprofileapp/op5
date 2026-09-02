@@ -39,7 +39,7 @@ export const getPublishedCharacters = async (req: Request, res: Response) => {
             offset: offset,
             limit: limit as number, 
             query: query as string, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType,
             delegatedAccounts: req.session?.delegatedAccounts,
             includeMedia: includeMedia === "true" ? true : false

@@ -37,7 +37,7 @@ export const getRecommendedTaggedPublishedCharacters = async (req: Request, res:
             offset: offset,
             limit: limit as number, 
             tag: tag as string, 
-            getAs: req.session.userId,
+            getAs: req.session.userId || req.ip,
             getFrom: "home"
         })
 
