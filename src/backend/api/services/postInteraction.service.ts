@@ -1,4 +1,6 @@
-import { AdvancedError } from "kage-library";
+import { DateTime } from "luxon";
+
+import { AdvancedError, parseDuration } from "kage-library";
 
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
@@ -8,7 +10,7 @@ import { assertPlatformPermissions } from "../../_common/asserts/platformPermiss
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { AlgorithmEventNameType } from "../../../_common/types/algorithm.type.js";
-import AlgorithmService from "./algorithm.service.js";
+import AlgorithmService, { index } from "./algorithm.service.js";
 import getInteractionsService from "./getInteractions.service.js";
 import sendNotificationService, { notificationMilestones } from "./sendNotification.service.js";
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
@@ -16,10 +18,17 @@ import whatIs from "../helpers/whatIs.js";
 import { config } from "../../../../app.config.js";
 import { i18n } from "../../_common/instances.js";
 
-interface InteractionEventResult {
+type InteractionEventResult = {
     newInteraction: boolean;
     count?: number;
 }
+
+const interactionEventsIndex: Partial<Record<InteractionNameType, AlgorithmEventNameType>> = {
+    chats: "CHAT",
+    reads: "READ",
+    shares: "SHARE",
+    views: "VIEW"
+};
 
 async function postInteractionEvent(
     sourceId: string,
@@ -27,35 +36,30 @@ async function postInteractionEvent(
     type: InteractionNameType,
     session?: ValidSessionType
 ): Promise<InteractionEventResult> {   
-    let whatIsData;
-
     if (targetId) {
-        whatIsData = whatIs(targetId);
+        const whatIsData = whatIs(targetId);
+        const isOwner = sourceId === whatIsData.ownerId || sourceId === whatIsData.id;
 
-        const isOwner = sourceId === whatIsData.ownerId || sourceId === whatIsData.id
-
-        if (isOwner && type === "follows") {
-            throw new AdvancedError({
-                code: 403,
-                message: i18n.t("responses.ownerInteraction.follow")
-            });
+        if (isOwner) {
+            if (type === "follows") {
+                throw new AdvancedError({
+                    code: 403,
+                    message: i18n.t("responses.ownerInteraction.follow")
+                });
+            }
+            if (type === "likes") {
+                throw new AdvancedError({
+                    code: 403,
+                    message: i18n.t("responses.ownerInteraction.like")
+                });
+            }
+            if (type === "mutes") {
+                throw new AdvancedError({
+                    code: 403,
+                    message: i18n.t("responses.ownerInteraction.mute")
+                });
+            }
         }
-
-        if (isOwner && type === "likes") {
-            throw new AdvancedError({
-                code: 403,
-                message: i18n.t("responses.ownerInteraction.like")
-            });
-        }
-
-        if (isOwner && type === "mutes") {
-            throw new AdvancedError({
-                code: 403,
-                message: i18n.t("responses.ownerInteraction.mute")
-            });
-        }
-
-        // DEVELOPER NEEDED: Add no self-blocks and stuff here
     }
 
     const allowedTypes = satisfiesAll<InteractionNameType>()(
@@ -67,7 +71,6 @@ async function postInteractionEvent(
         "hides",
         "hiddenCollaborations",
         "likes",
-        "mutes",
         "mutes",
         "reads",
         "restricts",
@@ -98,31 +101,77 @@ async function postInteractionEvent(
         views: "VIEW"
     };
 
-    const requiredPermission = interactionPermissions[type as InteractionNameType];
+    const requiredPermission = interactionPermissions[type];
 
     if (session) {
         assertPlatformPermissions(session, requiredPermission);
     }
 
+    const eventKey = interactionEventsIndex[type];
+    const eventConfig = index.events[eventKey || ""];
+    let cooldown = eventConfig?.cooldown;
+
     let newInteraction = false;
 
     db.interactions.transaction(q => {
-        const result = q(
-            `DELETE FROM ${type} WHERE source = ? AND target = ?`,
-            [sourceId, targetId]
+        const appendOnlyInteractions = 
+            new Set([
+                "views", 
+                "reads", 
+                "shares", 
+                "chats"
+            ]
         );
+        
+        const doNotDelete = appendOnlyInteractions.has(type);
 
-        assertDbSuccess(result);
-
-        if (result.changes === 0) {
-            newInteraction = true;
+        if (cooldown) {
+            if (!session?.userId) {
+                cooldown = "24h"
+            } 
 
             const result = q(
-                `INSERT INTO ${type} (source, target) VALUES (?, ?)`,
+                `SELECT * FROM ${type} 
+                    WHERE source = ? AND target = ? 
+                    ORDER BY date DESC LIMIT 1`,
                 [sourceId, targetId]
             );
 
             assertDbSuccess(result);
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const latestDate = result.rows[0]?.date;
+
+            if (latestDate) {
+                const latestDateMs = DateTime.fromISO(latestDate).toMillis();
+                const expiresAtMs = latestDateMs + parseDuration(cooldown);
+                const nowMs = DateTime.now().toMillis();
+
+                if (expiresAtMs > nowMs) return;
+            }
+        }
+
+        let deleteResult;
+
+        if (!doNotDelete) {
+            deleteResult = q(
+                `DELETE FROM ${type} WHERE source = ? AND target = ?`,
+                [sourceId, targetId]
+            );
+
+            assertDbSuccess(deleteResult);
+        }
+
+        if (doNotDelete || (deleteResult && deleteResult.changes === 0)) {
+            newInteraction = true;
+
+            const insertResult = q(
+                `INSERT INTO ${type} (source, target) VALUES (?, ?)`,
+                [sourceId, targetId]
+            );
+
+            assertDbSuccess(insertResult);
         }
     });
 
@@ -173,7 +222,9 @@ async function postInteractionEvent(
         }
     }
 
-    AlgorithmService.update(targetId, sourceId, algorithmEvent as AlgorithmEventNameType);
+    if (algorithmEvent) {
+        AlgorithmService.update(targetId, sourceId, algorithmEvent);
+    }
 
     const interactions = getInteractionsService({ target: targetId, type });
     const count = interactions[type]?.count;
@@ -204,7 +255,7 @@ async function postInteractionNotification(
 
     if (
         notificationType &&
-        (sourceId !== whatIsData.ownerId || sourceId !== whatIsData.id)
+        (sourceId !== whatIsData.ownerId && sourceId !== whatIsData.id)
     ) {
         await sendNotificationService(
             config.isProduction ? whatIsData.ownerId || whatIsData.id : sourceId,
@@ -259,7 +310,6 @@ export default async function postInteractionService(
         session
     );
 
-    // Returns the result instantly and processes the notification in the background
     postInteractionNotification(
         sourceId, 
         targetId, 
