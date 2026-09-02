@@ -270,7 +270,7 @@ export default function getUsersService({
     const interactionParams: (string | undefined)[] = [];
 
     const buildInteractionField = (table: string) => {
-        interactionParams.push(getAs, getAs);
+        interactionParams.push(getAs, getAs, getAs, getAs);
 
         const items = includeInteractionItems 
             ? `'items', COALESCE((SELECT json_group_array(json_object('source', source, 'target', target, 'date', date)) FROM interactions.${table} WHERE target = users.id), json('[]')),` 
@@ -280,7 +280,8 @@ export default function getUsersService({
             '${table}', json_object(
                 ${items}
                 'count', (SELECT COUNT(*) FROM interactions.${table} WHERE target = users.id),
-                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM interactions.${table} WHERE target = users.id AND source = ?) THEN json('true') ELSE json('false') END
+                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM interactions.${table} WHERE target = users.id AND source = ?) THEN json('true') ELSE json('false') END,
+                'latestDate', CASE WHEN ? IS NOT NULL THEN (SELECT MAX(date) FROM interactions.${table} WHERE target = users.id AND source = ?) ELSE NULL END
             )
         `;
     };

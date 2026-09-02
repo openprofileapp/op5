@@ -265,7 +265,7 @@ export default function getPublishedCharactersService({
     const interactionParams: (string | undefined)[] = [];
 
     const buildInteractionField = (table: string) => {
-        interactionParams.push(getAs, getAs);
+        interactionParams.push(getAs, getAs, getAs, getAs);
 
         const items = includeInteractionItems 
             ? `'items', COALESCE((SELECT json_group_array(json_object('source', source, 'target', target, 'date', date)) FROM interactions.${table} WHERE target = published.id), json('[]')),` 
@@ -275,7 +275,8 @@ export default function getPublishedCharactersService({
             '${table}', json_object(
                 ${items}
                 'count', (SELECT COUNT(*) FROM interactions.${table} WHERE target = published.id),
-                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM interactions.${table} WHERE target = published.id AND source = ?) THEN json('true') ELSE json('false') END
+                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM interactions.${table} WHERE target = published.id AND source = ?) THEN json('true') ELSE json('false') END,
+                'latestDate', CASE WHEN ? IS NOT NULL THEN (SELECT MAX(date) FROM interactions.${table} WHERE target = published.id AND source = ?) ELSE NULL END
             )
         `;
     };
@@ -469,6 +470,7 @@ export default function getPublishedCharactersService({
             owner.badges = parseJson(owner.badges);
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formattedRow: any = {
             ...row,
             owner,
