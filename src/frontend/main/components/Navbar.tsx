@@ -172,27 +172,46 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const initialQuery = searchParams.get('q') || '';
-    
-    const [query, setQuery] = useState(initialQuery);
+
+    const rawQuery = searchParams.get('q') || '';
+    const [query, setQuery] = useState(rawQuery);
 
     useEffect(() => {
         setQuery(searchParams.get('q') || '');
     }, [searchParams]);
 
     useEffect(() => {
+        const currentUrlQuery = searchParams.get('q') || '';
+        const trimmed = query.trim();
+
+        if (trimmed === currentUrlQuery.trim() && window.location.pathname === '/search') {
+            return;
+        }
+
         const handler = setTimeout(() => {
-            const trimmed = query.trim();
-            
             if (trimmed) {
-                navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+                const params = new URLSearchParams();
+                params.set('q', trimmed);
+                navigate(`/search?${params.toString()}`);
             } else if (query === '' && window.location.pathname === '/search') {
                 navigate('/');
             }
         }, 300);
 
         return () => clearTimeout(handler);
-    }, [query, navigate]);
+    }, [query, searchParams, navigate]);
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = query.trim();
+        if (trimmed) {
+            const params = new URLSearchParams();
+            params.set('q', trimmed);
+            navigate(`/search?${params.toString()}`);
+        } else {
+            navigate('/search');
+        }
+    };
 
     if (!isTranslationReady) return null;
 
@@ -289,7 +308,10 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 </div>
 
                 <div className="flex items-center gap-5">
-                    <div className="flex flex-1 flex-col w-84">
+                    <form 
+                        onSubmit={(e) => e.preventDefault()} 
+                        className="flex flex-1 flex-col w-84"
+                    >
                         <label className="input w-full">
                             <span className="font-nerdfont text-base mr-1"></span>
                             <input 
@@ -299,8 +321,9 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                         </label>
-                    </div>
-                    {/* While typing, auto forward to search and display results, on clear, return home */}
+                    </form>
+
+                    {/* While typing, auto forward to search and display results, on clear, return to the previous page */}
 
                     {window.session.userId && (
                         <>
