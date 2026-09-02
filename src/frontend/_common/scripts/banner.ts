@@ -1,4 +1,9 @@
-export type BannerType = "info" | "success" | "error" | "warning";
+type BannerNameType = 
+    | "info"
+    | "success"
+    | "error"
+    | "warning"
+;
 
 export interface BannerButton {
     label: string;
@@ -9,20 +14,20 @@ export interface BannerCloseAction {
     onClick: () => void;
 }
 
-export interface Banner {
+export type BannerType = {
     id: number;
     message: string;
     subtext?: string;
-    type: BannerType;
+    type: BannerNameType;
     button?: BannerButton;
     closeAction?: BannerCloseAction;
     dismissible?: boolean;
 }
 
-type BannerListener = (banners: Banner[]) => void;
+type BannerListener = (banners: BannerType[]) => void;
 
 let listeners: BannerListener[] = [];
-let banners: Banner[] = [];
+let banners: BannerType[] = [];
 
 export const banner = {
     /**
@@ -38,14 +43,14 @@ export const banner = {
             dismissible = true,
         }: {
             subtext?: string;
-            type?: BannerType;
+            type?: BannerNameType;
             button?: BannerButton;
             closeAction?: BannerCloseAction;
             dismissible?: boolean;
         } = {}
     ): number => {
         const id = Date.now();
-        const b: Banner = { id, message, subtext, type, button, closeAction, dismissible };
+        const b: BannerType = { id, message, subtext, type, button, closeAction, dismissible };
 
         banners = [...banners, b];
         listeners.forEach((l) => l(banners));
