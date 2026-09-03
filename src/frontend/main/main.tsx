@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async"
 import { I18nextProvider } from "react-i18next"
 
 import i18n from "../_common/i18n.js"
+import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 
 import setupWebPushNotifications from "./scripts/webPush.js"
 import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
@@ -126,32 +127,34 @@ async function bootstrap() {
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
                     <BrowserRouter>
-                        <Layout>
-                            <Routes>
-                                <Route path="/" element={<Home />} />
-                                <Route path="/search" element={<Search />} />
-                                <Route path="/universes" element={<ComingSoon />} />
+                        <ModalProvider>
+                            <Layout>
+                                <Routes>
+                                    <Route path="/" element={<Home />} />
+                                    <Route path="/search" element={<Search />} />
+                                    <Route path="/universes" element={<ComingSoon />} />
 
-                                <Route path="/trending" element={<Browse />} />
-                                <Route path="/popular" element={<Browse />} />
-                                <Route path="/recent" element={<Browse />} />
-                                <Route path="/browse" element={<Browse />} />
-                                <Route path="/browse/:tag" element={<Browse />} />
+                                    <Route path="/trending" element={<Browse />} />
+                                    <Route path="/popular" element={<Browse />} />
+                                    <Route path="/recent" element={<Browse />} />
+                                    <Route path="/browse" element={<Browse />} />
+                                    <Route path="/browse/:tag" element={<Browse />} />
 
-                                <Route path="/premium" element={<Premium />} />
+                                    <Route path="/premium" element={<Premium />} />
 
-                                <Route path="/account/onboarding" element={<Onboarding />} />
-                                <Route path="/account/library" element={<ComingSoon />} />
-                                <Route path="/account/partners" element={<Partners />} />
-                                
-                                <Route path="/user/:id" element={<Template />} />
-                                {/* <Route path="character/:id" element={<CharacterProfile />} /> */}
+                                    <Route path="/account/onboarding" element={<Onboarding />} />
+                                    <Route path="/account/library" element={<ComingSoon />} />
+                                    <Route path="/account/partners" element={<Partners />} />
+                                    
+                                    <Route path="/user/:id" element={<Template />} />
+                                    {/* <Route path="character/:id" element={<CharacterProfile />} /> */}
 
-                                <Route path="/503" element={<Unavailable />} />
-                                <Route path="/404" element={<NotFound />} />
-                                <Route path="*" element={<Navigate to="/404" replace />} />
-                            </Routes>
-                        </Layout>
+                                    <Route path="/503" element={<Unavailable />} />
+                                    <Route path="/404" element={<NotFound />} />
+                                    <Route path="*" element={<Navigate to="/404" replace />} />
+                                </Routes>
+                            </Layout>
+                        </ModalProvider>
                     </BrowserRouter>
                 </I18nextProvider>
             </HelmetProvider>
