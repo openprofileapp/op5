@@ -1,15 +1,15 @@
 import { useTranslation } from "react-i18next";
-import { useEffect, useState, useRef, useImperativeHandle, forwardRef } from "react";
+import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
 import { DateTime } from "luxon";
 
-import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
+import { cdnBaseUrl } from "../../../_common/scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import ZoomableMedia from "../../../_common/components/ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
 
 export interface CharacterModalRef {
-    open: (id: string) => void;
+    open: (data: GetPublishedCharacterItemType) => void;
     close: () => void;
 }
 
@@ -17,57 +17,43 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const { ready: isTranslationReady } = useTranslation();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [character, setCharacter] = useState<GetPublishedCharacterItemType>();
+    const [data, setData] = useState<GetPublishedCharacterItemType>();
     const [loading, setLoading] = useState(true);
 
     const resetState = () => {
-        setActiveId(null);
-        setCharacter(undefined);
+        setData(undefined);
         setLoading(true);
     };
 
     useImperativeHandle(ref, () => ({
-        open: (id: string) => {
-            setActiveId(id);
-            dialogRef.current?.showModal();
+        open: (data: GetPublishedCharacterItemType) => {
+            setData(data);
+            setLoading(false);
+
+            setTimeout(() => {
+                dialogRef.current?.showModal();
+            }, 0);
         },
         close: () => {
             dialogRef.current?.close();
+
             resetState();
         }
     }));
 
-    useEffect(() => {
-        if (!activeId) return;
-
-        const fetchProfiles = async () => {
-            try {
-                const res = await fetch(
-                    `${apiBaseUrl}/v3/characters?id=${activeId}&includeMedia=true`, 
-                    { credentials: "include" }
-                );
-                const data = await res.json();
-                setCharacter(data.items[0]);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfiles();
-    }, [activeId]);
-
     const handleClose = () => {
         dialogRef.current?.close();
+
+        resetState();
     };
 
-    const auraStyle: React.CSSProperties = character?.isAuraEnabled
+    if (!isTranslationReady || !data) return null;
+
+    const auraStyle: React.CSSProperties = data.isAuraEnabled
         ? {
-            ["--aura-type" as string]: `aura-${character?.auraType || "flow"}`,
-            ["--aura-primary" as string]: character?.auraPrimary || "var(--color-accent)",
-            ["--aura-secondary" as string]: character?.auraSecondary || "var(--color-accent)",
+            ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
+            ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: data.auraSecondary || "var(--color-accent)",
         }
         : {
             border: "1px solid #222222",
@@ -100,8 +86,6 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
         return dt.toFormat("LLLL d, yyyy");
     }
 
-    if (!isTranslationReady) return null;
-
     return (
         <dialog 
             ref={dialogRef} 
@@ -126,12 +110,12 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                     <div className="mask-graident skeleton absolute z-1 top-0 left-0 md:rounded-t-lg h-[110px] md:h-[164px] w-full object-cover"/>
                 ) : (
                     (() => {
-                        const Component = character?.banner ? ZoomableMedia : "img";
+                        const Component = data.banner ? ZoomableMedia : "img";
                         
                         return (
                             <Component
                                 className="mask-graident absolute z-1 top-0 left-0 md:rounded-t-lg h-[110px] md:h-[164px] w-full object-cover"
-                                src={loading? "" : character?.banner ? `${cdnBaseUrl}${character.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                                src={loading? "" : data.banner ? `${cdnBaseUrl}${data.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
                                 alt={loading ? "" : "banner"}
                             />
                         );
@@ -143,12 +127,12 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                         <div className="skeleton w-full h-full rounded-full"></div>
                     ) : (
                         (() => {
-                            const Component = character?.avatar ? ZoomableMedia : "img";
+                            const Component = data.avatar ? ZoomableMedia : "img";
                             
                             return (
                                 <Component
                                     className="w-full h-full object-cover"
-                                    src={character?.avatar ? `${cdnBaseUrl}${character.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                                    src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
                                     alt="avatar"
                                 />
                             );
@@ -171,7 +155,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {loading ? (
                                         <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                                     ) : (
-                                        relativeDate(character?.createdDate)
+                                        relativeDate(data.createdDate)
                                     )}
                                 </div>
 
@@ -186,7 +170,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {loading ? (
                                         <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                                     ) : (
-                                        relativeDate(character?.updatedDate)
+                                        relativeDate(data.updatedDate)
                                     )}
                                 </div>
                             </div>
@@ -206,9 +190,9 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     ) : (
                                         <Link 
                                             className="text-sm hover:underline w-fit"
-                                            to={`/user/${character?.owner?.username || character?.owner?.id}`}
+                                            to={`/user/${data.owner?.username || data.owner?.id}`}
                                         >
-                                            {character?.owner?.displayName || character?.owner?.username || character?.owner?.id}
+                                            {data.owner?.displayName || data.owner?.username || data.owner?.id}
                                         </Link>
                                     )}
                                 </div>
@@ -246,7 +230,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                 <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                             ) : (
                                 <span className="text-xs text-sub">
-                                    {character?.license || "All Rights Reserved"}
+                                    {data.license || "All Rights Reserved"}
                                 </span>
                             )}
                         </div>
@@ -258,10 +242,10 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                         ) : (
                             <div className="z-30 pt-2 pb-2 flex items-center gap-2 w-full overflow-visible shrink-0 relative">
                                 <h1 className="text-2xl font-bold truncate leading-snug min-w-0">
-                                    {character?.displayName}
+                                    {data.displayName}
                                 </h1>
 
-                                {character?.owner?.badges?.some(badge => badge.type === "VERIFIED") && (
+                                {data.owner?.badges?.some(badge => badge.type === "VERIFIED") && (
                                     <div className="z-30 mr-3 relative font-normal tooltip tooltip-bottom tooltip-accent shrink-0">
                                         <a 
                                             href={`https://${window.config.domains.support}/en-us/articles/verification`} 
@@ -292,7 +276,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             ) : (
                                 <div className="flex flex-col gap-1">
                                     <span className="text-sm leading-relaxed">
-                                        {character?.about}
+                                        {data.about}
                                     </span>
                                 </div>
                             )}
@@ -300,7 +284,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             {/* DEVELOPER NEEDED: Make it so that if the credit is an id, to fetch 
                             the user on the backend and replace credit with (display name, username, 
                             and id JSON) where it can be made into a clickable link */}
-                            {(loading || (character?.media && character.media.length > 0)) && (
+                            {(loading || (data.media && data.media.length > 0)) && (
                                 <div className="flex flex-col gap-2 mt-2">
                                     <span className="text-xs font-bold text-sub uppercase tracking-wider">
                                         {loading ? (
@@ -317,7 +301,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                                 <div className="skeleton rounded h-36 w-full"/>
                                             </>
                                         ) : (
-                                            character?.media
+                                            data.media
                                                 ?.slice()
                                                 .sort((a, b) => Number(a.position) - Number(b.position))
                                                 .map((item, index) => (
@@ -335,7 +319,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                 </div>
                             )}
 
-                            {(loading || (character?.tags && character.tags.length > 0)) && (
+                            {(loading || (data.tags && data.tags.length > 0)) && (
                                 <div className="flex flex-col gap-2 mt-1">
                                     <span className="text-xs font-bold text-sub uppercase tracking-wider">
                                         {loading ? (
@@ -353,9 +337,10 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                                 <div className="skeleton rounded-full h-6 w-24"/>
                                             </>
                                         ) : (
-                                            character?.tags.map((tag) => (
+                                            data.tags.map((tag) => (
                                                 <Link
                                                     to={`/browse/${encodeURIComponent(tag)}`}
+                                                    onClick={handleClose}
                                                     className="rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300 hover:underline"
                                                 >
                                                     <span>#{tag}</span>
@@ -375,58 +360,58 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     <div className="flex flex-row flex-wrap gap-x-8 gap-y-2 justify-start text-sm w-full">
                                         <div className="flex items-center">
                                             <span 
-                                                className={`font-nerdfont text-base ${character?.interactions?.views?.hasInteracted ? "text-accent" : ""}`}
+                                                className={`font-nerdfont text-base ${data.interactions?.views?.hasInteracted ? "text-accent" : ""}`}
                                             >
                                                 󰈈
                                             </span>
                                             <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(character?.interactions?.views?.count || 0).short}
+                                                {formatNumber(data.interactions?.views?.count || 0).short}
                                                 {" "}
-                                                {character?.interactions?.views?.count === 1 ? "View" : "Views"}
+                                                {data.interactions?.views?.count === 1 ? "View" : "Views"}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${character?.interactions?.reads?.hasInteracted ? "text-accent" : ""}`}>
+                                            <span className={`font-nerdfont text-base ${data.interactions?.reads?.hasInteracted ? "text-accent" : ""}`}>
                                                 
                                             </span>
                                             <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(character?.interactions?.reads?.count || 0).short}
+                                                {formatNumber(data.interactions?.reads?.count || 0).short}
                                                 {" "}
-                                                {character?.interactions?.reads?.count === 1 ? "Read" : "Reads"}
+                                                {data.interactions?.reads?.count === 1 ? "Read" : "Reads"}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${character?.interactions?.follows?.hasInteracted ? "text-accent" : ""}`}>
+                                            <span className={`font-nerdfont text-base ${data.interactions?.follows?.hasInteracted ? "text-accent" : ""}`}>
                                                 
                                             </span>
                                             <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(character?.interactions?.follows?.count || 0).short}
+                                                {formatNumber(data.interactions?.follows?.count || 0).short}
                                                 {" "}
-                                                {character?.interactions?.follows?.count === 1 ? "Follower" : "Followers"}
+                                                {data.interactions?.follows?.count === 1 ? "Follower" : "Followers"}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${character?.interactions?.likes?.hasInteracted ? "text-accent" : ""}`}>
+                                            <span className={`font-nerdfont text-base ${data.interactions?.likes?.hasInteracted ? "text-accent" : ""}`}>
                                                 
                                             </span>
                                             <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(character?.interactions?.likes?.count || 0).short}
+                                                {formatNumber(data.interactions?.likes?.count || 0).short}
                                                 {" "}
-                                                {character?.interactions?.likes?.count === 1 ? "Like" : "Likes"}
+                                                {data.interactions?.likes?.count === 1 ? "Like" : "Likes"}
                                             </span>
                                         </div>
 
                                         <div className="hidden flex items-center">
-                                            <span className={`font-nerdfont text-base ${character?.interactions?.shares?.hasInteracted ? "text-accent" : ""}`}>
+                                            <span className={`font-nerdfont text-base ${data.interactions?.shares?.hasInteracted ? "text-accent" : ""}`}>
                                                 󰒗
                                             </span>
                                             <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(character?.interactions?.shares?.count || 0).short}
+                                                {formatNumber(data.interactions?.shares?.count || 0).short}
                                                 {" "}
-                                                {character?.interactions?.shares?.count === 1 ? "Share" : "Shares"}
+                                                {data.interactions?.shares?.count === 1 ? "Share" : "Shares"}
                                             </span>
                                         </div>
                                     </div>
@@ -439,7 +424,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         Developer View
                                     </span>
                                     <div className="mt-1">
-                                        <span>Algorithm Score:</span> {character?.algorithmScore.toFixed(0)}
+                                        <span>Algorithm Score:</span> {data.algorithmScore.toFixed(0)}
                                     </div>
                                 </div>
                             )}
