@@ -29,8 +29,8 @@ const isProduction = false;
 // Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
 const stage = "beta"; // prealpha | alpha | beta | rc | release
-const build = "build-e1ffd75"; // DO NOT TOUCH, AUTO-GENERATED
-const buildDate = "2026-06-12T01:32:11.128Z"; // DO NOT TOUCH, AUTO-GENERATED
+const build = "build-488a2af"; // DO NOT TOUCH, AUTO-GENERATED
+const buildDate = "2026-09-03T12:03:16.849Z"; // DO NOT TOUCH, AUTO-GENERATED
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -208,6 +208,7 @@ export const config = {
         cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
         support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
         nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
+        shortlink: isProduction ? "prod.op5.to" : "dev.op5.to"
     },
 
     // Third-party applications

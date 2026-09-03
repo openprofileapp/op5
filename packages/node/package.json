@@ -1,10 +1,17 @@
 {
   "name": "openprofile",
-  "version": "5.1.0-beta-build-28954ec",
-  "description": "This is an example description",
+  "version": "5.1.0-beta-build-e1ffd75",
+  "description": "OpenProfile is a free original character database and collaboration platform made by and for writers.",
   "keywords": [
-    "example",
-    "keyword"
+    "original character database",
+    "OC database",
+    "writing collaboration",
+    "character creation tool",
+    "worldbuilding platform",
+    "roleplaying character storage",
+    "digital character sheet",
+    "OC management tool",
+    "collaborative storytelling"
   ],
   "author": "OpenProfile",
   "license": "OPPL",
