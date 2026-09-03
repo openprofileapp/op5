@@ -15,7 +15,6 @@ import getInteractionsService from "./getInteractions.service.js";
 import sendNotificationService, { notificationMilestones } from "./sendNotification.service.js";
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
 import whatIs from "../helpers/whatIs.js";
-import { config } from "../../../../app.config.js";
 import { i18n } from "../../_common/instances.js";
 
 type InteractionEventResult = {
@@ -255,10 +254,11 @@ async function postInteractionNotification(
 
     if (
         notificationType &&
+        whatIsData &&
         (sourceId !== whatIsData.ownerId && sourceId !== whatIsData.id)
     ) {
         await sendNotificationService(
-            config.isProduction ? whatIsData.ownerId || whatIsData.id : sourceId,
+            whatIsData.ownerId || whatIsData.id,
             notificationType,
             { sourceId, targetId }
         );
@@ -287,9 +287,9 @@ async function postInteractionNotification(
                 break;
         }
 
-        if (milestoneType) {
+        if (milestoneType && whatIsData) {
             await sendNotificationService(
-                sourceId,
+                whatIsData.ownerId || whatIsData.id,
                 milestoneType,
                 { targetId, count }
             );

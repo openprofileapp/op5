@@ -8,6 +8,7 @@ import { db } from "../databases/db.js";
 import sendPushNotificationService from "./sendPushNotification.service.js";
 import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
 import whatIs from "../helpers/whatIs.js";
+import { config } from "../../../../app.config.js";
 
 export const notificationMilestones = [ 
     10, 25, 50, 75,
@@ -52,7 +53,8 @@ export default async function sendNotificationService(
         whatIsData = whatIs(targetId);
 
         if (
-            (userId === whatIsData.ownerId || userId === whatIsData.id) &&
+            sourceId && 
+            (sourceId === whatIsData.ownerId || sourceId === whatIsData.id) &&
             (
                 type === "NEW_FOLLOW" || 
                 type === "NEW_LIKE"
@@ -123,9 +125,8 @@ export default async function sendNotificationService(
 
     if (isValid && whatIsData) {
         // DEVELOPER NEEDED: Register the remaining of the push notifications
-        // ALSO GET THE DELGATED ACCOUNTS OF TARGED ID OWNER AND DO A FOR EACH
-        await sendPushNotificationService(    
-            whatIsData.ownerId as string || whatIsData.id as string,
+        await sendPushNotificationService(
+            config.isProduction ? whatIsData.ownerId || whatIsData.id : sourceId!,
             type,
             {
                 sourceId,
