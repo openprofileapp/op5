@@ -24,6 +24,7 @@ import React from "react";
 import TitleCard from "../components/TitleCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
+import ReportModal from "../components/modals/ReportModal.js";
 
 export default function NotFound() {
     const { id } = useParams();
@@ -364,6 +365,7 @@ Check out my character: <@6773794953695671>
             <MuteModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
             <RestrictModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
             <BlockModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
+            <ReportModal userId={user.id} displayName={user.displayName || user.username || user.id} isStaff={isStaff} />
 
             <div className={user.isAuraEnabled ? "bg-base-200" : "bg-base-200"}>
                 <div style={{backgroundColor: user.isAuraEnabled ? hexToRgba(user.auraPrimary, 0.05) : "transparent"}}>
@@ -584,12 +586,17 @@ Check out my character: <@6773794953695671>
                                             </div>
                                         </li>*/}
                                         <li>
-                                            <Link className="justify-between text-error" to={`/${user.username || user.id}`}>
+                                            <div 
+                                                className="justify-between text-error"
+                                                onClick={() => {
+                                                    document.getElementById("report")?.showModal();
+                                                }}
+                                            >
                                                 Report
                                                 <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
                                                     
                                                 </span>
-                                            </Link>
+                                            </div>
                                         </li>
                                         <hr></hr>
                                         <li>
