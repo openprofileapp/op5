@@ -80,7 +80,10 @@ export default function CaptchaPortal({ siteKey }: { siteKey: string }) {
                     
                 </button>
 
-                <h3 className="font-nerdfont text-6xl text-center mb-4">󰚩</h3>
+                <h3 className="font-nerdfont text-6xl text-center mb-4">
+                    󰚩
+                </h3>
+
                 <h3 className="font-bold text-2xl text-center pb-8">
                     {t("components.modals.captchaHeader")}
                 </h3>
