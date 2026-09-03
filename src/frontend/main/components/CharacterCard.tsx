@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -7,99 +7,77 @@ import { toast } from "../../_common/scripts/toast.js";
 import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../../_common/scripts/postInteraction.js";
 import { formatNumber } from "kage-library/client";
-import { studioBaseUrl } from "../../_common/scripts/domains.js";
-import { CharacterModalRef } from "./modals/CharacterModal.js";
+import { cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
-import ShareModal from "./modals/ShareModal.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 
-type Props = GetPublishedCharacterItemType & {
+type Props = {
+    data: GetPublishedCharacterItemType
     isPreview?: boolean;
     isPinnedVisible?: boolean,
     hasNotification?: boolean;
     isHomeScreen?: boolean
     dragHandleProps?: unknown;
-    onOpenModal: (id: string) => void;
-    onShareModal: (id: string) => void;
 };
 
 let index = 1;
 
 export default function CharacterCard({
-    algorithmScore,
-    id,
-    slug,
-    displayName,
-    avatar,
-    animatedAvatar,
-    banner,
-    about,
-    licenseId,
-    isAuraEnabled,
-    auraType,
-    auraPrimary,
-    auraSecondary,
-    isExplicit,
-    visibility,
-    readVisibility,
-    sendComments,
-    isScheduled,
-    updatedDate,
-    createdDate,
-    owner,
-    tags,
-    badges,
-    links,
-    interactions,
+    data,
     isPinnedVisible = false,
     isPreview = false,
     hasNotification = false,
     isHomeScreen = false,
-    dragHandleProps,
-    onOpenModal,
-    onShareModal
+    dragHandleProps,y
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
+
     const {
         handleViewInteraction,
         handleFollowInteraction,
         handleLikeInteraction
     } = useInteractions();
 
+    const { 
+        muteModal,
+        reportModal,
+        shareModal,
+        characterModal
+    } = useModals();
+
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const characterModalRef = useRef<CharacterModalRef>(null);
-
-    const [isChatted, setIsChatted] = useState(interactions?.chats?.hasInteracted);
-    const [chatCount, setChatCount] = useState(interactions?.chats?.count || 0);
+    const [isChatted, setIsChatted] = useState(data.interactions?.chats?.hasInteracted);
+    const [chatCount, setChatCount] = useState(data.interactions?.chats?.count || 0);
     const [isChatLoading, setIsChatLoading] = useState(false);
 
-    const [isDismissed, setIsDismissed] = useState(interactions?.dismisses?.hasInteracted);
+    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
     const [isDismissLoading, setIsDismissLoading] = useState(false);
 
-    const [isFollowing, setIsFollowing] = useState(interactions?.follows?.hasInteracted);
-    const [followCount, setFollowCount] = useState(interactions?.follows?.count || 0);
+    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
+    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const [isHidden, setIsHidden] = useState(interactions?.hides?.hasInteracted);
+    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
     const [isHideLoading, setIsHideLoading] = useState(false);
 
-    const [isLiked, setIsLiked] = useState(interactions?.likes?.hasInteracted);
-    const [likeCount, setLikeCount] = useState(interactions?.likes?.count || 0);
+    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
+    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
 
-    const [isMuted, setIsMuted] = useState(interactions?.mutes?.hasInteracted);
-    const [muteCount, setMuteCount] = useState(interactions?.mutes?.count || 0);
+    const [isMuted, setIsMuted] = useState(data.interactions?.mutes?.hasInteracted);
+    const [muteCount, setMuteCount] = useState(data.interactions?.mutes?.count || 0);
     const [isMuteLoading, setIsMuteLoading] = useState(false);
 
-    const [isShared, setIsShared] = useState(interactions?.shares?.hasInteracted);
-    const [shareCount, setShareCount] = useState(interactions?.shares?.count || 0);
+    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
+    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
     const [isShareLoading, setIsShareLoading] = useState(false);
 
-    const [isViewed, setIsViewed] = useState(interactions?.views?.hasInteracted);
-    const [viewCount, setViewCount] = useState(interactions?.views?.count || 0);
+    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
+    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
     const [isViewLoading, setIsViewLoading] = useState(false);
-    const [lastViewDate, setLastViewDate] = useState(interactions?.views?.latestDate);
+    const [lastViewDate, setLastViewDate] = useState(data.interactions?.views?.latestDate);
 
     // DEVELOPER NEEDED: Add library states here
 
@@ -109,7 +87,7 @@ export default function CharacterCard({
     const closeContextMenu = useCallback((id: string) => {
         setIsContextMenuOpen(false);
         document
-            .getElementById(`character-more-dropdown-${id}`)
+            .getElementById(`character-more-dropdown-${data.id}`)
             ?.hidePopover();
     }, []);
 
@@ -127,7 +105,7 @@ export default function CharacterCard({
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`character-more-dropdown-${id}`);
+            const menu = document.getElementById(`character-more-dropdown-${data.id}`);
 
             if (!menu) return;
 
@@ -135,7 +113,7 @@ export default function CharacterCard({
                 return;
             }
 
-            closeContextMenu(id);
+            closeContextMenu(data.id);
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -143,7 +121,7 @@ export default function CharacterCard({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [id, closeContextMenu]);
+    }, [data.id, closeContextMenu]);
 
     const checkCollectionMenuPosition = (
         e: React.MouseEvent<HTMLLIElement>
@@ -156,9 +134,9 @@ export default function CharacterCard({
     };
 
     if (
-        !id ||
-        !owner ||
-        !owner.id ||
+        !data.id ||
+        !data.owner ||
+        !data.owner.id ||
         !isTranslationReady || 
         isHidden
     ) return null;
@@ -168,11 +146,11 @@ export default function CharacterCard({
     {/* DEVELOPER NEEDED: Clicking should open a modal, not a full page */}
     const Wrapper = isPreview ? "div" : Link;
    
-    const auraStyle: React.CSSProperties = isAuraEnabled
+    const auraStyle: React.CSSProperties = data.isAuraEnabled
         ? {
-            ["--aura-type" as string]: `aura-${auraType || "flow"}`,
-            ["--aura-primary" as string]: auraPrimary || "var(--color-accent)",
-            ["--aura-secondary" as string]: auraSecondary || "var(--color-accent)",
+            ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
+            ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: data.auraSecondary || "var(--color-accent)",
         }
         : {
             border: "1px solid #222222",
@@ -180,34 +158,6 @@ export default function CharacterCard({
 
     return (
         <>
-            <ShareModal 
-                algorithmScore={algorithmScore}
-                id={id}
-                slug={slug}
-                displayName={displayName}
-                avatar={avatar}
-                animatedAvatar={animatedAvatar}
-                banner={banner}
-                about={about}
-                licenseId={licenseId}
-                isAuraEnabled={isAuraEnabled}
-                auraType={auraType}
-                auraPrimary={auraPrimary}
-                auraSecondary={auraSecondary}
-                isExplicit={isExplicit}
-                visibility={visibility}
-                readVisibility={readVisibility}
-                sendComments={sendComments}
-                isScheduled={isScheduled}
-                updatedDate={updatedDate}
-                createdDate={createdDate}
-                owner={owner}
-                tags={tags}
-                badges={badges}
-                links={links}
-                interactions={interactions}
-            />
-
             <div
                 className={`aura-effect character-card relative p-4 shadow-sm cursor-pointer z-${index}`}
                 style={auraStyle}
@@ -216,7 +166,7 @@ export default function CharacterCard({
                     setIsContextMenuOpen(true);
 
                     const popover = document.getElementById(
-                        `character-more-dropdown-${id}`
+                        `character-more-dropdown-${data.id}`
                     ) as HTMLElement | null;
 
                     if (!popover) return;
@@ -279,7 +229,7 @@ export default function CharacterCard({
                 >
                     <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
                         <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                            {visibility !== "public" ? "" : ""}
+                            {data.visibility !== "public" ? "" : ""}
                         </span>
                     </button>
                 </div>
@@ -292,7 +242,7 @@ export default function CharacterCard({
                         setIsContextMenuOpen(true);
 
                         const popover = document.getElementById(
-                            `character-more-dropdown-${id}`
+                            `character-more-dropdown-${data.id}`
                         );
 
                         if (!popover) return;
@@ -319,7 +269,7 @@ export default function CharacterCard({
                 <ul
                     className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                     popover="manual"
-                    id={`character-more-dropdown-${id}`}
+                    id={`character-more-dropdown-${data.id}`}
                 >
                     {isHomeScreen && (
                         <>
@@ -327,10 +277,10 @@ export default function CharacterCard({
                                 onClick={async () => {
                                     if (isDismissLoading) return;
 
-                                    closeContextMenu(id);
+                                    closeContextMenu(data.id);
                                     setIsDismissLoading(true);
 
-                                    const res = await postInteraction(id, "dismisses");
+                                    const res = await postInteraction(data.id, "dismisses");
 
                                     if (res.ok) {
                                         setIsDismissLoading(false);
@@ -338,14 +288,14 @@ export default function CharacterCard({
                                         setIsHidden(true);
 
                                         toast.show(
-                                            `You dismissed ${displayName}`,
+                                            `You dismissed ${data.displayName}`,
                                             { type: "success" }
                                         );
                                     } else {
                                         setIsDismissLoading(false);
 
                                         toast.show(
-                                            `Failed to dismiss ${displayName}`,
+                                            `Failed to dismiss ${data.displayName}`,
                                             {
                                                 subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
                                                 type: "error" 
@@ -367,17 +317,17 @@ export default function CharacterCard({
                         </>
                     )}
 
-                    {owner.id === window.session.userId && (
+                    {data.owner.id === window.session.userId && (
                         <>
                             {/* DEVELOPER NEEDED: Also display on characters where the user has permission to open in studio (eg: write) */}
                             <li
                                 onClick={() => {
-                                    closeContextMenu(id);
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 <a
                                     className="justify-between"
-                                    href={`${studioBaseUrl}/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
+                                    href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -397,12 +347,12 @@ export default function CharacterCard({
                     {/* DEVELOPER NEEDED: Add the interaction here and when landing on the pages */}
                     <li
                         onClick={() => {
-                            closeContextMenu(id);
+                            closeContextMenu(data.id);
                         }}
                     >
                         <Link 
                             className="justify-between" 
-                            to={`/character/${id}-${formatDisplayNameToUrl(displayName || "")}`}
+                            to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                         >
                             View
                             <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -413,12 +363,12 @@ export default function CharacterCard({
 
                     <li
                         onClick={() => {
-                            closeContextMenu(id);
+                            closeContextMenu(data.id);
                         }}
                     >
                         <Link 
                             className="justify-between" 
-                            to={`/read/${id}-${formatDisplayNameToUrl(displayName || "")}`}
+                            to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                         >
                             Read
                             <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
@@ -432,7 +382,7 @@ export default function CharacterCard({
                         className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
                         data-tip="Coming Soon"
                         onClick={() => {
-                            // closeContextMenu(id);
+                            // closeContextMenu(data.id);
 
                             // Open chat here and save to user message history
                         }}
@@ -448,14 +398,35 @@ export default function CharacterCard({
                     <hr />
 
                     {/* Can't follow or like your own characters; auto display as liked or smth */}
-                    { /* This will also help make notifications better */}
-                    {/* "You can not unlike your own content. Why else would you upload it?" */}
+
+                    {isFollowing && (
+                        <>
+                            <li>
+                                <button 
+                                    className="justify-between"
+                                    onClick={() => {
+                                        closeContextMenu(data.id);
+
+                                        muteModal.open(data);
+                                    }}
+                                >
+                                    Notifications
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        󰂚
+                                    </span>
+                                </button>
+                            </li>
+
+                            <hr />
+                        </>
+                    )}
 
                     <li 
                         onClick={async () => {
                             await handleFollowInteraction({
-                                id,
-                                displayName,
+                                // DEVELOPER NEEDED: Just pass data
+                                id: data.id,
+                                displayName: data.displayName,
                                 isFollowing,
                                 isFollowLoading,
                                 setIsFollowLoading,
@@ -477,8 +448,9 @@ export default function CharacterCard({
                     <li 
                         onClick={async () => {
                             await handleLikeInteraction({
-                                id,
-                                displayName,
+                                // DEVELOPER NEEDED: Just pass data
+                                id: data.id,
+                                displayName: data.displayName,
                                 isLiked,
                                 isLikeLoading,
                                 setIsLikeLoading,
@@ -516,7 +488,7 @@ export default function CharacterCard({
                                     className="justify-between"
                                     onClick={() => {
                                         
-                                        closeContextMenu(id);
+                                        closeContextMenu(data.id);
                                     }}
                                 >
                                     Favorites
@@ -528,52 +500,51 @@ export default function CharacterCard({
 
                             <hr />
 
-                            <li>
-                                <button 
-                                    className="justify-between"
-                                    onClick={() => {
-                                        
-                                        closeContextMenu(id);
-                                    }}
-                                >
-                                    Superheroes
-                                    <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                        <img 
-                                            className="rounded-full translate-x-[2px]"
-                                            src="https://cdn.openprofile.app/uploads/users/5019646586243236/5019646586243236.png"
-                                        />
-                                    </span>
-                                </button>
-                            </li>
+                            {/*
+                                <li>
+                                    <button 
+                                        className="justify-between"
+                                        onClick={() => {
+                                            
+                                            closeContextMenu(data.id);
+                                        }}
+                                    >
+                                        Superheroes
+                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                            <img 
+                                                className="rounded-full translate-x-[2px]"
+                                                src="https://cdn.openprofile.app/uploads/users/5019646586243236/5019646586243236.png"
+                                            />
+                                        </span>
+                                    </button>
+                                </li>
 
-                            <li>
-                                <button 
-                                    className="justify-between"
-                                    onClick={() => {
-                                        
-                                        closeContextMenu(id);
-                                    }}
-                                >
-                                    Featured by OpenProfile
-                                    <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                        <img 
-                                            className="rounded-full translate-x-[2px]"
-                                            src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
-                                        />
-                                    </span>
-                                </button>
-                            </li>
+                                <li>
+                                    <button 
+                                        className="justify-between"
+                                        onClick={() => {
+                                            
+                                            closeContextMenu(data.id);
+                                        }}
+                                    >
+                                        Featured by OpenProfile
+                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                            <img 
+                                                className="rounded-full translate-x-[2px]"
+                                                src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
+                                            />
+                                        </span>
+                                    </button>
+                                </li>
 
-                            <hr />
+                                <hr />
+                            */}
 
-                            <li>
-                                <button 
-                                    className="justify-between"
-                                    onClick={() => {
-                                        
-                                        closeContextMenu(id);
-                                    }}
-                                >
+                            <li
+                                className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
+                                data-tip="Coming Soon"
+                            >
+                                <button className="justify-between" disabled={true}>
                                     New Collection
                                     <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
                                         󰌴
@@ -591,24 +562,24 @@ export default function CharacterCard({
                             onClick={async () => {
                                 if (isHideLoading) return;
 
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
                                 setIsHideLoading(true);
 
-                                const res = await postInteraction(id, "hides");
+                                const res = await postInteraction(data.id, "hides");
 
                                 if (res.ok) {
                                     setIsHideLoading(false);
                                     setIsHidden(!isHidden);
 
                                     toast.show(
-                                        `You will no longer see ${displayName}`,
+                                        `You will no longer see ${data.displayName}`,
                                         { type: "info" }
                                     );
                                 } else {
                                     setIsHideLoading(false);
                                     
                                     toast.show(
-                                        `Failed to hide ${displayName}`,
+                                        `Failed to hide ${data.displayName}`,
                                         {
                                             subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
                                             type: "error" 
@@ -634,7 +605,7 @@ export default function CharacterCard({
                             className="justify-between text-error"
                             onClick={() => {
                                 
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
                             }}
                         >
                             Hide Collaboration
@@ -683,18 +654,18 @@ export default function CharacterCard({
 
                     
                     {/* 
-                        DEVELOPER NEEDED: Make a report and share modal
-                        REQUIRES: v3/report and v3/moderate and v3/share (share calls interact)
-                        REQUIRES: Shade DB SQL; id, userId, uses, sorta like invites format
-                        REQUIRES: A copy id functon and moderate popup; hide buttons to appropriate permissions
+                        DEVELOPER NEEDED: Make a report
+                        REQUIRES: v3/report and v3/moderate 
+                        REQUIRES: A moderate popup; hide buttons to appropriate permissions
                     */}
 
-                    <li>
+                    <li className="hidden">
                         <button 
                             className="justify-between text-error"
                             onClick={() => {
-                                
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
+
+                                muteModal.open(data);
                             }}
                         >
                             Mute
@@ -707,8 +678,9 @@ export default function CharacterCard({
                         <button 
                             className="justify-between text-error"
                             onClick={() => {
-                                
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
+
+                                reportModal.open(data);
                             }}
                         >
                             Report
@@ -722,8 +694,9 @@ export default function CharacterCard({
                         <button 
                             className="justify-between"
                             onClick={() => {
-                                onShareModal(id);
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
+
+                                shareModal.open(data);
                             }}
                         >
                             Share
@@ -738,7 +711,7 @@ export default function CharacterCard({
                                 className="justify-between"
                                 onClick={() => {
                                     
-                                    closeContextMenu(id);
+                                    closeContextMenu(data.id);
                                 }}
                             >
                                 Copy ID
@@ -754,7 +727,7 @@ export default function CharacterCard({
                             className="justify-between text-warning"
                             onClick={() => {
                                 
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
                             }}
                         >
                             Moderate
@@ -768,7 +741,7 @@ export default function CharacterCard({
                             className="justify-between text-warning"
                             onClick={() => {
                                 
-                                closeContextMenu(id);
+                                closeContextMenu(data.id);
                             }}
                         >
                             Manage
@@ -781,10 +754,11 @@ export default function CharacterCard({
 
                 <Wrapper 
                     onClick={async () => {
-                        onOpenModal(id);
+                        characterModal.open(data);
 
                         await handleViewInteraction({
-                            id,
+                            // DEVELOPER NEEDED: Just pass data
+                            id: data.id,
                             isViewLoading,
                             lastViewDate,
                             setIsViewLoading,
@@ -797,14 +771,14 @@ export default function CharacterCard({
                     <div className="absolute inset-0 group">
                         <img
                             className="mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover"
-                            src={`https://${window.config.domains.cdn}${avatar}`}
+                            src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
                             alt="avatar"
                         />
 
-                        {animatedAvatar && (
+                        {data.animatedAvatar && (
                             <img
                                 className="mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover opacity-0 group-hover:opacity-100"
-                                src={animatedAvatar}
+                                src={data.animatedAvatar}
                                 alt="animated avatar"
                             />
                         )}
@@ -814,11 +788,11 @@ export default function CharacterCard({
                         <div className="flex relative items-center justify-center rounded-full px-3 h-6 gap-2 min-w-0 max-w-full">
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <span className="font-bold text-center w-full truncate leading-snug">
-                                    {displayName || slug || id}
+                                    {data.displayName || data.slug || data.id}
                                 </span>
                             </div>
 
-                            {owner?.badges?.some(badge => badge.type === "VERIFIED") && (
+                            {data.owner?.badges?.some(badge => badge.type === "VERIFIED") && (
                                 <div className="z-1 relative font-normal tooltip tooltip-top tooltip-accent">
                                     <a href={`https://${window.config.domains.support}/en-us/articles/verification`} target="_blank"
                                         onClick={(e) => {
@@ -837,7 +811,7 @@ export default function CharacterCard({
                             )}
 
                             {(() => {
-                                const unofficialBadge = badges.find(b => b.type === "UNOFFICIAL");
+                                const unofficialBadge = data.badges.find(b => b.type === "UNOFFICIAL");
                                 if (!unofficialBadge) return null;
 
                                 return (
@@ -870,15 +844,18 @@ export default function CharacterCard({
                                 <div className="flex min-w-0 items-center overflow-hidden">
                                     <Link 
                                         className="truncate text-xs leading-snug hover:underline" 
-                                        to={`/user/${owner.username || owner.id}`}
+                                        to={`/user/${data.owner.username || data.owner.id}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                        }}
                                     >
-                                        {owner?.displayName || owner.username || owner.id}
+                                        {data.owner.displayName || data.owner.username || data.owner.id}
                                     </Link>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="text-xs line-clamp-6 my-2">{about || "This character does not have an about."}</div>            
+                        <div className="text-xs line-clamp-6 my-2">{data.about || "This character does not have an about."}</div>            
                     </div>
                 </Wrapper>
 
@@ -893,8 +870,9 @@ export default function CharacterCard({
                                 className={`font-nerdfont text-base w-4 h-6 cursor-pointer pointer-events-auto inline-block ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}
                                 onClick={async () => {
                                     await handleLikeInteraction({
-                                        id,
-                                        displayName,
+                                        // DEVELOPER NEEDED: Just pass data
+                                        id: data.id,
+                                        displayName: data.displayName,
                                         isLiked,
                                         isLikeLoading,
                                         setIsLikeLoading,
@@ -935,7 +913,7 @@ export default function CharacterCard({
 
                                         if (isPinned) {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
                                                 {
                                                     method: "DELETE",
                                                     headers: {
@@ -948,7 +926,7 @@ export default function CharacterCard({
                                             setIsHidden(true);
                                         } else {
                                             response = await fetch(
-                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${id}`,
+                                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
                                                 {
                                                     method: "POST",
                                                     headers: {
@@ -969,7 +947,7 @@ export default function CharacterCard({
                                         setIsPinned(!isPinned);
 
                                         toast.show(
-                                            `You ${isPinned ? "unpinned" : "pinned"} ${displayName}`,
+                                            `You ${isPinned ? "unpinned" : "pinned"} ${data.displayName}`,
                                             {
                                                 icon: isPinned ? "󰐄" : "󰐃",
                                                 type: isPinned ? "info" : "success",
@@ -985,7 +963,7 @@ export default function CharacterCard({
                                         setIsPinLoading(false);
                                     }
                         
-                                    // closeContextMenu(id);
+                                    // closeContextMenu(data.id);
                                 }}
                             >
                                 <span
