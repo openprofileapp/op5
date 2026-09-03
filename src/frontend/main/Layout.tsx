@@ -34,9 +34,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <>
             <ScrollToTop />
             <ToastContainer />
-            {!hideLayout && <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />}
-            {!hideLayout && <Messages />}
-            {!hideLayout && <HeaderWrapper />}
+            {!hideLayout && (
+                <>
+                    <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
+                    <Messages />
+                    <HeaderWrapper />
+                </>
+            )}
             {children}
             {!hideLayout && <Footer />}
         </>
