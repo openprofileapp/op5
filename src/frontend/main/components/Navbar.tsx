@@ -1,14 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import React from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import React, { useRef } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
 
 import CreateProjectModal from "./modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
 import MfaModal from "./modals/MfaModal.js";
-import ReportModal from "./modals/ReportModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import CreateAssetModal from "./modals/CreateAssetModal.js";
@@ -180,11 +179,21 @@ export default function Navbar({ isBannerPage = false }: Props) {
         setQuery(searchParams.get('q') || '');
     }, [searchParams]);
 
+    const location = useLocation();
+
+    const previousPathRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (location.pathname !== '/search') {
+            previousPathRef.current = location.pathname + location.search;
+        }
+    }, [location.pathname, location.search]);
+
     useEffect(() => {
         const currentUrlQuery = searchParams.get('q') || '';
         const trimmed = query.trim();
 
-        if (trimmed === currentUrlQuery.trim() && window.location.pathname === '/search') {
+        if (trimmed === currentUrlQuery.trim() && location.pathname === '/search') {
             return;
         }
 
@@ -192,26 +201,22 @@ export default function Navbar({ isBannerPage = false }: Props) {
             if (trimmed) {
                 const params = new URLSearchParams();
                 params.set('q', trimmed);
-                navigate(`/search?${params.toString()}`);
-            } else if (query === '' && window.location.pathname === '/search') {
-                navigate('/');
+
+                const isAlreadySearching = location.pathname === '/search';
+                
+                navigate(`/search?${params.toString()}`, {
+                    replace: isAlreadySearching,
+                    state: { from: location.state?.from || previousPathRef.current || '/' }
+                });
+            } else if (query === '' && location.pathname === '/search') {
+                const returnTo = location.state?.from || previousPathRef.current || '/';
+                
+                navigate(returnTo, { replace: true });
             }
         }, 300);
 
         return () => clearTimeout(handler);
-    }, [query, searchParams, navigate]);
-
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const trimmed = query.trim();
-        if (trimmed) {
-            const params = new URLSearchParams();
-            params.set('q', trimmed);
-            navigate(`/search?${params.toString()}`);
-        } else {
-            navigate('/search');
-        }
-    };
+    }, [query, searchParams, navigate, location]);
 
     if (!isTranslationReady) return null;
 
@@ -221,7 +226,6 @@ export default function Navbar({ isBannerPage = false }: Props) {
             <MfaModal />
             <CreateAssetModal />
             <CreateProjectModal />
-            <ReportModal />
 
             <div className={`
                     sticky top-0 z-9999 hidden md:flex navbar items-center gap-4 px-16
