@@ -3,6 +3,11 @@
     "reason": "アップデートを行っております！"
   },
   "metadata": {
+    "titles": {
+      "construction": "工事中",
+      "notFound": "404 - ページが見つかりません",
+      "unavailable": "503 - 一時的に利用できません"
+    },
     "tagline": "ウェブサイトの例",
     "description": "これは説明例です",
     "keywords": "例、キーワード",
@@ -12,29 +17,143 @@
       }
     }
   },
+  "banners": {
+    "beta": "OpenProfile はベータ版であり、一部の機能はまだ利用できませんが、間もなく公開される予定です。",
+    "locale": "この翻訳は未検証であり、一部の単語が不正確である可能性があります。"
+  },
   "responses": {
-    "emptyFields": "すべての必須フィールドに入力してください。",
-    "noAccess": "このコンテンツにアクセスする権限がありません。",
+    "character": "文字の取得中にエラーが発生しました",
+    "cors": "CORS では許可されていません",
+    "rateLimit": "リクエストが多すぎます。後でもう一度お試しください。",
+    "malformedRequest": "不正な形式のリクエスト",
+    "unauthorized": "このアクションを実行する権限がありません。",
     "badGateway": "ゲートウェイが不良です。リフレッシュしてみてください！",
-    "failedCommand": "コマンド実行中にエラーが発生しました!レポートが作成され、開発者に送信されました。"
+    "failedCommand": "コマンド実行中にエラーが発生しました!レポートが作成され、開発者に送信されました。",
+    "noAccount": "この操作を完了するにはアカウントが必要です。",
+    "database": "データベース操作の実行中にエラーが発生しました。",
+    "unknown": "不明なエラーが発生しました。",
+    "webpush": "プッシュ通知の送信に失敗しました。",
+    "pinLimit": "ピンの数が最大数 (24) に達しました。",
+    "delegationLimit": "委任されたアカウントの最大数 (8) に達しました。",
+    "authorizationHeader": "Authorization ヘッダーがありません",
+    "fileNotFound": "ファイルが見つかりません",
+    "accountNotFound": "アカウントが見つかりません",
+    "emailNotFound": "メールが見つかりません",
+    "connectionNotFound": "接続が見つかりません",
+    "accountSuspended": "このアカウントは停止されています",
+    "invalidAuthorizationCode": "無効な認証コードです",
+    "missingEmail": "外部アカウントには接続された電子メールがありません。",
+    "unverifiedEmail": "外部アカウントのメールアドレスが検証されていません。",
+    "invalidEmail": "外部アカウントのメールアドレスが無効です。",
+    "takenEmail": "外部アカウントのメールアドレスはすでに使用されています。",
+    "fileUnknown": "不明なファイルタイプまたはサポートされていないファイルタイプ",
+    "fileTooLarge": "ファイルが 1 MB の制限を超えています",
+    "failedAccountRegistration": "アカウントの登録に失敗しました",
+    "ownerInteraction": {
+      "follow": "自分のコンテンツのフォローを解除することはできません。",
+      "like": "自分のコンテンツに異論を唱えることはできません。"
+    }
+  },
+  "words": {
+    "You": "あなた",
+    "FailedTo": "失敗しました",
+    "liked": "好きだった",
+    "unliked": "嫌い",
+    "like": "のように",
+    "unlike": "とは異なり",
+    "followed": "フォローしました",
+    "unfollowed": "フォローを外されました",
+    "follow": "フォローする",
+    "unfollow": "フォローを解除する",
+    "Search": "検索"
+  },
+  "components": {
+    "dropdown": {
+      "selectOption": "オプションの選択",
+      "selectOrType": "選択または入力..."
+    },
+    "modals": {
+      "close": "近い",
+      "captchaHeader": "あなたはロボットですか？",
+      "limit": {
+        "subtext": "次のことができなくなります。",
+        "messagesTitle": "プライベートメッセージを送信します。",
+        "messagesSubtext": "既存の会話は引き続き読み取ることができます。",
+        "subtextTwo": "まだ次のことができるかもしれません:"
+      },
+      "block": {
+        "title": "ブロック",
+        "rowOneTitleStaff": "自分のアカウントまたは出版物と対話します。",
+        "rowOneTitle": "自分のアカウントまたは出版物を表示または操作します。",
+        "rowOneSubtext": "これにより、既存のインタラクションが削除または非表示になります。",
+        "rowThreeTitle": "ログアウトした状態でアカウントまたは出版物を表示します。",
+        "rowThreeSubtext": "これを防ぐには、アカウントを「非公開」または「友達」に設定してください。",
+        "rowStaffOneTitle": "アカウントと出版物を管理します。",
+        "rowStaffOneSubtext": "スタッフメンバーは引き続きあなたのアカウントと出版物を閲覧できます。",
+        "rowStaffTwoTitle": "レポートとチケットに返信します。",
+        "rowStaffTwoSubtext": "スタッフは引き続き、プラットフォームのサポートについてお客様と対話することができます。",
+        "tooMuch": "過度に？代わりに制限してみてください。",
+        "result": "ブロックしました"
+      },
+      "restrict": {
+        "title": "制限",
+        "rowOneTitle": "あなたの出版物にコメントしてください。",
+        "rowOneSubtext": "これにより、既存のコメントは削除されません。",
+        "rowThreeTitle": "友達リクエストを送信します。",
+        "rowThreeSubtext": "すでに友達の場合、接続は削除されません。",
+        "rowFourTitle": "共有した下書きや出版物にコメントします。",
+        "rowFourSubtext": "これを取り消すには、「コメントの送信」権限を削除します。",
+        "rowStaffOneTitle": "レポートとチケットに返信します。",
+        "rowStaffOneSubtext": "スタッフは引き続き、プラットフォームのサポートについてお客様と対話することができます。",
+        "notEnough": "足りない？代わりにブロックしてみてください。",
+        "result": "あなたは制限しました"
+      },
+      "mute": {
+        "title": "ミュート",
+        "subtext": "次の場合は通知されません",
+        "rowOneTitle": "新しいコンテンツを公開するか、既存のコンテンツを更新します。",
+        "rowOneSubtext": "これによって、コンテンツがフィードに表示されなくなるわけではありません。",
+        "rowTwoTitle": "あなたの出版物について交流したりコメントしたりできます。",
+        "rowTwoSubtext": "これにより、新規または既存のコメントは削除されません。",
+        "rowThreeTitle": "プライベートメッセージを送信します。",
+        "rowThreeSubtext": "共有グループ チャットの通知は引き続き受信します。",
+        "result": "ミュートしました"
+      },
+      "share": {
+        "title": "共有",
+        "subtext": "画像をクリックしてダウンロードしてください！",
+        "copied": "リンクがクリップボードにコピーされました!"
+      }
+    }
   },
   "pages": {
-    "404": {
-      "status": "コード 404: 見つかりません"
-    },
     "languages": "言語",
+    "goHome": "家に帰れ",
+    "seconds": "秒",
+    "construction": {
+      "subtext": "Discord に参加してライブアップデートを入手したり、夜間のビルドをチェックしたりしてください!",
+      "subtextNightly": "Discord に参加してライブアップデートを入手してください!",
+      "nightly": "毎晩訪問",
+      "updates": "ライブアップデートを入手する",
+      "marquee": {
+        "1": "進行中の作業",
+        "2": "工事中",
+        "3": "WIP"
+      }
+    },
+    "notFound": {
+      "subtext": "このページは存在しません。",
+      "marquee": "ページが見つかりません"
+    },
+    "unavailable": {
+      "subtext": "現在、サーバーに大きな負荷がかかっています。",
+      "update": "ページは自動的に更新されます",
+      "marquee": "一時的に利用できません"
+    },
     "home": {
       "title": "サンプルページ",
       "body": "このページを編集するには、./src/frontend/main/pages/Home.tsx にアクセスしてください。",
-      "button": "クリックミー",
-      "goAbout": "概要に移動"
-    },
-    "about": {
-      "helmet": {
-        "title": "について"
-      },
-      "description": "ここには何も見るべきものはありません...",
-      "goHome": "ホームへ行く"
+      "button": "クリックミー"
     }
   }
 }

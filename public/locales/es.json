@@ -3,6 +3,11 @@
     "reason": "¡Estamos realizando actualizaciones!"
   },
   "metadata": {
+    "titles": {
+      "construction": "Bajo construcción",
+      "notFound": "404 - Página no encontrada",
+      "unavailable": "503 - No disponible temporalmente"
+    },
     "tagline": "Sitio web de ejemplo",
     "description": "Esta es una descripción de ejemplo.",
     "keywords": "ejemplo, palabra clave",
@@ -12,29 +17,143 @@
       }
     }
   },
+  "banners": {
+    "beta": "OpenProfile está en versión beta y algunas funciones aún no están disponibles, pero se implementarán pronto.",
+    "locale": "Esta traducción no está verificada y algunas palabras pueden ser inexactas."
+  },
   "responses": {
-    "emptyFields": "Por favor complete todos los campos requeridos.",
-    "noAccess": "No tienes permiso para acceder a este contenido.",
+    "character": "Se produjo un error al recuperar el carácter.",
+    "cors": "No permitido por CORS",
+    "rateLimit": "Demasiadas solicitudes. Vuelve a intentarlo más tarde.",
+    "malformedRequest": "Solicitud mal formada",
+    "unauthorized": "No tienes permiso para realizar esta acción.",
     "badGateway": "Mala puerta de entrada. ¡Intenta refrescarte!",
-    "failedCommand": "¡Error al ejecutar el comando! Se presentó un informe y se envió al desarrollador."
+    "failedCommand": "¡Error al ejecutar el comando! Se presentó un informe y se envió al desarrollador.",
+    "noAccount": "Necesitas una cuenta para perfeccionar esta acción.",
+    "database": "Se produjo un error al realizar una operación de base de datos.",
+    "unknown": "Se produjo un error desconocido.",
+    "webpush": "No se pudo enviar la notificación push.",
+    "pinLimit": "Has alcanzado la cantidad máxima (24) de pines.",
+    "delegationLimit": "Has alcanzado la cantidad máxima (8) de cuentas delegadas.",
+    "authorizationHeader": "Falta el encabezado de autorización",
+    "fileNotFound": "Archivo no encontrado",
+    "accountNotFound": "Cuenta no encontrada",
+    "emailNotFound": "Correo electrónico no encontrado",
+    "connectionNotFound": "Conexión no encontrada",
+    "accountSuspended": "Esta cuenta está suspendida.",
+    "invalidAuthorizationCode": "Código de autorización no válido",
+    "missingEmail": "Su cuenta externa no tiene un correo electrónico conectado.",
+    "unverifiedEmail": "El correo electrónico de su cuenta externa no está verificado.",
+    "invalidEmail": "El correo electrónico de su cuenta externa no es válido.",
+    "takenEmail": "El correo electrónico de su cuenta externa ya está en uso.",
+    "fileUnknown": "Tipo de archivo desconocido o no compatible",
+    "fileTooLarge": "El archivo supera el límite de 1 MB",
+    "failedAccountRegistration": "No se pudo registrar la cuenta",
+    "ownerInteraction": {
+      "follow": "No puedes dejar de seguir tu propio contenido.",
+      "like": "No puedes diferenciarte de tu propio contenido."
+    }
+  },
+  "words": {
+    "You": "Tú",
+    "FailedTo": "No se pudo",
+    "liked": "apreciado",
+    "unliked": "no me gusta",
+    "like": "como",
+    "unlike": "a diferencia de",
+    "followed": "seguido",
+    "unfollowed": "dejado de seguir",
+    "follow": "seguir",
+    "unfollow": "dejar de seguir",
+    "Search": "Buscar"
+  },
+  "components": {
+    "dropdown": {
+      "selectOption": "Seleccionar opción",
+      "selectOrType": "Seleccione o escriba..."
+    },
+    "modals": {
+      "close": "Cerca",
+      "captchaHeader": "¿Eres un robot?",
+      "limit": {
+        "subtext": "no podrá:",
+        "messagesTitle": "Enviarte mensajes privados.",
+        "messagesSubtext": "Las conversaciones existentes aún se pueden leer.",
+        "subtextTwo": "todavía puede ser capaz de:"
+      },
+      "block": {
+        "title": "Bloquear",
+        "rowOneTitleStaff": "Interactuar con su cuenta o publicaciones.",
+        "rowOneTitle": "Ver o interactuar con su cuenta o publicaciones.",
+        "rowOneSubtext": "Esto eliminará u ocultará las interacciones existentes.",
+        "rowThreeTitle": "Ver su cuenta o publicaciones cerradas.",
+        "rowThreeSubtext": "Configure su cuenta como \"privada\" o \"amigos\" para evitar esto.",
+        "rowStaffOneTitle": "Gestiona tu cuenta y publicaciones.",
+        "rowStaffOneSubtext": "Los miembros del personal aún pueden ver su cuenta y sus publicaciones.",
+        "rowStaffTwoTitle": "Responder a sus informes y tickets.",
+        "rowStaffTwoSubtext": "Los miembros del personal aún pueden interactuar con usted para obtener soporte en la plataforma.",
+        "tooMuch": "¿Demasiado? ¡Intente restringir en su lugar!",
+        "result": "tu bloqueaste"
+      },
+      "restrict": {
+        "title": "Restringir",
+        "rowOneTitle": "Comenta tus publicaciones.",
+        "rowOneSubtext": "Esto no eliminará los comentarios existentes.",
+        "rowThreeTitle": "Enviarte solicitudes de amistad.",
+        "rowThreeSubtext": "Si ya son amigos, la conexión no se eliminará.",
+        "rowFourTitle": "Comente sus borradores y publicaciones compartidos.",
+        "rowFourSubtext": "Elimine el permiso \"Enviar comentarios\" para revocar esto.",
+        "rowStaffOneTitle": "Responder a sus informes y tickets.",
+        "rowStaffOneSubtext": "Los miembros del personal aún pueden interactuar con usted para obtener soporte en la plataforma.",
+        "notEnough": "¿No es suficiente? ¡Intenta bloquear en su lugar!",
+        "result": "Tu restringiste"
+      },
+      "mute": {
+        "title": "Silenciar",
+        "subtext": "No recibirás una notificación cuando",
+        "rowOneTitle": "Publica contenido nuevo o actualiza contenido existente.",
+        "rowOneSubtext": "Esto no impide que aparezca contenido en su feed.",
+        "rowTwoTitle": "Interacts or comments on your publications.",
+        "rowTwoSubtext": "Esto no eliminará los comentarios nuevos o existentes.",
+        "rowThreeTitle": "Te envía mensajes privados.",
+        "rowThreeSubtext": "Seguirás recibiendo notificaciones de chats grupales compartidos.",
+        "result": "tu silenciaste"
+      },
+      "share": {
+        "title": "Compartir",
+        "subtext": "¡Haz clic en la imagen para descargarla!",
+        "copied": "¡Enlace copiado al portapapeles!"
+      }
+    }
   },
   "pages": {
-    "404": {
-      "status": "Código 404: NO ENCONTRADO"
-    },
     "languages": "Idiomas",
+    "goHome": "Ir a casa",
+    "seconds": "artículos de segunda clase",
+    "construction": {
+      "subtext": "¡Únase a nuestro Discord para recibir actualizaciones en vivo o consulte la versión nocturna!",
+      "subtextNightly": "Join our Discord for live-updates!",
+      "nightly": "Visita todas las noches",
+      "updates": "Obtenga actualizaciones en vivo",
+      "marquee": {
+        "1": "TRABAJO EN CURSO",
+        "2": "Bajo construcción",
+        "3": "WIP"
+      }
+    },
+    "notFound": {
+      "subtext": "Esta página no existe.",
+      "marquee": "PÁGINA NO ENCONTRADA"
+    },
+    "unavailable": {
+      "subtext": "Nuestros servidores actualmente están experimentando una gran carga.",
+      "update": "Su página se actualizará automáticamente en",
+      "marquee": "TEMPORALMENTE NO DISPONIBLE"
+    },
     "home": {
       "title": "Página de ejemplo",
       "body": "Para editar esta página, visite ./src/frontend/main/pages/Home.tsx",
-      "button": "Haz clic en mí",
-      "goAbout": "Ir a Acerca de"
-    },
-    "about": {
-      "helmet": {
-        "title": "Acerca de"
-      },
-      "description": "No hay nada que ver aquí...",
-      "goHome": "Ir a casa"
+      "button": "Haz clic en mí"
     }
   }
 }

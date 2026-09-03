@@ -64,9 +64,15 @@
     "followed": "followed",
     "unfollowed": "unfollowed",
     "follow": "follow",
-    "unfollow": "unfollow"
+    "unfollow": "unfollow",
+    "Search": "Search",
+    "Description": "Description"
   },
   "components": {
+    "dropdown": {
+      "selectOption": "Select Option",
+      "selectOrType": "Select or type..."
+    },
     "modals": {
       "close": "Close",
       "captchaHeader": "Are you a robot?",
@@ -102,6 +108,26 @@
         "rowStaffOneSubtext": "Staff members can still interact with you for platform support.",
         "notEnough": "Not Enough? Try Blocking Instead!",
         "result": "You restricted"
+      },
+      "report": {
+        "title": "Report",
+        "rowTitle": "Reports should be honest, accurate, free from bias or distortion, and made in good faith.",
+        "footer": "Intellectual property violations and technical reports are not anonymous.",
+        "type": "Report Type",
+        "placeholder": "What type of report are you filing?",
+        "description": "Describe your report with the most details possible so we can properly address the issue.",
+        "submit": "Submit Report",
+        "result": "Thanks for the report!",
+        "abuse": "Abuse & Harassment",
+        "spam": "Spam & Deceptive Behavior",
+        "inappropriate": "Inappropriate Content",
+        "dmca": "Intellectual Property Violations",
+        "misuse": "Platform Misuse",
+        "safety": "Privacy & Safety",
+        "impersonation": "Impersonation",
+        "ai": "AI-Generated Content",
+        "bug": "Technical Error & Bugs",
+        "other": "Other"
       },
       "mute": {
         "title": "Mute",

@@ -3,6 +3,11 @@
     "reason": "Kami sedang melakukan pembaruan!"
   },
   "metadata": {
+    "titles": {
+      "construction": "Sedang dibangun",
+      "notFound": "404 - Halaman Tidak Ditemukan",
+      "unavailable": "503 - Untuk Sementara Tidak Tersedia"
+    },
     "tagline": "Contoh Situs Web",
     "description": "Ini adalah contoh deskripsi",
     "keywords": "misalnya, kata kunci",
@@ -12,29 +17,143 @@
       }
     }
   },
+  "banners": {
+    "beta": "OpenProfile masih dalam versi beta dan beberapa fitur belum tersedia, namun akan segera diluncurkan.",
+    "locale": "Terjemahan ini belum diverifikasi dan beberapa kata mungkin tidak akurat."
+  },
   "responses": {
-    "emptyFields": "Silakan isi semua bidang yang diperlukan.",
-    "noAccess": "Anda tidak memiliki izin untuk mengakses konten ini.",
+    "character": "Terjadi kesalahan saat mengambil karakter",
+    "cors": "Tidak diizinkan oleh CORS",
+    "rateLimit": "Terlalu banyak permintaan, silakan coba lagi nanti.",
+    "malformedRequest": "Permintaan salah format",
+    "unauthorized": "Anda tidak memiliki izin untuk melakukan tindakan ini.",
     "badGateway": "Gerbang yang buruk. Cobalah menyegarkan!",
-    "failedCommand": "Kesalahan saat menjalankan perintah! Laporan telah diajukan dan dikirim ke pengembang."
+    "failedCommand": "Kesalahan saat menjalankan perintah! Laporan telah diajukan dan dikirim ke pengembang.",
+    "noAccount": "Anda memerlukan akun untuk menyempurnakan tindakan ini.",
+    "database": "Terjadi kesalahan saat melakukan operasi database.",
+    "unknown": "Terjadi kesalahan yang tidak diketahui.",
+    "webpush": "Gagal mengirim pemberitahuan push.",
+    "pinLimit": "Anda telah mencapai jumlah maksimum (24) pin.",
+    "delegationLimit": "Anda telah mencapai jumlah maksimum (8) akun yang didelegasikan.",
+    "authorizationHeader": "Header Otorisasi tidak ada",
+    "fileNotFound": "Berkas tidak ditemukan",
+    "accountNotFound": "Akun tidak ditemukan",
+    "emailNotFound": "Email tidak ditemukan",
+    "connectionNotFound": "Koneksi tidak ditemukan",
+    "accountSuspended": "Akun ini ditangguhkan",
+    "invalidAuthorizationCode": "Kode otorisasi tidak valid",
+    "missingEmail": "Akun eksternal Anda tidak memiliki email yang terhubung.",
+    "unverifiedEmail": "Email akun eksternal Anda tidak terverifikasi.",
+    "invalidEmail": "Email akun eksternal Anda tidak valid.",
+    "takenEmail": "Email akun eksternal Anda sudah dipakai.",
+    "fileUnknown": "Jenis file tidak diketahui atau tidak didukung",
+    "fileTooLarge": "File melebihi batas 1 MB",
+    "failedAccountRegistration": "Gagal mendaftarkan akun",
+    "ownerInteraction": {
+      "follow": "Anda tidak dapat berhenti mengikuti konten Anda sendiri.",
+      "like": "Anda tidak dapat membedakan konten Anda sendiri."
+    }
+  },
+  "words": {
+    "You": "Anda",
+    "FailedTo": "Gagal",
+    "liked": "disukai",
+    "unliked": "tidak seperti",
+    "like": "menyukai",
+    "unlike": "tidak seperti",
+    "followed": "diikuti",
+    "unfollowed": "berhenti mengikuti",
+    "follow": "mengikuti",
+    "unfollow": "berhenti mengikuti",
+    "Search": "Mencari"
+  },
+  "components": {
+    "dropdown": {
+      "selectOption": "Pilih Opsi",
+      "selectOrType": "Pilih atau ketik..."
+    },
+    "modals": {
+      "close": "Menutup",
+      "captchaHeader": "Apakah kamu robot?",
+      "limit": {
+        "subtext": "tidak akan bisa:",
+        "messagesTitle": "Mengirimi Anda pesan pribadi.",
+        "messagesSubtext": "Percakapan yang ada masih bisa dibaca.",
+        "subtextTwo": "mungkin masih bisa:"
+      },
+      "block": {
+        "title": "Memblokir",
+        "rowOneTitleStaff": "Berinteraksi dengan akun atau publikasi Anda.",
+        "rowOneTitle": "Lihat atau berinteraksi dengan akun atau publikasi Anda.",
+        "rowOneSubtext": "Tindakan ini akan menghapus atau menyembunyikan interaksi yang ada.",
+        "rowThreeTitle": "Lihat akun atau publikasi Anda keluar.",
+        "rowThreeSubtext": "Setel akun Anda ke \"pribadi\" atau \"teman\" untuk mencegah hal ini.",
+        "rowStaffOneTitle": "Kelola akun dan publikasi Anda.",
+        "rowStaffOneSubtext": "Anggota staf masih dapat melihat akun dan publikasi Anda.",
+        "rowStaffTwoTitle": "Tanggapi laporan dan tiket Anda.",
+        "rowStaffTwoSubtext": "Anggota staf masih dapat berinteraksi dengan Anda untuk mendapatkan dukungan platform.",
+        "tooMuch": "Terlalu Banyak? Coba Batasi!",
+        "result": "Anda memblokir"
+      },
+      "restrict": {
+        "title": "Membatasi",
+        "rowOneTitle": "Komentari publikasi Anda.",
+        "rowOneSubtext": "Tindakan ini tidak akan menghapus komentar yang sudah ada.",
+        "rowThreeTitle": "Mengirimi Anda permintaan pertemanan.",
+        "rowThreeSubtext": "Jika sudah berteman, koneksinya tidak akan terputus.",
+        "rowFourTitle": "Komentari draf dan publikasi yang Anda bagikan.",
+        "rowFourSubtext": "Hapus izin \"Kirim Komentar\" untuk mencabut izin ini.",
+        "rowStaffOneTitle": "Tanggapi laporan dan tiket Anda.",
+        "rowStaffOneSubtext": "Anggota staf masih dapat berinteraksi dengan Anda untuk mendapatkan dukungan platform.",
+        "notEnough": "Tidak cukup? Coba Blokir!",
+        "result": "Anda membatasi"
+      },
+      "mute": {
+        "title": "Bisu",
+        "subtext": "Anda tidak akan diberitahu kapan",
+        "rowOneTitle": "Menerbitkan konten baru atau memperbarui konten yang sudah ada.",
+        "rowOneSubtext": "Hal ini tidak mencegah konten muncul di feed Anda.",
+        "rowTwoTitle": "Berinteraksi atau mengomentari publikasi Anda.",
+        "rowTwoSubtext": "Tindakan ini tidak akan menghapus komentar baru atau yang sudah ada.",
+        "rowThreeTitle": "Mengirimi Anda pesan pribadi.",
+        "rowThreeSubtext": "Anda masih akan menerima notifikasi untuk obrolan grup bersama.",
+        "result": "Anda membungkam"
+      },
+      "share": {
+        "title": "Membagikan",
+        "subtext": "Klik gambar untuk mendownloadnya!",
+        "copied": "Tautan disalin ke papan klip!"
+      }
+    }
   },
   "pages": {
-    "404": {
-      "status": "Kode 404 : TIDAK DITEMUKAN"
-    },
     "languages": "Bahasa",
+    "goHome": "Pulang",
+    "seconds": "detik",
+    "construction": {
+      "subtext": "Bergabunglah dengan Discord kami untuk pembaruan langsung atau periksa versi malam!",
+      "subtextNightly": "Bergabunglah dengan Discord kami untuk pembaruan langsung!",
+      "nightly": "Kunjungi Malam Hari",
+      "updates": "Get Live Updates",
+      "marquee": {
+        "1": "BEKERJA DALAM PROGRES",
+        "2": "Sedang dibangun",
+        "3": "WIP"
+      }
+    },
+    "notFound": {
+      "subtext": "Halaman ini tidak ada.",
+      "marquee": "HALAMAN TIDAK DITEMUKAN"
+    },
+    "unavailable": {
+      "subtext": "Server kami sedang mengalami beban berat.",
+      "update": "Halaman Anda akan disegarkan secara otomatis",
+      "marquee": "UNTUK SEMENTARA TIDAK TERSEDIA"
+    },
     "home": {
       "title": "Halaman Contoh",
       "body": "Untuk mengedit halaman ini, kunjungi ./src/frontend/main/pages/Home.tsx",
-      "button": "Klik Saya",
-      "goAbout": "Pergi ke Tentang"
-    },
-    "about": {
-      "helmet": {
-        "title": "Tentang"
-      },
-      "description": "Tidak ada yang bisa dilihat di sini...",
-      "goHome": "Pergi ke Rumah"
+      "button": "Klik Saya"
     }
   }
 }

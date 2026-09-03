@@ -3,6 +3,11 @@
     "reason": "我们正在执行更新！"
   },
   "metadata": {
+    "titles": {
+      "construction": "建设中",
+      "notFound": "404 - 找不到页面",
+      "unavailable": "503 - 暂时不可用"
+    },
     "tagline": "示例网站",
     "description": "这是一个示例描述",
     "keywords": "例如，关键字",
@@ -12,29 +17,143 @@
       }
     }
   },
+  "banners": {
+    "beta": "OpenProfile 处于测试阶段，某些功能尚不可用，但很快就会推出。",
+    "locale": "此翻译未经验证，有些词可能不准确。"
+  },
   "responses": {
-    "emptyFields": "请填写所有必填字段。",
-    "noAccess": "您无权访问此内容。",
+    "character": "获取字符时发生错误",
+    "cors": "CORS 不允许",
+    "rateLimit": "请求太多，请稍后重试。",
+    "malformedRequest": "请求格式错误",
+    "unauthorized": "您没有执行此操作的权限。",
     "badGateway": "坏网关。尝试清爽一下！",
-    "failedCommand": "执行命令出错！已提交报告并发送给开发商。"
+    "failedCommand": "执行命令出错！已提交报告并发送给开发商。",
+    "noAccount": "您需要一个帐户来完善此操作。",
+    "database": "执行数据库操作时发生错误。",
+    "unknown": "发生未知错误。",
+    "webpush": "发送推送通知失败。",
+    "pinLimit": "您已达到最大引脚数 (24)。",
+    "delegationLimit": "您已达到委托账户的最大数量 (8)。",
+    "authorizationHeader": "缺少授权标头",
+    "fileNotFound": "找不到文件",
+    "accountNotFound": "未找到帐户",
+    "emailNotFound": "未找到电子邮件",
+    "connectionNotFound": "未找到连接",
+    "accountSuspended": "该帐号已被暂停",
+    "invalidAuthorizationCode": "授权码无效",
+    "missingEmail": "您的外部帐户没有连接的电子邮件。",
+    "unverifiedEmail": "您的外部帐户电子邮件未经过验证。",
+    "invalidEmail": "您的外部帐户电子邮件无效。",
+    "takenEmail": "您的外部帐户电子邮件已被占用。",
+    "fileUnknown": "未知或不支持的文件类型",
+    "fileTooLarge": "文件超过 1 MB 限制",
+    "failedAccountRegistration": "注册账号失败",
+    "ownerInteraction": {
+      "follow": "您无法取消关注自己的内容。",
+      "like": "您不能不喜欢自己的内容。"
+    }
+  },
+  "words": {
+    "You": "你",
+    "FailedTo": "失败",
+    "liked": "喜欢",
+    "unliked": "不喜欢的",
+    "like": "喜欢",
+    "unlike": "不像",
+    "followed": "已关注",
+    "unfollowed": "取消关注",
+    "follow": "跟随",
+    "unfollow": "取消关注",
+    "Search": "搜索"
+  },
+  "components": {
+    "dropdown": {
+      "selectOption": "选择选项",
+      "selectOrType": "选择或输入..."
+    },
+    "modals": {
+      "close": "关闭",
+      "captchaHeader": "你是机器人吗？",
+      "limit": {
+        "subtext": "将无法：",
+        "messagesTitle": "给你发私信。",
+        "messagesSubtext": "仍然可以阅读现有的对话。",
+        "subtextTwo": "也许仍然能够："
+      },
+      "block": {
+        "title": "堵塞",
+        "rowOneTitleStaff": "与您的帐户或出版物互动。",
+        "rowOneTitle": "查看您的帐户或出版物或与之互动。",
+        "rowOneSubtext": "这将删除或隐藏现有的交互。",
+        "rowThreeTitle": "查看您已注销的帐户或出版物。",
+        "rowThreeSubtext": "将您的帐户设置为“私人”或“朋友”以防止这种情况发生。",
+        "rowStaffOneTitle": "管理您的帐户和出版物。",
+        "rowStaffOneSubtext": "工作人员仍然可以查看您的帐户和出版物。",
+        "rowStaffTwoTitle": "回复您的报告和票证。",
+        "rowStaffTwoSubtext": "工作人员仍然可以与您互动以获得平台支持。",
+        "tooMuch": "太多了？尝试限制！",
+        "result": "你屏蔽了"
+      },
+      "restrict": {
+        "title": "限制",
+        "rowOneTitle": "对您的出版物发表评论。",
+        "rowOneSubtext": "这不会删除现有评论。",
+        "rowThreeTitle": "向您发送好友请求。",
+        "rowThreeSubtext": "如果已经是好友，则不会删除连接。",
+        "rowFourTitle": "对您共享的草稿和出版物发表评论。",
+        "rowFourSubtext": "删除“发送评论”权限即可撤销此权限。",
+        "rowStaffOneTitle": "回复您的报告和票证。",
+        "rowStaffOneSubtext": "工作人员仍然可以与您互动以获得平台支持。",
+        "notEnough": "不够？尝试阻止！",
+        "result": "你限制了"
+      },
+      "mute": {
+        "title": "沉默的",
+        "subtext": "当以下情况时您不会收到通知",
+        "rowOneTitle": "发布新内容或更新现有内容。",
+        "rowOneSubtext": "这不会阻止内容出现在您的 Feed 上。",
+        "rowTwoTitle": "对您的出版物进行互动或评论。",
+        "rowTwoSubtext": "这不会删除新的或现有的评论。",
+        "rowThreeTitle": "向您发送私人消息。",
+        "rowThreeSubtext": "您仍然会收到共享群聊的通知。",
+        "result": "你静音了"
+      },
+      "share": {
+        "title": "分享",
+        "subtext": "点击图片即可下载！",
+        "copied": "链接已复制到剪贴板！"
+      }
+    }
   },
   "pages": {
-    "404": {
-      "status": "代码 404：未找到"
-    },
     "languages": "语言",
+    "goHome": "回家",
+    "seconds": "秒",
+    "construction": {
+      "subtext": "加入我们的 Discord 进行实时更新或检查夜间构建！",
+      "subtextNightly": "加入我们的 Discord 获取实时更新！",
+      "nightly": "每晚访问",
+      "updates": "获取实时更新",
+      "marquee": {
+        "1": "正在进行中的工作",
+        "2": "建设中",
+        "3": "在制品"
+      }
+    },
+    "notFound": {
+      "subtext": "该页面不存在。",
+      "marquee": "找不到页面"
+    },
+    "unavailable": {
+      "subtext": "我们的服务器目前负载很重。",
+      "update": "您的页面将自动刷新",
+      "marquee": "暂时不可用"
+    },
     "home": {
       "title": "示例页面",
       "body": "要编辑此页面，请访问 ./src/frontend/main/pages/Home.tsx",
-      "button": "点我",
-      "goAbout": "转到关于"
-    },
-    "about": {
-      "helmet": {
-        "title": "关于"
-      },
-      "description": "这里没什么可看的...",
-      "goHome": "回到首页"
+      "button": "点我"
     }
   }
 }
