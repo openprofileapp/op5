@@ -8,7 +8,7 @@ import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Pagination } from "../components/Pagination.js";
-import { TypeableDropdownInput } from "../../studio/components/TypeableDropdownInput.js";
+import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY

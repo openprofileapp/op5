@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import React from "react";
 
 import colors from "tailwindcss/colors";
-import { TypeableDropdownInput } from "./TypeableDropdownInput.js";
+import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 
 interface DropdownOption {
     label: string;
