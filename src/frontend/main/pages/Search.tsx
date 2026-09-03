@@ -9,8 +9,6 @@ import { GetPublishedCharacterItemType } from "../../../_common/types/character.
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import UserCard from "../components/UserCard.js";
-import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
-import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
 
 type TabType = 
     | "characters"
@@ -77,16 +75,6 @@ export default function Search() {
     const [searchTime, setSearchTime] = useState<number>(0);
 
     const isFetchingRef = useRef(false);
-    const characterModalRef = useRef<CharacterModalRef>(null);
-    const ShareModalRef = useRef<ShareModalRef>(null);
-
-    const handleOpenModal = (id: string) => {
-        characterModalRef.current?.open(id);
-    };
-
-    const handleShareModal = (id: string) => {
-        ShareModalRef.current?.open(id);
-    };
 
     useEffect(() => {
         let isMounted = true;
@@ -217,10 +205,8 @@ export default function Search() {
             <Metadata
                 title={query ? `Searching "${query}"` : "Search"}
                 allowIndex="false"
+                image={`/render/landscape/6690301862165288`}
             />
-
-            <CharacterModal ref={characterModalRef} />
-            <ShareModal ref={ShareModalRef} />
 
             <div className="px-4 py-4 md:px-14">
                 <div className="mt-4 text-xl font-bold">
@@ -270,11 +256,11 @@ export default function Search() {
                         characters.map((d) => (
                             <CharacterCard 
                                 key={d.id}
-                                {...d}
+                                data={d}
                                 isPreview={true}
                                 hasNotification={false}
-                                onOpenModal={handleOpenModal}
-                                onShareModal={handleShareModal}
+                                //onOpenModal={handleOpenModal}
+                               // onShareModal={handleShareModal}
                             />
                         ))
                     ) : activeTab === "users" && userCount > 0 ? (
