@@ -79,7 +79,7 @@
       "name": "hooks",
       "base": "controller",
       "color": "#7e57c2",
-      "fileExtensions": ["hook.ts", "hook.js"]
+      "fileExtensions": ["hook.ts", "hook.js", "hook.tsx", "hook.jsx"]
     },
     {
       "name": "middlewares",
