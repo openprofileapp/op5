@@ -1,4 +1,6 @@
 import { GetBadgeType } from "./badge.type.js";
+import { CollectionType } from "./collection.type.js";
+import { ExperimentsNameType } from "./experiment.type.js";
 import { GetInteractionCollection } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
 import { GetUsernameType } from "./username.type.js";
@@ -25,6 +27,7 @@ export type UserType = {
     auraPrimary: string;
     auraSecondary: string;
     type: string;
+    flags: string;
     isDeveloper: boolean;
     isExplicit: boolean;
     visibility: VisibilityType;
@@ -38,13 +41,15 @@ export type UserType = {
 
 export type GetUserItemType = Omit<
     UserType, 
-    "tags"
+    "tags" | "flags"
 > & {
-    tags: string[];
     usernames: GetUsernameType[];
     badges: GetBadgeType[];
+    tags: string[];
+    flags: ExperimentsNameType[];
     links?: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
+    collections?: CollectionType[]
 };
 
 export type GetUserType = {
