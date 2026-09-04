@@ -75,6 +75,7 @@
     },
     "modals": {
       "close": "Close",
+      "save": "Save",
       "captchaHeader": "Are you a robot?",
       "limit": {
         "subtext": "will not be able to:",
@@ -117,7 +118,7 @@
         "placeholder": "What type of report are you filing?",
         "description": "Describe your report with the most details possible so we can properly address the issue.",
         "submit": "Submit Report",
-        "result": "Thanks for the report!",
+        "result": "Thanks for the report",
         "abuse": "Abuse & Harassment",
         "spam": "Spam & Deceptive Behavior",
         "inappropriate": "Inappropriate Content",
@@ -137,13 +138,24 @@
         "rowTwoTitle": "Interacts or comments on your publications.",
         "rowTwoSubtext": "This will not remove new or existing comments.",
         "rowThreeTitle": "Sends you private messages.",
-        "rowThreeSubtext": "You will still recieve notifications for shared group chats.",
+        "rowThreeSubtext": "You will still receive notifications for shared group chats.",
         "result": "You muted"
+      },
+      "notifications": {
+        "title": "Manage Notifications",
+        "subtext": "You will get notifed when",
+        "rowOneTitle": "Gets an update or publication change.",
+        "rowOneSubtext": "This does not change how it appears on your feed.",
+        "rowTwoTitle": "Has collaborators assigned or revoked.",
+        "rowTwoSubtext": "This only applies to collaborators made public by the owner.",
+        "rowThreeTitle": "Receives new comment activity.",
+        "rowThreeSubtext": "You will not receive notifications from muted or blocked users.",
+        "result": "Your preferences have been saved"
       },
       "share": {
         "title": "Share",
         "subtext": "Click the image to download it!",
-        "copied": "Link copied to clipboard!"
+        "copied": "Link copied to clipboard"
       }
     }
   },
