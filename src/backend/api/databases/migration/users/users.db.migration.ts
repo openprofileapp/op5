@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 
 import { db, mdb } from "../../db.js";
-import { log } from "../../../instances.js";
+import { log, snowflake } from "../../../instances.js";
 import uploadFile from "../../../../_common/helpers/uploadFile.js";
 import { config } from "../../../../../../app.config.js";
 
@@ -13,6 +13,10 @@ db.users.transaction(async q => {
     for (const d of result.rows) {
         if (d.id === "5719552362357773") {
             d.developer = 1;
+        }
+
+        if (d.id === "9534968913312158") {
+            d.flags = "1";
         }
 
         if (d.visibility === "followers") {
@@ -66,6 +70,7 @@ db.users.transaction(async q => {
                 auraPrimary,
                 auraSecondary,
                 type,
+                flags,
                 isDeveloper,
                 isExplicit,
                 visibility,
@@ -73,7 +78,7 @@ db.users.transaction(async q => {
                 lastActive,
                 presenceVisibility,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.score,
                 d.id,
@@ -94,12 +99,40 @@ db.users.transaction(async q => {
                 d.aura_primary,
                 d.aura_secondary,
                 d.type,
+                d.flags || "0",
                 d.developer || 0,
                 d.explicit || 0,
                 d.visibility || "public",
                 d.messages,
                 d.last_active,
                 d.last_active_visibility,
+                DateTime.fromSQL(d.created_date as string, { zone: "utc" }).toISO()
+            ]
+        );
+
+        if (!result.success) return log.db.error(result.error).save();
+    }
+})
+
+db.collections.transaction(async q => {
+    if (!result.success) return log.db.error(result.error).save();
+
+    for (const d of result.rows) {
+        const result = q(
+            `INSERT INTO collections (
+                id,
+                ownerId,
+                displayName,
+                isFavorites,
+                updatedDate,
+                createdDate
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                snowflake.gen(),
+                d.id,
+                "My Favorites",
+                1,
+                DateTime.fromSQL(d.created_date as string, { zone: "utc" }).toISO(),
                 DateTime.fromSQL(d.created_date as string, { zone: "utc" }).toISO()
             ]
         );
