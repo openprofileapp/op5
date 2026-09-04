@@ -1,13 +1,18 @@
 import { createContext, useContext, useRef, ReactNode, useMemo } from "react";
 
-import MuteModal, { MuteModalRef } from "../../main/components/modals/MuteModal.js";
-import RestrictModal, { RestrictModalRef } from "../../main/components/modals/RestrictModal.js";
-import BlockModal, { BlockModalRef } from "../../main/components/modals/BlockModal.js";
-import ReportModal, { ReportModalRef } from "../../main/components/modals/ReportModal.js";
-import ShareModal, { ShareModalRef } from "../../main/components/modals/ShareModal.js";
-import CharacterModal, { CharacterModalRef } from "../../main/components/modals/CharacterModal.js";
+import NotificationsModal, { NotificationsModalRef } from "../components/modals/NotificationsModal.js";
+import MuteModal, { MuteModalRef } from "../components/modals/MuteModal.js";
+import RestrictModal, { RestrictModalRef } from "../components/modals/RestrictModal.js";
+import BlockModal, { BlockModalRef } from "../components/modals/BlockModal.js";
+import ReportModal, { ReportModalRef } from "../components/modals/ReportModal.js";
+import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
+import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
 
 interface ModalContextType {
+    notificationsModal: {
+        open: (data: Parameters<NotificationsModalRef["open"]>[0]) => void;
+        close: () => void;
+    };
     muteModal: {
         open: (data: Parameters<MuteModalRef["open"]>[0]) => void;
         close: () => void;
@@ -37,15 +42,20 @@ interface ModalContextType {
 const ModalContext = createContext<ModalContextType | null>(null);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
-    const characterModalRef = useRef<CharacterModalRef>(null);
-    const blockModalRef = useRef<BlockModalRef>(null);
-    const restrictModalRef = useRef<RestrictModalRef>(null);
+    const notificationsModalRef = useRef<NotificationsModalRef>(null);
     const muteModalRef = useRef<MuteModalRef>(null);
+    const restrictModalRef = useRef<RestrictModalRef>(null);
+    const blockModalRef = useRef<BlockModalRef>(null);
     const reportModalRef = useRef<ReportModalRef>(null);
     const shareModalRef = useRef<ShareModalRef>(null);
+    const characterModalRef = useRef<CharacterModalRef>(null);
 
     const value = useMemo(
         () => ({
+            notificationsModal: {
+                open: (data: Parameters<NotificationsModalRef["open"]>[0]) => notificationsModalRef.current?.open(data),
+                close: () => notificationsModalRef.current?.close(),
+            },
             muteModal: {
                 open: (data: Parameters<MuteModalRef["open"]>[0]) => muteModalRef.current?.open(data),
                 close: () => muteModalRef.current?.close(),
@@ -76,6 +86,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
     return (
         <ModalContext.Provider value={value}>
+            <NotificationsModal ref={notificationsModalRef} />
             <MuteModal ref={muteModalRef} />
             <RestrictModal ref={restrictModalRef} />
             <BlockModal ref={blockModalRef} />
