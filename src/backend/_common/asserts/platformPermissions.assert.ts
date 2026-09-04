@@ -1,7 +1,8 @@
 import { AdvancedError } from "kage-library";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
-import PlatformPermissionsService, { PlatformPermissionName } from "../services/platformPermissions.service.js";
 import { i18n } from "../instances.js";
+import { PlatformPermissionNameType } from "../../../_common/types/permissions.type.js";
+import PlatformPermissionsService from "../services/platformPermissions.service.js";
 
 /**
  * Asserts that the current session must have the requested permissions.
@@ -11,7 +12,7 @@ import { i18n } from "../instances.js";
  */
 export function assertPlatformPermissions(
     session: ValidSessionType, 
-    requiredPermission: PlatformPermissionName | PlatformPermissionName[]
+    requiredPermission: PlatformPermissionNameType | PlatformPermissionNameType[]
 ): void {
     if (!PlatformPermissionsService.has(
         session.permissions.value, 

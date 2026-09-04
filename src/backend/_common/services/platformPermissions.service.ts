@@ -6,7 +6,9 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 import { AdvancedError } from "kage-library";
+
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { PlatformPermissionNameType } from "../../../_common/types/permissions.type.js";
 
 const index = {
     VIEW: 0n, // View user profiles and asset overviews
@@ -188,17 +190,16 @@ const roles = {
 interface Role {
     name: string;
     description: string;
-    permissions: PlatformPermissionName[];
+    permissions: PlatformPermissionNameType[];
 }
 
-export type PlatformPermissionName = keyof typeof index;
 export type PlatformRoleName = keyof typeof roles;
 
 interface RoleResult {
     name: string;
     description: string;
     value: string;
-    array: PlatformPermissionName[];
+    array: PlatformPermissionNameType[];
 }
 
 /**
@@ -208,7 +209,7 @@ interface RoleResult {
 export default class PlatformPermissionsService {
     public static permissions = index;
 
-    private static bit(permission: PlatformPermissionName): bigint {
+    private static bit(permission: PlatformPermissionNameType): bigint {
         if (!(permission in this.permissions)) {
             throw new AdvancedError({
                 code: 404,
@@ -225,7 +226,7 @@ export default class PlatformPermissionsService {
      * @example
      * PlatformPermissionsService.decode("1"); // ["VIEW"]
      */
-    public static decode(input: string): PlatformPermissionName[] {
+    public static decode(input: string): PlatformPermissionNameType[] {
         assertNotNull(input);
 
         if (!/^[0-9]+$/.test(input)) {
@@ -233,21 +234,21 @@ export default class PlatformPermissionsService {
         }
 
         const userPermissions = BigInt(input);
-        const result: PlatformPermissionName[] = [];
+        const result: PlatformPermissionNameType[] = [];
 
         if ((userPermissions & this.bit("SUPER_ADMIN")) !== 0n) {
-            return Object.keys(this.permissions) as PlatformPermissionName[];
+            return Object.keys(this.permissions) as PlatformPermissionNameType[];
         }
 
         if ((userPermissions & this.bit("ADMIN")) !== 0n) {
             return Object.keys(this.permissions).filter(
                 (p) => p !== "SUPER_ADMIN"
-            ) as PlatformPermissionName[];
+            ) as PlatformPermissionNameType[];
         }
 
         for (const [name, shift] of Object.entries(this.permissions)) {
             if ((userPermissions & (1n << shift)) !== 0n) {
-                result.push(name as PlatformPermissionName);
+                result.push(name as PlatformPermissionNameType);
             }
         }
 
@@ -260,7 +261,7 @@ export default class PlatformPermissionsService {
      * @example
      * PlatformPermissionsService.encode(["VIEW", "READ"]); // "3"
      */
-    public static encode(input: PlatformPermissionName[]): string {
+    public static encode(input: PlatformPermissionNameType[]): string {
         if (!input?.length) {
             assertNotNull(input);
         }
@@ -283,7 +284,7 @@ export default class PlatformPermissionsService {
      */
     public static has(
         input: string,
-        compare: PlatformPermissionName | PlatformPermissionName[],
+        compare: PlatformPermissionNameType | PlatformPermissionNameType[],
         mode: "all" | "any" = "all"
     ): boolean {
         const decoded = this.decode(input);
@@ -340,7 +341,7 @@ export default class PlatformPermissionsService {
      */
     public static update(
         input: string | bigint,
-        permission: PlatformPermissionName | PlatformPermissionName[],
+        permission: PlatformPermissionNameType | PlatformPermissionNameType[],
         add = true
     ): string {
         let permValue = BigInt(input);
