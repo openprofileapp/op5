@@ -16,7 +16,7 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 import { CSS } from "@dnd-kit/utilities";
-import ProjectCard from "../ProjectCard.js";
+import ProjectCard from "../../../main/components/ProjectCard.js";
 
 export default function EditProjectModal() {
     const { t, ready: isTranslationReady } = useTranslation();

@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 
-import ProjectCard from "../ProjectCard.js";
-import ImageInput from "../ImageInput.js";
-import { useObjectURL } from "../../../_common/hooks/useObjectURL.hook.js";
+import ProjectCard from "../../../main/components/ProjectCard.js";
+import ImageInput from "../../../main/components/ImageInput.js";
+import { useObjectURL } from "../../hooks/useObjectURL.hook.js";
 
 // Assign proper project owner
 // create sends to server (avatarUrl too)
