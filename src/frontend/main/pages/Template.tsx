@@ -807,7 +807,7 @@ Check out my character: <@6773794953695671>
                                                 {visibility === "friends" ? "Request Friend" : "Friends"}
                                             </button>*/}
                     
-                                            { user.isExplicit ? 
+                                            { user.isMature ? 
                                                 <button className="flex gap-2 h-8 px-3 text-sm btn btn-accent border-accent uppercase"
                                                     onClick={() => { closeCreateProjectModal() }}>
                                                     <span className="text-base">

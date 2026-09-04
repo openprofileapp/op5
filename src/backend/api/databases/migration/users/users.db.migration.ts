@@ -72,7 +72,7 @@ db.users.transaction(async q => {
                 type,
                 flags,
                 isDeveloper,
-                isExplicit,
+                isMature,
                 visibility,
                 sendMessages,
                 lastActive,

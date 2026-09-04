@@ -20,7 +20,7 @@ type Props = {
     status?: string;
     badges?: GetBadgeType[];
     about?: string;
-    isExplicit?: boolean;
+    isMature?: boolean;
     visibility?: string;
     interactions?: {
         views?: {
@@ -59,7 +59,7 @@ export default function UserCard({
     status,
     badges,
     about,
-    isExplicit,
+    isMature,
     visibility,
     interactions,
     notification
@@ -367,7 +367,7 @@ export default function UserCard({
                             {visibility === "friends" ? "Request Friend" : "Friends"}
                         </button>*/}
 
-                        { isExplicit ? 
+                        { isMature ? 
                             <button className="flex gap-2 h-7 px-3 text-xs btn btn-accent border-accent uppercase"
                                 onClick={() => { closeCreateProjectModal() }}>
                                 <span className="text-sm">

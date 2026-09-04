@@ -250,7 +250,7 @@ export default function SearchProfiles() {
                             status={d.status}
                             badges={d.badges}
                             about={d.about}
-                            isExplicit={d.isExplicit}
+                            isMature={d.isMature}
                             visibility={d.visibility}
                             interactions={{
                                 views: {

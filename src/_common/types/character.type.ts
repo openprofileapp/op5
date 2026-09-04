@@ -22,7 +22,7 @@ export type PublishedCharacterType = {
     auraType: string;
     auraPrimary: string;
     auraSecondary: string;
-    isExplicit: boolean;
+    isMature: boolean;
     visibility: VisibilityType;
     readVisibility: VisibilityType;
     sendComments: string;

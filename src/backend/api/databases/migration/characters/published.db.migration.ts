@@ -73,7 +73,7 @@ db.characters.transaction(async q => {
                 auraType,
                 auraPrimary,
                 auraSecondary,
-                isExplicit,
+                isMature,
                 visibility,
                 readVisibility,
                 isScheduled,

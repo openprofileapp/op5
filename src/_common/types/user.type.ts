@@ -29,7 +29,7 @@ export type UserType = {
     type: string;
     flags: string;
     isDeveloper: boolean;
-    isExplicit: boolean;
+    isMature: boolean;
     visibility: VisibilityType;
     sendMessages: string;
     sendComments: string;

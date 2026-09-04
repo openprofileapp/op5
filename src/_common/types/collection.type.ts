@@ -13,7 +13,7 @@ export type CollectionType = {
     about: string;
     tags: string;
     isFavorites: boolean;
-    isExplicit: boolean;
+    isMature: boolean;
     visibility: VisibilityType;
     updatedDate: string;
     createdDate: string;
@@ -39,6 +39,7 @@ export type GetCollectionItemType = Omit<
     interactions?: Partial<GetInteractionCollection>;
     items?: CollectionItemType[];
     isPinned?: boolean;
+    isItemInCollection?: boolean;
 };
 
 export type GetCollectionType = {

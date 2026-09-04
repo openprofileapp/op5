@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS published (
     auraType TEXT NOT NULL DEFAULT 'flow',
     auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
     auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    isExplicit INTEGER NOT NULL DEFAULT 0,
+    isMature INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
     readVisibility TEXT NOT NULL DEFAULT 'default',
     sendComments TEXT NOT NULL DEFAULT 'default',

@@ -375,7 +375,7 @@ export default function UserProfile() {
                                         {visibility === "friends" ? "Request Friend" : "Friends"}
                                     </button>*/}
             
-                                    { user.isExplicit ? 
+                                    { user.isMature ? 
                                         <button className="flex gap-2 h-7 px-3 text-sm btn btn-accent border-accent uppercase"
                                             onClick={() => { closeCreateProjectModal() }}>
                                             <span className="text-base">
