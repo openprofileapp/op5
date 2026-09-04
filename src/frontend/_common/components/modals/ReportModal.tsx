@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 
-import { toast } from "../../../_common/scripts/toast.js";
-import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
+import { toast } from "../../scripts/toast.js";
+import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
 import { GetUserItemType } from "../../../../_common/types/user.type.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 

@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 
-import { toast } from "../../../_common/scripts/toast.js";
+import { toast } from "../../scripts/toast.js";
 import { GetUserItemType } from "../../../../_common/types/user.type.js";
-import { useModals } from "../../../_common/hooks/ModalContext.hook.js";
+import { useModals } from "../../hooks/ModalContext.hook.js";
 
 export interface BlockModalRef {
     open: (data: GetUserItemType) => void;

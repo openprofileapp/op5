@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import { toPng } from "html-to-image";
 import JSZip from "jszip";
 
-import { cdnBaseUrl } from "../../../_common/scripts/domains.js";
-import { toast } from "../../../_common/scripts/toast.js";
+import { cdnBaseUrl } from "../../scripts/domains.js";
+import { toast } from "../../scripts/toast.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import { formatNumber } from "kage-library/client";
-import { formatDisplayNameToUrl } from "../../scripts/formatDisplayNameToUrl.js";
+import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
 
 export interface ShareModalRef {
     open: (data: GetPublishedCharacterItemType) => void;

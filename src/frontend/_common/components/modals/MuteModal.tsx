@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 
-import { toast } from "../../../_common/scripts/toast.js";
+import { toast } from "../../scripts/toast.js";
 import { GetUserItemType } from "../../../../_common/types/user.type.js";
 
 export interface MuteModalRef {
@@ -16,14 +16,12 @@ const MuteModal = forwardRef<MuteModalRef>((_, ref) => {
 
     const [data, setData] = useState<GetUserItemType>();
 
-    const [isContentSelected, setIsContentSelected] = useState<boolean>(false);
     const [isInteractionSelected, setIsInteractionSelected] = useState<boolean>(false);
     const [isMessageSelected, setIsMessageSelected] = useState<boolean>(false);
 
     const resetState = () => {
         setData(undefined);
 
-        setIsContentSelected(false);
         setIsInteractionSelected(false);
         setIsMessageSelected(false);
     };
@@ -81,28 +79,6 @@ const MuteModal = forwardRef<MuteModalRef>((_, ref) => {
                             <input
                                 type="checkbox"
                                 className="checkbox"
-                                checked={isContentSelected}
-                                onChange={(e) => {
-                                    setIsContentSelected(e.target.checked);
-                                }}
-                            />
-                        </label>
-                        <div>
-                            {t("components.modals.mute.rowOneTitle")}
-
-                            <br/>
-
-                            <span className="text-sub text-xs">
-                                {t("components.modals.mute.rowOneSubtext")}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-6 flex-row items-center">
-                        <label className="shrink-0">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
                                 checked={isInteractionSelected}
                                 onChange={(e) => {
                                     setIsInteractionSelected(e.target.checked);
@@ -144,13 +120,6 @@ const MuteModal = forwardRef<MuteModalRef>((_, ref) => {
                 </div>
 
                 <div className="pt-2 flex gap-2 flex-row relative">
-                    <button 
-                        className="btn flex-1 bg-base-300 text-white border-[var(--color-base-300)]" 
-                        onClick={handleClose}
-                    >
-                        {t("components.modals.close")}
-                    </button>
-
                     <button
                         className={`btn flex-1 bg-accent text-white border-accent`}
                         onClick={() => {

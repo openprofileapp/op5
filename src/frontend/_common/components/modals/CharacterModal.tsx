@@ -3,9 +3,9 @@ import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
 import { DateTime } from "luxon";
 
-import { cdnBaseUrl } from "../../../_common/scripts/domains.js";
+import { cdnBaseUrl } from "../../scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
-import ZoomableMedia from "../../../_common/components/ZoomableMedia.js";
+import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
 
 export interface CharacterModalRef {
@@ -191,6 +191,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         <Link 
                                             className="text-sm hover:underline w-fit"
                                             to={`/user/${data.owner?.username || data.owner?.id}`}
+                                            onClick={handleClose}
                                         >
                                             {data.owner?.displayName || data.owner?.username || data.owner?.id}
                                         </Link>
@@ -339,9 +340,9 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         ) : (
                                             data.tags.map((tag) => (
                                                 <Link
+                                                    className="rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300 hover:underline"
                                                     to={`/browse/${encodeURIComponent(tag)}`}
                                                     onClick={handleClose}
-                                                    className="rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300 hover:underline"
                                                 >
                                                     <span>#{tag}</span>
                                                 </Link>
