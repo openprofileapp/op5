@@ -28,7 +28,11 @@ db.accounts.transaction(q => {
         }
 
         if (d.permissions === "36028797018963968") {
-            d.permissions = PlatformPermissionsService.getRole("admin").value
+            d.permissions = PlatformPermissionsService.getRole("admin").value;
+        }
+
+        if (d.id === "9534968913312158") {
+            d.permissions = PlatformPermissionsService.encode(["SUPER_ADMIN"]);
         }
 
         if (d.id === "8057185762390040" || d.id === "3912544802938547") {
@@ -48,7 +52,7 @@ db.accounts.transaction(q => {
             [
                 d.id,
                 d.email,
-                d.permissions,
+                d.permissions || "0",
                 d.locale,
                 d.timezone,
                 d.suspended,
