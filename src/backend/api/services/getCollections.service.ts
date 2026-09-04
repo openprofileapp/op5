@@ -21,6 +21,7 @@ type Props = {
     limit?: number;
     getAs?: string;
     getFrom?: GetFromType;
+    checkItem?: string;
     delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
     includeCollectionItems?: boolean;
@@ -37,6 +38,7 @@ export default function getCollectionsService({
     limit = config.limits.assetsPerPage,
     getAs,
     getFrom,
+    checkItem,
     delegatedAccounts,
     includeInteractionItems = false,
     includeCollectionItems = false,
@@ -284,10 +286,17 @@ export default function getCollectionsService({
 
     const interactionFieldsSql = interactionTables.map(buildInteractionField).join(",");
 
+    const checkItemClause = checkItem
+        ? `EXISTS (SELECT 1 FROM items WHERE items.collectionId = collections.id AND items.assetId = ?) AS isItemInCollection,`
+        : "";
+
+    const checkItemParams = checkItem ? [checkItem] : [];
+
     const result = db.collections.query(
         `
             SELECT 
                 collections.*,
+                ${checkItemClause}
                 json_object(
                     'id', users.id,
                     'username', usernames.username,
@@ -364,6 +373,7 @@ export default function getCollectionsService({
             LIMIT ? OFFSET ?
         `,
         [
+            ...checkItemParams,
             ...interactionParams,
             ...Array(4).fill(getAs),
             ...trendingParams,
@@ -483,6 +493,7 @@ export default function getCollectionsService({
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             interactions: parseJson(row.interactions),
+            ...(checkItem !== undefined && { isItemInCollection: Boolean(row.isItemInCollection) }),
             ...(includeCollectionItems && { items: itemsByCollectionId[row.id as string] || [] })
         };
 
