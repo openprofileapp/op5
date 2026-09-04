@@ -23,12 +23,12 @@ type Props = {
 let index = 1;
 
 export default function CharacterCard({
-    data,
+    data: rawData,
     isPinnedVisible = false,
     isPreview = false,
     hasNotification = false,
     isHomeScreen = false,
-    dragHandleProps,y
+    dragHandleProps,
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -38,8 +38,8 @@ export default function CharacterCard({
         handleLikeInteraction
     } = useInteractions();
 
-    const { 
-        muteModal,
+    const {
+        notificationsModal,
         reportModal,
         shareModal,
         characterModal
@@ -48,46 +48,114 @@ export default function CharacterCard({
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const [isChatted, setIsChatted] = useState(data.interactions?.chats?.hasInteracted);
-    const [chatCount, setChatCount] = useState(data.interactions?.chats?.count || 0);
-    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [isViewed, setIsViewed] = useState(rawData.interactions?.views?.hasInteracted);
+    const [viewCount, setViewCount] = useState(rawData.interactions?.views?.count || 0);
+    const [isViewLoading, setIsViewLoading] = useState(false);
+    const [lastViewDate, setLastViewDate] = useState(rawData.interactions?.views?.latestDate);
 
-    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
-    const [isDismissLoading, setIsDismissLoading] = useState(false);
-
-    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
-    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
+    const [isFollowing, setIsFollowing] = useState(rawData.interactions?.follows?.hasInteracted);
+    const [followCount, setFollowCount] = useState(rawData.interactions?.follows?.count || 0);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
-    const [isHideLoading, setIsHideLoading] = useState(false);
-
-    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
-    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
+    const [isLiked, setIsLiked] = useState(rawData.interactions?.likes?.hasInteracted);
+    const [likeCount, setLikeCount] = useState(rawData.interactions?.likes?.count || 0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
 
-    const [isMuted, setIsMuted] = useState(data.interactions?.mutes?.hasInteracted);
-    const [muteCount, setMuteCount] = useState(data.interactions?.mutes?.count || 0);
+
+    // DEVELOPER NEEDED: Add collectons here and support id array; each need their own id including favs
+    const [isInCollection, setIsInCollection] = useState(false);
+    const [collectionCount, setCollectionCount] = useState(rawData.interactions?.shares?.count || 0);
+    const [isInCollectionLoading, setIsInCollectionLoading] = useState(false);
+
+
+
+
+
+
+
+
+    const [isDismissed, setIsDismissed] = useState(rawData.interactions?.dismisses?.hasInteracted);
+    const [isDismissLoading, setIsDismissLoading] = useState(false);
+
+    const [isHidden, setIsHidden] = useState(rawData.interactions?.hides?.hasInteracted);
+    const [isHideLoading, setIsHideLoading] = useState(false);
+
+
+    const [isMuted, setIsMuted] = useState(rawData.interactions?.mutes?.hasInteracted);
+    const [muteCount, setMuteCount] = useState(rawData.interactions?.mutes?.count || 0);
     const [isMuteLoading, setIsMuteLoading] = useState(false);
 
-    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
-    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
+    const [isShared, setIsShared] = useState(rawData.interactions?.shares?.hasInteracted);
+    const [shareCount, setShareCount] = useState(rawData.interactions?.shares?.count || 0);
     const [isShareLoading, setIsShareLoading] = useState(false);
-
-    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
-    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
-    const [isViewLoading, setIsViewLoading] = useState(false);
-    const [lastViewDate, setLastViewDate] = useState(data.interactions?.views?.latestDate);
-
-    // DEVELOPER NEEDED: Add library states here
 
     const [isPinned, setIsPinned] = useState(isPinnedVisible);
     const [isPinLoading, setIsPinLoading] = useState(false);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const data: GetPublishedCharacterItemType = {
+        ...rawData,
+        interactions: {
+            ...rawData?.interactions,
+            views: {
+                ...rawData?.interactions?.views,
+                count: viewCount,
+                hasInteracted: isViewed,
+                latestDate: lastViewDate,
+            },
+            follows: {
+                ...rawData?.interactions?.follows,
+                count: followCount,
+                hasInteracted: isFollowing,
+            },
+            likes: {
+                ...rawData?.interactions?.likes,
+                count: likeCount,
+                hasInteracted: isLiked,
+            },
+            mutes: {
+                ...rawData?.interactions?.mutes,
+                count: muteCount,
+                hasInteracted: isMuted,
+            },
+            shares: {
+                ...rawData?.interactions?.shares,
+                count: shareCount,
+                hasInteracted: isShared,
+            },
+        },
+    };
+
     const closeContextMenu = useCallback((id: string) => {
         setIsContextMenuOpen(false);
         document
-            .getElementById(`character-more-dropdown-${data.id}`)
+            .getElementById(`character-more-dropdown-${id}`)
             ?.hidePopover();
     }, []);
 
@@ -132,7 +200,7 @@ export default function CharacterCard({
 
         setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
-
+    
     if (
         !data.id ||
         !data.owner ||
@@ -271,6 +339,77 @@ export default function CharacterCard({
                     popover="manual"
                     id={`character-more-dropdown-${data.id}`}
                 >
+
+                    {window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
+                        <>
+                            {/* DEVELOPER NEEDED: Add the interaction here and when landing on the pages */}
+                            <div className="flex w-full h-12">
+                                <li
+                                    className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
+                                    data-tip="View"
+                                    onClick={() => {
+                                        closeContextMenu(data.id);
+                                    }}
+                                >
+                                    <Link 
+                                        className="flex items-center justify-center w-full h-full" 
+                                        to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                                    >
+                                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                            󰈈
+                                        </span>
+                                    </Link>
+                                </li>
+
+                                <li
+                                    className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
+                                    data-tip="Read"
+                                    onClick={() => {
+                                        closeContextMenu(data.id);
+                                    }}
+                                >
+                                    <Link 
+                                        className="flex items-center justify-center w-full h-full" 
+                                        to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                                    >
+                                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                            
+                                        </span>
+                                    </Link>
+                                </li>
+
+                                <li 
+                                    className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
+                                    data-tip="Chat (Coming Soon)"
+                                >
+                                    <button className="flex items-center justify-center w-full h-full" disabled={true}>
+                                        <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
+                                            󰍧
+                                        </span>
+                                    </button>
+                                </li>
+
+                                <li 
+                                    className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
+                                    data-tip="Share"
+                                    onClick={() => {
+                                        closeContextMenu(data.id);
+
+                                        shareModal.open(data);
+                                    }}
+                                >
+                                    <button className="flex items-center justify-center w-full h-full">
+                                        <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
+                                            󰒗
+                                        </span>
+                                    </button>
+                                </li>
+                            </div>
+
+                            <hr />
+                        </>
+                    )}
+
                     {isHomeScreen && (
                         <>
                             <li 
@@ -344,75 +483,54 @@ export default function CharacterCard({
                         </>
                     )}
 
-                    {/* DEVELOPER NEEDED: Add the interaction here and when landing on the pages */}
-                    <li
-                        onClick={() => {
-                            closeContextMenu(data.id);
-                        }}
-                    >
-                        <Link 
-                            className="justify-between" 
-                            to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                        >
-                            View
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                󰈈
-                            </span>
-                        </Link>
-                    </li>
-
-                    <li
-                        onClick={() => {
-                            closeContextMenu(data.id);
-                        }}
-                    >
-                        <Link 
-                            className="justify-between" 
-                            to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                        >
-                            Read
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                
-                            </span>
-                        </Link>
-                    </li>
-
-                    {/* DEVELOPER NEEDED: On click, open a chat with the character */}
-                    <li 
-                        className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
-                        data-tip="Coming Soon"
-                        onClick={() => {
-                            // closeContextMenu(data.id);
-
-                            // Open chat here and save to user message history
-                        }}
-                    >
-                        <button className="justify-between" disabled={true}>
-                            Chat
-                            <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                                󰍧
-                            </span>
-                        </button>
-                    </li>
-
-                    <hr />
-
-                    {/* Can't follow or like your own characters; auto display as liked or smth */}
-
-                    {isFollowing && (
+                    {!window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
                         <>
-                            <li>
-                                <button 
-                                    className="justify-between"
-                                    onClick={() => {
-                                        closeContextMenu(data.id);
-
-                                        muteModal.open(data);
-                                    }}
+                            <li
+                                onClick={() => {
+                                    closeContextMenu(data.id);
+                                }}
+                            >
+                                <Link 
+                                    className="justify-between" 
+                                    to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                                 >
-                                    Notifications
+                                    View
                                     <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        󰂚
+                                        󰈈
+                                    </span>
+                                </Link>
+                            </li>
+
+                            <li
+                                onClick={() => {
+                                    closeContextMenu(data.id);
+                                }}
+                            >
+                                <Link 
+                                    className="justify-between" 
+                                    to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                                >
+                                    Read
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        
+                                    </span>
+                                </Link>
+                            </li>
+
+                            {/* DEVELOPER NEEDED: On click, open a chat with the character */}
+                            <li 
+                                className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
+                                data-tip="Coming Soon"
+                                onClick={() => {
+                                    // closeContextMenu(data.id);
+
+                                    // Open chat here and save to user message history
+                                }}
+                            >
+                                <button className="justify-between" disabled={true}>
+                                    Chat
+                                    <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
+                                        󰍧
                                     </span>
                                 </button>
                             </li>
@@ -420,6 +538,8 @@ export default function CharacterCard({
                             <hr />
                         </>
                     )}
+
+                    {/* Can't follow or like your own characters; auto display as liked or smth */}
 
                     <li 
                         onClick={async () => {
@@ -468,7 +588,7 @@ export default function CharacterCard({
                         </button>
                     </li>
 
-                    {/* DEVELOPER NEEDED: Add collections then polish this  */}
+                    {/* DEVELOPER NEEDED: on move enter, call the API to render the collections; have a loading in the meantime  */}
                     <li 
                         className="relative group"
                         onMouseEnter={checkCollectionMenuPosition}
@@ -483,6 +603,7 @@ export default function CharacterCard({
                         <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
                         <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                            {/* DEVELOPER NEEDED: isFavorites = 1 here  */}
                             <li>
                                 <button 
                                     className="justify-between"
@@ -491,7 +612,7 @@ export default function CharacterCard({
                                         closeContextMenu(data.id);
                                     }}
                                 >
-                                    Favorites
+                                    My Favorites
                                     <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
                                         
                                     </span>
@@ -500,6 +621,7 @@ export default function CharacterCard({
 
                             <hr />
 
+                            {/* DEVELOPER NEEDED: all the rest here  */}
                             {/*
                                 <li>
                                     <button 
@@ -659,21 +781,121 @@ export default function CharacterCard({
                         REQUIRES: A moderate popup; hide buttons to appropriate permissions
                     */}
 
-                    <li className="hidden">
-                        <button 
-                            className="justify-between text-error"
-                            onClick={() => {
-                                closeContextMenu(data.id);
+                    {isFollowing && (
+                        <>
+                            <li>
+                                <button 
+                                    className="justify-between"
+                                    onClick={() => {
+                                        closeContextMenu(data.id);
 
-                                muteModal.open(data);
-                            }}
-                        >
-                            Mute
-                            <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                󰂛
-                            </span>
-                        </button>
-                    </li>
+                                        notificationsModal.open(data);
+                                    }}
+                                >
+                                    Notifications
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        󰂚
+                                    </span>
+                                </button>
+                            </li>
+
+                            <li 
+                                className="relative group"
+                                onMouseEnter={checkCollectionMenuPosition}
+                            >
+                                <button className="justify-between w-full">
+                                    Mute
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        
+                                    </span>
+                                </button>
+
+                                <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+
+                                <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                                    <li>
+                                        <button 
+                                            className="justify-between"
+                                            onClick={() => {
+                                                
+                                                closeContextMenu(data.id);
+                                            }}
+                                        >
+                                            1 Hour
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                󱐿
+                                            </span>
+                                        </button>
+                                    </li>
+                                    
+                                    <li>
+                                        <button 
+                                            className="justify-between"
+                                            onClick={() => {
+                                                
+                                                closeContextMenu(data.id);
+                                            }}
+                                        >
+                                            4 Hours
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                󱑂
+                                            </span>
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button 
+                                            className="justify-between"
+                                            onClick={() => {
+                                                
+                                                closeContextMenu(data.id);
+                                            }}
+                                        >
+                                            8 Hours
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                󱑆
+                                            </span>
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button 
+                                            className="justify-between"
+                                            onClick={() => {
+                                                
+                                                closeContextMenu(data.id);
+                                            }}
+                                        >
+                                            24 Hours
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                󱑊
+                                            </span>
+                                        </button>
+                                    </li>
+
+                                    <hr />
+
+                                    <li>
+                                        <button 
+                                            className="justify-between"
+                                            onClick={() => {
+                                                
+                                                closeContextMenu(data.id);
+                                            }}
+                                        >
+                                            Indefinitely
+                                            <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                󰂛
+                                            </span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <hr />
+                        </>
+                    )}
+
                     <li>
                         <button 
                             className="justify-between text-error"
@@ -689,22 +911,33 @@ export default function CharacterCard({
                             </span>
                         </button>
                     </li>
-                    <hr />
-                    <li>
-                        <button 
-                            className="justify-between"
-                            onClick={() => {
-                                closeContextMenu(data.id);
 
-                                shareModal.open(data);
-                            }}
-                        >
-                            Share
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                󰒗
-                            </span>
-                        </button>
-                    </li>
+                    {
+                        (
+                            Boolean(window.session.user?.isDeveloper) ||
+                            !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR")
+                        ) && (
+                        <hr />
+                    )}
+
+                    {!window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
+                        <li>
+                            <button 
+                                className="justify-between"
+                                onClick={() => {
+                                    closeContextMenu(data.id);
+
+                                    shareModal.open(data);
+                                }}
+                            >
+                                Share
+                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                    󰒗
+                                </span>
+                            </button>
+                        </li>
+                    )}
+
                     {Boolean(window.session.user?.isDeveloper) && (
                         <li>
                             <button 
@@ -715,13 +948,15 @@ export default function CharacterCard({
                                 }}
                             >
                                 Copy ID
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    󰅇
+                                <span className="flex items-center justify-center w-4 h-6 text-3xl font-nerdfont leading-none shrink-0">
+                                    󰻾
                                 </span>
                             </button>
                         </li>
                     )}
+
                     <hr />
+
                     <li>
                         <button 
                             className="justify-between text-warning"
