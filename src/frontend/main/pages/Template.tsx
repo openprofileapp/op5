@@ -14,9 +14,9 @@ import Metadata from "../../_common/components/Metadata.js";
 import ProjectCard from "../components/ProjectCard.js";
 import Badges from "../components/Badges.js";
 import { toast } from "../../_common/scripts/toast.js";
-import RestrictModal from "../components/modals/RestrictModal.js";
-import BlockModal from "../components/modals/BlockModal.js";
-import MuteModal from "../components/modals/MuteModal.js";
+import RestrictModal from "../../_common/components/modals/RestrictModal.js";
+import BlockModal from "../../_common/components/modals/BlockModal.js";
+import MuteModal from "../../_common/components/modals/MuteModal.js";
 import ExternalLinks from "../components/ExternalLinks.js";
 import CharacterCard from "../components/CharacterCard.js";
 import Mention from "../components/Mention.js";
@@ -24,7 +24,7 @@ import React from "react";
 import TitleCard from "../components/TitleCard.js";
 import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
-import ReportModal from "../components/modals/ReportModal.js";
+import ReportModal from "../../_common/components/modals/ReportModal.js";
 
 export default function NotFound() {
     const { id } = useParams();

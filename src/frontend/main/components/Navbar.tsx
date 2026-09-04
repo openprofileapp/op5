@@ -5,12 +5,12 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
 
-import CreateProjectModal from "./modals/CreateProjectModal.js";
+import CreateProjectModal from "../../_common/components/modals/CreateProjectModal.js";
 import LoginModal from "./modals/LoginModal.js";
-import MfaModal from "./modals/MfaModal.js";
+import MfaModal from "../../_common/components/modals/MfaModal.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
-import CreateAssetModal from "./modals/CreateAssetModal.js";
+import CreateAssetModal from "../../_common/components/modals/CreateAssetModal.js";
 
 import { apiBaseUrl, authBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 
