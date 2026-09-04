@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     auraPrimary TEXT DEFAULT '#ce1616',
     auraSecondary TEXT DEFAULT '#000000',
     type TEXT NOT NULL DEFAULT 'user',
+    flags TEXT NOT NULL DEFAULT '0',
     isDeveloper INTEGER NOT NULL DEFAULT 0,
     isExplicit INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'private',
