@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+
 import { config } from "../../../../app.config.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { GetUserItemType, GetUserType } from "../../../_common/types/user.type.js";
@@ -10,6 +11,7 @@ import getInterestsService from "./getInterests.service.js";
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 import AssetPermissionsService from "./assetPermissions.service.js";
 import { UsernameType } from "../../../_common/types/username.type.js";
+import ExperimentsService from "../../_common/services/experiments.service.js";
 
 type Props = {
     idOrUsername?: string;
@@ -432,6 +434,7 @@ export default function getUsersService({
             usernames: parseJson(row.usernames),
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
+            flags: ExperimentsService.decode(row.flags as string),
             interactions: parseJson(row.interactions)
         } as GetUserItemType;
     });
