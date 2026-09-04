@@ -23,6 +23,7 @@ import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
 import usernamesRoute from "./routes/usernames.route.js";
 import postregisterRoute from "./routes/postregister.route.js";
+import collectionRoutes from "./routes/collection.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -69,6 +70,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     characterRoutes
+);
+
+v3.use(
+    "/collections", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    collectionRoutes
 );
 
 v3.use(
