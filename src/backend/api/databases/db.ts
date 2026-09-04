@@ -10,6 +10,7 @@ const paths = {
     users: "data/databases/users.sqlite",
     badges: "data/databases/badges.sqlite",
     invites: "data/databases/invites.sqlite",
+    collections: "data/databases/collections.sqlite",
     links: "data/databases/links.sqlite",
     pins: "data/databases/pins.sqlite",
     interactions: "data/databases/interactions.sqlite",
@@ -23,6 +24,7 @@ export const db = {
     users: new Database(paths.users),
     badges: new Database(paths.badges),
     invites: new Database(paths.invites),
+    collections: new Database(paths.collections),
     links: new Database(paths.links),
     pins: new Database(paths.pins),
     interactions: new Database(paths.interactions),
@@ -193,6 +195,18 @@ db.invites.transaction(q => {
     };
 });
 
+db.collections.transaction(q => {
+    if (!q("SELECT * FROM collections LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/collections/collections.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM items LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/collections/items.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 db.links.transaction(q => {
     if (!q("SELECT * FROM links LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/links.sql`);
@@ -281,6 +295,11 @@ db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
+db.users.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
+
+db.collections.query(`ATTACH DATABASE '${paths.users}' AS users`);
+db.collections.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.collections.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 
 // Migration (old databases)
 export const mdb = {
@@ -326,6 +345,7 @@ async function waitForMDB() {
             import("./migration/interactions/likes.db.migration.js");
             import("./migration/interactions/reads.db.migration.js");
             import("./migration/interactions/views.db.migration.js");
+            import("./migration/interactions/favorites.db.migration.js");
 
             return;
         }
