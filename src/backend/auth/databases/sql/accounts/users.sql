@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     birthdate TEXT,
     isMfaEnabled INTEGER DEFAULT 0,
     totpSecret TEXT,
-    permissions TEXT NOT NULL,
+    permissions TEXT NOT NULL DEFAULT '0',
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
     earnedRevenueUSD INTEGER DEFAULT 0,
