@@ -8,6 +8,8 @@ import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import getUsersService from "../services/getUsers.service.js";
 import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/character.type.js";
 import getPublishedCharactersService from "../services/getPublishedCharacters.service.js";
+import { CollectionType, GetCollectionItemType } from "../../../_common/types/collection.type.js";
+import getCollectionsService from "../services/getCollections.service.js";
 
 type AssetType = 
     "USER" | 
@@ -37,7 +39,7 @@ function hasBadge(badges: GetBadgeType[], badgeType: BadgeNameType): boolean {
 
 function formatReturnData(
     type: AssetType, 
-    data: GetUserItemType | GetPublishedCharacterItemType
+    data: GetUserItemType | GetPublishedCharacterItemType | GetCollectionItemType
 ): WhatIsType {
     const badges = type === "USER" 
         ? (data as GetUserItemType).badges 
@@ -128,6 +130,26 @@ export default function whatIs(
 
         if (data) {
             return formatReturnData("CHARACTER", data)
+        }
+    }
+
+    const collectionResult = db.collections.query<CollectionType>(
+        "SELECT * FROM collections WHERE id = ?", 
+        [id]
+    );
+
+    assertDbSuccess(collectionResult);
+
+    if (collectionResult.rowCount !== 0) {
+        const getResult = getCollectionsService({
+            id,
+            internalPermissionsBypass: true
+        });
+
+        const data = getResult.items[0];
+
+        if (data) {
+            return formatReturnData("COLLECTION", data)
         }
     }
 
