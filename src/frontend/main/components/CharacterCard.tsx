@@ -470,11 +470,10 @@ export default function CharacterCard({
             
 
             <ul
-                className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
+                className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50 duration-0"
                 popover="manual"
                 id={`character-more-dropdown-${data.id}`}
             >
-
                 {window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
                     <>
                         {/* DEVELOPER NEEDED: Add the interaction here and when landing on the pages */}

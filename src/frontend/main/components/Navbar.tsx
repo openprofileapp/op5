@@ -426,7 +426,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                 { /* Maybe this can be a menu-hoz like for links */}
                 {user && (
                     <ul
-                        className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
+                        className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50 duration-0"
                         popover="manual"
                         id="account-dropdown"
                     >
