@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS collections (
     about TEXT,
     tags TEXT DEFAULT '[]',
     isFavorites INTEGER NOT NULL DEFAULT 0,
+    isSensitive INTEGER NOT NULL DEFAULT 0,
     isMature INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'private',
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),

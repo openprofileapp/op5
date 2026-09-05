@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS published (
     licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
-    auraPrimary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
-    auraSecondary TEXT, -- Hex, RGB, RGBA, HSL, HSLA, HSV, HWB, CMYK
+    auraPrimary TEXT,
+    auraSecondary TEXT,
+    isSensitive INTEGER NOT NULL DEFAULT 0,
     isMature INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
     readVisibility TEXT NOT NULL DEFAULT 'default',

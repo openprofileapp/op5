@@ -78,6 +78,7 @@ export default function CharacterCard({
     const [isHidden, setIsHidden] = useState(rawData.interactions?.hides?.hasInteracted);
     const [isHideLoading, setIsHideLoading] = useState(false);
 
+    const [isSensitive, setIsSensitive] = useState(rawData.isSensitive);
     const [isMature, setIsMature] = useState(rawData.isMature);
     const [isRevealed, setIsRevealed] = useState(false);
 
@@ -273,10 +274,40 @@ export default function CharacterCard({
         >
             {Boolean(isMature) && !isRevealed && (
                 <div 
-                    className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    className="hidden absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
                     onClick={(e) => {                        
                         e.stopPropagation();
                         setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-6xl mb-2 leading-none flex items-center justify-center">
+                        18+
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        Mature Content
+                    </span>
+
+                    <span className="text-xs text-sub">
+                        Click to view
+                    </span>
+                </div>
+            )}
+
+            {Boolean(isMature) && !isRevealed && (
+                <div 
+                    className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                     }}
                 >
                     <span className="font-nerdfont text-6xl mb-2 leading-none flex items-center justify-center">
@@ -284,7 +315,7 @@ export default function CharacterCard({
                     </span>
 
                     <span className="text-sm font-semibold">
-                        Mature Content
+                        Sensitive Content
                     </span>
 
                     <span className="text-xs text-sub">
@@ -1131,7 +1162,7 @@ export default function CharacterCard({
             </Wrapper>
 
             <div className="flex flex-row gap-8 justify-center w-full">
-                <div className="absolute z-10 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1 pointer-events-auto">
+                <div className="absolute z-9 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1 pointer-events-auto">
                     <div className="flex items-center justify-center">
                         <span className={`font-nerdfont text-base w-4 h-6 ${isViewLoading ? "loading" : ""} ${isViewed ? "text-accent" : ""}`}>󰈈</span>
                         <span className="text-xs ml-2">{formatNumber(viewCount).short}</span>

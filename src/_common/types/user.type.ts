@@ -29,6 +29,7 @@ export type UserType = {
     type: string;
     flags: string;
     isDeveloper: boolean;
+    isSensitive: boolean;
     isMature: boolean;
     visibility: VisibilityType;
     sendMessages: string;

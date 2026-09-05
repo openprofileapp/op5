@@ -13,6 +13,7 @@ export type CollectionType = {
     about: string;
     tags: string;
     isFavorites: boolean;
+    isSensitive: boolean;
     isMature: boolean;
     visibility: VisibilityType;
     updatedDate: string;

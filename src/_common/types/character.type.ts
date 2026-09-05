@@ -22,6 +22,7 @@ export type PublishedCharacterType = {
     auraType: string;
     auraPrimary: string;
     auraSecondary: string;
+    isSensitive: boolean;
     isMature: boolean;
     visibility: VisibilityType;
     readVisibility: VisibilityType;

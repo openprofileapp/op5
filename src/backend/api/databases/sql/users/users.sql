@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
     type TEXT NOT NULL DEFAULT 'user',
     flags TEXT NOT NULL DEFAULT '0',
     isDeveloper INTEGER NOT NULL DEFAULT 0,
+    isSensitive INTEGER NOT NULL DEFAULT 0,
     isMature INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'private',
     sendMessages TEXT NOT NULL DEFAULT 'default',
