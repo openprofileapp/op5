@@ -148,9 +148,12 @@
         "rowOneSubtext": "This does not change how it appears on your feed.",
         "rowTwoTitle": "Has collaborators assigned or revoked.",
         "rowTwoSubtext": "This only applies to collaborators made public by the owner.",
-        "rowThreeTitle": "Receives new comment activity.",
-        "rowThreeSubtext": "You will not receive notifications from muted or blocked users.",
-        "result": "Your preferences have been saved"
+        "rowThreeTitle": "Receives new interactions.",
+        "rowThreeSubtext": "You will not receive notifications from muted users.",
+        "rowFourTitle": "Receives new comment activity.",
+        "rowFourSubtext": "You will not receive notifications from muted or blocked users.",
+        "result": "Your preferences have been saved",
+        "error": "Failed to save your preferences"
       },
       "share": {
         "title": "Share",
