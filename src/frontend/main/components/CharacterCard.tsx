@@ -753,33 +753,66 @@ export default function CharacterCard({
                             const favoritesCollection = collections?.find((c) => c.isFavorites);
                             const otherCollections = collections?.filter((c) => !c.isFavorites) || [];
 
-                            const renderCollectionItem = (collection: GetCollectionItemType, index: number) => (
-                                <li key={collection.id || index}>
-                                    <button 
-                                        className="flex w-full items-center justify-between"
-                                        onClick={() => {
-                                            // closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-nerdfont text-lg flex h-6 w-3 leading-none items-center justify-center">
-                                                {collection.isItemInCollection ? "󰐾" : "󰐽"}
-                                            </span>
-                                            {collection.displayName}
-                                        </div>
-                                        <img 
-                                            className="rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover"
-                                            src={
-                                                collection.isFavorites 
-                                                    ? `${cdnBaseUrl}${window.config.metadata.assets.favorites}`
-                                                    : collection.avatar 
-                                                        ? `${cdnBaseUrl}${collection.avatar}` 
-                                                        : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`
+                            const CollectionItem = ({ collection, index }: { collection: GetCollectionItemType; index: number }) => {
+                                const [isInCollection, setIsInCollection] = useState(collection.isItemInCollection);
+
+                                return (
+                                    <li key={collection.id || index}>
+                                        <button 
+                                            className="flex w-full items-center justify-between"
+                                            onClick={async () => {
+                                                const response = await fetch(
+                                                    `${apiBaseUrl}/v3/collections/update/${collection.id}/${data.id}`, 
+                                                    { credentials: "include" }
+                                                );
+
+                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                const responseData = await response.json() as any;
+
+                                                if (response.ok) {
+                                                    const nextState = !isInCollection;
+                                                    setIsInCollection(nextState);
+                                                    collection.isItemInCollection = nextState;
+
+                                                    toast.show(
+                                                        `${nextState ? "Added" : "Removed"} ${data.displayName || data.id} ${nextState ? "to" : "from"} ${collection.displayName}`, 
+                                                        { icon: nextState ? "" : "", type: nextState ? "success" : "info" }
+                                                    );
+                                                } else {
+                                                    toast.show(
+                                                        `Failed to ${isInCollection ? "remove" : "add"} ${data.displayName || data.id} ${isInCollection ? "from" : "to"} ${collection.displayName}`, 
+                                                        { 
+                                                            subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                            type: "error" 
+                                                        }
+                                                    );
                                                 }
-                                            alt={collection.displayName}
-                                        />
-                                    </button>
-                                </li>
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-nerdfont text-lg flex h-6 w-3 leading-none items-center justify-center">
+                                                    {isInCollection ? "󰐾" : "󰐽"}
+                                                </span>
+                                                {collection.displayName}
+                                            </div>
+                                            <img 
+                                                className="rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover"
+                                                src={
+                                                    collection.isFavorites 
+                                                        ? `${cdnBaseUrl}${window.config.metadata.assets.favorites}`
+                                                        : collection.avatar 
+                                                            ? `${cdnBaseUrl}${collection.avatar}` 
+                                                            : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`
+                                                    }
+                                                alt={collection.displayName}
+                                            />
+                                        </button>
+                                    </li>
+                                );
+                            };
+
+                            const renderCollectionItem = (collection: GetCollectionItemType, index: number) => (
+                                <CollectionItem key={collection.id || index} collection={collection} index={index} />
                             );
 
                             return (
