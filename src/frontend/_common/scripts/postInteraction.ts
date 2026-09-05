@@ -16,7 +16,7 @@ export async function postInteraction(
             }
         );
 
-        return await response.json()
+        return await response.json();
     } catch (error) {
         console.error('Failed to post interaction:', error);
     }
