@@ -13,7 +13,6 @@ export type InteractionNameType =
     | "hiddenCollaborations"
     | "hides"
     | "likes"
-    | "mutes"
     | "reads"
     | "restricts"
     | "shares"

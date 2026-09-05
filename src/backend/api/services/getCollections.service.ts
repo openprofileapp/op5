@@ -259,7 +259,6 @@ export default function getCollectionsService({
     const interactionTables: InteractionNameType[] = [
         "follows", 
         "likes", 
-        "mutes", 
         "reads", 
         "shares",
         "views"

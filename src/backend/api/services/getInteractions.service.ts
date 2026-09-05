@@ -12,7 +12,6 @@ const index: InteractionNameType[] = [
     "hiddenCollaborations",
     "hides",
     "likes",
-    "mutes",
     "reads",
     "restricts",
     "shares",

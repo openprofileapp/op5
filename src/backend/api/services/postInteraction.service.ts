@@ -46,16 +46,11 @@ async function postInteractionEvent(
                     message: i18n.t("responses.ownerInteraction.follow")
                 });
             }
+            
             if (type === "likes") {
                 throw new AdvancedError({
                     code: 403,
                     message: i18n.t("responses.ownerInteraction.like")
-                });
-            }
-            if (type === "mutes") {
-                throw new AdvancedError({
-                    code: 403,
-                    message: i18n.t("responses.ownerInteraction.mute")
                 });
             }
         }
@@ -70,7 +65,6 @@ async function postInteractionEvent(
         "hides",
         "hiddenCollaborations",
         "likes",
-        "mutes",
         "reads",
         "restricts",
         "shares",
@@ -93,7 +87,6 @@ async function postInteractionEvent(
         hides: "USE_INTERACTIONS",
         hiddenCollaborations: "USE_INTERACTIONS",
         likes: "USE_INTERACTIONS",
-        mutes: "USE_INTERACTIONS",
         reads: "READ",
         restricts: "USE_INTERACTIONS",
         shares: "USE_INTERACTIONS",
