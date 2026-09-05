@@ -154,7 +154,7 @@ export default function SearchProfiles() {
                     </div>
 
                     {(isOnBrowsePage || isOnTagPage) && (
-                        <div className="flex-1 mt-2">
+                        <div className="flex-1 mt-2 mr-5">
                             <TypeableDropdownInput
                                 value={sortBy}
                                 options={[
