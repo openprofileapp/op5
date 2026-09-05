@@ -5,7 +5,7 @@ import { AdvancedError, parseDuration } from "kage-library";
 import { InteractionNameType } from "../../../_common/types/interaction.type.js";
 import { ValidSessionType } from "../../../_common/types/validSession.type.js";
 import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
-import { PlatformPermissionNameType } from "../../_common/services/platformPermissions.service.js";
+import { PlatformPermissionNameType } from "../../../_common/types/permissions.type.js";
 import { assertPlatformPermissions } from "../../_common/asserts/platformPermissions.assert.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
