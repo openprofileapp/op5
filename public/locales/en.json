@@ -66,9 +66,18 @@
     "follow": "follow",
     "unfollow": "unfollow",
     "Search": "Search",
-    "Description": "Description"
+    "Description": "Description",
+    "Pinned": "Pinned",
+    "Limited": "Limited",
+    "More": "More"
   },
   "components": {
+    "cards": {
+      "isSensitive": "Sensitive Content",
+      "isMature": "Mature Content",
+      "clickToReveal": "Click to Reveal",
+      "limited": "This character is available to you through permissions or friendship."
+    },
     "dropdown": {
       "selectOption": "Select Option",
       "selectOrType": "Select or type..."
