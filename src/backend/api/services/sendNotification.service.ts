@@ -9,6 +9,7 @@ import sendPushNotificationService from "./sendPushNotification.service.js";
 import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
 import whatIs from "../helpers/whatIs.js";
 import { config } from "../../../../app.config.js";
+import { SubscriptionsType } from "../../../frontend/_common/components/modals/NotificationsModal.js";
 
 export const notificationMilestones = [ 
     10, 25, 50, 75,
@@ -92,7 +93,23 @@ export default async function sendNotificationService(
         });
     }
 
-    // Never send milestone notifications twice
+    const result = db.notifications.query<SubscriptionsType>(
+        "SELECT * FROM subscriptions WHERE source = ? AND target = ?",
+        [userId, targetId]
+    )
+
+    assertDbSuccess(result);
+
+    if (result.rowCount > 0) {
+        const row = result.rows[0];
+
+        if (!row.isSubscribedToNewInteractions && (
+            type === "NEW_FOLLOW" ||
+            type === "NEW_LIKE"
+        )) return;
+    }
+
+    // DEVELOPER NEEDED: Never send milestone notifications twice
 
     const data = JSON.stringify({
         ...(sourceId && { sourceId }),
