@@ -11,7 +11,6 @@ import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/dom
 import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetCollectionItemType } from "../../../_common/types/collection.type.js";
-import { DurationType } from "kage-library";
 import { formatRemainingTime, getRemainingTimeIcon } from "../../_common/scripts/time.js";
 
 type Props = {
@@ -57,6 +56,9 @@ export default function CharacterCard({
     const [isMature] = useState(data.isMature);
     const [isRevealed, setIsRevealed] = useState(false);
 
+    const [isPinned, setIsPinned] = useState(isPinnedVisible);
+    const [isPinLoading, setIsPinLoading] = useState(false);
+
     const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
     const [isDismissedInteractionLoading, setIsDismissedInteractionLoading] = useState(false);
 
@@ -88,6 +90,8 @@ export default function CharacterCard({
 
     const [remainingMuteDurationText, setRemainingMuteDurationText] = useState<string>("");
 
+    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
+    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState(false);
 
 
 
@@ -150,15 +154,7 @@ export default function CharacterCard({
     }, [muteData, isMuted]);
 
 
-    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
-    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState(false);
-
-    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
-    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
-    const [isShareLoading, setIsShareLoading] = useState(false);
-
-    const [isPinned, setIsPinned] = useState(isPinnedVisible);
-    const [isPinLoading, setIsPinLoading] = useState(false);
+    
 
 
     useEffect(() => {
@@ -209,12 +205,7 @@ export default function CharacterCard({
                         ...currentData.interactions?.likes,
                         count: likeCount,
                         hasInteracted: isLiked,
-                    },
-                    shares: {
-                        ...currentData.interactions?.shares,
-                        count: shareCount,
-                        hasInteracted: isShared,
-                    },
+                    }
                 },
                 notifications: {
                     ...currentData.notifications,
@@ -234,8 +225,6 @@ export default function CharacterCard({
         isFollowing,
         likeCount,
         isLiked,
-        shareCount,
-        isShared,
         notificationSubscriptions
     ]);
 
@@ -753,7 +742,10 @@ export default function CharacterCard({
                                 const [isInCollection, setIsInCollection] = useState(collection.isItemInCollection);
 
                                 return (
-                                    <li key={collection.id || index}>
+                                    <li 
+                                        key={collection.id || index}
+                                        className={isInCollection ? "rounded bg-gradient-to-r from-base-300/100 via-base-300/20 to-transparent" : ""}
+                                    >
                                         <button 
                                             className="flex w-full items-center justify-between"
                                             onClick={async () => {
@@ -1008,7 +1000,9 @@ export default function CharacterCard({
                                                         closeContextMenu(data.id);
 
                                                         const newMute = {
-                                                            duration: parseDuration(item.duration as DurationType),
+                                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                            // @ts-ignore
+                                                            duration: parseDuration(item.duration),
                                                             isIndefinite: item.isIndefinite,
                                                             date: new Date().toISOString()
                                                         };
