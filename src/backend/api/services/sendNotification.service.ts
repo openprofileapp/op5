@@ -103,9 +103,9 @@ export default async function sendNotificationService(
 
     let isValid = false;
 
-    db.users.transaction(q => {
+    db.notifications.transaction(q => {
         const result = q(
-            `DELETE FROM notifications WHERE userId = ? AND type = ? AND data = ?`,
+            `DELETE FROM inbox WHERE userId = ? AND type = ? AND data = ?`,
             [userId, type, data]
         );
 
@@ -115,7 +115,7 @@ export default async function sendNotificationService(
             isValid = true
 
             const result = q(
-                `INSERT INTO notifications (userId, type, data) VALUES (?, ?, ?)`,
+                `INSERT INTO inbox (userId, type, data) VALUES (?, ?, ?)`,
                 [userId, type, data]
             )
 

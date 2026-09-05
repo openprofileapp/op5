@@ -19,3 +19,45 @@ export type NotificationNameType =
     | "PRECURSOR_REGISTRATION"
     | "PARTNER_CODE_USED"
 ;
+
+export type NotificationInboxType = {
+    userId: string;
+    type: string;
+    data: object;
+    isRead: boolean;
+    readDate: string;
+    sentDate: string;
+}
+
+export type NotificationSubscriptionType = {
+    source: string;
+    target: string;
+    isSubscribedToContent: boolean;
+    isSubscribedToCollaborationChanges: boolean;
+    isSubscribedToNewComments: boolean;
+    isSubscribedToNewInteractions: boolean;
+    isSubscribedToNewMessages: boolean;
+}
+
+export type NotificationMuteType = {
+    source: string;
+    target: string;
+    duration: number;
+    isIndefinite: boolean;
+    date: string;
+}
+
+export type GetNotificationSubscriptionType = Omit<
+    NotificationSubscriptionType, 
+    "source" | "target"
+>
+
+export type GetNotificationMuteType = Omit<
+    NotificationMuteType, 
+    "source" | "target"
+>
+
+export type GetNotificationCollection = {
+    subscriptions: GetNotificationSubscriptionType;
+    mute: GetNotificationMuteType;
+}

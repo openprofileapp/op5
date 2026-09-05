@@ -3,6 +3,7 @@ import { CollectionType } from "./collection.type.js";
 import { ExperimentsNameType } from "./experiment.type.js";
 import { GetInteractionCollection } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
+import { GetNotificationCollection } from "./notification.type.js";
 import { GetUsernameType } from "./username.type.js";
 import { VisibilityType } from "./visibility.type.js";
 
@@ -51,6 +52,7 @@ export type GetUserItemType = Omit<
     links?: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
     collections?: CollectionType[]
+    notifications: GetNotificationCollection;
 };
 
 export type GetUserType = {

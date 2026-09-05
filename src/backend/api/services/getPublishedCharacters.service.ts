@@ -255,10 +255,9 @@ export default function getPublishedCharactersService({
     }
 
     const interactionTables: InteractionNameType[] = [
-        "follows", 
-        "likes", 
-        "mutes", 
-        "reads", 
+        "follows",
+        "likes",
+        "reads",
         "shares",
         "views"
     ];
@@ -307,6 +306,37 @@ export default function getPublishedCharactersService({
         ` 
         : "NULL AS media";
 
+    const notificationsParams: (string | undefined)[] = [];
+
+    const notificationsSelectSql = `
+        json_object(
+            'mute', (
+                SELECT json_object(
+                    'duration', nm.duration,
+                    'isIndefinite', CASE WHEN nm.isIndefinite = 1 THEN json('true') ELSE json('false') END,
+                    'date', nm.date
+                )
+                FROM notifications.mutes nm
+                WHERE nm.target = published.id AND nm.source = ?
+                LIMIT 1
+            ),
+            'subscriptions', (
+                SELECT json_object(
+                    'isSubscribedToContent', CASE WHEN ns.isSubscribedToContent = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToCollaborationChanges', CASE WHEN ns.isSubscribedToCollaborationChanges = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewComments', CASE WHEN ns.isSubscribedToNewComments = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewInteractions', CASE WHEN ns.isSubscribedToNewInteractions = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewMessages', CASE WHEN ns.isSubscribedToNewMessages = 1 THEN json('true') ELSE json('false') END
+                )
+                FROM notifications.subscriptions ns
+                WHERE ns.target = published.id AND ns.source = ?
+                LIMIT 1
+            )
+        ) AS notifications
+    `;
+
+    notificationsParams.push(getAs, getAs);
+
     const result = db.characters.query(
         `
             SELECT 
@@ -350,7 +380,8 @@ export default function getPublishedCharactersService({
                 json_object(
                     ${interactionFieldsSql}
                 ) AS interactions,
-                ${mediaSelectSql}
+                ${mediaSelectSql},
+                ${notificationsSelectSql}
             FROM main.published
             LEFT JOIN users.users 
                 ON users.id = published.ownerId
@@ -389,6 +420,7 @@ export default function getPublishedCharactersService({
         `,
         [
             ...interactionParams,
+            ...notificationsParams,
             ...Array(4).fill(getAs),
             ...trendingParams,
             ...visibilityParams,
@@ -477,7 +509,8 @@ export default function getPublishedCharactersService({
             owner,
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
-            interactions: parseJson(row.interactions)
+            interactions: parseJson(row.interactions),
+            notifications: parseJson(row.notifications)
         };
 
         if (includeMedia) {

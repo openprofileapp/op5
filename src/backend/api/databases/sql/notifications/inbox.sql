@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS notifications (
+CREATE TABLE IF NOT EXISTS inbox (
     userId TEXT NOT NULL,
     type TEXT NOT NULL,
     data TEXT,

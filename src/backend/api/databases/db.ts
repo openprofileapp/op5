@@ -14,7 +14,8 @@ const paths = {
     links: "data/databases/links.sqlite",
     pins: "data/databases/pins.sqlite",
     interactions: "data/databases/interactions.sqlite",
-    media: "data/databases/media.sqlite"
+    media: "data/databases/media.sqlite",
+    notifications: "data/databases/notifications.sqlite"
 }
 
 export const db = {
@@ -28,7 +29,8 @@ export const db = {
     links: new Database(paths.links),
     pins: new Database(paths.pins),
     interactions: new Database(paths.interactions),
-    media: new Database(paths.media)
+    media: new Database(paths.media),
+    notifications: new Database(paths.notifications)
 };
 
 db.audits.transaction(q => {
@@ -79,11 +81,6 @@ db.audits.transaction(q => {
 
     if (!q("SELECT * FROM likes LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/audits/likes.sql`);
-        if (!result.success) return log.db.error(result.error).save();
-    };
-
-    if (!q("SELECT * FROM mutes LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/audits/mutes.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 
@@ -167,11 +164,6 @@ db.users.transaction(q => {
 
     if (!q("SELECT * FROM webpush LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/users/webpush.sql`);
-        if (!result.success) return log.db.error(result.error).save();
-    };
-
-    if (!q("SELECT * FROM notifications LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/users/notifications.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
 });
@@ -262,11 +254,6 @@ db.interactions.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM mutes LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/interactions/mutes.sql`);
-        if (!result.success) return log.db.error(result.error).save();
-    };
-
     if (!q("SELECT * FROM reads LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/interactions/reads.sql`);
         if (!result.success) return log.db.error(result.error).save();
@@ -288,18 +275,38 @@ db.interactions.transaction(q => {
     };
 });
 
+db.notifications.transaction(q => {
+    if (!q("SELECT * FROM inbox LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/notifications/inbox.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM subscriptions LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/notifications/subscriptions.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM mutes LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/notifications/mutes.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
+db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.users.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
+db.users.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 
 db.collections.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.collections.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.collections.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
+db.collections.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 
 // Migration (old databases)
 export const mdb = {
@@ -328,7 +335,6 @@ async function waitForMDB() {
             import("./migration/users/interests.db.migration.js");
             import("./migration/users/usernames.db.migration.js");
             import("./migration/users/webpush.db.migration.js");
-            import("./migration/users/notifications.db.migration.js");
 
             import("./migration/badges.db.migration.js");
             import("./migration/links.db.migration.js");
@@ -346,6 +352,8 @@ async function waitForMDB() {
             import("./migration/interactions/reads.db.migration.js");
             import("./migration/interactions/views.db.migration.js");
             import("./migration/interactions/favorites.db.migration.js");
+
+            import("./migration/notifications/inbox.db.migration.js");
 
             return;
         }

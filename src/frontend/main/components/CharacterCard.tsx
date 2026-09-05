@@ -6,11 +6,13 @@ import { GetPublishedCharacterItemType } from "../../../_common/types/character.
 import { toast } from "../../_common/scripts/toast.js";
 import { formatDisplayNameToUrl } from "../scripts/formatDisplayNameToUrl.js";
 import { postInteraction } from "../../_common/scripts/postInteraction.js";
-import { formatNumber } from "kage-library/client";
+import { formatNumber, parseDuration } from "kage-library/client";
 import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetCollectionItemType } from "../../../_common/types/collection.type.js";
+import { DurationType } from "kage-library";
+import { formatRemainingTime, getRemainingTimeIcon } from "../../_common/scripts/time.js";
 
 type Props = {
     data: GetPublishedCharacterItemType
@@ -49,47 +51,114 @@ export default function CharacterCard({
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    const [isViewed, setIsViewed] = useState(rawData.interactions?.views?.hasInteracted);
-    const [viewCount, setViewCount] = useState(rawData.interactions?.views?.count || 0);
-    const [isViewLoading, setIsViewLoading] = useState(false);
-    const [lastViewDate, setLastViewDate] = useState(rawData.interactions?.views?.latestDate);
+    const [data, setData] = useState<GetPublishedCharacterItemType>(rawData);
 
-    const [isFollowing, setIsFollowing] = useState(rawData.interactions?.follows?.hasInteracted);
-    const [followCount, setFollowCount] = useState(rawData.interactions?.follows?.count || 0);
-    const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [isSensitive] = useState(data.isSensitive);
+    const [isMature] = useState(data.isMature);
+    const [isRevealed, setIsRevealed] = useState(false);
 
-    const [isLiked, setIsLiked] = useState(rawData.interactions?.likes?.hasInteracted);
-    const [likeCount, setLikeCount] = useState(rawData.interactions?.likes?.count || 0);
-    const [isLikeLoading, setIsLikeLoading] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
+    const [isDismissedInteractionLoading, setIsDismissedInteractionLoading] = useState(false);
+
+    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
+    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
+    const [isViewInteractionLoading, setIsViewInteractionLoading] = useState(false);
+    const [lastViewDate, setLastViewDate] = useState(data.interactions?.views?.latestDate);
+
+    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
+    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
+    const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState(false);
+
+    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
+    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
+    const [isLikeInteractionLoading, setIsLikeInteractionLoading] = useState(false);
 
     const [initFetchCollections, setInitFetchCollections] = useState(false);
     const [collections, setCollections] = useState<GetCollectionItemType[] | null>(null);
     const [isCollectionsLoading, setIsCollectionsLoading] = useState(true);
 
+    const [notificationSubscriptions, setNotificationSubscriptions] = useState(data.notifications?.subscriptions);
+
+    const [muteData, setMuteData] = useState(data?.notifications?.mute);
+    const [isMuted, setIsMuted] = useState<boolean>(() => {
+        if (!data?.notifications?.mute) return false;
+        if (data.notifications.mute.isIndefinite) return true;
+        return new Date(data.notifications.mute.date).getTime() + data.notifications.mute.duration > Date.now();
+    });
+
+    const [remainingMuteDurationText, setRemainingMuteDurationText] = useState<string>("");
+
+
+
+
+
+    
+    
+
+    // Fix send notifications to filter based on the notifications
+    // Clicking on an option will mute and start a timer. Now the timer will display a
+    // "Unmute" instead of a secondary menu. The unmute will have a live countdown
+    // "Muted until <TIME> (countdown) or smth" and it will make the option a bit taller to support sub text
+    // Clicking mute will close the context menu
 
 
 
 
 
 
-    const [isDismissed, setIsDismissed] = useState(rawData.interactions?.dismisses?.hasInteracted);
-    const [isDismissLoading, setIsDismissLoading] = useState(false);
-
-    const [isHidden, setIsHidden] = useState(rawData.interactions?.hides?.hasInteracted);
-    const [isHideLoading, setIsHideLoading] = useState(false);
-
-    const [isSensitive, setIsSensitive] = useState(rawData.isSensitive);
-    const [isMature, setIsMature] = useState(rawData.isMature);
-    const [isRevealed, setIsRevealed] = useState(false);
 
 
 
-    const [isMuted, setIsMuted] = useState(rawData.interactions?.mutes?.hasInteracted);
-    const [muteCount, setMuteCount] = useState(rawData.interactions?.mutes?.count || 0);
-    const [isMuteLoading, setIsMuteLoading] = useState(false);
 
-    const [isShared, setIsShared] = useState(rawData.interactions?.shares?.hasInteracted);
-    const [shareCount, setShareCount] = useState(rawData.interactions?.shares?.count || 0);
+
+
+
+
+
+
+
+
+
+
+       
+
+    useEffect(() => {
+        if (!isMuted || !muteData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setRemainingMuteDurationText("");
+            return;
+        }
+
+        if (muteData.isIndefinite) {
+            setRemainingMuteDurationText("Indefinitely");
+            return;
+        }
+
+        const updateTimer = () => {
+            const expiryTime = new Date(muteData.date).getTime() + muteData.duration;
+            const remainingMs = expiryTime - Date.now();
+
+            if (remainingMs <= 0) {
+                setIsMuted(false);
+                setRemainingMuteDurationText("");
+            } else {
+                setRemainingMuteDurationText(formatRemainingTime(remainingMs));
+            }
+        };
+
+        updateTimer();
+
+        const interval = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(interval);
+    }, [muteData, isMuted]);
+
+
+    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
+    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState(false);
+
+    const [isShared, setIsShared] = useState(data.interactions?.shares?.hasInteracted);
+    const [shareCount, setShareCount] = useState(data.interactions?.shares?.count || 0);
     const [isShareLoading, setIsShareLoading] = useState(false);
 
     const [isPinned, setIsPinned] = useState(isPinnedVisible);
@@ -102,13 +171,13 @@ export default function CharacterCard({
         const fetchCollections = async () => {
             try {
                 const response = await fetch(
-                    `${apiBaseUrl}/v3/collections?owner=${window.session.userId}&checkItem=${rawData.id}`,
+                    `${apiBaseUrl}/v3/collections?owner=${window.session.userId}&checkItem=${data.id}`,
                     { credentials: "include" }
                 );
 
-                const data = await response.json();
+                const c = await response.json();
 
-                setCollections(data.items);
+                setCollections(c.items);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -117,57 +186,62 @@ export default function CharacterCard({
         };
 
         fetchCollections();
-    }, [initFetchCollections, rawData.id]);
+    }, [initFetchCollections, data.id]);
 
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setData((prevData) => {
+            const currentData = prevData ?? rawData;
+            if (!currentData) return currentData;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const data: GetPublishedCharacterItemType = {
-        ...rawData,
-        interactions: {
-            ...rawData?.interactions,
-            views: {
-                ...rawData?.interactions?.views,
-                count: viewCount,
-                hasInteracted: isViewed,
-                latestDate: lastViewDate,
-            },
-            follows: {
-                ...rawData?.interactions?.follows,
-                count: followCount,
-                hasInteracted: isFollowing,
-            },
-            likes: {
-                ...rawData?.interactions?.likes,
-                count: likeCount,
-                hasInteracted: isLiked,
-            },
-            mutes: {
-                ...rawData?.interactions?.mutes,
-                count: muteCount,
-                hasInteracted: isMuted,
-            },
-            shares: {
-                ...rawData?.interactions?.shares,
-                count: shareCount,
-                hasInteracted: isShared,
-            },
-        },
-    };
+            return {
+                ...currentData,
+                interactions: {
+                    ...currentData.interactions,
+                    views: {
+                        ...currentData.interactions?.views,
+                        count: viewCount,
+                        hasInteracted: isViewed,
+                        latestDate: lastViewDate,
+                    },
+                    follows: {
+                        ...currentData.interactions?.follows,
+                        count: followCount,
+                        hasInteracted: isFollowing,
+                    },
+                    likes: {
+                        ...currentData.interactions?.likes,
+                        count: likeCount,
+                        hasInteracted: isLiked,
+                    },
+                    shares: {
+                        ...currentData.interactions?.shares,
+                        count: shareCount,
+                        hasInteracted: isShared,
+                    },
+                },
+                notifications: {
+                    ...currentData.notifications,
+                    subscriptions: {
+                        ...currentData.notifications?.subscriptions,
+                        ...notificationSubscriptions,
+                    },
+                },
+            } as GetPublishedCharacterItemType;
+        });
+    }, [
+        rawData,
+        viewCount,
+        isViewed,
+        lastViewDate,
+        followCount,
+        isFollowing,
+        likeCount,
+        isLiked,
+        shareCount,
+        isShared,
+        notificationSubscriptions
+    ]);
 
     const closeContextMenu = useCallback((id: string) => {
         setIsContextMenuOpen(false);
@@ -272,7 +346,7 @@ export default function CharacterCard({
                 });
             }}
         >
-            {Boolean(isMature) && !isRevealed && (
+            {(Boolean(isMature) && Boolean(!isSensitive)) && !isRevealed && (
                 <div 
                     className="hidden absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
                     onClick={(e) => {                        
@@ -298,7 +372,7 @@ export default function CharacterCard({
                 </div>
             )}
 
-            {Boolean(isMature) && !isRevealed && (
+            {(Boolean(isSensitive) && Boolean(!isMature)) && !isRevealed && (
                 <div 
                     className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
                     onClick={(e) => {                        
@@ -310,7 +384,7 @@ export default function CharacterCard({
                         e.stopPropagation();
                     }}
                 >
-                    <span className="font-nerdfont text-6xl mb-2 leading-none flex items-center justify-center">
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
                         󰈉
                     </span>
 
@@ -482,15 +556,15 @@ export default function CharacterCard({
                     <>
                         <li 
                             onClick={async () => {
-                                if (isDismissLoading) return;
+                                if (isDismissedInteractionLoading) return;
 
                                 closeContextMenu(data.id);
-                                setIsDismissLoading(true);
+                                setIsDismissedInteractionLoading(true);
 
                                 const res = await postInteraction(data.id, "dismisses");
 
                                 if (res.ok) {
-                                    setIsDismissLoading(false);
+                                    setIsDismissedInteractionLoading(false);
                                     setIsDismissed(true);
                                     setIsHidden(true);
 
@@ -499,7 +573,7 @@ export default function CharacterCard({
                                         { type: "success" }
                                     );
                                 } else {
-                                    setIsDismissLoading(false);
+                                    setIsDismissedInteractionLoading(false);
 
                                     toast.show(
                                         `Failed to dismiss ${data.displayName}`,
@@ -514,7 +588,7 @@ export default function CharacterCard({
                             <button className="justify-between">
                                 Dismiss
                                 <span 
-                                    className={`${isDismissLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                                    className={`${isDismissedInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                                     
                                 </span>
                             </button>
@@ -616,8 +690,8 @@ export default function CharacterCard({
                             id: data.id,
                             displayName: data.displayName,
                             isFollowing,
-                            isFollowLoading,
-                            setIsFollowLoading,
+                            isFollowInteractionLoading,
+                            setIsFollowInteractionLoading,
                             setIsFollowing,
                             setFollowCount
                         });
@@ -627,7 +701,7 @@ export default function CharacterCard({
                         {isFollowing ? "Unfollow" : "Follow"}
                         <span 
                             /* DEVELOPER NEEDED: Turn this into context-menu and context-menu-item classes */
-                            className={`${isFollowLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                            className={`${isFollowInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                             {isFollowing ? "" : ""}
                         </span>
                     </button>
@@ -640,8 +714,8 @@ export default function CharacterCard({
                             id: data.id,
                             displayName: data.displayName,
                             isLiked,
-                            isLikeLoading,
-                            setIsLikeLoading,
+                            isLikeInteractionLoading,
+                            setIsLikeInteractionLoading,
                             setIsLiked,
                             setLikeCount
                         });
@@ -650,7 +724,7 @@ export default function CharacterCard({
                     <button className={`${isLiked ? "text-accent" : "" } justify-between`}>
                         {isLiked ? "Unlike" : "Like"}
                         <span 
-                            className={`${isLikeLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                            className={`${isLikeInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                             {isLiked ? "" : ""}
                         </span>
                     </button>
@@ -671,6 +745,8 @@ export default function CharacterCard({
                             
                         </span>
                     </button>
+
+                    <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
                     <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
                         {!isCollectionsLoading ? (() => {
@@ -749,15 +825,15 @@ export default function CharacterCard({
                 {(!isFollowing && !isLiked) && (
                     <li 
                         onClick={async () => {
-                            if (isHideLoading) return;
+                            if (isHideInteractionLoading) return;
 
                             closeContextMenu(data.id);
-                            setIsHideLoading(true);
+                            setIsHideInteractionLoading(true);
 
                             const res = await postInteraction(data.id, "hides");
 
                             if (res.ok) {
-                                setIsHideLoading(false);
+                                setIsHideInteractionLoading(false);
                                 setIsHidden(!isHidden);
 
                                 toast.show(
@@ -765,7 +841,7 @@ export default function CharacterCard({
                                     { type: "info" }
                                 );
                             } else {
-                                setIsHideLoading(false);
+                                setIsHideInteractionLoading(false);
                                 
                                 toast.show(
                                     `Failed to hide ${data.displayName}`,
@@ -781,7 +857,7 @@ export default function CharacterCard({
                         <button className="justify-between text-accent">
                             Not Interested
                             <span 
-                                className={`${isHideLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
+                                className={`${isHideInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
                                 󰈉
                             </span>
                         </button>
@@ -856,7 +932,10 @@ export default function CharacterCard({
                                 onClick={() => {
                                     closeContextMenu(data.id);
 
-                                    notificationsModal.open(data);
+                                    notificationsModal.open(
+                                        data,
+                                        setNotificationSubscriptions
+                                    );
                                 }}
                             >
                                 Notifications
@@ -866,98 +945,142 @@ export default function CharacterCard({
                             </button>
                         </li>
 
-                        <li 
-                            className="relative group"
-                            onMouseEnter={checkCollectionMenuPosition}
-                        >
-                            <button className="justify-between w-full">
-                                Mute
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    
-                                </span>
-                            </button>
+                        {!isMuted ? (
+                            <li 
+                                className="relative group"
+                                onMouseEnter={checkCollectionMenuPosition}
+                            >
+                                <button className="justify-between w-full">
+                                    Mute
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        
+                                    </span>
+                                </button>
 
-                            <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+                                <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
 
-                            <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                                <li>
-                                    <button 
-                                        className="justify-between"
-                                        onClick={() => {
+                                <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                                    {[
+                                        { label: "1 Hour", icon: "󱐿", duration: "1h", isIndefinite: false  },
+                                        { label: "4 Hours", icon: "󱑂", duration: "4h", isIndefinite: false  },
+                                        { label: "8 Hours", icon: "󱑆", duration: "8h", isIndefinite: false  },
+                                        { label: "24 Hours", icon: "󱑊", duration: "24h", isIndefinite: false  },
+                                        { label: "Indefinitely", icon: "󰂛", duration: "0s", isIndefinite: true }
+                                    ].map((item) => (
+                                        <>
+                                            {item.isIndefinite && (
+                                                <hr />
+                                            )}
                                             
-                                            closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        1 Hour
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            󱐿
-                                        </span>
-                                    </button>
-                                </li>
-                                
-                                <li>
-                                    <button 
-                                        className="justify-between"
-                                        onClick={() => {
-                                            
-                                            closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        4 Hours
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            󱑂
-                                        </span>
-                                    </button>
-                                </li>
+                                            <li key={item.label}>
+                                                <button 
+                                                    className="justify-between"
+                                                    onClick={async () => {
+                                                        closeContextMenu(data.id);
 
-                                <li>
-                                    <button 
-                                        className="justify-between"
-                                        onClick={() => {
-                                            
-                                            closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        8 Hours
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            󱑆
-                                        </span>
-                                    </button>
-                                </li>
+                                                        const newMute = {
+                                                            duration: parseDuration(item.duration as DurationType),
+                                                            isIndefinite: item.isIndefinite,
+                                                            date: new Date().toISOString()
+                                                        };
 
-                                <li>
-                                    <button 
-                                        className="justify-between"
-                                        onClick={() => {
-                                            
-                                            closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        24 Hours
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            󱑊
-                                        </span>
-                                    </button>
-                                </li>
+                                                        setMuteData(newMute);
+                                                        setIsMuted(true);
+                                                        
+                                                        const response = await fetch(
+                                                            `${apiBaseUrl}/v3/notifications/update/mute/${data.id}`, 
+                                                            { 
+                                                                credentials: "include", 
+                                                                method: "POST", 
+                                                                headers: { "Content-Type": "application/json" }, 
+                                                                body: JSON.stringify(newMute)
+                                                            }
+                                                        );
 
-                                <hr />
+                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                                        const responseData = await response.json() as any;
 
-                                <li>
-                                    <button 
-                                        className="justify-between"
-                                        onClick={() => {
-                                            
-                                            closeContextMenu(data.id);
-                                        }}
-                                    >
-                                        Indefinitely
-                                        <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                            󰂛
+                                                        if (response.ok) {
+                                                            setIsMuted(true);
+
+                                                            toast.show(
+                                                                `Muted ${data.displayName || data.id} for ${item.label.toLowerCase()}`, 
+                                                                { icon: "󰂚", type: "success" }
+                                                            );
+                                                        } else {
+                                                            toast.show(
+                                                                `Failed to mute ${data.displayName || data.id}`, 
+                                                                { 
+                                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                                    type: "error" 
+                                                                }
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    {item.label}
+                                                    <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
+                                                        {item.icon}
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        </>
+                                    ))}
+                                </ul>
+                            </li>
+                        ) : (
+                            <li>
+                                <button 
+                                    className="justify-between"
+                                    onClick={async () => {
+                                        const response = await fetch(
+                                            `${apiBaseUrl}/v3/notifications/update/mute/${data.id}`, 
+                                            { 
+                                                credentials: "include", 
+                                                method: "POST", 
+                                                headers: { "Content-Type": "application/json" }, 
+                                                body: JSON.stringify({
+                                                    duration: 0,
+                                                    isIndefinite: false
+                                                })
+                                            }
+                                        );
+
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        const responseData = await response.json() as any;
+
+                                        if (response.ok) {
+                                            setIsMuted(false);
+
+                                            toast.show(
+                                                `Unmuted ${data.displayName || data.id}`, 
+                                                { icon: "󰂚", type: "info" }
+                                            );
+                                        } else {
+                                            toast.show(
+                                                `Failed to unmute ${data.displayName || data.id}`, 
+                                                { 
+                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                    type: "error" 
+                                                }
+                                            );
+                                        }
+
+                                        closeContextMenu(data.id);
+                                    }}
+                                >
+                                    <div className="flex flex-col justify-center items-start leading-none h-11">
+                                        Unmute
+                                        <span className="text-sub text-xs mt-1">
+                                            {remainingMuteDurationText}
                                         </span>
-                                    </button>
-                                </li>
-                            </ul>
-                        </li>
+                                    </div>
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        {getRemainingTimeIcon(remainingMuteDurationText)}
+                                    </span>
+                                </button>
+                            </li>
+                        )}
 
                         <hr />
                     </>
@@ -1061,9 +1184,9 @@ export default function CharacterCard({
                     await handleViewInteraction({
                         // DEVELOPER NEEDED: Just pass data
                         id: data.id,
-                        isViewLoading,
+                        isViewInteractionLoading,
                         lastViewDate,
-                        setIsViewLoading,
+                        setIsViewInteractionLoading,
                         setIsViewed,
                         setLastViewDate,
                         setViewCount
@@ -1164,20 +1287,20 @@ export default function CharacterCard({
             <div className="flex flex-row gap-8 justify-center w-full">
                 <div className="absolute z-9 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1 pointer-events-auto">
                     <div className="flex items-center justify-center">
-                        <span className={`font-nerdfont text-base w-4 h-6 ${isViewLoading ? "loading" : ""} ${isViewed ? "text-accent" : ""}`}>󰈈</span>
+                        <span className={`font-nerdfont text-base w-4 h-6 ${isViewInteractionLoading ? "loading" : ""} ${isViewed ? "text-accent" : ""}`}>󰈈</span>
                         <span className="text-xs ml-2">{formatNumber(viewCount).short}</span>
                     </div>
                     <div className="flex items-center justify-center">
                         <span 
-                            className={`font-nerdfont text-base w-4 h-6 cursor-pointer pointer-events-auto inline-block ${isLikeLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}
+                            className={`font-nerdfont text-base w-4 h-6 cursor-pointer pointer-events-auto inline-block ${isLikeInteractionLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}
                             onClick={async () => {
                                 await handleLikeInteraction({
                                     // DEVELOPER NEEDED: Just pass data
                                     id: data.id,
                                     displayName: data.displayName,
                                     isLiked,
-                                    isLikeLoading,
-                                    setIsLikeLoading,
+                                    isLikeInteractionLoading,
+                                    setIsLikeInteractionLoading,
                                     setIsLiked,
                                     setLikeCount
                                 });

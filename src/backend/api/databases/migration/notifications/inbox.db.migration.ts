@@ -5,7 +5,7 @@ import { log } from "../../../instances.js";
 
 const result = mdb.accounts.query("SELECT * from notifications");
 
-db.users.transaction(q => {
+db.notifications.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
@@ -75,7 +75,7 @@ db.users.transaction(q => {
         });
 
         const insertResult = q(
-            `INSERT INTO notifications (
+            `INSERT INTO inbox (
                 userId,
                 type,
                 data,

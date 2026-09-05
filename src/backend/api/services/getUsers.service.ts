@@ -42,17 +42,17 @@ export default function getUsersService({
 }: Props): GetUserType {    
     let interests;
 
-    let id = idOrUsername
+    let id = idOrUsername;
 
     const idResult = db.users.query<UsernameType>(
         "SELECT * FROM usernames WHERE username = ? LIMIT 1",
         [idOrUsername]
-    )
+    );
 
     assertDbSuccess(idResult);
 
     if (idResult.rowCount > 0) {
-        id = idResult.rows[0].userId
+        id = idResult.rows[0].userId;
     }
 
     if (getAs) {
@@ -210,6 +210,14 @@ export default function getUsersService({
 
     let visibilityCondition = "";
 
+    const hasDelegatedAccounts = Array.isArray(delegatedAccounts) && delegatedAccounts.length > 0;
+
+    let hasDirectViewPermission = false;
+    
+    if (getAs && id) {
+        hasDirectViewPermission = AssetPermissionsService.can(getAs, "VIEW", id);
+    }
+
     if (sortBy === "exclusive") {
         visibilityCondition = `(
             users.visibility NOT IN ('public', 'private', 'registered') AND (
@@ -217,19 +225,11 @@ export default function getUsersService({
             )
         )`;
     } else {
-        const hasDelegatedAccounts = Array.isArray(delegatedAccounts) && delegatedAccounts.length > 0;
-
-        let hasDirectViewPermission = false;
-        
-        if (getAs && id) {
-            hasDirectViewPermission = AssetPermissionsService.can(getAs, "VIEW", id);
-        }
-
         let isUnlistedAllowed = getFrom === "profile";
 
         if (internalPermissionsBypass) {
-            hasDirectViewPermission = true
-            isUnlistedAllowed = true
+            hasDirectViewPermission = true;
+            isUnlistedAllowed = true;
         }
 
         visibilityCondition = `(
@@ -262,7 +262,6 @@ export default function getUsersService({
 
     const interactionTables: InteractionNameType[] = [
         "follows", 
-        "mutes", 
         "shares", 
         "views",
         "blocks",
@@ -271,7 +270,7 @@ export default function getUsersService({
 
     const interactionParams: (string | undefined)[] = [];
 
-    const buildInteractionField = (table: string) => {
+    const buildInteractionField = (table: InteractionNameType) => {
         interactionParams.push(getAs, getAs, getAs, getAs);
 
         const items = includeInteractionItems 
@@ -290,10 +289,43 @@ export default function getUsersService({
 
     const interactionFieldsSql = interactionTables.map(buildInteractionField).join(",");
 
+    const notificationsParams: (string | undefined)[] = [];
+
+    const notificationsSelectSql = `
+        json_object(
+            'mute', (
+                SELECT json_object(
+                    'duration', nm.duration,
+                    'isIndefinite', CASE WHEN nm.isIndefinite = 1 THEN json('true') ELSE json('false') END,
+                    'date', nm.date
+                )
+                FROM notifications.mutes nm
+                WHERE nm.target = users.id AND nm.source = ?
+                LIMIT 1
+            ),
+            'subscriptions', (
+                SELECT json_object(
+                    'isSubscribedToContent', CASE WHEN ns.isSubscribedToContent = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToCollaborationChanges', CASE WHEN ns.isSubscribedToCollaborationChanges = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewComments', CASE WHEN ns.isSubscribedToNewComments = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewInteractions', CASE WHEN ns.isSubscribedToNewInteractions = 1 THEN json('true') ELSE json('false') END,
+                    'isSubscribedToNewMessages', CASE WHEN ns.isSubscribedToNewMessages = 1 THEN json('true') ELSE json('false') END
+                )
+                FROM notifications.subscriptions ns
+                WHERE ns.target = users.id AND ns.source = ?
+                LIMIT 1
+            )
+        ) AS notifications
+    `;
+
+    notificationsParams.push(getAs, getAs);
+
     const result = db.users.query(
         `
             SELECT 
                 users.*,
+                friendsOut.source AS isFriendOut,
+                friendsIn.source AS isFriendIn,
                 COALESCE(
                     (
                         SELECT json_group_array(
@@ -324,7 +356,8 @@ export default function getUsersService({
                 ) AS badges,
                 json_object(
                     ${interactionFieldsSql}
-                ) AS interactions
+                ) AS interactions,
+                ${notificationsSelectSql}
             FROM users
             LEFT JOIN usernames 
                 ON usernames.userId = users.id 
@@ -360,6 +393,7 @@ export default function getUsersService({
         `,
         [
             ...interactionParams,
+            ...notificationsParams,
             ...Array(4).fill(getAs),
             ...trendingParams,
             ...visibilityParams,
@@ -429,14 +463,55 @@ export default function getUsersService({
     const totalCount = countResult.rows[0]?.total || 0;
 
     const parsedRows = result.rows.map(row => {
-        return {
+        const isOwner = Boolean(getAs && row.id === getAs);
+        const isMutualFriend = Boolean(row.isFriendOut && row.isFriendIn);
+        const isDelegated = Boolean(hasDelegatedAccounts && delegatedAccounts.includes(row.id as string));
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formattedRow: any = {
             ...row,
             usernames: parseJson(row.usernames),
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             flags: ExperimentsService.decode(row.flags as string),
-            interactions: parseJson(row.interactions)
-        } as GetUserItemType;
+            interactions: parseJson(row.interactions),
+            notifications: parseJson(row.notifications)
+        };
+
+        delete formattedRow.isFriendOut;
+        delete formattedRow.isFriendIn;
+
+        if (!internalPermissionsBypass) {
+            if (!isOwner && formattedRow.interactions) {
+                delete formattedRow.interactions.blocks;
+                delete formattedRow.interactions.restricts;
+            }
+
+            const canViewField = (visibilitySetting?: string) => {
+                if (!visibilitySetting || visibilitySetting === "public") return true;
+                if (visibilitySetting === "registered" && getAs) return true;
+                if (visibilitySetting === "friends" && isMutualFriend) return true;
+                if (visibilitySetting === "private" && (isOwner || hasDirectViewPermission || isDelegated)) return true;
+                return false;
+            };
+
+            if (!canViewField(formattedRow.birthdateVisibility)) {
+                delete formattedRow.birthdate;
+                delete formattedRow.birthdateVisibility;
+            }
+
+            if (!canViewField(formattedRow.presenceVisibility)) {
+                delete formattedRow.presence;
+                delete formattedRow.presenceVisibility;
+            }
+
+            if (!canViewField(formattedRow.foundedDateVisibility)) {
+                delete formattedRow.foundedDate;
+                delete formattedRow.foundedDateVisibility;
+            }
+        }
+
+        return formattedRow as GetUserItemType;
     });
 
     return {
