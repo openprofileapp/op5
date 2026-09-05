@@ -10,31 +10,31 @@ import CharacterModal, { CharacterModalRef } from "../components/modals/Characte
 
 interface ModalContextType {
     notificationsModal: {
-        open: (data: Parameters<NotificationsModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<NotificationsModalRef["open"]>) => void;
         close: () => void;
     };
     muteModal: {
-        open: (data: Parameters<MuteModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<MuteModalRef["open"]>) => void;
         close: () => void;
     };
     restrictModal: {
-        open: (data: Parameters<RestrictModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<RestrictModalRef["open"]>) => void;
         close: () => void;
     };
     blockModal: {
-        open: (data: Parameters<BlockModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<BlockModalRef["open"]>) => void;
         close: () => void;
     };
     reportModal: {
-        open: (data: Parameters<ReportModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<ReportModalRef["open"]>) => void;
         close: () => void;
     };
     shareModal: {
-        open: (data: Parameters<ShareModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<ShareModalRef["open"]>) => void;
         close: () => void;
     };
     characterModal: {
-        open: (data: Parameters<CharacterModalRef["open"]>[0]) => void;
+        open: (...args: Parameters<CharacterModalRef["open"]>) => void;
         close: () => void;
     };
 }
@@ -53,32 +53,60 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const value = useMemo(
         () => ({
             notificationsModal: {
-                open: (data: Parameters<NotificationsModalRef["open"]>[0]) => notificationsModalRef.current?.open(data),
-                close: () => notificationsModalRef.current?.close(),
+                open: (...args: Parameters<NotificationsModalRef["open"]>) => {
+                    notificationsModalRef.current?.open(...args);
+                },
+                close: () => {
+                    notificationsModalRef.current?.close();
+                },
             },
             muteModal: {
-                open: (data: Parameters<MuteModalRef["open"]>[0]) => muteModalRef.current?.open(data),
-                close: () => muteModalRef.current?.close(),
+                open: (...args: Parameters<MuteModalRef["open"]>) => {
+                    muteModalRef.current?.open(...args);
+                },
+                close: () => {
+                    muteModalRef.current?.close();
+                },
             },
             restrictModal: {
-                open: (data: Parameters<RestrictModalRef["open"]>[0]) => restrictModalRef.current?.open(data),
-                close: () => restrictModalRef.current?.close(),
+                open: (...args: Parameters<RestrictModalRef["open"]>) => {
+                    restrictModalRef.current?.open(...args);
+                },
+                close: () => {
+                    restrictModalRef.current?.close();
+                },
             },
             blockModal: {
-                open: (data: Parameters<BlockModalRef["open"]>[0]) => blockModalRef.current?.open(data),
-                close: () => blockModalRef.current?.close(),
+                open: (...args: Parameters<BlockModalRef["open"]>) => {
+                    blockModalRef.current?.open(...args);
+                },
+                close: () => {
+                    blockModalRef.current?.close();
+                },
             },
             reportModal: {
-                open: (data: Parameters<ReportModalRef["open"]>[0]) => reportModalRef.current?.open(data),
-                close: () => reportModalRef.current?.close(),
+                open: (...args: Parameters<ReportModalRef["open"]>) => {
+                    reportModalRef.current?.open(...args);
+                },
+                close: () => {
+                    reportModalRef.current?.close();
+                },
             },
             shareModal: {
-                open: (data: Parameters<ShareModalRef["open"]>[0]) => shareModalRef.current?.open(data),
-                close: () => shareModalRef.current?.close(),
+                open: (...args: Parameters<ShareModalRef["open"]>) => {
+                    shareModalRef.current?.open(...args);
+                },
+                close: () => {
+                    shareModalRef.current?.close();
+                },
             },
             characterModal: {
-                open: (data: Parameters<CharacterModalRef["open"]>[0]) => characterModalRef.current?.open(data),
-                close: () => characterModalRef.current?.close(),
+                open: (...args: Parameters<CharacterModalRef["open"]>) => {
+                    characterModalRef.current?.open(...args);
+                },
+                close: () => {
+                    characterModalRef.current?.close();
+                },
             }
         }),
         []
