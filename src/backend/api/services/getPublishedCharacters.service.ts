@@ -180,7 +180,7 @@ export default function getPublishedCharactersService({
     const includeInterests = 
         (
             sortBy === "recommended" || 
-            sortBy === "exclusive" ||
+            sortBy === "limited" ||
             sortBy === "verified"
         )
         && userInterestArray.length > 0;
@@ -202,7 +202,7 @@ export default function getPublishedCharactersService({
 
     let visibilityCondition = "";
 
-    if (sortBy === "exclusive") {
+    if (sortBy === "limited") {
         visibilityCondition = `(
             published.visibility NOT IN ('public', 'private', 'registered') AND (
                 (published.visibility = 'followers' AND follows.source IS NOT NULL) OR

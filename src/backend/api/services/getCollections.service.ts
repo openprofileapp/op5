@@ -182,7 +182,7 @@ export default function getCollectionsService({
     const includeInterests = 
         (
             sortBy === "recommended" || 
-            sortBy === "exclusive" ||
+            sortBy === "limited" ||
             sortBy === "verified"
         )
         && userInterestArray.length > 0;
@@ -204,7 +204,7 @@ export default function getCollectionsService({
 
     let visibilityCondition = "";
 
-    if (sortBy === "exclusive") {
+    if (sortBy === "limited") {
         visibilityCondition = `(
             collections.visibility NOT IN ('public', 'private', 'registered') AND (
                 (collections.visibility = 'followers' AND follows.source IS NOT NULL) OR

@@ -188,7 +188,7 @@ export default function getUsersService({
     const includeInterests = 
         (
             sortBy === "recommended" || 
-            sortBy === "exclusive" ||
+            sortBy === "limited" ||
             sortBy === "verified"
         )
         && userInterestArray.length > 0;
@@ -218,7 +218,7 @@ export default function getUsersService({
         hasDirectViewPermission = AssetPermissionsService.can(getAs, "VIEW", id);
     }
 
-    if (sortBy === "exclusive") {
+    if (sortBy === "limited") {
         visibilityCondition = `(
             users.visibility NOT IN ('public', 'private', 'registered') AND (
                 (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL)

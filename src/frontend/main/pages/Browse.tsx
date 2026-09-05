@@ -159,7 +159,7 @@ export default function SearchProfiles() {
                                 value={sortBy}
                                 options={[
                                     { id: "recommended", name: "Recommended" },
-                                    { id: "exclusive", name: "Exclusive" },
+                                    { id: "limited", name: "Limited" },
                                     { id: "verified", name: "Verified" },
                                     { id: "popularDesc", name: "Most Popular" },
                                     { id: "popularAsc", name: "Least Popular" },

@@ -1,6 +1,6 @@
 export type SortByType = 
     | "recommended"
-    | "exclusive"
+    | "limited"
     | "verified"
     | "trending"
     | "popularDesc"
