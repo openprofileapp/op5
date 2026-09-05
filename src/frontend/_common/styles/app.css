@@ -27,6 +27,7 @@ input, textarea, .validator {
 
 body {
     min-height: 100vh;
+    overflow-x: hidden;
     background-color: var(--color-base-200);
     font-family: "Alexandria";
 }
