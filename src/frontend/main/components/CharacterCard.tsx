@@ -17,7 +17,7 @@ type Props = {
     data: GetPublishedCharacterItemType
     isPreview?: boolean;
     isPinnedVisible?: boolean,
-    hasNotification?: boolean;
+    displayNotification?: boolean;
     isHomeScreen?: boolean
     dragHandleProps?: unknown;
 };
@@ -28,7 +28,7 @@ export default function CharacterCard({
     data: rawData,
     isPinnedVisible = false,
     isPreview = false,
-    hasNotification = false,
+    displayNotification = false,
     isHomeScreen = false,
     dragHandleProps,
 }: Props) {
@@ -51,6 +51,9 @@ export default function CharacterCard({
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
     const [data, setData] = useState<GetPublishedCharacterItemType>(rawData);
+
+    const [hasNotification] = useState(displayNotification);
+    const [hasSeenNotification, setHasSeenNotification] = useState(false);
 
     const [isSensitive] = useState(data.isSensitive);
     const [isMature] = useState(data.isMature);
@@ -92,141 +95,6 @@ export default function CharacterCard({
 
     const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
     const [isHideInteractionLoading, setIsHideInteractionLoading] = useState(false);
-
-
-
-
-    
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-       
-
-    useEffect(() => {
-        if (!isMuted || !muteData) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setRemainingMuteDurationText("");
-            return;
-        }
-
-        if (muteData.isIndefinite) {
-            setRemainingMuteDurationText("Indefinitely");
-            return;
-        }
-
-        const updateTimer = () => {
-            const expiryTime = new Date(muteData.date).getTime() + muteData.duration;
-            const remainingMs = expiryTime - Date.now();
-
-            if (remainingMs <= 0) {
-                setIsMuted(false);
-                setRemainingMuteDurationText("");
-            } else {
-                setRemainingMuteDurationText(formatRemainingTime(remainingMs));
-            }
-        };
-
-        updateTimer();
-
-        const interval = setInterval(updateTimer, 1000);
-
-        return () => clearInterval(interval);
-    }, [muteData, isMuted]);
-
-
-    
-
-
-    useEffect(() => {
-        if (!initFetchCollections) return;
-
-        const fetchCollections = async () => {
-            try {
-                const response = await fetch(
-                    `${apiBaseUrl}/v3/collections?owner=${window.session.userId}&checkItem=${data.id}`,
-                    { credentials: "include" }
-                );
-
-                const c = await response.json();
-
-                setCollections(c.items);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsCollectionsLoading(false);
-            }
-        };
-
-        fetchCollections();
-    }, [initFetchCollections, data.id]);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setData((prevData) => {
-            const currentData = prevData ?? rawData;
-            if (!currentData) return currentData;
-
-            return {
-                ...currentData,
-                interactions: {
-                    ...currentData.interactions,
-                    views: {
-                        ...currentData.interactions?.views,
-                        count: viewCount,
-                        hasInteracted: isViewed,
-                        latestDate: lastViewDate,
-                    },
-                    follows: {
-                        ...currentData.interactions?.follows,
-                        count: followCount,
-                        hasInteracted: isFollowing,
-                    },
-                    likes: {
-                        ...currentData.interactions?.likes,
-                        count: likeCount,
-                        hasInteracted: isLiked,
-                    }
-                },
-                notifications: {
-                    ...currentData.notifications,
-                    subscriptions: {
-                        ...currentData.notifications?.subscriptions,
-                        ...notificationSubscriptions,
-                    },
-                },
-            } as GetPublishedCharacterItemType;
-        });
-    }, [
-        rawData,
-        viewCount,
-        isViewed,
-        lastViewDate,
-        followCount,
-        isFollowing,
-        likeCount,
-        isLiked,
-        notificationSubscriptions
-    ]);
 
     const closeContextMenu = useCallback((id: string) => {
         setIsContextMenuOpen(false);
@@ -276,7 +144,109 @@ export default function CharacterCard({
 
         setIsContextMenuFlipped(spaceRight < submenuWidth);
     };
-    
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setData((prevData) => {
+            const currentData = prevData ?? rawData;
+            if (!currentData) return currentData;
+
+            return {
+                ...currentData,
+                interactions: {
+                    ...currentData.interactions,
+                    views: {
+                        ...currentData.interactions?.views,
+                        count: viewCount,
+                        hasInteracted: isViewed,
+                        latestDate: lastViewDate,
+                    },
+                    follows: {
+                        ...currentData.interactions?.follows,
+                        count: followCount,
+                        hasInteracted: isFollowing,
+                    },
+                    likes: {
+                        ...currentData.interactions?.likes,
+                        count: likeCount,
+                        hasInteracted: isLiked,
+                    }
+                },
+                notifications: {
+                    ...currentData.notifications,
+                    subscriptions: {
+                        ...currentData.notifications?.subscriptions,
+                        ...notificationSubscriptions,
+                    },
+                },
+            } as GetPublishedCharacterItemType;
+        });
+    }, [
+        rawData,
+        viewCount,
+        isViewed,
+        lastViewDate,
+        followCount,
+        isFollowing,
+        likeCount,
+        isLiked,
+        notificationSubscriptions
+    ]);
+
+    useEffect(() => {
+        if (!initFetchCollections) return;
+
+        const fetchCollections = async () => {
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/collections?owner=${window.session.userId}&checkItem=${data.id}`,
+                    { credentials: "include" }
+                );
+
+                const c = await response.json();
+
+                setCollections(c.items);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsCollectionsLoading(false);
+            }
+        };
+
+        fetchCollections();
+    }, [initFetchCollections, data.id]);
+
+    useEffect(() => {
+        if (!isMuted || !muteData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setRemainingMuteDurationText("");
+            return;
+        }
+
+        if (muteData.isIndefinite) {
+            setRemainingMuteDurationText("Indefinitely");
+            return;
+        }
+
+        const updateTimer = () => {
+            const expiryTime = new Date(muteData.date).getTime() + muteData.duration;
+            const remainingMs = expiryTime - Date.now();
+
+            if (remainingMs <= 0) {
+                setIsMuted(false);
+                setRemainingMuteDurationText("");
+            } else {
+                setRemainingMuteDurationText(formatRemainingTime(remainingMs));
+            }
+        };
+
+        updateTimer();
+
+        const interval = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(interval);
+    }, [muteData, isMuted]);
+
     if (
         !data.id ||
         !data.owner ||
@@ -287,9 +257,6 @@ export default function CharacterCard({
 
     index++
 
-    {/* DEVELOPER NEEDED: Clicking should open a modal, not a full page */}
-    const Wrapper = isPreview ? "div" : Link;
-   
     const auraStyle: React.CSSProperties = data.isAuraEnabled
         ? {
             ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
@@ -331,9 +298,9 @@ export default function CharacterCard({
                 });
             }}
         >
-            {(Boolean(isMature) && Boolean(!isSensitive)) && !isRevealed && (
+            {Boolean(isMature) && !isRevealed && (
                 <div 
-                    className="hidden absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
                     onClick={(e) => {                        
                         e.stopPropagation();
                         setIsRevealed(true);
@@ -343,16 +310,16 @@ export default function CharacterCard({
                         e.stopPropagation();
                     }}
                 >
-                    <span className="font-nerdfont text-6xl mb-2 leading-none flex items-center justify-center">
-                        18+
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
                     </span>
 
                     <span className="text-sm font-semibold">
-                        Mature Content
+                        {t("components.cards.isMature")}
                     </span>
 
-                    <span className="text-xs text-sub">
-                        Click to view
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
                     </span>
                 </div>
             )}
@@ -374,64 +341,62 @@ export default function CharacterCard({
                     </span>
 
                     <span className="text-sm font-semibold">
-                        Sensitive Content
+                        {t("components.cards.isSensitive")}
                     </span>
 
-                    <span className="text-xs text-sub">
-                        Click to view
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
                     </span>
                 </div>
             )}
             
-            { hasNotification ?
-                <div className="absolute top-[-5px] right-[-5px] z-3">
-                    <div className="absolute inset-0 rounded-full bg-accent animate-ping opacity-50" />
-                    <div className="relative rounded-full bg-accent w-5 h-5" />
-                </div> 
-                : ""
-            }
-
-            {isPinned && (
-                dragHandleProps ? (
-                    <div
-                        {...dragHandleProps}
-                    >
-                        <div className="absolute top-[12px] left-[12px] z-2">
-                            <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden cursor-grab">
-                                <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                                    󰇛
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div
-                        className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
-                        data-tip="Pinned"
-                    >
-                        <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
-                            <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                                󰐃
-                            </span>
-                        </button>
-                    </div>
-                )
+            {(hasNotification && !hasSeenNotification) && (
+                <div className="absolute top-[-5px] right-[-5px] bg-accent h-5 w-5 rounded-full z-11" />
             )}
 
-            <div
-                className="absolute top-[12px] left-[12px] z-2 tooltip tooltip-top tooltip-accent"
-                data-tip="Exclusive"
-            >
-                <button className="relative flex items-start justify-center w-5 h-5 overflow-hidden">
-                    <span className="leading-none text-2xl font-nerdfont translate-y-[-2px]">
-                        {data.visibility !== "public" ? "" : ""}
-                    </span>
-                </button>
+            <div className="absolute top-[7px] left-[14px] z-2 flex items-center gap-4">
+                {isPinned && (
+                    dragHandleProps ? (
+                        <div
+                            {...dragHandleProps}
+                        >
+                            <span className="grid place-items-center font-nerdfont text-2xl">
+                                󰇛
+                            </span>
+                        </div>
+                    ) : (
+                        <div
+                            className="tooltip tooltip-top tooltip-accent"
+                            data-tip={t("words.Pinned")}
+                        >
+                            <span className="grid place-items-center font-nerdfont text-2xl">
+                                󰐃
+                            </span>
+                        </div>
+                    )
+                )}
+
+                {(
+                    window.session.userId !== data.owner.id) && 
+                (
+                    data.visibility === "friends" ||
+                    data.visibility === "private"
+                ) && (
+                    <div className="tooltip tooltip-top tooltip-accent">
+                        <div className="tooltip-content">
+                            <div className="font-bold">{t("words.Limited")}</div>
+                            <div className="text-xs">{t("components.cards.limited")}</div>
+                        </div>
+                        <span className="grid place-items-center font-nerdfont text-xl">
+                            
+                        </span>
+                    </div>
+                )}
             </div>
 
             <div
                 className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent"
-                data-tip="More"
+                data-tip={t("words.More")}
                 onClick={(e) => {
                     e.stopPropagation();
                     setIsContextMenuOpen(true);
@@ -460,6 +425,49 @@ export default function CharacterCard({
                     </span>
                 </button>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
+            
+
+            
 
             <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
@@ -1200,9 +1208,11 @@ export default function CharacterCard({
                 </li>
             </ul>
 
-            <Wrapper 
+            <div 
                 onClick={async () => {
                     characterModal.open(data);
+
+                    setHasSeenNotification(true);
 
                     await handleViewInteraction({
                         // DEVELOPER NEEDED: Just pass data
@@ -1305,7 +1315,7 @@ export default function CharacterCard({
 
                     <div className="text-xs line-clamp-6 my-2">{data.about || "This character does not have an about."}</div>            
                 </div>
-            </Wrapper>
+            </div>
 
             <div className="flex flex-row gap-8 justify-center w-full">
                 <div className="absolute z-9 bottom-3 flex flex-row gap-8 justify-center text-sm w-full p-1 pointer-events-auto">
