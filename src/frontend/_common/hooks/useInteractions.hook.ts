@@ -7,9 +7,9 @@ import { toast } from "../scripts/toast.js";
 
 export type ViewInteractionProps = {
     id: string;
-    isViewLoading: boolean;
+    isViewInteractionLoading: boolean;
     lastViewDate: string;
-    setIsViewLoading: (loading: boolean) => void;
+    setIsViewInteractionLoading: (loading: boolean) => void;
     setIsViewed: Dispatch<SetStateAction<boolean>>;
     setLastViewDate: Dispatch<SetStateAction<string>>;
     setViewCount: Dispatch<SetStateAction<number>>;
@@ -19,8 +19,8 @@ export type FollowInteractionProps = {
     id: string;
     displayName: string;
     isFollowing: boolean;
-    isFollowLoading: boolean;
-    setIsFollowLoading: (loading: boolean) => void;
+    isFollowInteractionLoading: boolean;
+    setIsFollowInteractionLoading: (loading: boolean) => void;
     setIsFollowing: Dispatch<SetStateAction<boolean>>;
     setFollowCount: Dispatch<SetStateAction<number>>;
 }
@@ -29,8 +29,8 @@ export type LikeInteractionProps = {
     id: string;
     displayName: string;
     isLiked: boolean;
-    isLikeLoading: boolean;
-    setIsLikeLoading: (loading: boolean) => void;
+    isLikeInteractionLoading: boolean;
+    setIsLikeInteractionLoading: (loading: boolean) => void;
     setIsLiked: Dispatch<SetStateAction<boolean>>;
     setLikeCount: Dispatch<SetStateAction<number>>;
 }
@@ -40,16 +40,16 @@ export const useInteractions = () => {
 
     const handleViewInteraction = async ({
         id,
-        isViewLoading,
+        isViewInteractionLoading,
         lastViewDate,
-        setIsViewLoading,
+        setIsViewInteractionLoading,
         setIsViewed,
         setLastViewDate,
         setViewCount
     }: ViewInteractionProps): Promise<boolean> => {
-        if (!isTranslationReady || isViewLoading) return false;
+        if (!isTranslationReady || isViewInteractionLoading) return false;
 
-        setIsViewLoading(true);
+        setIsViewInteractionLoading(true);
 
         try {
             const response = await postInteraction(id, "views");
@@ -87,7 +87,7 @@ export const useInteractions = () => {
                 return false;
             }
         } finally {
-            setIsViewLoading(false);
+            setIsViewInteractionLoading(false);
         }
     };
 
@@ -95,14 +95,14 @@ export const useInteractions = () => {
         id,
         displayName,
         isLiked,
-        isLikeLoading,
-        setIsLikeLoading,
+        isLikeInteractionLoading,
+        setIsLikeInteractionLoading,
         setIsLiked,
         setLikeCount
     }: LikeInteractionProps): Promise<boolean> => {
-        if (!isTranslationReady || isLikeLoading) return false;
+        if (!isTranslationReady || isLikeInteractionLoading) return false;
 
-        setIsLikeLoading(true);
+        setIsLikeInteractionLoading(true);
 
         try {
             const response = await postInteraction(id, "likes");
@@ -129,7 +129,7 @@ export const useInteractions = () => {
                 return false;
             }
         } finally {
-            setIsLikeLoading(false);
+            setIsLikeInteractionLoading(false);
         }
     };
 
@@ -137,14 +137,14 @@ export const useInteractions = () => {
         id,
         displayName,
         isFollowing,
-        isFollowLoading,
-        setIsFollowLoading,
+        isFollowInteractionLoading,
+        setIsFollowInteractionLoading,
         setIsFollowing,
         setFollowCount
     }: FollowInteractionProps): Promise<boolean> => {
-        if (!isTranslationReady || isFollowLoading) return false;
+        if (!isTranslationReady || isFollowInteractionLoading) return false;
 
-        setIsFollowLoading(true);
+        setIsFollowInteractionLoading(true);
 
         try {
             const response = await postInteraction(id, "follows");
@@ -171,7 +171,7 @@ export const useInteractions = () => {
                 return false;
             }
         } finally {
-            setIsFollowLoading(false);
+            setIsFollowInteractionLoading(false);
         }
     };
 
