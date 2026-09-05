@@ -111,3 +111,30 @@ db.characters.transaction(async q => {
         if (!result.success) return log.db.error(result.error).save();
     }
 });
+
+db.notifications.transaction(async q => {
+    if (!result.success) return log.db.error(result.error).save();
+
+    for (const d of result.rows) {
+        const result = q(
+            `INSERT INTO subscriptions (
+                source,
+                target, 
+                isSubscribedToContent,
+                isSubscribedToCollaborationChanges,
+                isSubscribedToNewComments,
+                isSubscribedToNewInteractions
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                d.owner,
+                d.id,
+                1,
+                1,
+                1,
+                1
+            ]
+        );
+
+        if (!result.success) return log.db.error(result.error).save();
+    }
+});
