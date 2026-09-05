@@ -18,6 +18,7 @@ export type NotificationNameType =
     | "PREMIUM_REGISTRATION"
     | "PRECURSOR_REGISTRATION"
     | "PARTNER_CODE_USED"
+    | "ADD_TO_COLLECTION"
 ;
 
 export type NotificationInboxType = {

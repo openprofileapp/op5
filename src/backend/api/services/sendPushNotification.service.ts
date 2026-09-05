@@ -24,6 +24,7 @@ type Props = {
     targetId?: string;
     count?: number;
     geoIp?: GeoIpType;
+    collectionId?: string
 };
 
 /**
@@ -39,7 +40,8 @@ export default async function sendPushNotificationService(
     sourceId,
     targetId,
     count,
-    geoIp
+    geoIp,
+    collectionId
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
 
@@ -61,6 +63,7 @@ export default async function sendPushNotificationService(
 
     let source;
     let target;
+    let collection;
     let formattedBody = body;
 
     if (body.includes("{") || body.includes("}")) {
@@ -79,6 +82,15 @@ export default async function sendPushNotificationService(
             formattedBody = formattedBody.replace(
                 "{TARGET}", 
                 target.id === userId ? "you" : (target.displayName || target.id)
+            );
+        }
+
+        if (collectionId) {
+            collection = whatIs(collectionId);
+            assertNotNull(collection);
+            formattedBody = formattedBody.replace(
+                "{COLLECTION}", 
+                collection.id === userId ? "you" : (collection.displayName || collection.id)
             );
         }
 

@@ -10,6 +10,8 @@ import { i18n } from "../../../_common/instances.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { db } from "../../databases/db.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
+import whatIs from "../../helpers/whatIs.js";
+import sendNotificationService from "../../services/sendNotification.service.js";
 
 export const addItemToCollectionController = async (req: Request, res: Response) => {
     try {
@@ -33,6 +35,8 @@ export const addItemToCollectionController = async (req: Request, res: Response)
             });
         }
 
+        let newItem = false
+
         db.collections.transaction(q => {
             const result = q(
                 "DELETE FROM items WHERE collectionId = ? AND assetId = ?",
@@ -42,6 +46,8 @@ export const addItemToCollectionController = async (req: Request, res: Response)
             assertDbSuccess(result);
 
             if (result && result.changes === 0) {
+                newItem = true;
+
                 const result = q(
                     "INSERT INTO items (collectionId, assetId, addedBy) VALUES (?, ?, ?)",
                     [collectionId, assetId, req.session.userId]
@@ -50,6 +56,28 @@ export const addItemToCollectionController = async (req: Request, res: Response)
                 assertDbSuccess(result);
             }
         });
+
+        if (newItem) {
+            const whatIsData = whatIs(assetId as string);
+            
+            if (
+                whatIsData &&
+                (
+                    req.session.userId !== whatIsData.ownerId && 
+                    req.session.userId !== whatIsData.id
+                )
+            ) {
+                await sendNotificationService(
+                    whatIsData.ownerId || whatIsData.id,
+                    "ADD_TO_COLLECTION",
+                    { 
+                        sourceId: req.session.userId, 
+                        targetId: assetId as string,
+                        collectionId: collectionId as string
+                    }
+                );
+            }
+        }
 
         res.status(200).json({
             ok: true

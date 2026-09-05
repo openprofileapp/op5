@@ -26,6 +26,8 @@ export default function createNotificationBody(type: NotificationNameType): stri
             return "{SOURCE} reached {COUNT} shares"
         case "VIEWS_MILESTONE":
             return "{SOURCE} reached {COUNT} views"
+        case "ADD_TO_COLLECTION":
+            return "{SOURCE} added {TARGET} to \"{COLLECTION}\" collection"
         default:
             return null
     }

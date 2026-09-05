@@ -29,6 +29,7 @@ type Props = {
     targetId?: string;
     count?: number;
     geoIp?: GeoIpType;
+    collectionId?: string;
 };
 
 /**
@@ -44,7 +45,8 @@ export default async function sendNotificationService(
     sourceId,
     targetId,
     count,
-    geoIp
+    geoIp,
+    collectionId
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
 
@@ -58,8 +60,8 @@ export default async function sendNotificationService(
             (sourceId === whatIsData.ownerId || sourceId === whatIsData.id) &&
             (
                 type === "NEW_FOLLOW" || 
-                type === "NEW_LIKE"
-                // DEVELOPER NEEDED: Add collection here
+                type === "NEW_LIKE" ||
+                type === "ADD_TO_COLLECTION"
             )
         ) return;
     }
@@ -83,7 +85,8 @@ export default async function sendNotificationService(
         "LIFETIME_PREMIUM_REGISTRATION",
         "PREMIUM_REGISTRATION",
         "PRECURSOR_REGISTRATION",
-        "PARTNER_CODE_USED"
+        "PARTNER_CODE_USED",
+        "ADD_TO_COLLECTION"
     );
 
     if (!allowedTypes.has(type)) {
@@ -105,7 +108,8 @@ export default async function sendNotificationService(
 
         if (!row.isSubscribedToNewInteractions && (
             type === "NEW_FOLLOW" ||
-            type === "NEW_LIKE"
+            type === "NEW_LIKE" ||
+            type === "ADD_TO_COLLECTION"
         )) return;
     }
 
@@ -115,7 +119,8 @@ export default async function sendNotificationService(
         ...(sourceId && { sourceId }),
         ...(targetId && { targetId }),
         ...(count && { count }),
-        ...(geoIp && { geoIp })
+        ...(geoIp && { geoIp }),
+        ...(collectionId && { collectionId })
     });
 
     let isValid = false;
@@ -149,7 +154,8 @@ export default async function sendNotificationService(
                 sourceId,
                 targetId,
                 count,
-                geoIp
+                geoIp,
+                collectionId
             }
         )
     }
