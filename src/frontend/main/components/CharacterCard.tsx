@@ -95,11 +95,7 @@ export default function CharacterCard({
     
     
 
-    // Fix send notifications to filter based on the notifications
-    // Clicking on an option will mute and start a timer. Now the timer will display a
-    // "Unmute" instead of a secondary menu. The unmute will have a live countdown
-    // "Muted until <TIME> (countdown) or smth" and it will make the option a bit taller to support sub text
-    // Clicking mute will close the context menu
+    
 
 
 
