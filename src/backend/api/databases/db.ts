@@ -297,6 +297,7 @@ db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
 db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
+db.characters.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
