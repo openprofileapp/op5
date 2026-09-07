@@ -44,6 +44,7 @@ export type GetPublishedCharacterItemType = Omit<
     links?: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
     notifications: GetNotificationCollection;
+    isCharacterInAnyCollections: boolean;
     media?: GetMediaType[];
     isPinned?: boolean;
 };

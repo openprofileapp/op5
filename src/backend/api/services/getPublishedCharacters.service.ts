@@ -283,6 +283,19 @@ export default function getPublishedCharactersService({
 
     const interactionFieldsSql = interactionTables.map(buildInteractionField).join(",");
 
+    const checkCollectionClause = getAs
+        ? `EXISTS (
+            SELECT 1 
+            FROM collections.items 
+            JOIN collections.collections 
+                ON collections.collections.id = collections.items.collectionId 
+            WHERE collections.collections.ownerId = ? 
+                AND collections.items.assetId = published.id
+        ) AS isCharacterInAnyCollections,`
+        : "";
+
+    const checkCollectionParams = getAs ? [getAs] : [];
+
     const mediaSelectSql = includeMedia 
         ? `
             COALESCE(
@@ -341,6 +354,7 @@ export default function getPublishedCharactersService({
         `
             SELECT 
                 published.*,
+                ${checkCollectionClause}
                 json_object(
                     'id', users.id,
                     'username', usernames.username,
@@ -419,6 +433,7 @@ export default function getPublishedCharactersService({
             LIMIT ? OFFSET ?
         `,
         [
+            ...checkCollectionParams,
             ...interactionParams,
             ...notificationsParams,
             ...Array(4).fill(getAs),
@@ -510,7 +525,8 @@ export default function getPublishedCharactersService({
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             interactions: parseJson(row.interactions),
-            notifications: parseJson(row.notifications)
+            notifications: parseJson(row.notifications),
+            ...(getAs !== undefined && { isCharacterInAnyCollections: Boolean(row.isCharacterInAnyCollections) })
         };
 
         if (includeMedia) {
