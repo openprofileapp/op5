@@ -8,22 +8,16 @@ import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import getUsersService from "../services/getUsers.service.js";
 import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/character.type.js";
 import getPublishedCharactersService from "../services/getPublishedCharacters.service.js";
-import { CollectionType, GetCollectionItemType } from "../../../_common/types/collection.type.js";
+import { CollectionType } from "../../../_common/types/collection.type.js";
 import getCollectionsService from "../services/getCollections.service.js";
-
-type AssetType = 
-    "USER" | 
-    "CHARACTER" | 
-    "UNIVERSE" | 
-    "COLLECTION"
-;
+import { AssetNameType, GetAssetType } from "../../../_common/types/asset.type.js";
 
 export type WhatIsType = {
     id: string;
     ownerId?: string;
     displayName?: string;
     avatar?: string;
-    type: AssetType;
+    type: AssetNameType;
     tags: string[];
     createdDate: string;
     updatedDate?: string;
@@ -38,8 +32,8 @@ function hasBadge(badges: GetBadgeType[], badgeType: BadgeNameType): boolean {
 }
 
 function formatReturnData(
-    type: AssetType, 
-    data: GetUserItemType | GetPublishedCharacterItemType | GetCollectionItemType
+    type: AssetNameType, 
+    data: GetAssetType
 ): WhatIsType {
     const badges = type === "USER" 
         ? (data as GetUserItemType).badges 
@@ -70,8 +64,8 @@ function formatReturnData(
  *
  * @example
  * ```ts
- * const assetType = whatIs("00000000000000000");
- * console.log(assetType); 
+ * const AssetNameType = whatIs("00000000000000000");
+ * console.log(AssetNameType); 
  * // {
  * //   id: "00000000000000000"
  * //   ownerId?: "00000000000000000"
