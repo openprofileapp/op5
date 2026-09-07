@@ -1,6 +1,6 @@
 import { AdvancedError } from "kage-library";
 
-import { NotificationNameType } from "../../../_common/types/notification.type.js";
+import { NotificationMuteType, NotificationNameType } from "../../../_common/types/notification.type.js";
 import { GeoIpType } from "../../../_common/types/geoIp.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
@@ -96,15 +96,31 @@ export default async function sendNotificationService(
         });
     }
 
-    const result = db.notifications.query<SubscriptionsType>(
+    const mutedResult = db.notifications.query<NotificationMuteType>(
+        "SELECT * FROM mutes WHERE source = ? AND target = ?",
+        [userId, targetId]
+    )
+
+    assertDbSuccess(mutedResult);
+
+    const mute = mutedResult.rows?.[0];
+
+    if (
+        mute?.isIndefinite || 
+        new Date(mute?.date).getTime() + mute?.duration > Date.now()
+    ) {
+        return;
+    }
+
+    const subscriptionResult = db.notifications.query<SubscriptionsType>(
         "SELECT * FROM subscriptions WHERE source = ? AND target = ?",
         [userId, targetId]
     )
 
-    assertDbSuccess(result);
+    assertDbSuccess(subscriptionResult);
 
-    if (result.rowCount > 0) {
-        const row = result.rows[0];
+    if (subscriptionResult.rowCount > 0) {
+        const row = subscriptionResult.rows[0];
 
         if (!row.isSubscribedToNewInteractions && (
             type === "NEW_FOLLOW" ||
