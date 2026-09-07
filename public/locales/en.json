@@ -60,18 +60,67 @@
     "liked": "liked",
     "unliked": "unliked",
     "like": "like",
+    "Like": "Like",
     "unlike": "unlike",
+    "Unlike": "Unlike",
     "followed": "followed",
     "unfollowed": "unfollowed",
     "follow": "follow",
+    "Follow": "Follow",
     "unfollow": "unfollow",
+    "Unfollow": "Unfollow",
     "Search": "Search",
     "Description": "Description",
     "Pinned": "Pinned",
     "Limited": "Limited",
-    "More": "More"
+    "More": "More",
+    "dismiss": "dismiss",
+    "Dismiss": "Dismiss",
+    "dismissed": "dismissed",
+    "View": "View",
+    "Read": "Read",
+    "Chat": "Chat",
+    "ComingSoon": "Coming Soon",
+    "Added": "Added",
+    "Removed": "Removed",
+    "add": "add",
+    "remove": "remove",
+    "to": "to",
+    "from": "from",
+    "Interested": "Interested",
+    "NotInterested": "Not Interested",
+    "hide": "hide",
+    "unhide": "unhide",
+    "again": "again",
+    "Notifications": "Notifications",
+    "Mute": "Mute",
+    "Muted": "Muted",
+    "mute": "mute",
+    "Unmute": "Unmute",
+    "Unmuted": "Unmuted",
+    "unmute": "unmute",
+    "Indefinitely": "Indefinitely",
+    "for": "for"
+  },
+  "time": {
+    "hour1": "1 Hour",
+    "hour4": "4 Hours",
+    "hour8": "8 Hours",
+    "hour24": "24 Hours"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "View in Studio",
+        "chatComingSoon": "Chat (coming soon)",
+        "addToCollection": "Add to Collection",
+        "newCollection": "New Collection"
+      }
+    },
+    "toasts": {
+      "notInterested" : "You will no longer see",
+      "interested" : "You will see"
+    },
     "cards": {
       "isSensitive": "Sensitive Content",
       "isMature": "Mature Content",
@@ -194,11 +243,6 @@
       "subtext": "Our servers are currently experiencing heavy load.",
       "update": "Your page will refresh automatically in",
       "marquee": "TEMPORARILY UNAVAILABLE"
-    },
-    "home": {
-      "title": "Example Page",
-      "body": "To edit this page, visit ./src/frontend/main/pages/Home.tsx",
-      "button": "Click Me"
     }
   }
 }
