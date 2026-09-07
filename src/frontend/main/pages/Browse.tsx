@@ -112,7 +112,7 @@ export default function SearchProfiles() {
             try {
                 const offset = nextOffset !== null ? `&offset=${nextOffset}` : "";
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}`, 
+                    `${apiBaseUrl}/v3/characters${endpoint}?ref=browse&sortBy=${sortBy}&page=${currentPage}${offset}&includeMedia=true`, 
                     { credentials: "include" }
                 );
                 const data = await res.json();
