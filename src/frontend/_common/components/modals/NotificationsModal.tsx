@@ -2,9 +2,9 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef, Dispatch, SetStateAction } from "react";
 
 import { toast } from "../../scripts/toast.js";
-import { GetUserItemType } from "../../../../_common/types/user.type.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import { apiBaseUrl } from "../../scripts/domains.js";
+import { GetAssetType } from "../../../../_common/types/asset.type.js";
 
 export type SubscriptionsType = {
     isSubscribedToContent: boolean;
@@ -16,7 +16,7 @@ export type SubscriptionsType = {
 
 export interface NotificationsModalRef {
     open: (
-        data: GetUserItemType | GetPublishedCharacterItemType,
+        data: GetAssetType,
         setNotificationSubscriptions: Dispatch<SetStateAction<SubscriptionsType>>
     ) => void;
     close: () => void;
@@ -28,7 +28,7 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const setNotificationSubscriptionsRef = useRef<Dispatch<SetStateAction<SubscriptionsType>> | undefined>(undefined);
 
-    const [data, setData] = useState<GetUserItemType | GetPublishedCharacterItemType>();
+    const [data, setData] = useState<GetAssetType>();
 
     const isOwner = Boolean(
         window.session.userId && (
@@ -63,23 +63,23 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
             setNotificationSubscriptionsRef.current = setNotificationSubscriptions;
 
             setIsContentSelected(
-                Boolean(data?.notifications?.subscriptions?.isSubscribedToContent)
+                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToContent)
             );
 
             setIsCollaborationSelected(
-                Boolean(data?.notifications?.subscriptions?.isSubscribedToCollaborationChanges)
+                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToCollaborationChanges)
             );
 
             setIsInteractionsSelected(
-                Boolean(data?.notifications?.subscriptions?.isSubscribedToNewInteractions)
+                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToNewInteractions)
             );
 
             setIsCommentsSelected(
-                Boolean(data?.notifications?.subscriptions?.isSubscribedToNewComments)
+                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToNewComments)
             );
 
             setIsMessagesSelected(
-                Boolean(data?.notifications?.subscriptions?.isSubscribedToNewMessages)
+                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToNewMessages)
             );
 
             setTimeout(() => {

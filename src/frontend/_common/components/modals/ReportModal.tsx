@@ -3,11 +3,10 @@ import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 
 import { toast } from "../../scripts/toast.js";
 import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
-import { GetUserItemType } from "../../../../_common/types/user.type.js";
-import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
+import { GetAssetType } from "../../../../_common/types/asset.type.js";
 
 export interface ReportModalRef {
-    open: (data: GetUserItemType | GetPublishedCharacterItemType) => void;
+    open: (data: GetAssetType) => void;
     close: () => void;
 }
 
@@ -16,7 +15,7 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
 
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
-    const [data, setData] = useState<GetUserItemType | GetPublishedCharacterItemType>();
+    const [data, setData] = useState<GetAssetType>();
 
     const resetState = () => {
         setData(undefined);
