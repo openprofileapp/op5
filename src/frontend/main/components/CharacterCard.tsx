@@ -12,6 +12,8 @@ import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetCollectionItemType } from "../../../_common/types/collection.type.js";
 import { formatRemainingTime, getRemainingTimeIcon } from "../../_common/scripts/time.js";
+import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
+import { GetNotificationMuteType, GetNotificationSubscriptionType } from "../../../_common/types/notification.type.js";
 
 type Props = {
     data: GetPublishedCharacterItemType
@@ -36,114 +38,67 @@ export default function CharacterCard({
 
     const {
         handleViewInteraction,
-        handleFollowInteraction,
         handleLikeInteraction
     } = useInteractions();
 
-    const {
-        notificationsModal,
-        reportModal,
-        shareModal,
-        characterModal
-    } = useModals();
+    const { characterModal } = useModals();
 
-    const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-    const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
 
     const [data, setData] = useState<GetPublishedCharacterItemType>(rawData);
 
-    const [hasNotification] = useState(displayNotification);
-    const [hasSeenNotification, setHasSeenNotification] = useState(false);
+    const [hasNotification] = useState<boolean>(displayNotification);
+    const [hasSeenNotification, setHasSeenNotification] = useState<boolean>(false);
 
-    const [isSensitive] = useState(data.isSensitive);
-    const [isMature] = useState(data.isMature);
-    const [isRevealed, setIsRevealed] = useState(false);
+    const [isSensitive] = useState<boolean>(Boolean(data.isSensitive));
+    const [isMature] = useState<boolean>(Boolean(data.isMature));
+    const [isRevealed, setIsRevealed] = useState<boolean>(false);
 
-    const [isPinned, setIsPinned] = useState(isPinnedVisible);
-    const [isPinLoading, setIsPinLoading] = useState(false);
+    const [isPinned, setIsPinned] = useState<boolean>(isPinnedVisible);
+    const [isPinLoading, setIsPinLoading] = useState<boolean>(false);
 
-    const [isDismissed, setIsDismissed] = useState(data.interactions?.dismisses?.hasInteracted);
-    const [isDismissedInteractionLoading, setIsDismissedInteractionLoading] = useState(false);
+    const [isDismissed, setIsDismissed] = useState<boolean>(Boolean(data.interactions?.dismisses?.hasInteracted));
+    const [isDismissedInteractionLoading, setIsDismissedInteractionLoading] = useState<boolean>(false);
 
-    const [isViewed, setIsViewed] = useState(data.interactions?.views?.hasInteracted);
-    const [viewCount, setViewCount] = useState(data.interactions?.views?.count || 0);
-    const [isViewInteractionLoading, setIsViewInteractionLoading] = useState(false);
-    const [lastViewDate, setLastViewDate] = useState(data.interactions?.views?.latestDate);
+    const [isViewed, setIsViewed] = useState<boolean>(Boolean(data.interactions?.views?.hasInteracted));
+    const [viewCount, setViewCount] = useState<number>(data.interactions?.views?.count || 0);
+    const [isViewInteractionLoading, setIsViewInteractionLoading] = useState<boolean>(false);
+    const [lastViewDate, setLastViewDate] = useState<string>(data.interactions?.views?.latestDate || "");
 
-    const [isFollowing, setIsFollowing] = useState(data.interactions?.follows?.hasInteracted);
-    const [followCount, setFollowCount] = useState(data.interactions?.follows?.count || 0);
-    const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState(false);
+    const [isFollowing, setIsFollowing] = useState<boolean>(Boolean(data.interactions?.follows?.hasInteracted));
+    const [followCount, setFollowCount] = useState<number>(data.interactions?.follows?.count || 0);
+    const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState<boolean>(false);
 
-    const [isLiked, setIsLiked] = useState(data.interactions?.likes?.hasInteracted);
-    const [likeCount, setLikeCount] = useState(data.interactions?.likes?.count || 0);
-    const [isLikeInteractionLoading, setIsLikeInteractionLoading] = useState(false);
+    const [isLiked, setIsLiked] = useState<boolean>(Boolean(data.interactions?.likes?.hasInteracted));
+    const [likeCount, setLikeCount] = useState<number>(data.interactions?.likes?.count || 0);
+    const [isLikeInteractionLoading, setIsLikeInteractionLoading] = useState<boolean>(false);
 
-    const [initFetchCollections, setInitFetchCollections] = useState(false);
-    const [collections, setCollections] = useState<GetCollectionItemType[] | null>(null);
-    const [isCollectionsLoading, setIsCollectionsLoading] = useState(true);
+    const [isHidden, setIsHidden] = useState<boolean>(Boolean(data.interactions?.hides?.hasInteracted));
+    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
-    const [notificationSubscriptions, setNotificationSubscriptions] = useState(data.notifications?.subscriptions);
-
-    const [muteData, setMuteData] = useState(data?.notifications?.mute);
-    const [isMuted, setIsMuted] = useState<boolean>(() => {
-        if (!data?.notifications?.mute) return false;
-        if (data.notifications.mute.isIndefinite) return true;
-        return new Date(data.notifications.mute.date).getTime() + data.notifications.mute.duration > Date.now();
-    });
-
-    const [remainingMuteDurationText, setRemainingMuteDurationText] = useState<string>("");
-
-    const [isHidden, setIsHidden] = useState(data.interactions?.hides?.hasInteracted);
-    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState(false);
-
-    const closeContextMenu = useCallback((id: string) => {
-        setIsContextMenuOpen(false);
-        document
-            .getElementById(`character-more-dropdown-${id}`)
-            ?.hidePopover();
-    }, []);
-
-    useEffect(() => {
-        if (isContextMenuOpen) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [isContextMenuOpen]);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`character-more-dropdown-${data.id}`);
-
-            if (!menu) return;
-
-            if (menu.contains(e.target as Node)) {
-                return;
-            }
-
-            closeContextMenu(data.id);
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [data.id, closeContextMenu]);
-
-    const checkCollectionMenuPosition = (
-        e: React.MouseEvent<HTMLLIElement>
-    ) => {
-        const button = e.currentTarget.getBoundingClientRect();
-        const submenuWidth = 208;
-        const spaceRight = window.innerWidth - button.right;
-
-        setIsContextMenuFlipped(spaceRight < submenuWidth);
-    };
+    const contextMenuBuilder = ContextMenuBuilder(
+        data,
+        isContextMenuOpen,
+        setIsContextMenuOpen,
+        isDismissed,
+        isDismissedInteractionLoading,
+        setIsDismissed,
+        setIsDismissedInteractionLoading,
+        isFollowing,
+        isFollowInteractionLoading,
+        setIsFollowing,
+        setIsFollowInteractionLoading,
+        setFollowCount,
+        isLiked,
+        isLikeInteractionLoading,
+        setIsLiked,
+        setIsLikeInteractionLoading,
+        setLikeCount,
+        isHidden,
+        isHideInteractionLoading,
+        setIsHidden,
+        setIsHideInteractionLoading
+    );
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -172,13 +127,6 @@ export default function CharacterCard({
                         hasInteracted: isLiked,
                     }
                 },
-                notifications: {
-                    ...currentData.notifications,
-                    subscriptions: {
-                        ...currentData.notifications?.subscriptions,
-                        ...notificationSubscriptions,
-                    },
-                },
             } as GetPublishedCharacterItemType;
         });
     }, [
@@ -189,69 +137,15 @@ export default function CharacterCard({
         followCount,
         isFollowing,
         likeCount,
-        isLiked,
-        notificationSubscriptions
+        isLiked
     ]);
-
-    useEffect(() => {
-        if (!initFetchCollections) return;
-
-        const fetchCollections = async () => {
-            try {
-                const response = await fetch(
-                    `${apiBaseUrl}/v3/collections?owner=${window.session.userId}&checkItem=${data.id}`,
-                    { credentials: "include" }
-                );
-
-                const c = await response.json();
-
-                setCollections(c.items);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsCollectionsLoading(false);
-            }
-        };
-
-        fetchCollections();
-    }, [initFetchCollections, data.id]);
-
-    useEffect(() => {
-        if (!isMuted || !muteData) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setRemainingMuteDurationText("");
-            return;
-        }
-
-        if (muteData.isIndefinite) {
-            setRemainingMuteDurationText("Indefinitely");
-            return;
-        }
-
-        const updateTimer = () => {
-            const expiryTime = new Date(muteData.date).getTime() + muteData.duration;
-            const remainingMs = expiryTime - Date.now();
-
-            if (remainingMs <= 0) {
-                setIsMuted(false);
-                setRemainingMuteDurationText("");
-            } else {
-                setRemainingMuteDurationText(formatRemainingTime(remainingMs));
-            }
-        };
-
-        updateTimer();
-
-        const interval = setInterval(updateTimer, 1000);
-
-        return () => clearInterval(interval);
-    }, [muteData, isMuted]);
 
     if (
         !data.id ||
         !data.owner ||
         !data.owner.id ||
         !isTranslationReady ||
+        !contextMenuBuilder ||
         isDismissed
     ) return null;
 
@@ -276,7 +170,7 @@ export default function CharacterCard({
                 setIsContextMenuOpen(true);
 
                 const popover = document.getElementById(
-                    `character-more-dropdown-${data.id}`
+                    `more-dropdown-${data.id}`
                 ) as HTMLElement | null;
 
                 if (!popover) return;
@@ -394,43 +288,41 @@ export default function CharacterCard({
                 )}
             </div>
 
-            <div
-                className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent"
-                data-tip={t("words.More")}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setIsContextMenuOpen(true);
-
-                    const popover = document.getElementById(
-                        `character-more-dropdown-${data.id}`
-                    );
-
-                    if (!popover) return;
-
-                    const rect = e.currentTarget.getBoundingClientRect();
-
-                    popover.style.left = `${rect.left}px`;
-                    popover.style.top = `${rect.bottom}px`;
-
-                    if (popover.matches(":popover-open")) {
-                        popover.hidePopover?.();
-                    } else {
-                        popover.showPopover?.();
-                    }
-                }}
-            >
-                <button className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden">
-                    <span className="leading-none text-2xl font-nerdfont translate-y-[-2px] cursor-pointer">
-                        󰇘
-                    </span>
-                </button>
-            </div>
-
-
-
-
-
-
+            {contextMenuBuilder.items([
+                window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") 
+                    && contextMenuBuilder.quickActions([
+                        (props) => contextMenuBuilder.view(props),
+                        (props) => contextMenuBuilder.read(props),
+                        (props) => contextMenuBuilder.chat(props)
+                    ]),
+                isHomeScreen 
+                    && contextMenuBuilder.dismiss(),
+                window.session.userId 
+                    && isHomeScreen 
+                    && contextMenuBuilder.separator(),
+                contextMenuBuilder.viewInStudio(),
+                window.session.userId === data.owner.id
+                    && contextMenuBuilder.separator(),
+                !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") 
+                    && contextMenuBuilder.view(),
+                !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") 
+                    && contextMenuBuilder.read(),
+                !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") 
+                    && contextMenuBuilder.chat(),
+                !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") 
+                    && !isHidden
+                    && contextMenuBuilder.separator(),
+                contextMenuBuilder.follow(),
+                contextMenuBuilder.like(),
+                contextMenuBuilder.collections(),
+                !isHidden
+                    && contextMenuBuilder.separator(),
+                contextMenuBuilder.notifications(),
+                contextMenuBuilder.mute(),
+                isFollowing
+                    && contextMenuBuilder.separator(),
+                contextMenuBuilder.notInterested()
+            ].filter((item) => Boolean(item)))}
 
 
 
@@ -463,658 +355,23 @@ export default function CharacterCard({
 
 
 
-            
+
 
             
 
             
 
-            <ul
-                className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50 duration-0"
-                popover="manual"
-                id={`character-more-dropdown-${data.id}`}
-            >
-                {window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
-                    <>
-                        {/* DEVELOPER NEEDED: Add the interaction here and when landing on the pages */}
-                        <div className="flex w-full h-12">
-                            <li
-                                className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
-                                data-tip="View"
-                                onClick={() => {
-                                    closeContextMenu(data.id);
-                                }}
-                            >
-                                <Link 
-                                    className="flex items-center justify-center w-full h-full" 
-                                    to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                                >
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        󰈈
-                                    </span>
-                                </Link>
-                            </li>
+            
+            
 
-                            <li
-                                className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
-                                data-tip="Read"
-                                onClick={() => {
-                                    closeContextMenu(data.id);
-                                }}
-                            >
-                                <Link 
-                                    className="flex items-center justify-center w-full h-full" 
-                                    to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                                >
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </Link>
-                            </li>
 
-                            <li 
-                                className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
-                                data-tip="Chat (Coming Soon)"
-                            >
-                                <button className="flex items-center justify-center w-full h-full" disabled={true}>
-                                    <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                                        󰍧
-                                    </span>
-                                </button>
-                            </li>
 
-                            <li 
-                                className="flex-1 flex items-center justify-center w-full h-full tooltip tooltip-top tooltip-accent"
-                                data-tip="Share"
-                                onClick={() => {
-                                    closeContextMenu(data.id);
 
-                                    shareModal.open(data);
-                                }}
-                            >
-                                <button className="flex items-center justify-center w-full h-full">
-                                    <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                                        󰒗
-                                    </span>
-                                </button>
-                            </li>
-                        </div>
-
-                        <hr />
-                    </>
-                )}
-
-                {isHomeScreen && (
-                    <>
-                        <li 
-                            onClick={async () => {
-                                if (isDismissedInteractionLoading) return;
-
-                                closeContextMenu(data.id);
-                                setIsDismissedInteractionLoading(true);
-
-                                const res = await postInteraction(data.id, "dismisses");
-
-                                if (res.ok) {
-                                    setIsDismissedInteractionLoading(false);
-                                    setIsDismissed(true);
-                                    setIsHidden(true);
-
-                                    toast.show(
-                                        `You dismissed ${data.displayName}`,
-                                        { type: "success" }
-                                    );
-                                } else {
-                                    setIsDismissedInteractionLoading(false);
-
-                                    toast.show(
-                                        `Failed to dismiss ${data.displayName}`,
-                                        {
-                                            subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                            type: "error" 
-                                        }
-                                    );
-                                }
-                            }}
-                        >
-                            <button className="justify-between">
-                                Dismiss
-                                <span 
-                                    className={`${isDismissedInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
-                                    
-                                </span>
-                            </button>
-                        </li>
-
-                        <hr />
-                    </>
-                )}
-
-                {data.owner.id === window.session.userId && (
-                    <>
-                        {/* DEVELOPER NEEDED: Also display on characters where the user has permission to open in studio (eg: write) */}
-                        <li
-                            onClick={() => {
-                                closeContextMenu(data.id);
-                            }}
-                        >
-                            <a
-                                className="justify-between"
-                                href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View in Studio
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    
-                                </span>
-                            </a>
-                        </li>
-
-                        {/* DEVELOPER NEEDED: Pins go here only when on user or universe profile */}
-
-                        <hr />
-                    </>
-                )}
-
-                {!window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && (
-                    <>
-                        <li
-                            onClick={() => {
-                                closeContextMenu(data.id);
-                            }}
-                        >
-                            <Link 
-                                className="justify-between" 
-                                to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                            >
-                                View
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    󰈈
-                                </span>
-                            </Link>
-                        </li>
-
-                        <li
-                            onClick={() => {
-                                closeContextMenu(data.id);
-                            }}
-                        >
-                            <Link 
-                                className="justify-between" 
-                                to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                            >
-                                Read
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-
-                        {/* DEVELOPER NEEDED: On click, open a chat with the character */}
-                        <li 
-                            className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
-                            data-tip="Coming Soon"
-                            onClick={() => {
-                                // closeContextMenu(data.id);
-
-                                // Open chat here and save to user message history
-                            }}
-                        >
-                            <button className="justify-between" disabled={true}>
-                                Chat
-                                <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                                    󰍧
-                                </span>
-                            </button>
-                        </li>
-
-                        <hr />
-                    </>
-                )}
-
-                {/* Can't follow or like your own characters; auto display as liked or smth */}
-
-                <li 
-                    onClick={async () => {
-                        await handleFollowInteraction({
-                            // DEVELOPER NEEDED: Just pass data
-                            id: data.id,
-                            displayName: data.displayName,
-                            isFollowing,
-                            isFollowInteractionLoading,
-                            setIsFollowInteractionLoading,
-                            setIsFollowing,
-                            setFollowCount
-                        });
-                    }}
-                >
-                    <button className={`${isFollowing ? "text-accent" : "" } justify-between`}>
-                        {isFollowing ? "Unfollow" : "Follow"}
-                        <span 
-                            /* DEVELOPER NEEDED: Turn this into context-menu and context-menu-item classes */
-                            className={`${isFollowInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
-                            {isFollowing ? "" : ""}
-                        </span>
-                    </button>
-                </li>
-
-                <li 
-                    onClick={async () => {
-                        await handleLikeInteraction({
-                            // DEVELOPER NEEDED: Just pass data
-                            id: data.id,
-                            displayName: data.displayName,
-                            isLiked,
-                            isLikeInteractionLoading,
-                            setIsLikeInteractionLoading,
-                            setIsLiked,
-                            setLikeCount
-                        });
-                    }}
-                >
-                    <button className={`${isLiked ? "text-accent" : "" } justify-between`}>
-                        {isLiked ? "Unlike" : "Like"}
-                        <span 
-                            className={`${isLikeInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
-                            {isLiked ? "" : ""}
-                        </span>
-                    </button>
-                </li>
-
-                {/* DEVELOPER NEEDED: on move enter, call the API to render the collections; have a loading in the meantime  */}
-                <li 
-                    className="relative group"
-                    onMouseEnter={(e) => {
-                        checkCollectionMenuPosition(e)
-                        
-                        setInitFetchCollections(true)
-                    }}
-                >
-                    <button className="justify-between w-full">
-                        Add to Collection
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-
-                    <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
-
-                    <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                        {!isCollectionsLoading ? (() => {
-                            const favoritesCollection = collections?.find((c) => c.isFavorites);
-                            const otherCollections = collections?.filter((c) => !c.isFavorites) || [];
-
-                            const CollectionItem = ({ collection, index }: { collection: GetCollectionItemType; index: number }) => {
-                                const [isInCollection, setIsInCollection] = useState(collection.isItemInCollection);
-
-                                return (
-                                    <li 
-                                        key={collection.id || index}
-                                        className={isInCollection ? "rounded bg-gradient-to-r from-base-300/100 via-base-300/20 to-transparent" : ""}
-                                    >
-                                        <button 
-                                            className="flex w-full items-center justify-between"
-                                            onClick={async () => {
-                                                const response = await fetch(
-                                                    `${apiBaseUrl}/v3/collections/update/${collection.id}/${data.id}`, 
-                                                    { credentials: "include" }
-                                                );
-
-                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                const responseData = await response.json() as any;
-
-                                                if (response.ok) {
-                                                    const nextState = !isInCollection;
-                                                    setIsInCollection(nextState);
-                                                    collection.isItemInCollection = nextState;
-
-                                                    toast.show(
-                                                        `${nextState ? "Added" : "Removed"} ${data.displayName || data.id} ${nextState ? "to" : "from"} ${collection.displayName}`, 
-                                                        { icon: nextState ? "" : "", type: nextState ? "success" : "info" }
-                                                    );
-                                                } else {
-                                                    toast.show(
-                                                        `Failed to ${isInCollection ? "remove" : "add"} ${data.displayName || data.id} ${isInCollection ? "from" : "to"} ${collection.displayName}`, 
-                                                        { 
-                                                            subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
-                                                            type: "error" 
-                                                        }
-                                                    );
-                                                }
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span className="font-nerdfont text-lg flex h-6 w-3 leading-none items-center justify-center">
-                                                    {isInCollection ? "󰐾" : "󰐽"}
-                                                </span>
-                                                {collection.displayName}
-                                            </div>
-                                            <img 
-                                                className="rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover"
-                                                src={
-                                                    collection.isFavorites 
-                                                        ? `${cdnBaseUrl}${window.config.metadata.assets.favorites}`
-                                                        : collection.avatar 
-                                                            ? `${cdnBaseUrl}${collection.avatar}` 
-                                                            : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`
-                                                    }
-                                                alt={collection.displayName}
-                                            />
-                                        </button>
-                                    </li>
-                                );
-                            };
-
-                            const renderCollectionItem = (collection: GetCollectionItemType, index: number) => (
-                                <CollectionItem key={collection.id || index} collection={collection} index={index} />
-                            );
-
-                            return (
-                                <>
-                                    {favoritesCollection && renderCollectionItem(favoritesCollection, -1)}
-
-                                    {favoritesCollection && (
-                                        <hr />
-                                    )}
-
-                                    {otherCollections.map(renderCollectionItem)}
-
-                                    {otherCollections.length > 0 && (
-                                        <hr />
-                                    )}
-                                </>
-                            );
-                        })() : (
-                            <div className="flex items-center justify-center">
-                                <div className="loading h-8"/>
-                            </div>
-                        )}
-
-                        {!isCollectionsLoading && (
-                            <li
-                                className={`tooltip tooltip-${isContextMenuFlipped ? "left" : "right"} tooltip-accent`}
-                                data-tip="Coming Soon"
-                            >
-                                <button className="justify-between" disabled={true}>
-                                    New Collection
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        󰌴
-                                    </span>
-                                </button>
-                            </li>
-                        )}
-                    </ul>
-                </li>
-
-                <hr />
-
-                {/* DEVELOPER NEEDED: If not added to any collections either */}
-                {(!isFollowing && !isLiked) && (
-                    <li 
-                        onClick={async () => {
-                            if (isHideInteractionLoading) return;
-
-                            closeContextMenu(data.id);
-                            setIsHideInteractionLoading(true);
-
-                            const res = await postInteraction(data.id, "hides");
-
-                            if (res.ok) {
-                                setIsHideInteractionLoading(false);
-                                setIsHidden(!isHidden);
-
-                                toast.show(
-                                    `You will no longer see ${data.displayName}`,
-                                    { type: "info" }
-                                );
-                            } else {
-                                setIsHideInteractionLoading(false);
-                                
-                                toast.show(
-                                    `Failed to hide ${data.displayName}`,
-                                    {
-                                        subtext: `${res.id || ""}${res.id ? ": " : ""}${res.message}`,
-                                        type: "error" 
-                                    }
-                                );
-                            }
-                        }}
-                    >
-                        {/* DEVELOPER NEEDED: If not interested, display interested cause of the accounts/hidden */}
-                        <button className="justify-between text-accent">
-                            Not Interested
-                            <span 
-                                className={`${isHideInteractionLoading ? "loading" : ""} flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0`}>
-                                󰈉
-                            </span>
-                        </button>
-                    </li>
-                )}
-
-                {/* DEVELOPER NEEDED: Polish this and only show on profile page */}
-                {/*<li>
-                    <button 
-                        className="justify-between text-error"
-                        onClick={() => {
-                            
-                            closeContextMenu(data.id);
-                        }}
-                    >
-                        Hide Collaboration
-                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰈉
-                        </span>
-                    </button>
-                </li>*/}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            {/*
                 
-                {/* 
-                    DEVELOPER NEEDED: Make a report
+                
                     REQUIRES: v3/report and v3/moderate 
                     REQUIRES: A moderate popup; hide buttons to appropriate permissions
-                */}
-
-                {isFollowing && (
-                    <>
-                        <li>
-                            <button 
-                                className="justify-between"
-                                onClick={() => {
-                                    closeContextMenu(data.id);
-
-                                    notificationsModal.open(
-                                        data,
-                                        setNotificationSubscriptions
-                                    );
-                                }}
-                            >
-                                Notifications
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    󰂚
-                                </span>
-                            </button>
-                        </li>
-
-                        {!isMuted ? (
-                            <li 
-                                className="relative group"
-                                onMouseEnter={checkCollectionMenuPosition}
-                            >
-                                <button className="justify-between w-full">
-                                    Mute
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-
-                                <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
-
-                                <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                                    {[
-                                        { label: "1 Hour", icon: "󱐿", duration: "1h", isIndefinite: false  },
-                                        { label: "4 Hours", icon: "󱑂", duration: "4h", isIndefinite: false  },
-                                        { label: "8 Hours", icon: "󱑆", duration: "8h", isIndefinite: false  },
-                                        { label: "24 Hours", icon: "󱑊", duration: "24h", isIndefinite: false  },
-                                        { label: "Indefinitely", icon: "󰂛", duration: "0s", isIndefinite: true }
-                                    ].map((item) => (
-                                        <>
-                                            {item.isIndefinite && (
-                                                <hr />
-                                            )}
-                                            
-                                            <li key={item.label}>
-                                                <button 
-                                                    className="justify-between"
-                                                    onClick={async () => {
-                                                        closeContextMenu(data.id);
-
-                                                        const newMute = {
-                                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                                            // @ts-ignore
-                                                            duration: parseDuration(item.duration),
-                                                            isIndefinite: item.isIndefinite,
-                                                            date: new Date().toISOString()
-                                                        };
-
-                                                        setMuteData(newMute);
-                                                        setIsMuted(true);
-                                                        
-                                                        const response = await fetch(
-                                                            `${apiBaseUrl}/v3/notifications/update/mute/${data.id}`, 
-                                                            { 
-                                                                credentials: "include", 
-                                                                method: "POST", 
-                                                                headers: { "Content-Type": "application/json" }, 
-                                                                body: JSON.stringify(newMute)
-                                                            }
-                                                        );
-
-                                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                        const responseData = await response.json() as any;
-
-                                                        if (response.ok) {
-                                                            setIsMuted(true);
-
-                                                            toast.show(
-                                                                `Muted ${data.displayName || data.id} for ${item.label.toLowerCase()}`, 
-                                                                { icon: "󰂚", type: "success" }
-                                                            );
-                                                        } else {
-                                                            toast.show(
-                                                                `Failed to mute ${data.displayName || data.id}`, 
-                                                                { 
-                                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
-                                                                    type: "error" 
-                                                                }
-                                                            );
-                                                        }
-                                                    }}
-                                                >
-                                                    {item.label}
-                                                    <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                                        {item.icon}
-                                                    </span>
-                                                </button>
-                                            </li>
-                                        </>
-                                    ))}
-                                </ul>
-                            </li>
-                        ) : (
-                            <li>
-                                <button 
-                                    className="justify-between"
-                                    onClick={async () => {
-                                        const response = await fetch(
-                                            `${apiBaseUrl}/v3/notifications/update/mute/${data.id}`, 
-                                            { 
-                                                credentials: "include", 
-                                                method: "POST", 
-                                                headers: { "Content-Type": "application/json" }, 
-                                                body: JSON.stringify({
-                                                    duration: 0,
-                                                    isIndefinite: false
-                                                })
-                                            }
-                                        );
-
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        const responseData = await response.json() as any;
-
-                                        if (response.ok) {
-                                            setIsMuted(false);
-
-                                            toast.show(
-                                                `Unmuted ${data.displayName || data.id}`, 
-                                                { icon: "󰂚", type: "info" }
-                                            );
-                                        } else {
-                                            toast.show(
-                                                `Failed to unmute ${data.displayName || data.id}`, 
-                                                { 
-                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
-                                                    type: "error" 
-                                                }
-                                            );
-                                        }
-
-                                        closeContextMenu(data.id);
-                                    }}
-                                >
-                                    <div className="flex flex-col justify-center items-start leading-none h-11">
-                                        Unmute
-                                        <span className="text-sub text-xs mt-1">
-                                            {remainingMuteDurationText}
-                                        </span>
-                                    </div>
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        {getRemainingTimeIcon(remainingMuteDurationText)}
-                                    </span>
-                                </button>
-                            </li>
-                        )}
-
-                        <hr />
-                    </>
-                )}
 
                 <li>
                     <button 
@@ -1205,7 +462,7 @@ export default function CharacterCard({
                         </span>
                     </button>
                 </li>
-            </ul>
+            */}
 
             <div 
                 onClick={async () => {
@@ -1213,16 +470,15 @@ export default function CharacterCard({
 
                     setHasSeenNotification(true);
 
-                    await handleViewInteraction({
-                        // DEVELOPER NEEDED: Just pass data
-                        id: data.id,
+                    await handleViewInteraction(
+                        data,
                         isViewInteractionLoading,
                         lastViewDate,
                         setIsViewInteractionLoading,
                         setIsViewed,
                         setLastViewDate,
                         setViewCount
-                    });
+                    );
                 }}
             >
                 <div className="absolute inset-0 group">
@@ -1326,16 +582,14 @@ export default function CharacterCard({
                         <span 
                             className={`font-nerdfont text-base w-4 h-6 cursor-pointer pointer-events-auto inline-block ${isLikeInteractionLoading ? "loading" : ""} ${isLiked ? "text-accent" : ""}`}
                             onClick={async () => {
-                                await handleLikeInteraction({
-                                    // DEVELOPER NEEDED: Just pass data
-                                    id: data.id,
-                                    displayName: data.displayName,
+                                await handleLikeInteraction(
+                                    data,
                                     isLiked,
                                     isLikeInteractionLoading,
-                                    setIsLikeInteractionLoading,
                                     setIsLiked,
+                                    setIsLikeInteractionLoading,
                                     setLikeCount
-                                });
+                                );
                             }}
                         >
                             
@@ -1432,5 +686,22 @@ export default function CharacterCard({
                                 </span>
                             </button>
                         </li>
+
+                        DEVELOPER NEEDED: Polish this and only show on profile page 
+                <li>
+                    <button 
+                        className="justify-between text-error"
+                        onClick={() => {
+                            
+                            closeContextMenu(data.id);
+                        }}
+                    >
+                        Hide Collaboration
+                        <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
+                            󰈉
+                        </span>
+                    </button>
+                </li>
+
 
 */
