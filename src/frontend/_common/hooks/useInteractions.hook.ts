@@ -4,55 +4,65 @@ import { DateTime } from "luxon";
 
 import { postInteraction } from "../scripts/postInteraction.js";
 import { toast } from "../scripts/toast.js";
-
-export type ViewInteractionProps = {
-    id: string;
-    isViewInteractionLoading: boolean;
-    lastViewDate: string;
-    setIsViewInteractionLoading: (loading: boolean) => void;
-    setIsViewed: Dispatch<SetStateAction<boolean>>;
-    setLastViewDate: Dispatch<SetStateAction<string>>;
-    setViewCount: Dispatch<SetStateAction<number>>;
-}
-
-export type FollowInteractionProps = {
-    id: string;
-    displayName: string;
-    isFollowing: boolean;
-    isFollowInteractionLoading: boolean;
-    setIsFollowInteractionLoading: (loading: boolean) => void;
-    setIsFollowing: Dispatch<SetStateAction<boolean>>;
-    setFollowCount: Dispatch<SetStateAction<number>>;
-}
-
-export type LikeInteractionProps = {
-    id: string;
-    displayName: string;
-    isLiked: boolean;
-    isLikeInteractionLoading: boolean;
-    setIsLikeInteractionLoading: (loading: boolean) => void;
-    setIsLiked: Dispatch<SetStateAction<boolean>>;
-    setLikeCount: Dispatch<SetStateAction<number>>;
-}
+import { GetAssetType } from "../../../_common/types/asset.type.js";
 
 export const useInteractions = () => {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    const handleViewInteraction = async ({
-        id,
-        isViewInteractionLoading,
-        lastViewDate,
-        setIsViewInteractionLoading,
-        setIsViewed,
-        setLastViewDate,
-        setViewCount
-    }: ViewInteractionProps): Promise<boolean> => {
+    const handleDismissInteraction = async (
+        data: GetAssetType,
+        isDismissed: boolean,
+        isDismissedInteractionLoading: boolean,
+        setIsDismissed: Dispatch<SetStateAction<boolean>>,
+        setIsDismissedInteractionLoading: (loading: boolean) => void
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isDismissedInteractionLoading) return false;
+
+        setIsDismissedInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "dismisses");
+
+            if (response.ok) {
+                setIsDismissed(!isDismissed);
+
+                toast.show(
+                    `${t("words.You")} ${t("words.dismissed")} ${data.displayName}`,
+                    { type: isDismissed ? "info" : "success" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} ${t("words.dismiss")} ${data.displayName}`,
+                    {
+                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsDismissedInteractionLoading(false);
+        }
+    };
+
+    const handleViewInteraction = async (
+        data: GetAssetType,
+        isViewInteractionLoading: boolean,
+        lastViewDate: string,
+        setIsViewed: Dispatch<SetStateAction<boolean>>,
+        setIsViewInteractionLoading: (loading: boolean) => void,
+        setLastViewDate: Dispatch<SetStateAction<string>>,
+        setViewCount: Dispatch<SetStateAction<number>>
+    ): Promise<boolean> => {
         if (!isTranslationReady || isViewInteractionLoading) return false;
 
         setIsViewInteractionLoading(true);
 
         try {
-            const response = await postInteraction(id, "views");
+            const response = await postInteraction(data.id, "views");
 
             if (response.ok) {
                 setIsViewed(true);
@@ -91,79 +101,38 @@ export const useInteractions = () => {
         }
     };
 
-    const handleLikeInteraction = async ({
-        id,
-        displayName,
-        isLiked,
-        isLikeInteractionLoading,
-        setIsLikeInteractionLoading,
-        setIsLiked,
-        setLikeCount
-    }: LikeInteractionProps): Promise<boolean> => {
-        if (!isTranslationReady || isLikeInteractionLoading) return false;
-
-        setIsLikeInteractionLoading(true);
-
-        try {
-            const response = await postInteraction(id, "likes");
-
-            if (response.ok) {
-                setIsLiked(!isLiked);
-                setLikeCount(prev => (isLiked ? prev - 1 : prev + 1));
-
-                toast.show(
-                    `${t("words.You")} ${isLiked ? t("words.unliked") : t("words.liked")} ${displayName}`,
-                    { type: isLiked ? "info" : "success" }
-                );
-
-                return true;
-            } else {
-                toast.show(
-                    `${t("words.FailedTo")} ${isLiked ? t("words.unlike") : t("words.like")} ${displayName}`,
-                    {
-                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
-                        type: "error",
-                    }
-                );
-                
-                return false;
-            }
-        } finally {
-            setIsLikeInteractionLoading(false);
-        }
-    };
-
-    const handleFollowInteraction = async ({
-        id,
-        displayName,
-        isFollowing,
-        isFollowInteractionLoading,
-        setIsFollowInteractionLoading,
-        setIsFollowing,
-        setFollowCount
-    }: FollowInteractionProps): Promise<boolean> => {
+    const handleFollowInteraction = async (
+        data: GetAssetType,
+        isFollowing: boolean,
+        isFollowInteractionLoading: boolean,
+        setIsFollowing: Dispatch<SetStateAction<boolean>>,
+        setIsFollowInteractionLoading: (loading: boolean) => void,
+        setFollowCount: Dispatch<SetStateAction<number>>
+    ): Promise<boolean> => {
         if (!isTranslationReady || isFollowInteractionLoading) return false;
 
         setIsFollowInteractionLoading(true);
 
         try {
-            const response = await postInteraction(id, "follows");
+            const response = await postInteraction(data.id, "follows");
+
+            const is422 = response.code === 422;
 
             if (response.ok) {
                 setIsFollowing(!isFollowing);
                 setFollowCount(prev => (isFollowing ? prev - 1 : prev + 1));
 
                 toast.show(
-                    `${t("words.You")} ${isFollowing ? t("words.unfollowed") : t("words.followed")} ${displayName}`,
+                    `${t("words.You")} ${isFollowing ? t("words.unfollowed") : t("words.followed")} ${data.displayName}`,
                     { type: isFollowing ? "info" : "success" }
                 );
 
                 return true;
             } else {
                 toast.show(
-                    `${t("words.FailedTo")} ${isFollowing ? t("words.unfollow") : t("words.follow")} ${displayName}`,
+                    `${t("words.FailedTo")} ${isFollowing ? t("words.unfollow") : t("words.follow")} ${data.displayName}`,
                     {
-                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
+                        subtext: `${is422 ? "" : `${response.id || ""}${response.id ? ": " : ""}` }${response.message}`,
                         type: "error",
                     }
                 );
@@ -175,9 +144,96 @@ export const useInteractions = () => {
         }
     };
 
+    const handleLikeInteraction = async (
+        data: GetAssetType,
+        isLiked: boolean,
+        isLikeInteractionLoading: boolean,
+        setIsLiked: Dispatch<SetStateAction<boolean>>,
+        setIsLikeInteractionLoading: (loading: boolean) => void,
+        setLikeCount: Dispatch<SetStateAction<number>>
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isLikeInteractionLoading) return false;
+
+        setIsLikeInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "likes");
+
+            const is422 = response.code === 422;
+
+            if (response.ok) {
+                setIsLiked(!isLiked);
+                setLikeCount(prev => (isLiked ? prev - 1 : prev + 1));
+
+                toast.show(
+                    `${t("words.You")} ${isLiked ? t("words.unliked") : t("words.liked")} ${data.displayName}`,
+                    { type: isLiked ? "info" : "success" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} ${isLiked ? t("words.unlike") : t("words.like")} ${data.displayName}`,
+                    {
+                        subtext: `${is422 ? "" : `${response.id || ""}${response.id ? ": " : ""}` }${response.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsLikeInteractionLoading(false);
+        }
+    };
+
+    const handleHideInteraction = async (
+        data: GetAssetType,
+        isHidden: boolean,
+        isHideInteractionLoading: boolean,
+        setIsHidden: Dispatch<SetStateAction<boolean>>,
+        setIsHideInteractionLoading: (loading: boolean) => void
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isHideInteractionLoading) return false;
+
+        setIsHideInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "hides");
+
+            if (response.ok) {
+                setIsHidden(!isHidden);
+
+                toast.show(
+                    `${!isHidden 
+                        ? `${t("components.toasts.notInterested")} ${data.displayName}`
+                        : `${t("components.toasts.interested")} ${data.displayName} ${t("words.again")}`
+                    }`,
+                    { type: isHidden ? "success" : "info" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} ${isHidden ? t("words.hide") : t("words.unhide")} ${data.displayName}`,
+                    {
+                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsHideInteractionLoading(false);
+        }
+    };
+
     return {
+        handleDismissInteraction,
         handleViewInteraction,
         handleFollowInteraction,
-        handleLikeInteraction
+        handleLikeInteraction,
+        handleHideInteraction
     };
 };
