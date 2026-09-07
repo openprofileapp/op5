@@ -42,14 +42,14 @@ async function postInteractionEvent(
         if (isOwner) {
             if (type === "follows") {
                 throw new AdvancedError({
-                    code: 403,
+                    code: 422,
                     message: i18n.t("responses.ownerInteraction.follow")
                 });
             }
             
             if (type === "likes") {
                 throw new AdvancedError({
-                    code: 403,
+                    code: 422,
                     message: i18n.t("responses.ownerInteraction.like")
                 });
             }
