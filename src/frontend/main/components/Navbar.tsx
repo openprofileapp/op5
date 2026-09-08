@@ -387,6 +387,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                     <div className="ring-primary ring-offset-base-100 h-8 w-8 rounded-full">
                                         <img src={`https://${config.domains.cdn}${user.avatar}`} />
                                     </div>
+                                    {/* Add fanflairs here */}
                                 </button>
                                 <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 font-nerdfont text-base text-premium pointer-events-none">
                                     
