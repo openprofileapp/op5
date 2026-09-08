@@ -229,11 +229,91 @@ export const useInteractions = () => {
         }
     };
 
+    const handleRestrictInteraction = async (
+        data: GetAssetType,
+        isRestricted: boolean,
+        isRestrictInteractionLoading: boolean,
+        setIsRestricted: Dispatch<SetStateAction<boolean>>,
+        setIsRestrictInteractionLoading: (loading: boolean) => void
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isRestrictInteractionLoading) return false;
+
+        setIsRestrictInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "restricts");
+
+            if (response.ok) {
+                setIsRestricted(!isRestricted);
+
+                toast.show(
+                    `${t("words.You")} ${isRestricted ? t("words.unrestricted") : t("words.restricted")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
+                    { icon: isRestricted ? "" : "", type: isRestricted ? "info" : "error" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} ${isRestricted ? t("words.unrestrict") : t("words.restrict")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
+                    {
+                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsRestrictInteractionLoading(false);
+        }
+    };
+
+    const handleBlockInteraction = async (
+        data: GetAssetType,
+        isBlocked: boolean,
+        isBlockInteractionLoading: boolean,
+        setIsBlocked: Dispatch<SetStateAction<boolean>>,
+        setIsBlockInteractionLoading: (loading: boolean) => void
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isBlockInteractionLoading) return false;
+
+        setIsBlockInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "blocks");
+
+            if (response.ok) {
+                setIsBlocked(!isBlocked);
+
+                toast.show(
+                    `${t("words.You")} ${isBlocked ? t("words.unblocked") : t("words.blocked")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
+                    { icon: isBlocked ? "" : "", type: isBlocked ? "info" : "error" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} ${isBlocked ? t("words.unblock") : t("words.block")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
+                    {
+                        subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsBlockInteractionLoading(false);
+        }
+    };
+
     return {
         handleDismissInteraction,
         handleViewInteraction,
         handleFollowInteraction,
         handleLikeInteraction,
-        handleHideInteraction
+        handleHideInteraction,
+        handleRestrictInteraction,
+        handleBlockInteraction
     };
 };
