@@ -16,6 +16,7 @@ export type WhatIsType = {
     id: string;
     ownerId?: string;
     displayName?: string;
+    primaryUsername?: string;
     avatar?: string;
     type: AssetNameType;
     tags: string[];
@@ -43,6 +44,7 @@ function formatReturnData(
         id: data.id,
         ...(type !== "USER" && "owner" in data && { ownerId: data.owner.id }),
         displayName: data.displayName,
+        primaryUsername: ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) as string,
         avatar: data.avatar,
         type: type,
         tags: data.tags,
@@ -68,17 +70,18 @@ function formatReturnData(
  * console.log(AssetNameType); 
  * // {
  * //   id: "00000000000000000"
- * //   ownerId?: "00000000000000000"
- * //   displayName?: "Test"
- * //   avatar?: "/avatars/00000000000000000/hash.png"
+ * //   ownerId: "00000000000000000"
+ * //   displayName: "Test"
+ * //   primaryUsername: "test"
+ * //   avatar: "/avatars/00000000000000000/hash.png"
  * //   type: "USER"
  * //   tags: ["author", "writer"]
  * //   createdDate: "2026-01-01T00:00:00Z";
- * //   updatedDate?: "2026-01-01T00:00:00Z";
+ * //   updatedDate: "2026-01-01T00:00:00Z";
  * //   isPremium: true
  * //   isVerified: true
  * //   isPromoted: false
- * //   isOfficial": true
+ * //   isOfficial: true
  * // }
  * ```
  */
