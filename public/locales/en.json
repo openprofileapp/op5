@@ -127,7 +127,8 @@
     "unblock": "unblock",
     "Unblock": "Unblock",
     "blocked": "blocked",
-    "unblocked": "unblocked"
+    "unblocked": "unblocked",
+    "fanflair": "fanflair"
   },
   "time": {
     "hour1": "1 Hour",
@@ -138,7 +139,8 @@
   "defaults": {
     "noCharacterAbout": "This character does not have an overview.",
     "noUserAbout": "This user does not have an overview.",
-    "noFriendView": "as a friend to view their profile."
+    "noFriendView": "as a friend to view their profile.",
+    "noFanflair": "Fanflairs are not yet available."
   },
   "components": {
     "menus": {
