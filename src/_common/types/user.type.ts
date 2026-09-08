@@ -7,12 +7,20 @@ import { GetNotificationCollection } from "./notification.type.js";
 import { GetUsernameType } from "./username.type.js";
 import { VisibilityType } from "./visibility.type.js";
 
+export type PresenceType =
+    | "online"
+    | "idle"
+    | "dnd"
+    | "offline"
+;
+
 export type UserType = {
     algorithmScore: string;
     id: string;
     displayName?: string;
     fanflair: string;
     avatar?: string;
+    animatedAvatar?: string;
     banner?: string;
     status?: string;
     about?: string;
@@ -33,9 +41,10 @@ export type UserType = {
     isSensitive: boolean;
     isMature: boolean;
     visibility: VisibilityType;
+    areFriendRequestsEnabled: boolean;
     sendMessages: string;
     sendComments: string;
-    presence: string;
+    presence: PresenceType;
     presenceVisibility: VisibilityType;
     lastActive: string;
     createdDate: string;
