@@ -1,12 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
-import { DateTime } from "luxon";
 
 import { cdnBaseUrl } from "../../scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
+import Badges from "../Badges.js";
+import { formatShortRelative } from "../../scripts/time.js";
 
 export interface CharacterModalRef {
     open: (data: GetPublishedCharacterItemType) => void;
@@ -14,7 +15,7 @@ export interface CharacterModalRef {
 }
 
 const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
-    const { ready: isTranslationReady } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
     const [data, setData] = useState<GetPublishedCharacterItemType>();
@@ -58,33 +59,6 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
         : {
             border: "1px solid #222222",
         };
-
-    function relativeDate(dateInput?: string | number | Date): string {
-        if (!dateInput) return "N/A";
-
-        let dt: DateTime;
-
-        if (typeof dateInput === "number") {
-            dt = DateTime.fromMillis(dateInput);
-        } else if (typeof dateInput === "string") {
-            dt = DateTime.fromISO(dateInput);
-        } else {
-            dt = DateTime.fromJSDate(dateInput);
-        }
-
-        dt = dt.toLocal();
-
-        if (!dt.isValid) return "N/A";
-
-        const now = DateTime.now();
-        const diffHours = Math.abs(now.diff(dt, "hours").hours);
-
-        if (diffHours < 48) {
-            return dt.toRelative({ style: "short" }) ?? "Just now";
-        }
-
-        return dt.toFormat("LLLL d, yyyy");
-    }
 
     return (
         <dialog 
@@ -155,7 +129,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {loading ? (
                                         <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                                     ) : (
-                                        relativeDate(data.createdDate)
+                                        formatShortRelative(data.createdDate)
                                     )}
                                 </div>
 
@@ -170,7 +144,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {loading ? (
                                         <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                                     ) : (
-                                        relativeDate(data.updatedDate)
+                                        formatShortRelative(data.updatedDate)
                                     )}
                                 </div>
                             </div>
@@ -246,25 +220,11 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {data.displayName}
                                 </h1>
 
-                                {data.owner?.badges?.some(badge => badge.type === "VERIFIED") && (
-                                    <div className="z-30 mr-3 relative font-normal tooltip tooltip-bottom tooltip-accent shrink-0">
-                                        <a 
-                                            href={`https://${window.config.domains.support}/en-us/articles/verification`} 
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <svg className="text-accent" width="22" height="22" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/>
-                                                <path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="#ffffff"/>
-                                            </svg>
-                                        </a>
-                                        <div className="tooltip-content z-30">
-                                            <div className="font-bold">Official Profile</div>
-                                            <div className="text-xs">This profile is managed by its intellectual property owners or authorized individuals.</div>
-                                        </div>
-                                    </div>
-                                )}
+                                <Badges 
+                                    data={data}
+                                    assetType={"CHARACTER"}
+                                    largeIcons={true}
+                                />
                             </div>
                         )}
 
@@ -277,7 +237,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             ) : (
                                 <div className="flex flex-col gap-1">
                                     <span className="text-sm leading-relaxed">
-                                        {data.about}
+                                        {data.about || t("defaults.noCharacterAbout")}
                                     </span>
                                 </div>
                             )}
