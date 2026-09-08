@@ -19,7 +19,6 @@ import pinRoutes from "./routes/pin.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
 import interactionRoutes from "./routes/interaction.routes.js";
 import webPushRoute from "./routes/webPush.route.js";
-import statisticsRoute from "./routes/statistics.route.js";
 import auditRoute from "./routes/audit.route.js";
 import usernamesRoute from "./routes/usernames.route.js";
 import postregisterRoute from "./routes/postregister.route.js";
@@ -113,13 +112,6 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(8), 
     webPushRoute
-);
-
-v3.use(
-    "/statistics", 
-    fetchSessionMiddleware, 
-    rateLimitMiddleware(240), 
-    statisticsRoute
 );
 
 v3.use(

@@ -4,6 +4,7 @@ import { ExperimentsNameType } from "./experiment.type.js";
 import { GetInteractionCollection } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
 import { GetNotificationCollection } from "./notification.type.js";
+import { StatisticsType } from "./statistics.type.js";
 import { GetUsernameType } from "./username.type.js";
 import { VisibilityType } from "./visibility.type.js";
 
@@ -60,6 +61,7 @@ export type GetUserItemType = Omit<
     flags: ExperimentsNameType[];
     links?: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
+    statistics :Partial<StatisticsType>
     collections?: CollectionType[]
     notifications: GetNotificationCollection;
 };

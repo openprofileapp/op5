@@ -95,6 +95,7 @@ export default function getUsersService({
     const trendingWhereClause = sortBy === "trending" ? "AND trendingStats.target IS NOT NULL" : "";
 
     const isHomePage = Boolean(getAs && getFrom === "home");
+    
     // DEVELOPER NEEDED: If not added to any collection either
     const homeClause = isHomePage && sortBy !== "recent"
         ? `AND NOT EXISTS (
@@ -466,6 +467,55 @@ export default function getUsersService({
         const isDelegated = Boolean(hasDelegatedAccounts && delegatedAccounts.includes(row.id as string));
         const hasFullAccess = isOwner || isDelegated || hasDirectViewPermission;
 
+        let statistics = {
+            followers: 0,
+            likes: 0,
+            reads: 0,
+            shares: 0,
+            views: 0
+        };
+
+        const characterIdsResult = db.characters.query(
+            "SELECT id FROM published WHERE ownerId = ?", 
+            [row.id]
+        );
+
+        assertDbSuccess(characterIdsResult);
+
+        const characterIds = (characterIdsResult.rows as { id: string }[]).map(c => c.id);
+
+        if (characterIds.length > 0) {
+            const placeholders = characterIds.map(() => "?").join(",");
+
+            const contentResult = db.interactions.query<{
+                followers: number;
+                likes: number;
+                reads: number;
+                shares: number;
+                views: number;
+            }>(
+                `SELECT 
+                    (SELECT COUNT(*) FROM follows WHERE target IN (${placeholders})) AS followers,
+                    (SELECT COUNT(*) FROM likes WHERE target IN (${placeholders})) AS likes,
+                    (SELECT COUNT(*) FROM reads WHERE target IN (${placeholders})) AS reads,
+                    (SELECT COUNT(*) FROM shares WHERE target IN (${placeholders})) AS shares,
+                    (SELECT COUNT(*) FROM views WHERE target IN (${placeholders})) AS views`,
+                Array(5).fill(characterIds).flat()
+            );
+
+            assertDbSuccess(contentResult);
+
+            if (contentResult.rows.length > 0) {
+                statistics = {
+                    followers: Number(contentResult.rows[0].followers) || 0,
+                    likes: Number(contentResult.rows[0].likes) || 0,
+                    reads: Number(contentResult.rows[0].reads) || 0,
+                    shares: Number(contentResult.rows[0].shares) || 0,
+                    views: Number(contentResult.rows[0].views) || 0
+                };
+            }
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formattedRow: any = {
             ...row,
@@ -476,20 +526,17 @@ export default function getUsersService({
             links: parseJson(row.links),
             flags: ExperimentsService.decode(row.flags as string),
             interactions: parseJson(row.interactions),
-            notifications: parseJson(row.notifications)
+            statistics,
+            notifications: parseJson(row.notifications),
         };
 
         delete formattedRow.isFriendOut;
         delete formattedRow.isFriendIn;
 
         if (!internalPermissionsBypass) {
-            if (!isOwner) {
-                delete formattedRow.notifications;
-            }
-
             if (!isOwner && formattedRow.interactions) {
-                delete formattedRow.interactions.blocks;
-                delete formattedRow.interactions.restricts;
+                delete formattedRow.interactions.blocks.count;
+                delete formattedRow.interactions.restricts.count;
             }
 
             const canViewField = (visibilitySetting?: string) => {
