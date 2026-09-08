@@ -112,7 +112,22 @@
     "Online": "Online",
     "Idle": "Idle",
     "DND": "Do Not Disturb",
-    "LastActive": "Last Active"
+    "LastActive": "Last Active",
+    "Message": "Message",
+    "Edit": "Edit",
+    "AddFriend": "Add Friend",
+    "Restrict": "Restrict",
+    "Block": "Block",
+    "restrict": "restrict",
+    "unrestrict": "unrestrict",
+    "Unrestrict": "Unrestrict",
+    "restricted": "restricted",
+    "unrestricted": "unrestricted",
+    "block": "block",
+    "unblock": "unblock",
+    "Unblock": "Unblock",
+    "blocked": "blocked",
+    "unblocked": "unblocked"
   },
   "time": {
     "hour1": "1 Hour",
@@ -130,6 +145,7 @@
       "context": {
         "viewInStudio": "View in Studio",
         "chatComingSoon": "Chat (coming soon)",
+        "messageComingSoon": "Message (coming soon)",
         "addToCollection": "Add to Collection",
         "newCollection": "New Collection"
       }
@@ -153,6 +169,7 @@
       "limitedName": "Private Profile"
     },
     "cards": {
+      "isBlocked": "Blocked User",
       "isSensitive": "Sensitive Content",
       "isMature": "Mature Content",
       "clickToReveal": "Click to Reveal",
@@ -167,13 +184,13 @@
       "save": "Save",
       "captchaHeader": "Are you a robot?",
       "limit": {
-        "subtext": "will not be able to:",
+        "subtextTopOne": "will not be able to:",
+        "subtextTopTwo": "will be able to:",
         "messagesTitle": "Send you private messages.",
         "messagesSubtext": "Existing conversations can still be read.",
         "subtextTwo": "may still be able to:"
       },
       "block": {
-        "title": "Block",
         "rowOneTitleStaff": "Interact with your account or publications.",
         "rowOneTitle": "View or interact with your account or publications.",
         "rowOneSubtext": "This will remove or hide existing interactions.",
@@ -187,7 +204,6 @@
         "result": "You blocked"
       },
       "restrict": {
-        "title": "Restrict",
         "rowOneTitle": "Comment on your publications.",
         "rowOneSubtext": "This will not remove existing comments.",
         "rowThreeTitle": "Send you friend requests.",
@@ -234,6 +250,7 @@
         "title": "Manage Notifications",
         "subtext": "You will get notifed when",
         "rowOneTitle": "Gets an update or publication change.",
+        "rowOneTitleUser": "Publishes new content.",
         "rowOneSubtext": "This does not change how it appears on your feed.",
         "rowTwoTitle": "Has collaborators assigned or revoked.",
         "rowTwoSubtext": "This only applies to collaborators made public by the owner.",
