@@ -1,14 +1,12 @@
 export type BadgeNameType =
-    | "CONTRIBUTOR"
-    | "ENTOMOLOGIST"
     | "OFFICIAL"
     | "PARTNER"
-    | "PRECURSOR"
     | "PREMIUM"
     | "PROMOTED"
     | "STAFF"
     | "UNOFFICIAL"
     | "VERIFIED"
+    | "LIMITED"
 ;
 
 export type BadgeType = {
