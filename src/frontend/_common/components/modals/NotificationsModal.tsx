@@ -58,7 +58,10 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
     };
 
     useImperativeHandle(ref, () => ({
-        open: (data, setNotificationSubscriptions) => {
+        open: (
+            data, 
+            setNotificationSubscriptions
+        ) => {
             setData(data);
             setNotificationSubscriptionsRef.current = setNotificationSubscriptions;
 
@@ -124,49 +127,56 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
                 </p>
                 
                 <div className="flex gap-5 pb-8 pt-4 flex-col">
-                    <div className="flex gap-6 flex-row items-center">
-                        <label className="shrink-0">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                checked={isContentSelected}
-                                onChange={(e) => {
-                                    setIsContentSelected(e.target.checked);
-                                }}
-                            />
-                        </label>
-                        <div>
-                            {t("components.modals.notifications.rowOneTitle")}
+                    {("owner" in data || window.session.userId !== data.id) && (
+                        <div className="flex gap-6 flex-row items-center">
+                            <label className="shrink-0">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={isContentSelected}
+                                    onChange={(e) => {
+                                        setIsContentSelected(e.target.checked);
+                                    }}
+                                />
+                            </label>
+                            <div>
+                                {"owner" in data
+                                    ? t("components.modals.notifications.rowOneTitle")
+                                    : t("components.modals.notifications.rowOneTitleUser")
+                                }
+                                
+                                <br/>
 
-                            <br/>
-
-                            <span className="text-sub text-xs">
-                                {t("components.modals.notifications.rowOneSubtext")}
-                            </span>
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.notifications.rowOneSubtext")}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex gap-6 flex-row items-center">
-                        <label className="shrink-0">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                checked={isCollaborationSelected}
-                                onChange={(e) => {
-                                    setIsCollaborationSelected(e.target.checked);
-                                }}
-                            />
-                        </label>
-                        <div>
-                            {t("components.modals.notifications.rowTwoTitle")}
+                    {"owner" in data && (
+                        <div className="flex gap-6 flex-row items-center">
+                            <label className="shrink-0">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={isCollaborationSelected}
+                                    onChange={(e) => {
+                                        setIsCollaborationSelected(e.target.checked);
+                                    }}
+                                />
+                            </label>
+                            <div>
+                                {t("components.modals.notifications.rowTwoTitle")}
 
-                            <br/>
+                                <br/>
 
-                            <span className="text-sub text-xs">
-                                {t("components.modals.notifications.rowTwoSubtext")}
-                            </span>
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.notifications.rowTwoSubtext")}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {isOwner && (
                         <div className="flex gap-6 flex-row items-center">
@@ -192,27 +202,29 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
                         </div>
                     )}
 
-                    <div className="flex gap-6 flex-row items-center">
-                        <label className="shrink-0">
-                            <input
-                                type="checkbox"
-                                className="checkbox"
-                                checked={isCommentsSelected}
-                                onChange={(e) => {
-                                    setIsCommentsSelected(e.target.checked);
-                                }}
-                            />
-                        </label>
-                        <div>
-                            {t("components.modals.notifications.rowFourTitle")}
+                    {"owner" in data && (
+                        <div className="flex gap-6 flex-row items-center">
+                            <label className="shrink-0">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={isCommentsSelected}
+                                    onChange={(e) => {
+                                        setIsCommentsSelected(e.target.checked);
+                                    }}
+                                />
+                            </label>
+                            <div>
+                                {t("components.modals.notifications.rowFourTitle")}
 
-                            <br/>
+                                <br/>
 
-                            <span className="text-sub text-xs">
-                                {t("components.modals.notifications.rowFourSubtext")}
-                            </span>
+                                <span className="text-sub text-xs">
+                                    {t("components.modals.notifications.rowFourSubtext")}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="pt-2 flex gap-2 flex-row relative">

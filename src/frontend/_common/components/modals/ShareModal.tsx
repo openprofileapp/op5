@@ -5,12 +5,13 @@ import JSZip from "jszip";
 
 import { cdnBaseUrl } from "../../scripts/domains.js";
 import { toast } from "../../scripts/toast.js";
-import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import { formatNumber } from "kage-library/client";
 import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
+import Badges from "../Badges.js";
+import { GetAssetType } from "../../../../_common/types/asset.type.js";
 
 export interface ShareModalRef {
-    open: (data: GetPublishedCharacterItemType) => void;
+    open: (data: GetAssetType) => void;
     close: () => void;
 }
 
@@ -124,7 +125,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const cardRef = useRef<HTMLDivElement | null>(null);
 
-    const [data, setData] = useState<GetPublishedCharacterItemType>();
+    const [data, setData] = useState<GetAssetType>();
     const [loading, setLoading] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloadingType, setDownloadingType] = useState<"single" | "all" | null>(null);
@@ -139,7 +140,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
     };
 
     useImperativeHandle(ref, () => ({
-        open: (data: GetPublishedCharacterItemType) => {
+        open: (data: GetAssetType) => {
             setData(data);
             setLoading(false);
 
@@ -291,7 +292,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
         </div>
     );
 
-    const auraStyle: React.CSSProperties = data.isAuraEnabled
+    const auraStyle: React.CSSProperties = "isAuraEnabled" in data && data.isAuraEnabled
         ? {
             ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
             ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
@@ -366,13 +367,17 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        {/* DEVELOPER NEEDED: Add unofficial and verified badges here */}
-                                                                        <h1 className={`font-extrabold leading-tight truncate ${currentPreset.smallText ? "text-sm" : "text-base"}`}>
+                                                                        <h1 className={`flex items-center gap-2 font-extrabold leading-tight truncate ${currentPreset.smallText ? "text-sm" : "text-base"}`}>
                                                                             {data.displayName}
+
+                                                                            <Badges 
+                                                                                data={data} 
+                                                                                assetType={"owner" in data ? "CHARACTER" : "USER"} 
+                                                                            />
                                                                         </h1>
 
                                                                         <span className={`block text-sub truncate ${currentPreset.smallText ? "text-[10px]" : "text-xs"}`}>
-                                                                            {data.owner?.displayName || data.owner?.username || data.owner?.id}
+                                                                            {"owner" in data ? "" : "@"}{("owner" in data && data.owner?.displayName) || ("owner" in data && data.owner?.username) || ("owner" in data && data.owner?.id) || ("usernames" in data && data.usernames?.find(u => u.isPrimary)?.username) || data.id}
                                                                         </span>
                                                                     </>
                                                                 )}
@@ -401,13 +406,17 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    {/* DEVELOPER NEEDED: Add unofficial and verified badges here */}
-                                                                    <h1 className={`font-extrabold leading-tight ${currentPreset.smallText ? "text-sm" : "text-lg"}`}>
+                                                                    <h1 className={`flex items-center gap-2 font-extrabold leading-tight ${currentPreset.smallText ? "text-sm" : "text-lg"}`}>
                                                                         {data.displayName}
+
+                                                                        <Badges 
+                                                                            data={data} 
+                                                                            assetType={"owner" in data ? "CHARACTER" : "USER"} 
+                                                                        />
                                                                     </h1>
 
                                                                     <span className={`block text-sub ${currentPreset.smallText ? "text-[10px]" : "text-xs"}`}>
-                                                                        {data.owner?.displayName || data.owner?.username || data.owner?.id}
+                                                                            {"owner" in data ? "" : "@"}{("owner" in data && data.owner?.displayName) || ("owner" in data && data.owner?.username) || ("owner" in data && data.owner?.id) || ("usernames" in data && data.usernames?.find(u => u.isPrimary)?.username) || data.id}
                                                                     </span>
                                                                 </>
                                                             )}
@@ -429,7 +438,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                                     </span>
 
                                                     <span className={`truncate font-semibold ${currentPreset.smallText ? "text-[8px]" : "text-[11px]"}`}>
-                                                        {formatNumber(data.interactions?.views?.count || 0).short}
+                                                        {formatNumber((data.interactions?.views?.count || 0) + ("statistics" in data && data.statistics?.views || 0) || 0).short}
                                                     </span>
                                                 </div>
 
@@ -439,7 +448,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                                     </span>
 
                                                     <span className={`truncate font-semibold ${currentPreset.smallText ? "text-[8px]" : "text-[11px]"}`}>
-                                                        {formatNumber(data.interactions?.reads?.count || 0).short}
+                                                        {formatNumber((data.interactions?.reads?.count || 0) || ("statistics" in data && data.statistics?.reads || 0)).short}
                                                     </span>
                                                 </div>
 
@@ -449,7 +458,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                                     </span>
 
                                                     <span className={`truncate font-semibold ${currentPreset.smallText ? "text-[8px]" : "text-[11px]"}`}>
-                                                        {formatNumber(data.interactions?.likes?.count || 0).short}
+                                                        {formatNumber((data.interactions?.likes?.count || 0) || ("statistics" in data && data.statistics?.likes || 0)).short}
                                                     </span>
                                                 </div>
                                             </div>
