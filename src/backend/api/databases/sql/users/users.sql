@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     birthdateVisibility TEXT NOT NULL DEFAULT 'private',
     foundedDate TEXT,
     foundedDateVisibility TEXT NOT NULL DEFAULT 'default',
+    location TEXT,
     theme TEXT DEFAULT '4819203746571029',
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,
     auraType TEXT NOT NULL DEFAULT 'flow',
