@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { BadgeNameType, GetBadgeType } from "../../../_common/types/badge.type.js";
 import { cdnBaseUrl, supportBaseUrl } from "../scripts/domains.js";
 import { formatLongRelative } from "../scripts/time.js";
 import { AssetNameType, GetAssetType } from "../../../_common/types/asset.type.js";
+import { Tooltip } from "./Tooltip.js";
 
 type Props = {
     data: GetAssetType;
@@ -42,127 +42,52 @@ function BadgeItem({
 }) {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    const [isHovered, setIsHovered] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
-
-    const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-
-    const triggerRef = useRef<HTMLSpanElement>(null);
-    const enterTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const exitTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        return () => {
-            if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
-            if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-        };
-    }, []);
-
-    const handleMouseEnter = () => {
-        if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-        if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
-
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            setCoords({
-                top: rect.top + 4,
-                left: rect.left + rect.width / 2,
-            });
-        }
-
-        enterTimerRef.current = setTimeout(() => {
-            setIsHovered(true);
-            requestAnimationFrame(() => {
-                setIsVisible(true);
-            });
-        }, 100);
-    };
-
-    const handleMouseLeave = () => {
-        if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
-
-        setIsVisible(false);
-        exitTimerRef.current = setTimeout(() => {
-            setIsHovered(false);
-        }, 100);
-    };
-
-    const getPortalContainer = (): Element => {
-        if (typeof document === "undefined") return null as unknown as Element;
-        
-        const activeDialog = triggerRef.current?.closest("dialog[open], .modal, [role='dialog']");
-        if (activeDialog) {
-            return activeDialog;
-        }
-
-        return document.body;
-    };
-
-    // eslint-disable-next-line react-hooks/refs
-    const portalTarget = getPortalContainer();
-
     if (!isTranslationReady) return null;
 
-    return (
-        <span
-            ref={triggerRef}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onFocus={handleMouseEnter}
-            onBlur={handleMouseLeave}
-            className="relative inline-flex items-center justify-center cursor-pointer focus:outline-none"
-        >
-            {index?.icon ?? <span className="text-lg font-nerdfont leading-none"></span>}
-
-            {isHovered && portalTarget &&
-                createPortal(
-                    <div
-                        className={`fixed pointer-events-none -translate-x-1/2 tooltip tooltip-top tooltip-open [--tooltip-color:theme(colors.base-200)] transition-all duration-150 ease-[cubic-bezier(0,0,0.2,1)] ${
-                            isVisible
-                                ? "opacity-100 -translate-y-full"
-                                : "opacity-0 -translate-y-[calc(100%-8px)]"
-                        }`}
-                        style={{
-                            top: `${coords.top}px`,
-                            left: `${coords.left}px`,
-                        }}
-                    >
-                        <div className="tooltip-content bg-base-200 text-base-content border border-base-300 rounded shadow-2xl flex flex-col max-w-[300px] text-center p-1">
-                            <div className="flex flex-col p-1 gap-2">
-                                {index.graphic && (
-                                    <div className="flex justify-center w-full">
-                                        <img
-                                            className="h-24 w-24 object-contain"
-                                            src={index?.graphic ?? `${cdnBaseUrl}/graphics/${badge.type.toLowerCase()}.png`}
-                                        />
-                                    </div>
-                                )}
-                                <div className="flex flex-col">
-                                    <div className="font-bold text-sm">{index?.name ?? badge.type}</div>
-                                    {badge.comment && (
-                                        <>
-                                            <hr/>
-                                            
-                                            <div className="text-xs text-sub">
-                                                {assetType !== "USER" && badge.type === "VERIFIED" ? (
-                                                    t("components.badges.verifiedComment")
-                                                ) : assetType !== "USER" && badge.type === "UNOFFICIAL" ? (
-                                                    <>
-                                                        {t("components.badges.unofficialCommentPart1")}<br/><br/>{t("components.badges.unofficialCommentPart2")}<br/><strong>{badge.comment}</strong>
-                                                    </>
-                                                ) : (
-                                                    badge.comment
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>,
-                    portalTarget
+    const tooltipContent = (
+        <div className="tooltip-content bg-base-200 text-base-content border border-base-300 rounded shadow-2xl flex flex-col max-w-[300px] text-center p-1">
+            <div className="flex flex-col p-1 gap-2">
+                {index.graphic && (
+                    <div className="flex justify-center w-full">
+                        <img
+                            className="h-24 w-24 object-contain"
+                            src={index?.graphic ?? `${cdnBaseUrl}/graphics/${badge.type.toLowerCase()}.png`}
+                            alt=""
+                        />
+                    </div>
                 )}
-        </span>
+                <div className="flex flex-col">
+                    <div className="font-bold text-sm">{index?.name ?? badge.type}</div>
+                    {badge.comment && (
+                        <>
+                            <hr />
+                            <div className="text-xs text-sub">
+                                {assetType !== "USER" && badge.type === "VERIFIED" ? (
+                                    t("components.badges.verifiedComment")
+                                ) : assetType !== "USER" && badge.type === "UNOFFICIAL" ? (
+                                    <>
+                                        {t("components.badges.unofficialCommentPart1")}
+                                        <br />
+                                        <br />
+                                        {t("components.badges.unofficialCommentPart2")}
+                                        <br />
+                                        <strong>{badge.comment}</strong>
+                                    </>
+                                ) : (
+                                    badge.comment
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <Tooltip content={tooltipContent}>
+            {index?.icon ?? <span className="text-lg font-nerdfont leading-none"></span>}
+        </Tooltip>
     );
 }
 
@@ -175,13 +100,13 @@ export default function Badges({
     const { t, ready: isTranslationReady } = useTranslation();
 
     const badges = [
-        ...(data.badges || []),
-        ...("owner" in data && data.owner?.badges ? data.owner.badges : []),
+        ...(data?.badges || []),
+        ...(data && "owner" in data && data.owner?.badges ? data.owner.badges : []),
     ];
 
     if (
-        data.visibility === "private" ||
-        (data.visibility === "friends" && badges.length === 0)
+        data?.visibility === "private" ||
+        (data?.visibility === "friends" && badges.length === 0)
     ) {
         badges.push({
             type: "LIMITED",
