@@ -27,14 +27,14 @@ export const useInteractions = () => {
                 setIsDismissed(!isDismissed);
 
                 toast.show(
-                    `${t("words.You")} ${t("words.dismissed")} ${data.displayName}`,
+                    `${t("words.You")} ${t("words.dismissed")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     { type: isDismissed ? "info" : "success" }
                 );
 
                 return true;
             } else {
                 toast.show(
-                    `${t("words.FailedTo")} ${t("words.dismiss")} ${data.displayName}`,
+                    `${t("words.FailedTo")} ${t("words.dismiss")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     {
                         subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
                         type: "error",
@@ -123,14 +123,14 @@ export const useInteractions = () => {
                 setFollowCount(prev => (isFollowing ? prev - 1 : prev + 1));
 
                 toast.show(
-                    `${t("words.You")} ${isFollowing ? t("words.unfollowed") : t("words.followed")} ${data.displayName}`,
+                    `${t("words.You")} ${isFollowing ? t("words.unfollowed") : t("words.followed")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     { type: isFollowing ? "info" : "success" }
                 );
 
                 return true;
             } else {
                 toast.show(
-                    `${t("words.FailedTo")} ${isFollowing ? t("words.unfollow") : t("words.follow")} ${data.displayName}`,
+                    `${t("words.FailedTo")} ${isFollowing ? t("words.unfollow") : t("words.follow")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     {
                         subtext: `${is422 ? "" : `${response.id || ""}${response.id ? ": " : ""}` }${response.message}`,
                         type: "error",
@@ -166,14 +166,14 @@ export const useInteractions = () => {
                 setLikeCount(prev => (isLiked ? prev - 1 : prev + 1));
 
                 toast.show(
-                    `${t("words.You")} ${isLiked ? t("words.unliked") : t("words.liked")} ${data.displayName}`,
+                    `${t("words.You")} ${isLiked ? t("words.unliked") : t("words.liked")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     { type: isLiked ? "info" : "success" }
                 );
 
                 return true;
             } else {
                 toast.show(
-                    `${t("words.FailedTo")} ${isLiked ? t("words.unlike") : t("words.like")} ${data.displayName}`,
+                    `${t("words.FailedTo")} ${isLiked ? t("words.unlike") : t("words.like")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     {
                         subtext: `${is422 ? "" : `${response.id || ""}${response.id ? ": " : ""}` }${response.message}`,
                         type: "error",
@@ -206,8 +206,8 @@ export const useInteractions = () => {
 
                 toast.show(
                     `${!isHidden 
-                        ? `${t("components.toasts.notInterested")} ${data.displayName}`
-                        : `${t("components.toasts.interested")} ${data.displayName} ${t("words.again")}`
+                        ? `${t("components.toasts.notInterested")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`
+                        : `${t("components.toasts.interested")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id} ${t("words.again")}`
                     }`,
                     { type: isHidden ? "success" : "info" }
                 );
@@ -215,7 +215,7 @@ export const useInteractions = () => {
                 return true;
             } else {
                 toast.show(
-                    `${t("words.FailedTo")} ${isHidden ? t("words.hide") : t("words.unhide")} ${data.displayName}`,
+                    `${t("words.FailedTo")} ${isHidden ? t("words.hide") : t("words.unhide")} ${data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id}`,
                     {
                         subtext: `${response.id || ""}${response.id ? ": " : ""}${response.message}`,
                         type: "error",
