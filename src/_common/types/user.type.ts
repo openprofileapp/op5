@@ -31,6 +31,7 @@ export type UserType = {
     birthdateVisibility: VisibilityType;
     foundedDate?: string;
     foundedDateVisibility: VisibilityType;
+    location: string;
     theme: string;
     isAuraEnabled: boolean;
     auraType: string;
