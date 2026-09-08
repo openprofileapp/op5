@@ -108,3 +108,24 @@ export function formatShortRelative(dateInput?: string | number | Date): string 
 
     return dt.toFormat("LLLL d, yyyy");
 }
+
+export function isBirthdayToday(dateInput?: string | number | Date): boolean {
+    if (!dateInput) return false;
+
+    let dt: DateTime;
+
+    if (typeof dateInput === "number") {
+        dt = DateTime.fromMillis(dateInput);
+    } else if (typeof dateInput === "string") {
+        dt = DateTime.fromISO(dateInput);
+    } else {
+        dt = DateTime.fromJSDate(dateInput);
+    }
+
+    dt = dt.toLocal();
+
+    if (!dt.isValid) return false;
+
+    const now = DateTime.now();
+    return dt.month === now.month && dt.day === now.day;
+}
