@@ -11,7 +11,7 @@ import Badges from "../../_common/components/Badges.js";
 import Presense from "../../_common/components/Presense.js";
 
 type Props = {
-    data: GetUserItemType
+    data: GetUserItemType;
     isPreview?: boolean;
 };
 
@@ -21,12 +21,9 @@ export default function UserCard({
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    const {
-        handleFollowInteraction
-    } = useInteractions();
+    const { handleFollowInteraction } = useInteractions();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
-
     const [data, setData] = useState<GetUserItemType>(rawData);
 
     const [isSensitive] = useState<boolean>(Boolean(data.isSensitive));
@@ -40,6 +37,13 @@ export default function UserCard({
     const [isHidden, setIsHidden] = useState<boolean>(Boolean(data.interactions?.hides?.hasInteracted));
     const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
+    const [isRestricted, setIsRestricted] = useState<boolean>( Boolean(data.interactions?.restricts?.hasInteracted));
+    const [isRestrictInteractionLoading, setIsRestrictInteractionLoading] = useState<boolean>(false);
+
+    const [isBlocked, setIsBlocked] = useState<boolean>(Boolean(data.interactions?.blocks?.hasInteracted));
+    const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
+    const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
+
     const contextMenuBuilder = ContextMenuBuilder({
         data,
         isContextMenuOpen,
@@ -52,7 +56,15 @@ export default function UserCard({
         isHidden,
         isHideInteractionLoading,
         setIsHidden,
-        setIsHideInteractionLoading
+        setIsHideInteractionLoading,
+        isRestricted,
+        isRestrictInteractionLoading,
+        setIsRestricted,
+        setIsRestrictInteractionLoading,
+        isBlocked,
+        isBlockInteractionLoading,
+        setIsBlocked,
+        setIsBlockInteractionLoading
     });
 
     useEffect(() => {
@@ -75,11 +87,7 @@ export default function UserCard({
         });
     }, [followCount, isFollowing, rawData]);
 
-    if (
-        !data.id ||
-        !isTranslationReady ||
-        !contextMenuBuilder
-    ) return null;
+    if (!data.id || !isTranslationReady || !contextMenuBuilder) return null;
 
     const auraStyle: React.CSSProperties = data.isAuraEnabled
         ? {
@@ -96,11 +104,11 @@ export default function UserCard({
 
     const bannerClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover";
 
-    const Wrapper = !isPreview ? Link : "div";
-
     return (
         <div
-            className={`aura-effect user-card relative p-4 shadow-sm cursor-pointer transition-all duration-100 ${isHidden ? "grayscale opacity-50" : "grayscale-0"}`}
+            className={`aura-effect user-card relative p-4 shadow-sm cursor-pointer transition-all duration-100 ${
+                isHidden ? "grayscale opacity-50" : "grayscale-0"
+            }`}
             style={auraStyle}
             onContextMenu={(e) => {
                 e.preventDefault();
@@ -129,6 +137,41 @@ export default function UserCard({
                 });
             }}
         >
+
+            {!isPreview && (
+                <Link
+                    to={`/user/${primaryUsername || data.id}`}
+                    className="absolute inset-0 z-0 rounded-lg"
+                    aria-label={data.displayName || primaryUsername || data.id}
+                />
+            )}
+
+            {isBlocked && !isBlockRevealed && (
+                <div 
+                    className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsBlockRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isBlocked")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
+            )}
+
             {Boolean(isMature) && !isRevealed && (
                 <div 
                     className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
@@ -181,125 +224,163 @@ export default function UserCard({
                 </div>
             )}
             
-            {/*{!isPreview && 
-                // DEVELOPER NEEDED: Context menu here
-            }*/}
+            {!isPreview && 
+                contextMenuBuilder.items([
+                    window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        contextMenuBuilder.quickActions([
+                            (props) => contextMenuBuilder.view(props),
+                            (props) => contextMenuBuilder.follow(props),
+                            (props) => contextMenuBuilder.message(props),
+                            (props) => contextMenuBuilder.share(props)
+                        ]),
+                    contextMenuBuilder.edit(),
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        window.session.userId === data.id && 
+                        contextMenuBuilder.separator(),
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        contextMenuBuilder.view(),
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        contextMenuBuilder.follow(),
+                    contextMenuBuilder.friend(),
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        contextMenuBuilder.message(),
+                    !isHidden && !isBlocked && 
+                        contextMenuBuilder.separator(),
+                    contextMenuBuilder.notifications(),
+                    contextMenuBuilder.mute(),
+                    isFollowing && window.session.userId !== data.id && 
+                        contextMenuBuilder.separator(),
+                    contextMenuBuilder.notInterested(),
+                    isHidden && 
+                        contextMenuBuilder.separator(),
+                    contextMenuBuilder.restrict(),
+                    contextMenuBuilder.block(),
+                    contextMenuBuilder.report(),
+                    contextMenuBuilder.moderate(),
+                    contextMenuBuilder.manage(),
+                    (Boolean(window.session.user?.isDeveloper) || (!isBlocked && !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR"))) && 
+                        contextMenuBuilder.separator(),
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                        contextMenuBuilder.share(),
+                    contextMenuBuilder.copyId()
+                ].filter(Boolean))
+            }
 
-            <Wrapper to={`/user/${primaryUsername || data.id}`}>
-                <div className="absolute inset-0 group">
-                    <img
-                        className={bannerClassList}
-                        src={data.banner ? `${cdnBaseUrl}${data.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
-                        alt={t("words.banner")}
-                    />
-                </div>
+            <div className="absolute inset-0 group pointer-events-none">
+                <img
+                    className={bannerClassList}
+                    src={data.banner ? `${cdnBaseUrl}${data.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                    alt={t("words.banner")}
+                />
+            </div>
 
-                <div className="absolute top-4 left-4 z-2">
+            <div className="absolute top-4 left-4 z-2 pointer-events-none">
+                <img
+                    className="rounded-full h-21 w-21 object-cover"
+                    src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                    alt={t("words.avatar")}
+                />
+
+                {data.animatedAvatar && (
                     <img
-                        className="rounded-full h-21 w-21 object-cover"
-                        src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                        className="rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
+                        src={data.animatedAvatar}
                         alt={t("words.avatar")}
                     />
+                )}
 
-                    {data.animatedAvatar && (
-                        <img
-                            className="rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
-                            src={data.animatedAvatar}
-                            alt={t("words.avatar")}
-                        />
-                    )}
-
-                    {data.presence && (
+                {data.presence && (
+                    <div className="pointer-events-auto">
                         <Presense
                             data={data} 
                         />
-                    )}
-                </div>
-
-                { data.status && ( 
-                    <>
-                        <div className="absolute glass bg-[#00000085] rounded-full h-3 w-3 top-6.5 left-27 z-1" />
-                        <div className="absolute glass bg-[#00000085] rounded-full h-2 w-2 top-9 left-25 z-1" />
-
-                        <div className="absolute glass bg-[#00000085] rounded-lg p-2 left-30.5 max-w-[289px] z-1">
-                            <div className="text-white text-xs line-clamp-3">
-                                {data.status}
-                            </div>
-                        </div>
-                    </>
+                    </div>
                 )}
+            </div>
 
-                <div className="relative top-22 flex flex-col h-46 w-full z-2">
-                    <div className="flex justify-between gap-2">
-                        <div className="flex min-w-0 items-center overflow-hidden">
-                            <span className="font-bold truncate leading-snug">
-                                {data.displayName || primaryUsername || data.id}
-                            </span>
-                        </div>
+            { data.status && ( 
+                <>
+                    <div className="absolute glass bg-[#00000085] rounded-full h-3 w-3 top-6.5 left-27 z-1 pointer-events-none" />
+                    <div className="absolute glass bg-[#00000085] rounded-full h-2 w-2 top-9 left-25 z-1 pointer-events-none" />
 
-                        {
-                            window.session.userId !== data.id &&
-                            (data.visibility !== "friends" && data.createdDate)
-                        && (
-                            <button
-                                className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
-                                onClick={async (e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-
-                                    await handleFollowInteraction(
-                                        data,
-                                        isFollowing,
-                                        isFollowInteractionLoading,
-                                        setIsFollowing,
-                                        setIsFollowInteractionLoading,
-                                        setFollowCount
-                                    )
-                                }}
-                            >
-                                <span className={`${isFollowInteractionLoading ? "loading" : ""} text-base font-nerdfont w-3`}>
-                                    {isFollowing ? "" : ""}
-                                </span>
-                                {isFollowing ? t("words.Unfollow") : t("words.Follow")}
-                            </button>
-                        )}
-
-                        <div 
-                            className="ml-auto flex shrink-0"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
-                        >
-                            <Badges 
-                                data={data}
-                                assetType={"USER"}
-                                hasBackground={true}
-                            />
+                    <div className="absolute glass bg-[#00000085] rounded-lg p-2 left-30.5 max-w-[289px] z-1 pointer-events-none">
+                        <div className="text-white text-xs line-clamp-3">
+                            {data.status}
                         </div>
                     </div>
+                </>
+            )}
 
-                    <div className="flex min-w-0 mt-1 items-center overflow-hidden">
-                        <span className="truncate text-xs leading-snug">
-                            @{primaryUsername} • {formatNumber(followerCount).short} Follower{followerCount !== 1 && "s"}
+            <div className="relative top-22 flex flex-col h-46 w-full z-2 pointer-events-none">
+                <div className="flex justify-between gap-2">
+                    <div className="flex min-w-0 items-center overflow-hidden">
+                        <span className="font-bold truncate leading-snug">
+                            {data.displayName || primaryUsername || data.id}
                         </span>
                     </div>
 
-                    <div className="text-xs line-clamp-3 my-2">
-                        {(() => {
-                            if (data.visibility === "public") {
-                                return data.about || t("defaults.noUserAbout");
-                            }
-                            
-                            if (data.visibility === "friends" && !data.about) {
-                                return `${t("words.Add")} ${data.displayName || primaryUsername || data.id} ${t("defaults.noFriendView")}`;
-                            }
+                    {
+                        window.session.userId !== data.id &&
+                        (data.visibility !== "friends" && data.createdDate)
+                    && (
+                        <button
+                            className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase pointer-events-auto"
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
 
-                            return null;
-                        })()}
+                                await handleFollowInteraction(
+                                    data,
+                                    isFollowing,
+                                    isFollowInteractionLoading,
+                                    setIsFollowing,
+                                    setIsFollowInteractionLoading,
+                                    setFollowCount
+                                )
+                            }}
+                        >
+                            <span className={`${isFollowInteractionLoading ? "loading" : ""} text-base font-nerdfont w-3`}>
+                                {isFollowing ? "" : ""}
+                            </span>
+                            {isFollowing ? t("words.Unfollow") : t("words.Follow")}
+                        </button>
+                    )}
+
+                    <div 
+                        className="ml-auto flex shrink-0 pointer-events-auto"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                    >
+                        <Badges 
+                            data={data}
+                            assetType={"USER"}
+                            hasBackground={true}
+                        />
                     </div>
                 </div>
-            </Wrapper>
+
+                <div className="flex min-w-0 mt-1 items-center overflow-hidden">
+                    <span className="truncate text-xs leading-snug">
+                        @{primaryUsername} • {formatNumber(followerCount).short} Follower{followerCount !== 1 && "s"}
+                    </span>
+                </div>
+
+                <div className="text-xs line-clamp-3 my-2">
+                    {(() => {
+                        if (data.visibility === "public") {
+                            return data.about || t("defaults.noUserAbout");
+                        }
+                        
+                        if (data.visibility === "friends" && !data.about) {
+                            return `${t("words.Add")} ${data.displayName || primaryUsername || data.id} ${t("defaults.noFriendView")}`;
+                        }
+
+                        return null;
+                    })()}
+                </div>
+            </div>
         </div>
     );
 }
