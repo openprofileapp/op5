@@ -37,7 +37,7 @@ export default function UserCard({
     const [isHidden, setIsHidden] = useState<boolean>(Boolean(data.interactions?.hides?.hasInteracted));
     const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
-    const [isRestricted, setIsRestricted] = useState<boolean>( Boolean(data.interactions?.restricts?.hasInteracted));
+    const [isRestricted, setIsRestricted] = useState<boolean>(Boolean(data.interactions?.restricts?.hasInteracted));
     const [isRestrictInteractionLoading, setIsRestrictInteractionLoading] = useState<boolean>(false);
 
     const [isBlocked, setIsBlocked] = useState<boolean>(Boolean(data.interactions?.blocks?.hasInteracted));
@@ -100,7 +100,6 @@ export default function UserCard({
         };
     
     const primaryUsername = data.usernames.find(u => u.isPrimary)?.username;
-    const followerCount = data.interactions?.follows?.count || 0;
 
     const bannerClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover";
 
@@ -274,23 +273,35 @@ export default function UserCard({
                 />
             </div>
 
-            <div className="absolute top-4 left-4 z-2 pointer-events-none">
+           <div className="absolute z-2 pointer-events-none h-26 w-26">
+                {(
+                    data?.id === "5719552362357773" ||
+                    data?.id === "5019646586243236"
+                ) && (
+                    // DEVELOPER NEEDED: Disable id override and add fanflairs
+                    <img
+                        className="absolute top-[-9px] left-[-9px] h-25 w-25 z-2 object-contain"
+                        src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                        alt={t("words.fanflair")}
+                    />
+                )}
+
                 <img
-                    className="rounded-full h-21 w-21 object-cover"
+                    className="absolute rounded-full h-21 w-21 object-cover"
                     src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
                     alt={t("words.avatar")}
                 />
 
                 {data.animatedAvatar && (
                     <img
-                        className="rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
+                        className="absolute rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
                         src={data.animatedAvatar}
                         alt={t("words.avatar")}
                     />
                 )}
 
                 {data.presence && (
-                    <div className="pointer-events-auto">
+                    <div className="pointer-events-auto absolute bottom-5 right-5">
                         <Presense
                             data={data} 
                         />
@@ -363,7 +374,7 @@ export default function UserCard({
 
                 <div className="flex min-w-0 mt-1 items-center overflow-hidden">
                     <span className="truncate text-xs leading-snug">
-                        @{primaryUsername} • {formatNumber(followerCount).short} Follower{followerCount !== 1 && "s"}
+                        @{primaryUsername} • {formatNumber(followCount).short} Follower{followCount !== 1 && "s"}
                     </span>
                 </div>
 
