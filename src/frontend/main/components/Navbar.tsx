@@ -431,9 +431,10 @@ export default function Navbar({ isBannerPage = false }: Props) {
                         id="account-dropdown"
                     >
                         <li>
+                            {/* On click, close menu */}
                             <Link 
                                 className="flex items-center justify-between gap-4" 
-                                to={`/${user.usernames[0].username}`}
+                                to={`/user/${user.usernames?.find(u => u.isPrimary)?.username || user.id}`}
                             >
                                 View Profile
                                 <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
