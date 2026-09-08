@@ -1,409 +1,305 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { formatNumber } from "kage-library/client"
-import Badges from "./Badges.js";
-import { GetBadgeType } from "../../../_common/types/badge.type.js";
+import { formatNumber } from "kage-library/client";
+
+import { GetUserItemType } from "../../../_common/types/user.type.js";
+import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
+import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
+import { cdnBaseUrl } from "../../_common/scripts/domains.js";
+import Badges from "../../_common/components/Badges.js";
+import Presense from "../../_common/components/Presense.js";
 
 type Props = {
+    data: GetUserItemType
     isPreview?: boolean;
-    id?: string;
-    aura?: {
-        isEnabled?: boolean;
-        type?: string;
-        primary?: string;
-        secondary?: string;
-    };
-    avatar?: string;
-    banner?: string;
-    displayName?: string;
-    username?: string;
-    status?: string;
-    badges?: GetBadgeType[];
-    about?: string;
-    isMature?: boolean;
-    visibility?: string;
-    interactions?: {
-        views?: {
-            count?: number,
-            interacted?: boolean
-        },
-        follows?: {
-            count?: number,
-            interacted?: boolean
-        },
-        profiles?: {
-            count?: number,
-            interacted?: boolean
-        },
-        fanflairs?: {
-            count?: number,
-            interacted?: boolean
-        }
-    },
-    notification?: {
-        isActive?: boolean,
-        time?: string
-    }
 };
 
-let index = 1;
-
 export default function UserCard({
-    isPreview = false,
-    id,
-    aura,
-    avatar,
-    banner,
-    displayName,
-    username,
-    status,
-    badges,
-    about,
-    isMature,
-    visibility,
-    interactions,
-    notification
+    data: rawData,
+    isPreview = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!isTranslationReady) return null;
+    const {
+        handleFollowInteraction
+    } = useInteractions();
 
-    index++
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
 
-    const Component = !isPreview ? Link : "div";
+    const [data, setData] = useState<GetUserItemType>(rawData);
 
-    const auraStyle = aura?.isEnabled
-        ? 
-            {
-                ["--aura-type" as string]:
-                    // eslint-disable-next-line no-constant-binary-expression
-                    `aura-${aura?.type}-user` || "aura-flow-user",
+    const [isSensitive] = useState<boolean>(Boolean(data.isSensitive));
+    const [isMature] = useState<boolean>(Boolean(data.isMature));
+    const [isRevealed, setIsRevealed] = useState<boolean>(false);
 
-                ["--aura-primary" as string]:
-                    aura.primary || "var(--color-accent)",
+    const [isFollowing, setIsFollowing] = useState<boolean>(Boolean(data.interactions?.follows?.hasInteracted));
+    const [followCount, setFollowCount] = useState<number>(data.interactions?.follows?.count || 0);
+    const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState<boolean>(false);
 
-                ["--aura-secondary" as string]:
-                    aura.secondary || "var(--color-accent)",
-            }
-        : 
-            {
-                border: "1px solid #222222",
-            }
-        ;
+    const [isHidden, setIsHidden] = useState<boolean>(Boolean(data.interactions?.hides?.hasInteracted));
+    const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
-    let formattedAbout;
+    const contextMenuBuilder = ContextMenuBuilder({
+        data,
+        isContextMenuOpen,
+        setIsContextMenuOpen,
+        isFollowing,
+        isFollowInteractionLoading,
+        setIsFollowing,
+        setIsFollowInteractionLoading,
+        setFollowCount,
+        isHidden,
+        isHideInteractionLoading,
+        setIsHidden,
+        setIsHideInteractionLoading
+    });
 
-    if (visibility === "public") {
-        formattedAbout = about || "This user does not have an about me.";
-    } else if (visibility === "followers") {
-        formattedAbout = `Follow ${name} to view their about me.`;
-    } else if (visibility === "friends") {
-        formattedAbout = `Add ${name} as a friend to view their about me.`;
-    }
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setData((prevData) => {
+            const currentData = prevData ?? rawData;
+            if (!currentData) return currentData;
 
-    {/* Url for images are only cdn usernames, not the domain. Fix code below */}
+            return {
+                ...currentData,
+                interactions: {
+                    ...currentData.interactions,
+                    follows: {
+                        ...currentData.interactions?.follows,
+                        count: followCount,
+                        hasInteracted: isFollowing,
+                    }
+                },
+            } as GetUserItemType;
+        });
+    }, [followCount, isFollowing, rawData]);
 
     if (
-        !id && !isPreview 
-    ) {
-        return;
-    }
+        !data.id ||
+        !isTranslationReady ||
+        !contextMenuBuilder
+    ) return null;
+
+    const auraStyle: React.CSSProperties = data.isAuraEnabled
+        ? {
+            ["--aura-type" as string]: `aura-${data.auraType || "flow"}`,
+            ["--aura-primary" as string]: data.auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: data.auraSecondary || "var(--color-accent)",
+        }
+        : {
+            border: "1px solid #222222",
+        };
+    
+    const primaryUsername = data.usernames.find(u => u.isPrimary)?.username;
+    const followerCount = data.interactions?.follows?.count || 0;
+
+    const bannerClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover";
+
+    const Wrapper = !isPreview ? Link : "div";
 
     return (
         <div
-            className={`user-card relative p-4 shadow-sm ${!isPreview ? "cursor-pointer" : ""} z-${index}`}
+            className={`aura-effect user-card relative p-4 shadow-sm cursor-pointer transition-all duration-100 ${isHidden ? "grayscale opacity-50" : "grayscale-0"}`}
             style={auraStyle}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                setIsContextMenuOpen(true);
+
+                const popover = document.getElementById(
+                    `more-dropdown-${data.id}`
+                ) as HTMLElement | null;
+
+                if (!popover) return;
+
+                popover.showPopover?.();
+
+                requestAnimationFrame(() => {
+                    const rect = popover.getBoundingClientRect();
+
+                    popover.style.left = `${Math.min(
+                        e.clientX,
+                        window.innerWidth - rect.width - 8
+                    )}px`;
+
+                    popover.style.top = `${Math.min(
+                        e.clientY,
+                        window.innerHeight - rect.height - 8
+                    )}px`;
+                });
+            }}
         >
-            {!isPreview && (
-                <>
-                    {notification?.isActive ?
-                        <div className="absolute top-[-5px] right-[-5px] z-3 tooltip tooltip-top tooltip-accent" 
-                            data-tip={`Updated ${notification?.time}`}>
-                            <div className="absolute inset-0 rounded-full bg-accent animate-ping opacity-50" />
-                            <div className="relative rounded-full bg-accent w-5 h-5" />
-                        </div> : ""
-                    }
+            {Boolean(isMature) && !isRevealed && (
+                <div 
+                    className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
+                    </span>
 
-                    <div className="absolute top-[12px] right-[12px] z-2 tooltip tooltip-top tooltip-accent" data-tip="More">
-                        <button type="button" className="relative flex items-start justify-center w-5 h-5 rounded-full overflow-hidden"
-                            popoverTarget={`user-more-dropdown-${index}`} style={{ anchorName: `--user-more-anchor-${index}` }}
-                        >
-                            <span className="leading-none text-2xl font-nerdfont translate-y-[-2px] cursor-pointer">
-                                󰇘
-                            </span>
-                        </button>
-                    </div>
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isMature")}
+                    </span>
 
-                    <ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm cursor-default" 
-                        popover="auto" id={`user-more-dropdown-${index}`} style={{ positionAnchor: `--user-more-anchor-${index}` }}>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                View
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    󰈈
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                Read
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                        <hr></hr>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                Follow
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                Add Friend
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                        <hr></hr>
-                        <li>
-                            <Link className="justify-between text-accent" to={`/${username || id}`}>
-                                Not Interested
-                                <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
-                                    󰈉
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between text-accent" to={`/${username || id}`}>
-                                Mute
-                                <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
-                                    󰂛
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between text-accent" to={`/${username || id}`}>
-                                Report
-                                <span className="font-nerdfont text-accent text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                        <hr></hr>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                Share
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    󰒗
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between" to={`/${username || id}`}>
-                                Copy ID
-                                <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
-                                    󰅇
-                                </span>
-                            </Link>
-                        </li>
-                        <hr></hr>
-                        <li>
-                            <Link className="justify-between text-warning" to={`/${username || id}`}>
-                                Moderate
-                                <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link className="justify-between text-warning" to={`/${username || id}`}>
-                                Manage
-                                <span className="font-nerdfont text-warning text-lg h-6 leading-none translate-y-[2px]">
-                                    
-                                </span>
-                            </Link>
-                        </li>
-                    </ul>
-                </>
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
             )}
 
-            <Component to={`/${username || id}`}>
-                { banner ?
-                    <img
-                        className="absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover"
-                        src={banner}
-                        alt="banner"
-                        style={{
-                            maskImage: `linear-gradient(
-                                to bottom,
-                                rgba(0,0,0,1) 70%,
-                                rgba(0,0,0,0.92) 72%,
-                                rgba(0,0,0,0.82) 74%,
-                                rgba(0,0,0,0.72) 76%,
-                                rgba(0,0,0,0.6) 78%,
-                                rgba(0,0,0,0.5) 80%,
-                                rgba(0,0,0,0.4) 82%,
-                                rgba(0,0,0,0.3) 84%,
-                                rgba(0,0,0,0.22) 86%,
-                                rgba(0,0,0,0.16) 88%,
-                                rgba(0,0,0,0.11) 90%,
-                                rgba(0,0,0,0.07) 92%,
-                                rgba(0,0,0,0.04) 94%,
-                                rgba(0,0,0,0.02) 97%,
-                                rgba(0,0,0,0) 100%
-                            )`,
-                            WebkitMaskImage: `linear-gradient(
-                                to bottom,
-                                rgba(0,0,0,1) 70%,
-                                rgba(0,0,0,0.92) 72%,
-                                rgba(0,0,0,0.82) 74%,
-                                rgba(0,0,0,0.72) 76%,
-                                rgba(0,0,0,0.6) 78%,
-                                rgba(0,0,0,0.5) 80%,
-                                rgba(0,0,0,0.4) 82%,
-                                rgba(0,0,0,0.3) 84%,
-                                rgba(0,0,0,0.22) 86%,
-                                rgba(0,0,0,0.16) 88%,
-                                rgba(0,0,0,0.11) 90%,
-                                rgba(0,0,0,0.07) 92%,
-                                rgba(0,0,0,0.04) 94%,
-                                rgba(0,0,0,0.02) 97%,
-                                rgba(0,0,0,0) 100%
-                            )`,
-                        }}
-                    /> : ""
-                }
-
-                { avatar ?
-                    <img
-                        className="absolute z-1 top-4 left-4 rounded-full h-21 w-21 object-cover"
-                        src={avatar}
-                        alt="avatar"
-                    /> : ""
-                }
-
+            {(Boolean(isSensitive) && Boolean(!isMature)) && !isRevealed && (
                 <div 
-                    className="absolute bg-success rounded-full h-6 w-6 top-19 left-19 border-4 border-base-100 z-2 tooltip tooltip-top"
-                    data-tip="Online"
-                />
+                    className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        󰈉
+                    </span>
 
-                { status ? 
-                    <div className="absolute glass bg-[#00000085] rounded p-2 left-30 max-w-[289px] z-1">
-                        <div className="text-white text-xs line-clamp-3">
-                            {status}
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isSensitive")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
+            )}
+            
+            {/*{!isPreview && 
+                // DEVELOPER NEEDED: Context menu here
+            }*/}
+
+            <Wrapper to={`/user/${primaryUsername || data.id}`}>
+                <div className="absolute inset-0 group">
+                    <img
+                        className={bannerClassList}
+                        src={data.banner ? `${cdnBaseUrl}${data.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                        alt={t("words.banner")}
+                    />
+                </div>
+
+                <div className="absolute top-4 left-4 z-2">
+                    <img
+                        className="rounded-full h-21 w-21 object-cover"
+                        src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                        alt={t("words.avatar")}
+                    />
+
+                    {data.animatedAvatar && (
+                        <img
+                            className="rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
+                            src={data.animatedAvatar}
+                            alt={t("words.avatar")}
+                        />
+                    )}
+
+                    {data.presence && (
+                        <Presense
+                            data={data} 
+                        />
+                    )}
+                </div>
+
+                { data.status && ( 
+                    <>
+                        <div className="absolute glass bg-[#00000085] rounded-full h-3 w-3 top-6.5 left-27 z-1" />
+                        <div className="absolute glass bg-[#00000085] rounded-full h-2 w-2 top-9 left-25 z-1" />
+
+                        <div className="absolute glass bg-[#00000085] rounded-lg p-2 left-30.5 max-w-[289px] z-1">
+                            <div className="text-white text-xs line-clamp-3">
+                                {data.status}
+                            </div>
                         </div>
-                    </div>
-                    : ""
-                }
+                    </>
+                )}
 
                 <div className="relative top-22 flex flex-col h-46 w-full z-2">
                     <div className="flex justify-between gap-2">
                         <div className="flex min-w-0 items-center overflow-hidden">
                             <span className="font-bold truncate leading-snug">
-                                {displayName || username || id} 
+                                {data.displayName || primaryUsername || data.id}
                             </span>
                         </div>
 
-                        {/* Only show one; either follow or friends based on status | ADD TOOLTIPS
-
-                            USER/ASSET VISIBILITY
-                            - Public: Full visibility on search and direct link 
-
-                            - Unlisted: Not visible on search, but full visibility using direct link 
-
-                            - Followers: Not visible on search and limited info visibility on direct link, but can follow (without request) to view all.
-                                         Followers only profiles and projects will never be discoverable via search and can only be found by following
-                                         and exporing their account.
-
-                            - Friends: Not visible on search and limited info visibility on direct link, 
-                                       but can send a friend request using direct link to view all on acceptance.
-                                       Friends only profiles and projects will never be discoverable via search and can only be found by remaining friends
-                                       and exporing their account.
-
-                            - Private: No visibility outside of owner and collaborators; returns a 404 page if no access
-
-                            - Hidden: Indefinite private visibility due to moderator action
-
-
-                            MIGHT NEED TO UPDATE API
-                        
-                        */}
-                        {visibility !== "friends" && (
+                        {
+                            window.session.userId !== data.id &&
+                            (data.visibility !== "friends" && data.createdDate)
+                        && (
                             <button
                                 className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
-                                onClick={() => { closeCreateProjectModal() }}
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    await handleFollowInteraction(
+                                        data,
+                                        isFollowing,
+                                        isFollowInteractionLoading,
+                                        setIsFollowing,
+                                        setIsFollowInteractionLoading,
+                                        setFollowCount
+                                    )
+                                }}
                             >
-                                <span className="text-base font-nerdfont w-3">
-                                    {visibility === "public" ? "" : ""}
+                                <span className={`${isFollowInteractionLoading ? "loading" : ""} text-base font-nerdfont w-3`}>
+                                    {isFollowing ? "" : ""}
                                 </span>
-                                {visibility === "public" ? "Follow" : "Request Follow"}
+                                {isFollowing ? t("words.Unfollow") : t("words.Follow")}
                             </button>
                         )}
 
-                        {visibility === "friends" && (
-                            <button
-                                className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
-                                onClick={() => { closeCreateProjectModal() }}
-                            >
-                                <span className="text-sm font-nerdfont w-3">
-                                    
-                                </span>
-                                Request Friend
-                            </button>
-                        )}
-
-                        {/*<button
-                            className="flex gap-2 h-7 px-3 text-xs btn btn-success border-success uppercase"
-                            onClick={() => { closeCreateProjectModal() }}
+                        <div 
+                            className="ml-auto flex shrink-0"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
                         >
-                            <span className="text-sm font-nerdfont w-3">
-                                
-                            </span>
-                            {visibility === "friends" ? "Request Friend" : "Friends"}
-                        </button>*/}
-
-                        { isMature ? 
-                            <button className="flex gap-2 h-7 px-3 text-xs btn btn-accent border-accent uppercase"
-                                onClick={() => { closeCreateProjectModal() }}>
-                                <span className="text-sm">
-                                    18+
-                                </span>
-                            </button>
-                            : ""
-                        }
-
-                        {/*{ visibility !== "public" ? 
-                            <button className="flex gap-2 h-7 px-3 text-xs btn btn-base-200 border-base-300 uppercase"
-                                onClick={() => { closeCreateProjectModal() }}>
-                                <span className="text-sm font-nerdfont w-3">
-                                    
-                                </span>
-                                Private
-                            </button>
-                            : ""
-                        }*/}
-
-                        <div className="ml-auto flex shrink-0">
-                            <Badges badges={badges} />
+                            <Badges 
+                                data={data}
+                                assetType={"USER"}
+                                hasBackground={true}
+                            />
                         </div>
                     </div>
 
                     <div className="flex min-w-0 mt-1 items-center overflow-hidden">
                         <span className="truncate text-xs leading-snug">
-                            @{username} • {formatNumber(interactions?.follows?.count || 0).short} Followers
+                            @{primaryUsername} • {formatNumber(followerCount).short} Follower{followerCount !== 1 && "s"}
                         </span>
                     </div>
 
                     <div className="text-xs line-clamp-3 my-2">
-                        {formattedAbout}
+                        {(() => {
+                            if (data.visibility === "public") {
+                                return data.about || t("defaults.noUserAbout");
+                            }
+                            
+                            if (data.visibility === "friends" && !data.about) {
+                                return `${t("words.Add")} ${data.displayName || primaryUsername || data.id} ${t("defaults.noFriendView")}`;
+                            }
+
+                            return null;
+                        })()}
                     </div>
                 </div>
-            </Component>
+            </Wrapper>
         </div>
     );
 }
