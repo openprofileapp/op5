@@ -45,6 +45,12 @@ export const mainBaseUrl = [
     isGateway() ? "/" : ""
 ].join("");
 
+export const supportBaseUrl = [
+    protocal,
+    isGateway() ? window.location.host : window.config.domains.support,
+    isGateway() ? "/" : ""
+].join("");
+
 export const studioBaseUrl = [
     protocal,
     isGateway() ? window.location.host : window.config.domains.studio,
