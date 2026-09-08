@@ -85,7 +85,7 @@ export function ContextMenuBuilder({
     setIsBlockInteractionLoading
 }: ContextMenuBuilderOptions) {
     const { t, ready: isTranslationReady } = useTranslation();
-    
+
     const {
         handleDismissInteraction,
         handleFollowInteraction,
@@ -104,6 +104,12 @@ export function ContextMenuBuilder({
     const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
 
     const [data, setData] = useState<GetAssetType>(rawData);
+
+    useEffect(() => {
+        if (rawData) {
+            setData(rawData);
+        }
+    }, [rawData]);
 
     const [initFetchCollections, setInitFetchCollections] = useState<boolean>(false);
     const [collections, setCollections] = useState<GetCollectionItemType[]>();
@@ -126,7 +132,8 @@ export function ContextMenuBuilder({
 
     const [remainingMuteDurationText, setRemainingMuteDurationText] = useState<string>("");
 
-    const closeContextMenu = useCallback((id: string) => {
+    const closeContextMenu = useCallback((id?: string) => {
+        if (!id) return;
         setIsContextMenuOpen(false);
         document
             .getElementById(`more-dropdown-${id}`)
@@ -146,6 +153,8 @@ export function ContextMenuBuilder({
     }, [isContextMenuOpen]);
 
     useEffect(() => {
+        if (!data?.id) return;
+
         const handleClickOutside = (e: MouseEvent) => {
             const menu = document.getElementById(`more-dropdown-${data.id}`);
 
@@ -163,7 +172,7 @@ export function ContextMenuBuilder({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [data.id, closeContextMenu]);
+    }, [data?.id, closeContextMenu]);
 
     const checkSubMenuPosition = (
         e: React.MouseEvent<HTMLLIElement>
@@ -176,7 +185,7 @@ export function ContextMenuBuilder({
     };
 
     useEffect(() => {
-        if (!initFetchCollections) return;
+        if (!initFetchCollections || !data?.id) return;
 
         const fetchCollections = async () => {
             try {
@@ -196,9 +205,11 @@ export function ContextMenuBuilder({
         };
 
         fetchCollections();
-    }, [initFetchCollections, data.id]);
+    }, [initFetchCollections, data?.id]);
 
     useEffect(() => {
+        if (!data) return;
+
         setIsInCollection(
             ("isCharacterInAnyCollections" in data && Boolean(data.isCharacterInAnyCollections)) || 
             (collections?.some((c) => Boolean(c.isItemInCollection)) ?? false)
@@ -206,6 +217,8 @@ export function ContextMenuBuilder({
     }, [collections, data]);
 
     useEffect(() => {
+        if (!notificationSubscriptions) return;
+
         setData((prevData) => {
             const currentData = prevData ?? rawData;
             if (!currentData) return currentData;
@@ -254,9 +267,10 @@ export function ContextMenuBuilder({
         return () => clearInterval(interval);
     }, [muteData, isMuted]);
 
-    const isOwner = 
-        (data.id === window.session.userId) || 
-        ("owner" in data && data.owner.id === window.session.userId);
+    const isOwner = Boolean(data) && (
+        (data?.id === window.session.userId) || 
+        ("owner" in data && data?.owner?.id === window.session.userId)
+    );
 
     useEffect(() => {
         if (
@@ -298,7 +312,7 @@ export function ContextMenuBuilder({
     const subMenuMarginClassList = `absolute ${isSubMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`;
     const imageIconClassList = "rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover";
 
-    if (!isTranslationReady) return null;
+    if (!isTranslationReady || !data) return null;
 
     return {
         items: (children: ReactNode[]): ReactNode => (
