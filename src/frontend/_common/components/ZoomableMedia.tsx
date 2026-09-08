@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, MouseEvent, WheelEvent, PointerEvent } from "react";
+import { useState, useRef, useEffect, useId, MouseEvent, WheelEvent, PointerEvent } from "react";
 import { createPortal } from "react-dom";
 
 interface ZoomableMediaProps {
+    id?: string;
     src: string;
     alt?: string;
     description?: string;
@@ -11,6 +12,7 @@ interface ZoomableMediaProps {
 }
 
 export default function ZoomableMedia({ 
+    id,
     src, 
     alt = "Image",
     description,
@@ -18,6 +20,9 @@ export default function ZoomableMedia({
     className = "",
     style = {}
 }: ZoomableMediaProps) {
+    const generatedId = useId();
+    const elementId = id || generatedId;
+
     const [isOpen, setIsOpen] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     
@@ -158,6 +163,7 @@ export default function ZoomableMedia({
     return (
         <>
             <img
+                id={elementId}
                 src={src}
                 alt={alt}
                 className={`cursor-pointer hover:opacity-90 transition-opacity ${className}`}
