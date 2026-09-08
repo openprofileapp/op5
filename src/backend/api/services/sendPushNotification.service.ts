@@ -72,7 +72,7 @@ export default async function sendPushNotificationService(
             assertNotNull(source);
             formattedBody = formattedBody.replace(
                 "{SOURCE}", 
-                source.displayName || source.id
+                source.displayName || source.primaryUsername || source.id
             );
         }
 
@@ -81,7 +81,7 @@ export default async function sendPushNotificationService(
             assertNotNull(target);
             formattedBody = formattedBody.replace(
                 "{TARGET}", 
-                target.id === userId ? "you" : (target.displayName || target.id)
+                target.id === userId ? "you" : (target.displayName || target.primaryUsername || target.id)
             );
         }
 
