@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import React, { Dispatch, ReactNode, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -13,34 +15,59 @@ import { toast } from '../scripts/toast.js';
 import { useModals } from '../hooks/ModalContext.hook.js';
 import { GetNotificationMuteType, GetNotificationSubscriptionType } from '../../../_common/types/notification.type.js';
 import { formatRemainingTime, getRemainingTimeIcon } from '../scripts/time.js';
+import { GetPublishedCharacterItemType } from '../../../_common/types/character.type.js';
 
 type Props = {
     isQuickAction?: boolean
 }
 
-export function ContextMenuBuilder(
-    rawData: GetAssetType,
-    isContextMenuOpen: boolean,
-    setIsContextMenuOpen: Dispatch<SetStateAction<boolean>>,
-    isDismissed: boolean,
-    isDismissedInteractionLoading: boolean,
-    setIsDismissed: Dispatch<SetStateAction<boolean>>,
-    setIsDismissedInteractionLoading: (loading: boolean) => void,
-    isFollowing: boolean,
-    isFollowInteractionLoading: boolean,
-    setIsFollowing: Dispatch<SetStateAction<boolean>>,
-    setIsFollowInteractionLoading: (loading: boolean) => void,
-    setFollowCount: Dispatch<SetStateAction<number>>,
-    isLiked: boolean,
-    isLikeInteractionLoading: boolean,
-    setIsLiked: Dispatch<SetStateAction<boolean>>,
-    setIsLikeInteractionLoading: (loading: boolean) => void,
-    setLikeCount: Dispatch<SetStateAction<number>>,
-    isHidden: boolean,
-    isHideInteractionLoading: boolean,
-    setIsHidden: Dispatch<SetStateAction<boolean>>,
-    setIsHideInteractionLoading: (loading: boolean) => void
-) {
+export type ContextMenuBuilderOptions = {
+    data: GetAssetType;
+    isContextMenuOpen: boolean;
+    setIsContextMenuOpen: Dispatch<SetStateAction<boolean>>;
+    isDismissed?: boolean;
+    isDismissedInteractionLoading?: boolean;
+    setIsDismissed?: Dispatch<SetStateAction<boolean>>;
+    setIsDismissedInteractionLoading?: (loading: boolean) => void;
+    isFollowing?: boolean;
+    isFollowInteractionLoading?: boolean;
+    setIsFollowing?: Dispatch<SetStateAction<boolean>>;
+    setIsFollowInteractionLoading?: (loading: boolean) => void;
+    setFollowCount?: Dispatch<SetStateAction<number>>;
+    isLiked?: boolean;
+    isLikeInteractionLoading?: boolean;
+    setIsLiked?: Dispatch<SetStateAction<boolean>>;
+    setIsLikeInteractionLoading?: (loading: boolean) => void;
+    setLikeCount?: Dispatch<SetStateAction<number>>;
+    isHidden?: boolean;
+    isHideInteractionLoading?: boolean;
+    setIsHidden?: Dispatch<SetStateAction<boolean>>;
+    setIsHideInteractionLoading?: (loading: boolean) => void;
+};
+
+export function ContextMenuBuilder({
+    data: rawData,
+    isContextMenuOpen,
+    setIsContextMenuOpen,
+    isDismissed,
+    isDismissedInteractionLoading,
+    setIsDismissed,
+    setIsDismissedInteractionLoading,
+    isFollowing,
+    isFollowInteractionLoading,
+    setIsFollowing,
+    setIsFollowInteractionLoading,
+    setFollowCount,
+    isLiked,
+    isLikeInteractionLoading,
+    setIsLiked,
+    setIsLikeInteractionLoading,
+    setLikeCount,
+    isHidden,
+    isHideInteractionLoading,
+    setIsHidden,
+    setIsHideInteractionLoading,
+}: ContextMenuBuilderOptions) {
     const { t, ready: isTranslationReady } = useTranslation();
     
     const {
@@ -51,13 +78,15 @@ export function ContextMenuBuilder(
     } = useInteractions();
 
     const { 
-        notificationsModal 
+        notificationsModal,
+        reportModal,
+        shareModal
     } = useModals();
     
     const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
 
     const [data, setData] = useState<GetAssetType>(rawData);
-    
+
     const [initFetchCollections, setInitFetchCollections] = useState<boolean>(false);
     const [collections, setCollections] = useState<GetCollectionItemType[]>();
     const [isCollectionsLoading, setIsCollectionsLoading] = useState<boolean>(true);
@@ -166,11 +195,9 @@ export function ContextMenuBuilder(
             return {
                 ...currentData,
                 notifications: {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ...currentData?.notifications,
                     subscriptions: {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         ...currentData?.notifications?.subscriptions,
                         ...notificationSubscriptions,
@@ -214,8 +241,15 @@ export function ContextMenuBuilder(
         ("owner" in data && data.owner.id === window.session.userId);
 
     useEffect(() => {
-        if (isOwner && !isFollowing) {
+        if (
+            Boolean(setIsFollowing) 
+            && Boolean(setIsLiked) 
+            && isOwner 
+            && !isFollowing
+        ) {
+            // @ts-ignore
             setIsFollowing(true);
+            // @ts-ignore
             setIsLiked(true);
         }
     }, [
@@ -225,13 +259,14 @@ export function ContextMenuBuilder(
         setIsLiked
     ]);
 
-    const flexClasses = "flex items-center justify-center";
-    const textClasses = `${flexClasses} w-4 h-6 text-lg font-nerdfont leading-none shrink-0`;
-    const tooltipClasses =  "tooltip tooltip-top tooltip-accent";
-    const quickActionClasses = `${flexClasses} flex-1 w-full h-full`;
-    const subMenuClasses = `absolute ${isSubMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`;
-    const subMenuMarginClasses = `absolute ${isSubMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`;
-    const imageIconClasses = "rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover";
+    const flexClassList = "flex items-center justify-center";
+    const textClassList = `${flexClassList} w-4 h-6 text-lg font-nerdfont leading-none shrink-0`;
+    const copyIdTextClassList = `${flexClassList} w-4 h-6 text-3xl font-nerdfont leading-none shrink-0`;
+    const tooltipClassList =  "tooltip tooltip-top tooltip-accent";
+    const quickActionClassList = `${flexClassList} flex-1 w-full h-full`;
+    const subMenuClassList = `absolute ${isSubMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`;
+    const subMenuMarginClassList = `absolute ${isSubMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`;
+    const imageIconClassList = "rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover";
 
     if (!isTranslationReady) return null;
 
@@ -299,15 +334,19 @@ export function ContextMenuBuilder(
             <hr />
         ),
 
-        dismiss: (props: Props = {}): ReactNode => !isHidden && window.session.userId && (
+        dismiss: (props: Props = {}): ReactNode => Boolean(setIsDismissed)
+            && !isHidden 
+            && window.session.userId 
+        && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.Dismiss")}
                 onClick={async () => {
                     closeContextMenu(data.id)
 
                     await handleDismissInteraction(
                         data,
+                        // @ts-ignore
                         isDismissed,
                         isDismissedInteractionLoading,
                         setIsDismissed,
@@ -315,9 +354,10 @@ export function ContextMenuBuilder(
                     );
                 }}
             >
-                <button className={`justify-between ${props.isQuickAction && quickActionClasses}`}>
+                <button className={`justify-between ${props.isQuickAction && quickActionClassList}`}>
                     {!props.isQuickAction ? t("words.Dismiss") : ""}
-                    <span className={`${isDismissedInteractionLoading ? "loading" : ""} ${textClasses}`}>
+
+                    <span className={`${isDismissedInteractionLoading ? "loading" : ""} ${textClassList}`}>
                         
                     </span>
                 </button>
@@ -329,20 +369,21 @@ export function ContextMenuBuilder(
             ("owner" in data && data.owner.id === window.session.userId) && 
         (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("components.menus.context.viewInStudio")}
                 onClick={async () => {
                     closeContextMenu(data.id);
                 }}
             >
                 <a 
-                    className={`justify-between ${props.isQuickAction && quickActionClasses}`}
+                    className={`justify-between ${props.isQuickAction && quickActionClassList}`}
                     href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     {!props.isQuickAction ? t("components.menus.context.viewInStudio") : ""}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         
                     </span>
                 </a>
@@ -351,45 +392,43 @@ export function ContextMenuBuilder(
 
         view: (props: Props = {}): ReactNode => !isHidden && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.View")}
                 onClick={async () => {
                     closeContextMenu(data.id);
                 }}
             >
-                <a 
-                    className={`justify-between ${props.isQuickAction && quickActionClasses}`}
-                    href={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <Link 
+                    className={`justify-between ${props.isQuickAction && quickActionClassList}`}
+                    to={`/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                 >
                     {!props.isQuickAction ? t("words.View") : ""}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         󰈈
                     </span>
-                </a>
+                </Link>
             </li>
         ),
 
         read: (props: Props = {}): ReactNode => (!isHidden && 
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.Read")}
                 onClick={async () => {
                     closeContextMenu(data.id);
                 }}
             >
-                <a 
-                    className={`justify-between ${props.isQuickAction && quickActionClasses}`}
-                    href={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <Link 
+                    className={`justify-between ${props.isQuickAction && quickActionClassList}`}
+                    to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
                 >
                     {!props.isQuickAction ? t("words.Read") : ""}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         
                     </span>
-                </a>
+                </Link>
             </li>
         ),
 
@@ -397,7 +436,7 @@ export function ContextMenuBuilder(
             <li
                 className={
                     props.isQuickAction 
-                        ? `${quickActionClasses} ${tooltipClasses}` 
+                        ? `${quickActionClassList} ${tooltipClassList}` 
                         : `${!props.isQuickAction && `tooltip tooltip-accent tooltip-${isSubMenuFlipped ? "left" : "right"}`}`}
                 data-tip={
                     props.isQuickAction
@@ -406,24 +445,30 @@ export function ContextMenuBuilder(
                 }
             >
                 <button 
-                    className={`justify-between ${props.isQuickAction && quickActionClasses}`}
+                    className={`justify-between ${props.isQuickAction && quickActionClassList}`}
                     disabled={true}
                 >
                     {!props.isQuickAction ? t("words.Chat") : ""}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         󰍧
                     </span>
                 </button>
             </li>
         ),
 
-        follow: (props: Props = {}): ReactNode => !isHidden && window.session.userId && !isOwner && (
+        follow: (props: Props = {}): ReactNode => Boolean(setIsFollowing) 
+            && !isHidden 
+            && window.session.userId 
+            && !isOwner 
+        && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={isFollowing ? t("words.Unfollow") : t("words.Follow")}
                 onClick={async () => {
                     await handleFollowInteraction(
                         data,
+                        // @ts-ignore
                         isFollowing,
                         isFollowInteractionLoading,
                         setIsFollowing,
@@ -434,23 +479,29 @@ export function ContextMenuBuilder(
             >
                 <button className={`
                         ${isFollowing ? "text-accent" : "" } justify-between
-                        ${props.isQuickAction && quickActionClasses}
+                        ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (isFollowing ? t("words.Unfollow") : t("words.Follow")) : ""}
-                    <span className={`${isFollowInteractionLoading ? "loading" : ""} ${textClasses}`}>
+
+                    <span className={`${isFollowInteractionLoading ? "loading" : ""} ${textClassList}`}>
                         {isFollowing ? "" : ""}
                     </span>
                 </button>
             </li>
         ),
 
-        like: (props: Props = {}): ReactNode => !isHidden && window.session.userId && !isOwner && (
+        like: (props: Props = {}): ReactNode => Boolean(setIsLiked) 
+            && !isHidden 
+            && window.session.userId 
+            && !isOwner 
+        && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={isLiked ? t("words.Unlike") : t("words.Like")}
                 onClick={async () => {
                     await handleLikeInteraction(
                         data,
+                        // @ts-ignore
                         isLiked,
                         isLikeInteractionLoading,
                         setIsLiked,
@@ -461,10 +512,11 @@ export function ContextMenuBuilder(
             >
                 <button className={`
                         ${isLiked ? "text-accent" : "" } justify-between
-                        ${props.isQuickAction && quickActionClasses}
+                        ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (isLiked ? t("words.Unlike") : t("words.Like")) : ""}
-                    <span className={`${isLikeInteractionLoading ? "loading" : ""} ${textClasses}`}>
+
+                    <span className={`${isLikeInteractionLoading ? "loading" : ""} ${textClassList}`}>
                         {isLiked ? "" : ""}
                     </span>
                 </button>
@@ -482,14 +534,15 @@ export function ContextMenuBuilder(
             >
                 <button className="justify-between">
                     {t("components.menus.context.addToCollection")}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         
                     </span>
                 </button>
 
-                <span className={subMenuMarginClasses}></span>
+                <span className={subMenuMarginClassList}></span>
 
-                <ul className={subMenuClasses}>
+                <ul className={subMenuClassList}>
                     {!isCollectionsLoading ? (() => {
                         const favoritesCollection = collections?.find((c) => c.isFavorites);
                         const otherCollections = collections?.filter((c) => !c.isFavorites) || [];
@@ -544,13 +597,13 @@ export function ContextMenuBuilder(
                                         }}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className={textClasses}>
+                                            <span className={textClassList}>
                                                 {isInCollection ? "󰐾" : "󰐽"}
                                             </span>
                                             {collection.displayName}
                                         </div>
                                         <img 
-                                            className={imageIconClasses}
+                                            className={imageIconClassList}
                                             src={
                                                 collection.isFavorites 
                                                     ? `${cdnBaseUrl}${window.config.metadata.assets.favorites}`
@@ -600,7 +653,8 @@ export function ContextMenuBuilder(
                                 disabled={true}
                             >
                                 {t("components.menus.context.newCollection")}
-                                <span className={textClasses}>
+
+                                <span className={textClassList}>
                                     󰌴
                                 </span>
                             </button>
@@ -610,19 +664,22 @@ export function ContextMenuBuilder(
             </li>
         ),
 
-        notInterested: (props: Props = {}): ReactNode => !isOwner 
+        notInterested: (props: Props = {}): ReactNode => Boolean(setIsHidden) 
+            && window.session.userId
+            && !isOwner 
             && !isFollowing 
             && !isLiked 
             && !isInCollection
         && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={isHidden ? t("words.Interested") : t("words.NotInterested")}
                 onClick={async () => {
                     closeContextMenu(data.id);
 
                     await handleHideInteraction(
                         data,
+                        // @ts-ignore
                         isHidden,
                         isHideInteractionLoading,
                         setIsHidden,
@@ -632,10 +689,11 @@ export function ContextMenuBuilder(
             >
                 <button className={`
                         ${!isHidden ? "text-accent" : "" } justify-between
-                        ${props.isQuickAction && quickActionClasses}
+                        ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (isHidden ? t("words.Interested") : t("words.NotInterested")) : ""}
-                    <span className={`${isHideInteractionLoading ? "loading" : ""} ${textClasses}`}>
+
+                    <span className={`${isHideInteractionLoading ? "loading" : ""} ${textClassList}`}>
                         {isHidden ? "󰈈" : "󰈉"}
                     </span>
                 </button>
@@ -644,14 +702,13 @@ export function ContextMenuBuilder(
 
         notifications: (props: Props = {}): ReactNode => isFollowing && (
             <li
-                className={props.isQuickAction ? `${quickActionClasses} ${tooltipClasses}` : ""}
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.Notifications")}
                 onClick={async () => {
                     closeContextMenu(data.id);
 
                     notificationsModal.open(
                         data,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         setNotificationSubscriptions
                     );
@@ -659,10 +716,11 @@ export function ContextMenuBuilder(
             >
                 <button className={`
                         justify-between
-                        ${props.isQuickAction && quickActionClasses}
+                        ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (t("words.Notifications")) : ""}
-                    <span className={textClasses}>
+
+                    <span className={textClassList}>
                         󰂚
                     </span>
                 </button>
@@ -679,14 +737,15 @@ export function ContextMenuBuilder(
                 >
                     <button className="justify-between">
                         {t("words.Mute")}
-                        <span className={textClasses}>
+
+                        <span className={textClassList}>
                             
                         </span>
                     </button>
 
-                    <span className={subMenuMarginClasses}></span>
+                    <span className={subMenuMarginClassList}></span>
 
-                    <ul className={subMenuClasses}>
+                    <ul className={subMenuClassList}>
                         {[
                             { label: t("time.hour1"), icon: "󱐿", duration: "1h", isIndefinite: false  },
                             { label: t("time.hour4"), icon: "󱑂", duration: "4h", isIndefinite: false  },
@@ -706,7 +765,6 @@ export function ContextMenuBuilder(
                                             closeContextMenu(data.id);
 
                                             const newMute = {
-                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                                 // @ts-ignore
                                                 duration: parseDuration(item.duration),
                                                 isIndefinite: item.isIndefinite,
@@ -748,7 +806,7 @@ export function ContextMenuBuilder(
                                         }}
                                     >
                                         {item.label}
-                                        <span className={textClasses}>
+                                        <span className={textClassList}>
                                             {item.icon}
                                         </span>
                                     </button>
@@ -803,18 +861,277 @@ export function ContextMenuBuilder(
                             ${!muteData?.isIndefinite ? "h-11" : ""}
                         `}>
                             {t("words.Unmute")}
+
                             {!muteData?.isIndefinite && (
                                 <span className="text-sub text-xs mt-1">
                                     {remainingMuteDurationText}
                                 </span>
                             )}
                         </div>
-                        <span className={textClasses}>
+                        <span className={textClassList}>
                             {getRemainingTimeIcon(remainingMuteDurationText)}
                         </span>
                     </button>
                 </li>
             )
+        ),
+
+        report: (props: Props = {}): ReactNode => 
+            window.session.userId
+            && !isOwner
+            && !window.session.permissions.array.includes("MODERATE_ACCOUNTS") 
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Report")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    reportModal.open(data);
+                }}
+            >
+                <button className={`
+                        justify-between text-accent
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Report")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
+        ),
+
+        share: (props: Props = {}): ReactNode => !isHidden && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Share")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    shareModal.open(data as GetPublishedCharacterItemType);
+                }}
+            >
+                <button className={`
+                        justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Share")) : ""}
+
+                    <span className={textClassList}>
+                        󰒗
+                    </span>
+                </button>
+            </li>
+        ),
+
+        copyId: (props: Props = {}): ReactNode => window.session.user?.isDeveloper &&(
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Share")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    try {
+                        await navigator.clipboard.writeText(data.id);
+
+                        toast.show(
+                            t("components.toasts.copiedId"), 
+                            { type: "success" }
+                        );
+                    } catch {
+                        toast.show(
+                            t("components.toasts.failedCopiedId"), 
+                            { type: "error" }
+                        );
+                    }
+                }}
+            >
+                <button className={`
+                        justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.CopyId")) : ""}
+
+                    <span className={copyIdTextClassList}>
+                        󰻾
+                    </span>
+                </button>
+            </li>
+        ),
+
+        moderate: (props: Props = {}): ReactNode => 
+            !isOwner
+            && window.session.permissions.array.includes("MODERATE_ACCOUNTS") 
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Moderate")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    // DEVELOPER NEEDED: Add moderation modal
+                    // moderateModal.open(data);
+                    toast.show(
+                        "DEVELOPER NEEDED: Add moderation modal", 
+                        { type: "warning" }
+                    );
+                }}
+            >
+                <button className={`
+                        justify-between text-accent
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Moderate")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
+        ),
+
+        manage: (props: Props = {}): ReactNode => 
+            !isOwner
+            && window.session.permissions.array.includes("MANAGE_ACCOUNTS") 
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Manage")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    // DEVELOPER NEEDED: Add manage modal
+                    // moderateModal.open(data);
+                    toast.show(
+                        "DEVELOPER NEEDED: Add manage modal", 
+                        { type: "warning" }
+                    );
+                }}
+            >
+                <button className={`
+                        justify-between text-accent
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Manage")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
         )
     };
 }
+
+// DEVELOPER NEEDED: Once working on user profiles, rework pins API and add this menu option
+// Mind the "isPinned" and related states from character card
+/*
+<li>
+    <Link className="justify-between" to={`/${username || id}`}>
+        Add Friend
+        <span className="font-nerdfont text-lg h-6 leading-none translate-y-[2px]">
+            
+        </span>
+    </Link>
+</li>
+
+
+
+ <li>
+    <button 
+        className="justify-between"
+        disabled={isPinLoading}
+        onClick={async () => {
+            try {
+                if (isPinLoading) return;
+                // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
+
+                // ONLY PIN TO PROFILE IF THE PROFILE/PROJECT
+
+                setIsPinLoading(true);
+                let response;
+
+                if (isPinned) {
+                    response = await fetch(
+                        `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include"
+                        }
+                    );
+
+                    setIsHidden(true);
+                } else {
+                    response = await fetch(
+                        `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                position: 1,
+                            }),
+                        }
+                    );
+                }
+
+                if (!response.ok) {
+                    throw new Error("Failed to pin asset");
+                }
+
+                setIsPinned(!isPinned);
+
+                toast.show(
+                    `You ${isPinned ? "unpinned" : "pinned"} ${data.displayName}`,
+                    {
+                        icon: isPinned ? "󰐄" : "󰐃",
+                        type: isPinned ? "info" : "success",
+                    }
+                );
+            } catch (error) {
+                console.error(error);
+
+                toast.show("Failed to pin asset", {
+                    type: "error",
+                });
+            } finally {
+                setIsPinLoading(false);
+            }
+
+            // closeContextMenu(data.id);
+        }}
+    >
+        <span
+            className={`${isPinned ? "text-error" : "text-base-content"}`}
+        >
+            {isPinned ? "Unpin from Profile" : "Pin to Profile"}
+        </span>
+        <span className={`${isPinLoading ? "loading" : ""} font-nerdfont ${isPinned ? "text-error" : "text-base-content"} text-lg flex h-6 w-4 leading-none items-center justify-center`}>
+            {isPinLoading ? "" : isPinned ? "󰐄" : "󰐃"}
+        </span>
+    </button>
+    </li>
+
+    DEVELOPER NEEDED: Polish this and only show on profile page 
+    <li>
+    <button 
+    className="justify-between text-error"
+    onClick={() => {
+
+    closeContextMenu(data.id);
+    }}
+    >
+    Hide Collaboration
+    <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">
+    󰈉
+    </span>
+    </button>
+    </li>
+*/
