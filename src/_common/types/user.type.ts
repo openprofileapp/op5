@@ -25,6 +25,7 @@ export type UserType = {
     banner?: string;
     status?: string;
     about?: string;
+    markdown?: string;
     tags: string;
     pronouns?: string;
     birthdate?: string;

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     banner TEXT,
     status TEXT,
     about TEXT,
+    markdown TEXT,
     tags TEXT DEFAULT '[]',
     pronouns TEXT,
     birthdate TEXT,

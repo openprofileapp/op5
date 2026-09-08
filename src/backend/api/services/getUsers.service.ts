@@ -554,6 +554,7 @@ export default function getUsersService({
                 delete formattedRow.tags;
                 delete formattedRow.badges;
                 delete formattedRow.about;
+                delete formattedRow.markdown;
                 delete formattedRow.pronouns;
                 delete formattedRow.birthdate;
                 delete formattedRow.birthdateVisibility;
