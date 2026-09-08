@@ -84,6 +84,7 @@
     "Added": "Added",
     "Removed": "Removed",
     "add": "add",
+    "Add": "Add",
     "remove": "remove",
     "to": "to",
     "from": "from",
@@ -100,13 +101,29 @@
     "Unmuted": "Unmuted",
     "unmute": "unmute",
     "Indefinitely": "Indefinitely",
-    "for": "for"
+    "for": "for",
+    "Report": "Report",
+    "Share": "Share",
+    "CopyId": "Copy ID",
+    "Moderate": "Moderate",
+    "Manage": "Manage",
+    "avatar": "avatar",
+    "banner": "banner",
+    "Online": "Online",
+    "Idle": "Idle",
+    "DND": "Do Not Disturb",
+    "LastActive": "Last Active"
   },
   "time": {
     "hour1": "1 Hour",
     "hour4": "4 Hours",
     "hour8": "8 Hours",
     "hour24": "24 Hours"
+  },
+  "defaults": {
+    "noCharacterAbout": "This character does not have an overview.",
+    "noUserAbout": "This user does not have an overview.",
+    "noFriendView": "as a friend to view their profile."
   },
   "components": {
     "menus": {
@@ -119,7 +136,21 @@
     },
     "toasts": {
       "notInterested" : "You will no longer see",
-      "interested" : "You will see"
+      "interested" : "You will see",
+      "copiedId": "ID copied to clipboard",
+      "failedCopiedId": "Failed to copy ID to clipboard"
+    },
+    "badges": {
+      "verifiedComment": "This profile is managed by its intellectual property owners or authorized individuals.",
+      "unofficialCommentPart1": "This profile is fan-managed under fair use and may contain inaccurate information.",
+      "unofficialCommentPart2": "Intellectual property belongs to:",
+      "officialName": "Official Account",
+      "staffName": "OpenProfile Staff",
+      "partnerName": "Partner Program",
+      "verifiedName": "Verified",
+      "premiumName": "Premium",
+      "unofficialName": "Community Managed",
+      "limitedName": "Private Profile"
     },
     "cards": {
       "isSensitive": "Sensitive Content",
