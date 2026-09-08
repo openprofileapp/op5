@@ -12,7 +12,7 @@ import { formatNumber } from "kage-library/client";
 
 import Metadata from "../../_common/components/Metadata.js";
 import ProjectCard from "../components/ProjectCard.js";
-import Badges from "../components/Badges.js";
+import Badges from "../../_common/components/Badges.js";
 import { toast } from "../../_common/scripts/toast.js";
 import RestrictModal from "../../_common/components/modals/RestrictModal.js";
 import BlockModal from "../../_common/components/modals/BlockModal.js";
@@ -704,11 +704,11 @@ Check out my character: <@6773794953695671>
                                             )}
                                         </div>
 
-                                        <div className="flex items-center justify-center w-full mt-5">
+                                        <div className="flex items-center justify-center w-full mt-5 gap-2">
                                             <h1 className="truncate text-xl font-bold text-center">
                                                 {user.displayName || user.username || user.id}
                                             </h1>
-                                            <Badges badges={allBadges} hasBackground={false} />
+                                            <Badges data={user} assetType="USER" />
                                         </div>
 
                                         <div className="flex items-center justify-center gap-2 w-full">

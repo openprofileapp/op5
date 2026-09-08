@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AssetNameType } from "../../../../_common/types/asset.type.js";
 
 type Screen = "menu" | "configure";
 
-export type AssetType =
-    | "character"
-    | "universe"
-    | "collection";
-
 interface AssetTypeOption {
-    method: AssetType;
+    method: AssetNameType;
     icon: string;
     title: string;
     description: string;
@@ -17,13 +13,13 @@ interface AssetTypeOption {
 
 const TYPES: AssetTypeOption[] = [
     {
-        method: "character",
+        method: "CHARACTER",
         icon: "",
         title: "Character",
         description: "NO DESCRIPTION....."
     },
     {
-        method: "universe",
+        method: "UNIVERSE",
         icon: `
             <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20.8544 8.37058C23.866 11.3822 24.2665 16.0132 22.0594 19.458C22.0821 19.5181 22.1004 19.5822 22.1252 19.6461C22.3595 20.2508 22.7073 21.0766 23.0596 22.0241C23.1786 22.3462 23.1016 22.7093 22.8608 22.954C22.619 23.1987 22.255 23.2804 21.931 23.165C20.9381 22.8099 20.1193 22.4721 19.4933 22.2321C19.4391 22.2114 19.3856 22.1933 19.3342 22.174C15.8916 24.3666 11.2725 23.964 8.26671 20.9582C5.2723 17.9638 4.86015 13.3674 7.02492 9.92893C6.99483 9.84754 6.96724 9.76091 6.93317 9.67201C6.69318 9.04601 6.35545 8.22749 6.00029 7.23431C5.88432 6.90997 5.96627 6.54654 6.21134 6.3045C6.45612 6.06356 6.81903 5.98646 7.14115 6.10569C8.08841 6.45791 8.91471 6.80585 9.51921 7.04009C9.61808 7.07839 9.71524 7.10619 9.80519 7.13949C13.2458 4.96038 17.8541 5.37032 20.8544 8.37058Z" fill="#eaeaea"/>
@@ -34,7 +30,7 @@ const TYPES: AssetTypeOption[] = [
         description: "NO DESCRIPTION....."
     },
     {
-        method: "collection",
+        method: "COLLECTION",
         icon: "󰉓",
         title: "Collection",
         description: "NO DESCRIPTION....."
@@ -44,7 +40,7 @@ const TYPES: AssetTypeOption[] = [
 export interface NewFieldData {
     id: string;
     label: string;
-    type: AssetType;
+    type: AssetNameType;
     url?: string;
     value?: any;
     options?: string[];
@@ -57,13 +53,13 @@ export default function CreateAssetModal() {
     const [screen, setScreen] = useState<Screen>("menu");
     const [isSingleMethod] = useState(false);
 
-    const [selectedType, setSelectedType] = useState<AssetType>("text");
+    const [selectedType, setSelectedType] = useState<AssetNameType>("text");
     const [fieldLabel, setFieldLabel] = useState("");
     const [fieldId, setFieldId] = useState("");
 
     const [buttonUrl, setButtonUrl] = useState("");
 
-    function go(method: AssetType) {
+    function go(method: AssetNameType) {
         setSelectedType(method);
         const defaultName = `${method.charAt(0).toUpperCase() + method.slice(1)} Field`;
         setFieldLabel(defaultName);

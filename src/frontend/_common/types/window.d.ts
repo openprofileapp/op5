@@ -1,6 +1,7 @@
 export {};
 
 import type { Env, Config } from "../../../../app.config.ts";
+import { PlatformPermissionNameType } from "../../../_common/types/permissions.type.ts";
 import { GetUserItemType } from "../../../_common/types/user.type.ts";
 import { SessionActionType } from "../../../_common/types/validSession.type.ts";
 
@@ -20,7 +21,7 @@ export type ClientSession = {
     userId: string;
     permissions: {
         value: number;
-        array: string[];
+        array: PlatformPermissionNameType[];
     };
     locale: string;
     timezone: string;

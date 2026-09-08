@@ -7,7 +7,7 @@ import { formatNumber } from "kage-library/client";
 
 
 import Metadata from "../../_common/components/Metadata.js";
-import Badges from "../components/Badges.js";
+import Badges from "../../_common/components/Badges.js";
 import ProjectCard from "../components/ProjectCard.js";
 import ExternalLinks from "../components/ExternalLinks.js";
 
