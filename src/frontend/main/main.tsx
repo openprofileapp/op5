@@ -10,6 +10,7 @@ import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 import setupWebPushNotifications from "./scripts/webPush.js"
 import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
+import { verifySession } from "../_common/scripts/session.js"
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -45,8 +46,7 @@ import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
 import Unavailable from "../_common/pages/Unavailable.js"
 
-import Template from "./pages/Template.js"
-import { verifySession } from "../_common/scripts/session.js"
+import UserProfile from "./pages/UserProfile.js"
 
 async function bootstrap() {
     await verifySession();
@@ -146,7 +146,7 @@ async function bootstrap() {
                                     <Route path="/account/library" element={<ComingSoon />} />
                                     <Route path="/account/partners" element={<Partners />} />
                                     
-                                    <Route path="/user/:id" element={<Template />} />
+                                    <Route path="/user/:id" element={<UserProfile />} />
                                     {/* <Route path="character/:id" element={<CharacterProfile />} /> */}
 
                                     <Route path="/503" element={<Unavailable />} />
