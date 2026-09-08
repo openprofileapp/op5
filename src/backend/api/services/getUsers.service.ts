@@ -95,7 +95,6 @@ export default function getUsersService({
     const trendingWhereClause = sortBy === "trending" ? "AND trendingStats.target IS NOT NULL" : "";
 
     const isHomePage = Boolean(getAs && getFrom === "home");
-
     // DEVELOPER NEEDED: If not added to any collection either
     const homeClause = isHomePage && sortBy !== "recent"
         ? `AND NOT EXISTS (
@@ -220,9 +219,7 @@ export default function getUsersService({
 
     if (sortBy === "limited") {
         visibilityCondition = `(
-            users.visibility NOT IN ('public', 'private', 'registered') AND (
-                (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL)
-            )
+            users.visibility NOT IN ('public', 'private', 'registered')
         )`;
     } else {
         let isUnlistedAllowed = getFrom === "profile";
@@ -235,7 +232,7 @@ export default function getUsersService({
         visibilityCondition = `(
             (users.visibility = 'public') OR
             (users.visibility = 'registered' AND ? IS NOT NULL) OR
-            (users.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
+            (users.visibility = 'friends' AND users.areFriendRequestsEnabled = 1) OR
             (users.visibility = 'unlisted' AND (${isUnlistedAllowed ? '1 = 1' : 'users.id = ?'})) OR
             (
                 users.visibility = 'private' AND 
@@ -247,7 +244,7 @@ export default function getUsersService({
             )
         )`;
 
-        visibilityParams.push(getAs); 
+        visibilityParams.push(getAs);
 
         if (!isUnlistedAllowed) {
             visibilityParams.push(getAs);
@@ -464,8 +461,10 @@ export default function getUsersService({
 
     const parsedRows = result.rows.map(row => {
         const isOwner = Boolean(getAs && row.id === getAs);
-        const isMutualFriend = Boolean(row.isFriendOut && row.isFriendIn);
+        const areFriendRequestsEnabled = Boolean(row.areFriendRequestsEnabled);
+        const isMutualFriend = areFriendRequestsEnabled && Boolean(row.isFriendOut && row.isFriendIn);
         const isDelegated = Boolean(hasDelegatedAccounts && delegatedAccounts.includes(row.id as string));
+        const hasFullAccess = isOwner || isDelegated || hasDirectViewPermission;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formattedRow: any = {
@@ -473,6 +472,8 @@ export default function getUsersService({
             usernames: parseJson(row.usernames),
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
+            collections: parseJson(row.collections),
+            links: parseJson(row.links),
             flags: ExperimentsService.decode(row.flags as string),
             interactions: parseJson(row.interactions),
             notifications: parseJson(row.notifications)
@@ -482,6 +483,10 @@ export default function getUsersService({
         delete formattedRow.isFriendIn;
 
         if (!internalPermissionsBypass) {
+            if (!isOwner) {
+                delete formattedRow.notifications;
+            }
+
             if (!isOwner && formattedRow.interactions) {
                 delete formattedRow.interactions.blocks;
                 delete formattedRow.interactions.restricts;
@@ -491,23 +496,44 @@ export default function getUsersService({
                 if (!visibilitySetting || visibilitySetting === "public") return true;
                 if (visibilitySetting === "registered" && getAs) return true;
                 if (visibilitySetting === "friends" && isMutualFriend) return true;
-                if (visibilitySetting === "private" && (isOwner || hasDirectViewPermission || isDelegated)) return true;
+                if (visibilitySetting === "private" && hasFullAccess) return true;
                 return false;
             };
 
-            if (!canViewField(formattedRow.birthdateVisibility)) {
+            if (formattedRow.visibility === "friends" && !isMutualFriend && !hasFullAccess) {
+                delete formattedRow.collections;
+                delete formattedRow.status;
+                delete formattedRow.links;
+                delete formattedRow.tags;
+                delete formattedRow.badges;
+                delete formattedRow.about;
+                delete formattedRow.pronouns;
                 delete formattedRow.birthdate;
                 delete formattedRow.birthdateVisibility;
-            }
-
-            if (!canViewField(formattedRow.presenceVisibility)) {
-                delete formattedRow.presence;
-                delete formattedRow.presenceVisibility;
-            }
-
-            if (!canViewField(formattedRow.foundedDateVisibility)) {
                 delete formattedRow.foundedDate;
                 delete formattedRow.foundedDateVisibility;
+                delete formattedRow.flags;
+                delete formattedRow.presence;
+                delete formattedRow.presenceVisibility;
+                delete formattedRow.lastActive;
+                delete formattedRow.sendMessages;
+                delete formattedRow.isDeveloper;
+                delete formattedRow.createdDate;
+            } else {
+                if (!canViewField(formattedRow.birthdateVisibility)) {
+                    delete formattedRow.birthdate;
+                    delete formattedRow.birthdateVisibility;
+                }
+
+                if (!canViewField(formattedRow.presenceVisibility)) {
+                    delete formattedRow.presence;
+                    delete formattedRow.presenceVisibility;
+                }
+
+                if (!canViewField(formattedRow.foundedDateVisibility)) {
+                    delete formattedRow.foundedDate;
+                    delete formattedRow.foundedDateVisibility;
+                }
             }
         }
 
