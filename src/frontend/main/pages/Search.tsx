@@ -253,36 +253,17 @@ export default function Search() {
                             <SkeletonCharacterCard key={`skeleton-initial-${index}`} />
                         ))
                     ) : activeTab === "characters" && characterCount > 0 ? (
-                        characters.map((d) => (
+                        characters.map((d, index) => (
                             <CharacterCard 
-                                key={d.id}
+                                key={index}
                                 data={d}
-                                isPreview={true}
-                                hasNotification={false}
-                                //onOpenModal={handleOpenModal}
-                               // onShareModal={handleShareModal}
                             />
                         ))
                     ) : activeTab === "users" && userCount > 0 ? (
-                        users.map((d) => (
+                        users.map((d, index) => (
                             <UserCard
-                                key={d.id}
-                                id={d.id}
-                                aura={{
-                                    isEnabled: d.isAuraEnabled,
-                                    type: d.auraType,
-                                    primary: d.auraPrimary,
-                                    secondary: d.auraSecondary,
-                                }}
-                                avatar={d.avatar ? `${cdnBaseUrl}${d.avatar}` : ""}
-                                banner={d.banner ? `${cdnBaseUrl}${d.banner}` : ""}
-                                displayName={d.displayName}
-                                username={d.usernames?.[0]?.username}
-                                status={d.status}
-                                badges={d.badges}
-                                about={d.about}
-                                isMature={d.isMature}
-                                visibility={d.visibility}
+                                key={index}
+                                data={d}
                             />
                         ))
                     ) : (
