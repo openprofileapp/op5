@@ -5,6 +5,7 @@ import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { GetUserItemType, GetUserType } from "../../../_common/types/user.type.js";
 import { GetFromType } from "../../../_common/types/getFrom.type.js";
 import { SortByType } from "../../../_common/types/sortBy.type.js";
+import { GetLinkType } from "../../../_common/types/link.type.js";
 import { parseJson } from "../../_common/helpers/parseJson.js";
 import { db } from "../databases/db.js";
 import getInterestsService from "./getInterests.service.js";
@@ -24,6 +25,7 @@ type Props = {
     getFrom?: GetFromType;
     delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
+    includeLinks?: boolean;
     internalPermissionsBypass?: boolean;
 };
 
@@ -38,6 +40,7 @@ export default function getUsersService({
     getFrom,
     delegatedAccounts,
     includeInteractionItems = false,
+    includeLinks = false,
     internalPermissionsBypass = false
 }: Props): GetUserType {    
     let interests;
@@ -96,7 +99,6 @@ export default function getUsersService({
 
     const isHomePage = Boolean(getAs && getFrom === "home");
     
-    // DEVELOPER NEEDED: If not added to any collection either
     const homeClause = isHomePage && sortBy !== "recent"
         ? `AND NOT EXISTS (
             SELECT 1 FROM interactions.dismisses WHERE target = users.id AND source = ?
@@ -460,6 +462,42 @@ export default function getUsersService({
 
     const totalCount = countResult.rows[0]?.total || 0;
 
+    const userIds = result.rows.map(row => row.id);
+    let linksByUserId: Record<string, GetLinkType[]> = {};
+
+    if (includeLinks && userIds.length > 0) {
+        const placeholders = userIds.map(() => "?").join(",");
+        const linksResult = db.links.query<{
+            id: string;
+            url: string;
+            name: string;
+            previewText: string | null;
+            visibility: string;
+            date: string;
+        }>(
+            `SELECT id, url, name, previewText, visibility, date 
+             FROM links 
+             WHERE id IN (${placeholders})`,
+            userIds
+        );
+
+        assertDbSuccess(linksResult);
+
+        linksByUserId = linksResult.rows.reduce((acc, link) => {
+            if (!acc[link.id]) {
+                acc[link.id] = [];
+            }
+            acc[link.id].push({
+                url: link.url,
+                name: link.name,
+                previewText: link.previewText,
+                visibility: link.visibility,
+                date: link.date
+            });
+            return acc;
+        }, {} as Record<string, GetLinkType[]>);
+    }
+
     const parsedRows = result.rows.map(row => {
         const isOwner = Boolean(getAs && row.id === getAs);
         const areFriendRequestsEnabled = Boolean(row.areFriendRequestsEnabled);
@@ -516,6 +554,18 @@ export default function getUsersService({
             }
         }
 
+        const canViewField = (visibilitySetting?: string) => {
+            if (!visibilitySetting || visibilitySetting === "public") return true;
+            if (visibilitySetting === "registered" && getAs) return true;
+            if (visibilitySetting === "friends" && (isMutualFriend || hasFullAccess)) return true;
+            if (visibilitySetting === "private" && hasFullAccess) return true;
+            return false;
+        };
+
+        const userLinks = includeLinks 
+            ? (linksByUserId[row.id as string] || []).filter(link => internalPermissionsBypass || canViewField(link.visibility))
+            : parseJson(row.links);
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formattedRow: any = {
             ...row,
@@ -523,9 +573,10 @@ export default function getUsersService({
             badges: parseJson(row.badges),
             tags: parseJson(row.tags),
             collections: parseJson(row.collections),
-            links: parseJson(row.links),
+            links: userLinks,
             flags: ExperimentsService.decode(row.flags as string),
             interactions: parseJson(row.interactions),
+            isFriends: isMutualFriend,
             statistics,
             notifications: parseJson(row.notifications),
         };
@@ -538,14 +589,6 @@ export default function getUsersService({
                 delete formattedRow.interactions.blocks.count;
                 delete formattedRow.interactions.restricts.count;
             }
-
-            const canViewField = (visibilitySetting?: string) => {
-                if (!visibilitySetting || visibilitySetting === "public") return true;
-                if (visibilitySetting === "registered" && getAs) return true;
-                if (visibilitySetting === "friends" && isMutualFriend) return true;
-                if (visibilitySetting === "private" && hasFullAccess) return true;
-                return false;
-            };
 
             if (formattedRow.visibility === "friends" && !isMutualFriend && !hasFullAccess) {
                 delete formattedRow.collections;

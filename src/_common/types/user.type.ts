@@ -45,8 +45,8 @@ export type UserType = {
     isMature: boolean;
     visibility: VisibilityType;
     areFriendRequestsEnabled: boolean;
-    sendMessages: string;
-    sendComments: string;
+    sendMessages: VisibilityType;
+    sendComments: VisibilityType;
     presence: PresenceType;
     presenceVisibility: VisibilityType;
     lastActive: string;
@@ -63,6 +63,7 @@ export type GetUserItemType = Omit<
     flags: ExperimentsNameType[];
     links?: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
+    isFriends: boolean;
     statistics :Partial<StatisticsType>
     collections?: CollectionType[]
     notifications: GetNotificationCollection;

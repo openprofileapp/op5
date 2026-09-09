@@ -22,7 +22,8 @@ export const getUsers = async (req: Request, res: Response) => {
             page, 
             limit = config.limits.assetsPerPage,
             q: query,
-            ref
+            ref,
+            includeLinks
         } = req.query;
 
         const offset = 
@@ -38,7 +39,8 @@ export const getUsers = async (req: Request, res: Response) => {
             query: query as string, 
             getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType,
-            delegatedAccounts: req.session?.delegatedAccounts
+            delegatedAccounts: req.session?.delegatedAccounts,
+            includeLinks: Boolean(includeLinks)
         })
 
         res.status(200).json({
