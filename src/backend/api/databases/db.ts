@@ -296,13 +296,15 @@ db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
-db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 db.characters.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
+db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
+db.characters.query(`ATTACH DATABASE '${paths.links}' AS links`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.users.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
 db.users.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
+db.users.query(`ATTACH DATABASE '${paths.links}' AS links`);
 
 db.collections.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.collections.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
