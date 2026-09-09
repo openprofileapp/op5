@@ -114,8 +114,8 @@
     "DND": "Do Not Disturb",
     "LastActive": "Last Active",
     "Message": "Message",
-    "Edit": "Edit",
-    "AddFriend": "Add Friend",
+    "EditProfile": "Edit Profile",
+    "AddFriend": "Request Friend",
     "Restrict": "Restrict",
     "Block": "Block",
     "restrict": "restrict",
@@ -128,7 +128,12 @@
     "Unblock": "Unblock",
     "blocked": "blocked",
     "unblocked": "unblocked",
-    "fanflair": "fanflair"
+    "fanflair": "fanflair",
+    "Joined": "Joined",
+    "Born": "Born",
+    "Founded": "Founded",
+    "Since": "Since",
+    "ExternalLinks": "External Links"
   },
   "time": {
     "hour1": "1 Hour",
@@ -140,7 +145,8 @@
     "noCharacterAbout": "This character does not have an overview.",
     "noUserAbout": "This user does not have an overview.",
     "noFriendView": "as a friend to view their profile.",
-    "noFanflair": "Fanflairs are not yet available."
+    "noFanflair": "Fanflairs are not yet available.",
+    "onlyYou": "Only visible to you"
   },
   "components": {
     "menus": {
