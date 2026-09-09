@@ -243,7 +243,7 @@ export default function UserCard({
                     contextMenuBuilder.friend(),
                     !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
                         contextMenuBuilder.message(),
-                    !isHidden && !isBlocked && 
+                    window.session.userId && !isHidden && !isBlocked && 
                         contextMenuBuilder.separator(),
                     contextMenuBuilder.notifications(),
                     contextMenuBuilder.mute(),
@@ -374,7 +374,8 @@ export default function UserCard({
 
                 <div className="flex min-w-0 mt-1 items-center overflow-hidden">
                     <span className="truncate text-xs leading-snug">
-                        @{primaryUsername} • {formatNumber(followCount).short} Follower{followCount !== 1 && "s"}
+                        @{primaryUsername}
+                        {data.visibility !== "friends" && "isFriends" in data && !data.isFriends ? ` • ${formatNumber(followCount).short} Follower${followCount !== 1 && "s"}` : ""}
                     </span>
                 </div>
 
