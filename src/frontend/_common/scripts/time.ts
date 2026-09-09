@@ -54,7 +54,7 @@ export function getRemainingTimeIcon(timeText: string) {
     return "󱑊";
 }
 
-export function formatLongRelative(date: string | number | Date) {
+export function formatLongRelative(date: string | number | Date | undefined) {
     if (!date) return "0 seconds ago";
 
     const past = new Date(date);
