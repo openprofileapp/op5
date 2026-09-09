@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
@@ -11,7 +11,7 @@ import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
-import { isBirthdayToday } from "../../_common/scripts/time.js";
+import { formatLongRelative, formatShortRelative, isBirthdayToday } from "../../_common/scripts/time.js";
 import { GetAssetType } from "../../../_common/types/asset.type.js";
 import { MarkdownRenderer } from "../../_common/components/MarkdownRenderer.js";
 import Metadata from "../../_common/components/Metadata.js";
@@ -112,7 +112,7 @@ export default function UserProfile() {
         const fetchUser = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/users?id=${id}`, 
+                    `${apiBaseUrl}/v3/users?id=${id}&includeLinks=true`, 
                     { credentials: "include" }
                 );
 
@@ -314,12 +314,20 @@ export default function UserProfile() {
     const Banner = data?.banner ? ZoomableMedia : "img";
     const Avatar = (data?.avatar || data?.animatedAvatar) ? ZoomableMedia : "img";
 
+    const buttonClassList = "flex flex-1 gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
+    const buttonTextClassList = "text-base font-nerdfont w-4";
+
+    const boxClassList = "bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit";
+    const boxTextClassList = "w-full text-center text-lg font-bold mb-6"
+
+    if (!isTranslationReady) return;
+
     return (
         <>
             <Metadata
                 title={data?.displayName || primaryUsername || data?.id}
                 description={data?.about || t("defaults.noUserAbout")}
-                keywords={data?.tags.toString()}
+                keywords={data?.tags?.toString()}
                 image={`${cdnBaseUrl}${data?.avatar || window.config.metadata.assets.icon}`}
                 author={primaryUsername || data?.id}
             />
@@ -337,6 +345,84 @@ export default function UserProfile() {
                         pointerEvents: "none",
                     }}
                 />
+            )}
+
+            {isBlocked && !isBlockRevealed && (
+                <div 
+                    className="fixed inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsBlockRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isBlocked")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
+            )}
+
+            {Boolean(isMature) && !isRevealed && (
+                <div 
+                    className="fixed inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isMature")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
+            )}
+
+            {(Boolean(isSensitive) && Boolean(!isMature)) && !isRevealed && (
+                <div 
+                    className="fixed inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        󰈉
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isSensitive")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
             )}
 
             <div style={{backgroundColor: data?.isAuraEnabled ? hexToRgba(data?.auraPrimary, 0.05) : "transparent"}}>
@@ -374,7 +460,7 @@ export default function UserProfile() {
                                     contextMenuBuilder.friend(),
                                     !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
                                         contextMenuBuilder.message(),
-                                    !isHidden && !isBlocked && 
+                                    window.session.userId && !isHidden && !isBlocked && 
                                         contextMenuBuilder.separator(),
                                     contextMenuBuilder.notifications(),
                                     contextMenuBuilder.mute(),
@@ -488,153 +574,87 @@ export default function UserProfile() {
                                         </div>
                                     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                     <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
-                                        {/*<button
-                                            className="flex gap-2 h-8 w-full px-3 text-sm btn btn-base-200 border-base-300 uppercase"
-                                            onClick={() => { closeCreateProjectModal() }}
-                                        >
-                                            <span className="text-base font-nerdfont w-4">
-                                                󰈈
-                                            </span>
-                                            View Profile
-                                        </button>*/}
-
-                                        {primaryUsername === "avatarkage" && (
+                                        {window.session.userId === data?.id && (
                                             <button
-                                                className="flex gap-2 w-full h-8 px-3 text-sm btn btn-base-200 border-base-300"
-                                                onClick={() => { toast.show("NAME: Ready to publish the new character?", { icon: "" }) }}
-                                            >
-                                                <span className="text-base font-nerdfont w-4">
-                                                    
-                                                </span>
-                                                Edit Profile
-                                            </button>
-                                        )}
-
-                                        {primaryUsername !== "avatarkage" && data?.visibility !== "friends" && (
-                                            <button
-                                                className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300"
-                                                // TO UNFOLLOW; DISPLAY UNFOLLOW PROMPT (are you sure you want to unfollow)
+                                                className={buttonClassList}
                                                 onClick={() => {
-                                                    if (isFollowing || isFollowInteractionLoading) return;
-    
-                                                    setIsFollowInteractionLoading(true);
-    
-                                                    setTimeout(() => {
-                                                        setIsFollowInteractionLoading(false);
-                                                        setIsFollowing(true);
-                                                        toast.show(`You followed ${data?.displayName}`, { icon: "", type: "success" });
-                                                    }, 500);
+                                                    // editModal.open(data);
+                                                    toast.show(
+                                                        "DEVELOPER NEEDED: Add edit modal", 
+                                                        { type: "warning" }
+                                                    );
                                                 }}
                                             >
-                                                <span className={`text-lg font-nerdfont w-4 ${isFollowInteractionLoading ? "loading" : ""}`}>
-                                                    {!isFollowing ? `${data?.visibility === "public" ? "" : ""}` : ""}
+                                                <span className={buttonTextClassList}>
+                                                    
                                                 </span>
-                                                {!isFollowing ? `${data?.visibility === "public" ? "Follow" : "Request Follow"}` : "Following"}
+                                                {t("words.EditProfile")}
                                             </button>
                                         )}
 
-                                        {primaryUsername !== "avatarkage" && (
+                                        {window.session.userId !== data?.id 
+                                            && (data && data?.visibility !== "friends" && "isFriends" in data && !data.isFriends) 
+                                        && (
                                             <button
-                                                className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300"
-                                                //  onClick={() => { closeCreateProjectModal() }}
-                                                data-guide="message"
+                                                className={buttonClassList}
+                                                onClick={async () => {
+                                                    await handleFollowInteraction(
+                                                        data,
+                                                        isFollowing,
+                                                        isFollowInteractionLoading,
+                                                        setIsFollowing,
+                                                        setIsFollowInteractionLoading,
+                                                        setFollowCount
+                                                    );
+                                                }}
                                             >
-                                                <span className="text-base font-nerdfont w-4">
-                                                    
+                                                <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
+                                                    {isFollowing ? "" : ""}
                                                 </span>
-                                                Message
+                                                {isFollowing ? t("words.Unfollow") : t("words.Follow")}
                                             </button>
                                         )}
 
-                                        {/*<button
-                                            className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300"
-                                            onClick={() => { closeCreateProjectModal() }}
-                                        >
-                                            <span className="text-base font-nerdfont w-4">
-                                                
-                                            </span>
-                                        </button>*/}
-                
-                                        {data?.visibility === "friends" && (
+                                        {data?.visibility === "friends" && !data?.isFriends && data?.sendMessages === "private" && (
                                             <button
-                                                className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300 uppercase"
-                                                onClick={() => { closeCreateProjectModal() }}
+                                                className={buttonClassList}
+                                                onClick={() => { 
+                                                    // friendModal.open(data);
+                                                    // If friend, display modal to unfrend, else add a friend or cancel
+                                                    toast.show(
+                                                        "DEVELOPER NEEDED: Add friend modal", 
+                                                        { type: "warning" }
+                                                    );
+                                                }}
                                             >
-                                                <span className="text-base font-nerdfont w-4">
-                                                    
+                                                <span className={buttonTextClassList}>
+                                                    
                                                 </span>
-                                                Request Friend
+
+                                                {t("words.AddFriend")}
                                             </button>
                                         )}
-                
-                                        {/*<button
-                                            className="flex gap-2 h-8 px-3 text-sm btn btn-success border-success uppercase"
-                                            onClick={() => { closeCreateProjectModal() }}
-                                        >
-                                            <span className="text-base font-nerdfont w-4">
-                                                
-                                            </span>
-                                            {visibility === "friends" ? "Request Friend" : "Friends"}
-                                        </button>*/}
-                
-                                        { data?.isMature ? 
-                                            <button className="flex gap-2 h-8 px-3 text-sm btn btn-accent border-accent uppercase"
-                                                onClick={() => { closeCreateProjectModal() }}>
-                                                <span className="text-base">
-                                                    18+
+
+                                        {
+                                            window.session.userId !== data?.id
+                                            && !isHidden 
+                                            && !isBlocked
+                                            && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
+                                            (data?.sendMessages === "friends" && data?.isFriends) ||
+                                            (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
+                                        && (
+                                            <button
+                                                className={`${buttonClassList} tooltip tooltip-accent pointer-events-auto`}
+                                                data-tip={t("words.ComingSoon")}
+                                                disabled={true}
+                                            >
+                                                <span className={buttonTextClassList}>
+                                                    󰍡
                                                 </span>
+                                                {t("words.Message")}
                                             </button>
-                                            : ""
-                                        }
-                
-                                        {/*{ visibility !== "public" ? 
-                                            <button className="flex gap-2 h-8 flex-1 px-3 text-sm btn btn-base-200 border-base-300 uppercase"
-                                                onClick={() => { closeCreateProjectModal() }}>
-                                                <span className="text-base font-nerdfont w-4">
-                                                    
-                                                </span>
-                                                Private
-                                            </button>
-                                            : ""
-                                        }*/}
+                                        )}
                                     </div>
 
                                     {data?.about && (
@@ -643,54 +663,129 @@ export default function UserProfile() {
                                         </p>
                                     )}
 
-                                    <div className="flex flex-col gap-4 w-full mt-4">
+                                    <div className="flex flex-col gap-3 w-full mt-4">
                                         <div className="flex items-center gap-2">
                                             <div className="font-nerdfont leading-none text-base">󰃭</div>
-                                            <div className="text-sm">April 2, 2024</div>
+                                            <div 
+                                                className="text-sm tooltip"
+                                                data-tip={`${t("words.Joined")} ${formatLongRelative(data?.createdDate)}`}
+                                            >
+                                                {formatShortRelative(data?.createdDate)}
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
-                                            <div className="font-nerdfont leading-none text-base">󰃫</div>
-                                            <div className="text-sm">March 23, 2003</div>
-                                        </div>
+                                        {data?.birthdate && data?.type === "author" && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-nerdfont leading-none text-base">󰃫</div>
+                                                <div 
+                                                    className="text-sm tooltip"
+                                                    data-tip={`${t("words.Born")} ${formatLongRelative(data?.birthdate)}`}
+                                                >
+                                                    {formatShortRelative(data?.birthdate)}
+                                                </div>
 
+                                                {data?.birthdateVisibility === "private" && (
+                                                    <div 
+                                                        className="tooltip"
+                                                        data-tip={t("defaults.onlyYou")}
+                                                    >
+                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                            
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {data?.foundedDate && data?.type === "publisher" && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-nerdfont leading-none text-base"></div>
+                                                <div 
+                                                    className="text-sm tooltip"
+                                                    data-tip={`${t("words.Founded")} ${formatLongRelative(data?.foundedDate)}`}
+                                                >
+                                                    {formatShortRelative(data?.foundedDate)}
+                                                </div>
+
+                                                {data?.foundedDateVisibility === "private" && (
+                                                    <div 
+                                                        className="tooltip"
+                                                        data-tip={t("defaults.onlyYou")}
+                                                    >
+                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                            
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         
-                                        <div className="flex items-center gap-2">
-                                            <div className="font-nerdfont leading-none text-base"></div>
-                                            <div className="text-sm">United States</div>
-                                        </div>
+                                        {data?.location && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-nerdfont leading-none text-base"></div>
+                                                <div className="text-sm">{data?.location}</div>
+                                            </div>
+                                        )}
                                     </div>
-
-                                    <div className="flex gap-4 flex-wrap hidden">
-                                        <div className="flex items-center ml-auto">
-                                            <span className={`leading-none font-nerdfont text-base ${data?.interactions?.fanflairs?.interacted ? "text-accent" : ""}`}>
-                                                󰃫
-                                            </span>
-                                            <span className="text-sm ml-2 whitespace-nowrap">
-                                                March 23, 2003
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center ml-auto">
-                                            <span className={`leading-none font-nerdfont text-base ${data?.interactions?.fanflairs?.interacted ? "text-accent" : ""}`}>
-                                                󰃭
-                                            </span>
-                                            <span className="text-sm ml-2 whitespace-nowrap">
-                                                April 2, 2024
-                                            </span>
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                <div className="w-full text-center text-lg font-bold mb-6">External Links</div>
-                                <ExternalLinks links={data?.links} hasBackground={false} />
+                            <div className={boxClassList}>
+                                <div className={boxTextClassList}>
+                                    {t("words.ExternalLinks")}
+                                </div>
+
+                                <ExternalLinks
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    links={data?.links}
+                                />
                             </div>
 
-                            <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                <div className="w-full text-center text-lg font-bold mb-6">Awards</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            {/* DEVELOPER NEEDED: Migrate non-badges from old db to awards db */}
+
+                            <div className={boxClassList}>
+                                <div className={boxTextClassList}>Awards</div>
                                 <div className="grid grid-cols-3 gap-4 w-full text-center">
                                     <div 
                                         className="aspect-square rounded border border-base-300 tooltip"
@@ -728,8 +823,8 @@ export default function UserProfile() {
                                 </div>
                             </div>
 
-                            <div className="bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                <div className="w-full text-center text-lg font-bold mb-6">Statistics</div>
+                            <div className={boxClassList}>
+                                <div className={boxTextClassList}>Statistics</div>
                                 <div className="grid grid-cols-3 gap-4 w-full text-center">
                                     <div>
                                         <div className="font-bold">{formatNumber(383).short}</div>
@@ -758,8 +853,8 @@ export default function UserProfile() {
                                 </div>
                             </div>
 
-                            <div className="relative flex flex-col items-center bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit">
-                                <div className=" w-full mb-6">
+                            <div className="relative flex flex-col items-center{boxClassList}">
+                                <div className="w-full mb-6">
                                     <div className="w-full text-center text-lg font-bold">Advertisement</div>
                                     <div className="text-center mt-1 text-xs text-sub">Subscribe to Premium to remove this.</div>
                                 </div>
