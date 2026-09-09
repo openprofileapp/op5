@@ -148,7 +148,7 @@ export default function Badges({
             if (badge.type === "PREMIUM" && badge.date) {
                 return {
                     ...badge,
-                    comment: formatLongRelative(badge.date),
+                    comment: `${t("words.Since")} ${formatLongRelative(badge.date)}`,
                 };
             }
             return badge;
