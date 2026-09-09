@@ -437,7 +437,7 @@ export function ContextMenuBuilder({
         edit: (props: Props = {}): ReactNode => window.session.userId === data.id && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
-                data-tip={t("words.Edit")}
+                data-tip={t("words.EditProfile")}
                 onClick={async () => {
                     closeContextMenu(data.id);
 
@@ -452,7 +452,7 @@ export function ContextMenuBuilder({
                         justify-between
                         ${props.isQuickAction && quickActionClassList}
                     `}>
-                    {!props.isQuickAction ? (t("words.Edit")) : ""}
+                    {!props.isQuickAction ? (t("words.EditProfile")) : ""}
 
                     <span className={textClassList}>
                         
@@ -531,9 +531,16 @@ export function ContextMenuBuilder({
             </li>
         ),
 
-        message: (props: Props = {}): ReactNode => !isOwner
+        message: (props: Props = {}): ReactNode => 
+            !isOwner
             && !isHidden 
             && !isBlocked
+            // @ts-ignore
+            && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
+            // @ts-ignore
+            (data?.sendMessages === "friends" && data?.isFriends) ||
+            // @ts-ignore
+            (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
         && (
             <li
                 className={
@@ -560,6 +567,7 @@ export function ContextMenuBuilder({
         ),
 
         follow: (props: Props = {}): ReactNode => Boolean(setIsFollowing) 
+            && (data.visibility !== "friends" && "isFriends" in data && !data.isFriends)
             && !isHidden 
             && window.session.userId 
             && !isOwner 
@@ -594,7 +602,8 @@ export function ContextMenuBuilder({
         ),
 
         // If blocked or ristricted, don't show certain buttons or if friends are disabled
-        friend: (props: Props = {}): ReactNode => window.session.userId !== data.id 
+        friend: (props: Props = {}): ReactNode => window.session.userId 
+            && window.session.userId !== data.id 
             && !isHidden
             && !isBlocked
             && ("areFriendRequestsEnabled" in data && data.areFriendRequestsEnabled)
@@ -614,9 +623,9 @@ export function ContextMenuBuilder({
                 }}
             >
                 <button className={`
-                        justify-between
-                        ${props.isQuickAction && quickActionClassList}
-                    `}>
+                    justify-between
+                    ${props.isQuickAction && quickActionClassList}
+                `}>
                     {!props.isQuickAction ? (t("words.AddFriend")) : ""}
 
                     <span className={friendTextClassList}>
