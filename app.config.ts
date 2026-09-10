@@ -216,6 +216,7 @@ export const config = {
     integrations: {
         webPush: "BK3b8F41-0Gc1HBJS4JgNrSsziMhwY6T78ys5h0RmEVJYc7-4Q3KIscdUOhlvb_3Y9kzjBx-6QFGUgUle7FBGcI",
         hcaptcha: "7fb2b75a-fdb6-4fe8-a4e4-6000ef8e7464",
+        adsence: "ca-pub-5934702627096796",
         oauth2: {
             google: "173110862947-3jrkouleg7m08eu8qe5rqr2sp355bdn2.apps.googleusercontent.com",
             microsoft: "03fe61da-efa0-454b-afad-773fafd71239",
