@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+
 import ImageEmbed from "./render/image.js";
 import Mention from "../../../main/components/Mention.js";
 import { apiBaseUrl } from "../../scripts/domains.js";
@@ -23,7 +24,6 @@ const RenderMention: React.FC<{ id: string }> = ({ id }) => {
 
                 if (response.ok) {
                     const data = await response.json();
-
                     setData(data);
                 }
             } catch (error) {
@@ -112,13 +112,75 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     const processedContent = trimmedContent.replace(/__(.*?)__/g, "<u>$1</u>");
 
     return (
-        <div className={`markdown-content prose text-base-content max-w-none ${className}`}>
+        <div className={`markdown-content prose text-base-content max-w-none prose-table:my-0 ${className}`}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
+                    h1({ children }) {
+                        return <h1 className="text-4xl font-extrabold mt-8 mb-3">
+                            {children}
+                        </h1>;
+                    },
+
+                    h2({ children }) {
+                        return <h2 className="text-2xl font-bold mt-7 mb-2.5">
+                            {children}
+                        </h2>;
+                    },
+
+                    h3({ children }) {
+                        return <h3 className="text-xl font-bold mt-6 mb-2">
+                            {children}
+                        </h3>;
+                    },
+
+                    h4({ children }) {
+                        return <h4 className="text-base font-semibold mt-5 mb-1.5">
+                            {children}
+                        </h4>;
+                    },
+
+                    h5({ children }) {
+                        return <h5 className="text-xs font-bold text-base-content/90 mt-4 mb-1">
+                            {children}
+                        </h5>;
+                    },
+                    
+                    h6({ children }) {
+                        return <h6 className="text-[10px] text-sub font-semibold mt-3 mb-0.5">
+                            {children}
+                        </h6>;
+                    },
+                    
                     u({ children }) {
                         return <u>{children}</u>;
+                    },
+
+                    table({ children }) {
+                        return (
+                            <div className="overflow-x-auto border border-base-300 rounded m-0 p-0">
+                                <table className="table-auto w-full text-left border-collapse my-0">
+                                    {children}
+                                </table>
+                            </div>
+                        );
+                    },
+
+                    thead({ children }) {
+                        return <thead className="bg-base-200 border-b border-base-300">{children}</thead>;
+                    },
+
+                    th({ children }) {
+                        return <th className="p-2 border-r last:border-r-0 border-base-300 font-semibold">{children}</th>;
+                    },
+
+                    tr({ children }) {
+                        return <tr className="even:bg-base-200/65">{children}</tr>;
+                    },
+
+                    td({ children }) {
+                        return <td className="p-2 border-t border-r last:border-r-0 border-base-300">{children}</td>;
                     },
 
                     code({ children, className: codeClassName }) {
@@ -144,7 +206,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     p({ children }) {
                         if (!children) return null;
                         return (
-                            <p>
+                            <p className="first:mt-0 last:mb-0">
                                 {React.Children.map(children, (child) => {
                                     if (typeof child !== "string") return child;
 
@@ -172,7 +234,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                                 <ZoomableMedia
                                     src={href}
                                     alt={typeof children === "string" ? children : "Image"}
-                                    className="my-4 rounded"
+                                    className="rounded"
                                 />
                             );
                         }

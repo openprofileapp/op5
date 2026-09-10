@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MarkdownRenderer } from "./renderer.js";
 import { useTranslation } from "react-i18next";
+import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
 
 interface MarkdownEditorProps {
     initialContent?: string;
@@ -65,7 +66,7 @@ export default function MarkdownEditor({
         } else {
             replacement = `${prefix}${suffix}`;
             newSelectionStart = start + prefix.length;
-            newSelectionEnd = start + prefix.length;
+            newSelectionStart = start + prefix.length;
         }
 
         const newValue =
@@ -86,6 +87,61 @@ export default function MarkdownEditor({
         insertMarkdown(prefix, suffix);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter") {
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const currentContent = value ?? "";
+
+            const lastLineBreak = currentContent.lastIndexOf("\n", start - 1);
+            const currentLine = currentContent.substring(lastLineBreak + 1, start);
+
+            const listMatch = currentLine.match(/^(\s*[-*]\s+)(.*)/);
+
+            if (listMatch) {
+                e.preventDefault();
+
+                const prefix = listMatch[1];
+                const textAfterPrefix = listMatch[2];
+
+                if (textAfterPrefix.trim() === "") {
+                    const newValue =
+                        currentContent.substring(0, lastLineBreak + 1) +
+                        currentContent.substring(end);
+
+                    handleTextChange(newValue);
+
+                    const targetPos = lastLineBreak < 0 ? 0 : lastLineBreak + 1;
+                    setTimeout(() => {
+                        if (textarea) {
+                            textarea.focus();
+                            textarea.setSelectionRange(targetPos, targetPos);
+                        }
+                    }, 0);
+                } else {
+                    const nextBullet = `\n${prefix}`;
+                    const newValue =
+                        currentContent.substring(0, start) +
+                        nextBullet +
+                        currentContent.substring(end);
+
+                    handleTextChange(newValue);
+
+                    const newCursorPos = start + nextBullet.length;
+                    setTimeout(() => {
+                        if (textarea) {
+                            textarea.focus();
+                            textarea.setSelectionRange(newCursorPos, newCursorPos);
+                        }
+                    }, 0);
+                }
+            }
+        }
+    };
+
     if (!isEditing) {
         return <MarkdownRenderer
             className={className} 
@@ -95,6 +151,9 @@ export default function MarkdownEditor({
 
     const buttonClassList = "btn flex items-center justify-center bg-base-200 border border-base-300 w-8 h-8 rounded cursor-pointer tooltip font-normal";
     const buttonTextClassList = "font-nerdfont leading-none text-sm";
+
+    const tableTemplate = "\n| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n";
+    const gridTemplate = `\n<div className="grid grid-cols-2 gap-4">\n  <div>\n\n![Image Description](${cdnBaseUrl}${window.config.metadata.assets.icon})\n\n  </div>\n  <div>\n\n![Image Description](${cdnBaseUrl}${window.config.metadata.assets.icon})\n\n  </div>\n</div>\n`;
 
     if (!isTranslationReady) return null;
 
@@ -156,8 +215,30 @@ export default function MarkdownEditor({
 
                     <button
                         className={buttonClassList}
+                        data-tip={t("words.Table")}
+                        onMouseDown={(e) => handleToolClick(e, tableTemplate)}
+                    >
+                        <span className={buttonTextClassList}>
+                            
+                        </span>
+                    </button>
+
+                    <button
+                        className={buttonClassList}
+                        data-tip={t("words.Grid")}
+                        onMouseDown={(e) => handleToolClick(e, gridTemplate)}
+                    >
+                        <span className={buttonTextClassList}>
+                            󰋁
+                        </span>
+                    </button>
+
+                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2"></div>
+
+                    <button
+                        className={buttonClassList}
                         data-tip={t("words.Link")}
-                        onMouseDown={(e) => handleToolClick(e, "[", "](https://example.com)")}
+                        onMouseDown={(e) => handleToolClick(e, `[", "](${mainBaseUrl})`)}
                     >
                         <span className={buttonTextClassList}>
                             
@@ -167,7 +248,7 @@ export default function MarkdownEditor({
                     <button
                         className={buttonClassList}
                         data-tip={t("words.Image")}
-                        onMouseDown={(e) => handleToolClick(e, "![", "](https://cdn.example.com/image.png=128)")}
+                        onMouseDown={(e) => handleToolClick(e, "![Image Description", `](${cdnBaseUrl}${window.config.metadata.assets.icon}=256)`)}
                     >
                         <span className={buttonTextClassList}>
                             󰋩
@@ -245,6 +326,7 @@ export default function MarkdownEditor({
                         ref={textareaRef}
                         value={value}
                         onChange={(e) => handleTextChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         placeholder="Sometimes, nothing says everything..."
                         rows={1}
                         className="w-full bg-transparent resize-none overflow-hidden outline-none font-mono text-sm text-base-content min-h-[280px]"

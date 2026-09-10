@@ -37,11 +37,12 @@ export const ImageEmbed: React.FC<ImageEmbedProps> = ({
     const cleanSrc = src.split("=")[0].trim();
 
     return (
-        <div style={style} className="my-4 inline-block">
+        <div style={style}>
             <ZoomableMedia
+                className="rounded w-full h-full object-cover"
                 src={cleanSrc}
                 alt={alt}
-                className="rounded w-full h-full object-cover"
+                description={alt}
             />
         </div>
     );
