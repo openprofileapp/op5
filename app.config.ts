@@ -73,7 +73,8 @@ export const config = {
         hardConnectedSessions: 650,
         assetsPerPage: 30,
         uploadSize: 1 * 1024 * 1024, // 1 MB
-        accessTokenExpireInMinutes: 15
+        accessTokenExpireInMinutes: 15,
+        setIdlePresenceInMinutes: 10
     },
 
     // Displays the maintenance landing

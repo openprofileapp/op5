@@ -1,3 +1,4 @@
+import { usePresenceStore } from "../../_common/stores/presenceStore.js";
 import { log } from "./main.js";
 
 export default class WsClient<TSend = unknown> {
@@ -24,6 +25,18 @@ export default class WsClient<TSend = unknown> {
 
                 if (data.message === "connected") {
                     // Call an action
+                }
+
+                if (data.presence) {
+                    const { id, presence, lastActive } = data.presence;
+
+                    if (id && presence) {
+                        usePresenceStore.getState().updatePresence(
+                            id,
+                            presence,
+                            lastActive
+                        );
+                    }
                 }
 
                 log.ws.info("Received from server:", data);

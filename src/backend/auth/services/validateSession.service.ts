@@ -282,15 +282,13 @@ export default async function validateSession(
             `UPDATE sessions SET
                 geoIpLatestFetch = ?,
                 geoIpLatestFetchExpireDate = ?,
-                userAgent = ?,
-                lastConnectedDate = ?
+                userAgent = ?
             WHERE sessionId = ?
             LIMIT 1`,
             [
                 JSON.stringify(newGeoIpLatestFetch),
                 in15Minutes,
                 JSON.stringify(formattedUserAgent),
-                now,
                 sessionId
             ]
         );
@@ -671,15 +669,13 @@ export default async function validateSession(
         `UPDATE sessions SET
             userAgent = ?,
             inviteCode = ?,
-            isConnected = ?,
-            lastConnectedDate = ?
+            isConnected = ?
         WHERE sessionId = ?
         LIMIT 1`,
         [
             JSON.stringify(formattedUserAgent),
             inviteCode,
             1,
-            now,
             sessionId
         ]
     );

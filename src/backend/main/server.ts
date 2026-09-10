@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { IncomingMessage } from "http";
 import cron from "node-cron";
 import path from "path";
+import { DateTime } from "luxon";
 
 import { config } from "../../../app.config.js";
 import { log } from "./instances.js";
@@ -17,6 +18,8 @@ import appRoute from "./routes/app.route.js";
 import commonRoutes from "../_common/routes/common.routes.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import websocketRoute from "./routes/websocket.route.js";
+import { wc } from "../_common/instances.js";
+import { checkIdleTimer } from "../_common/helpers/presence.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -88,11 +91,20 @@ Websocket
 ———————————————————————————————————————————————————————————————— 
 */
 
-export const connectedClients = new Map<string, WebSocket>();
+interface ConnectedClient {
+    ws: WebSocket;
+    sessionId: string;
+    userId: string;
+}
+
+export const connectedClients = new Map<string, ConnectedClient>();
+
+export const isUserIdle = new Map<string, boolean>();
+export const idleTimers = new Map<string, NodeJS.Timeout>();
 
 const wss = new WebSocketServer({ server });
 
-wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
+wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
     const rawCookies = req.headers.cookie || "";
 
     const cookies = Object.fromEntries(
@@ -102,21 +114,41 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         })
     );
 
-    const clientId = cookies.sessionId;
+    const sessionId = cookies.sessionId;
 
-    if (!clientId) return;
+    if (!sessionId) return;
 
-    ws.id = clientId;
+    const response: { userId: string } = await wc.callAPI(
+        `https://${config.domains.auth}/connect/${sessionId}`,
+        { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+    );
 
-    log.ws.info("Client connected:", ws.id);
+    ws.sessionId = sessionId;
+    ws.userId = response.userId;
 
-    connectedClients.set(clientId, ws);
+    const presenceResponse: { ok: boolean } = await wc.callAPI(
+        `https://${config.domains.api}/v3/users/presence/online/${response.userId}`,
+        { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+    );
 
-    // DEVELOPER NEEDED: Save visit to the audit database per page
-    // DEVELOPER NEEDED: Update user presense status based on their activity using 
-    // mouse motion to track and send to https://api.openprofile/v3/users/update
+    if (presenceResponse.ok) {
+        ws.send(JSON.stringify({ 
+            presence: {
+                id: ws.userId,
+                presence: "online"
+            }
+        }));
+    }
 
-    ws.on("message", (message: WebSocket.RawData) => {
+    log.ws.info("Client connected:", ws.sessionId);
+
+    connectedClients.set(sessionId, {
+        ws,
+        sessionId: sessionId,
+        userId: response.userId
+    });
+
+   ws.on("message", (message: WebSocket.RawData) => {
         let data;
 
         try {
@@ -126,25 +158,44 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
             return;
         }
 
-        log.ws.info(`Received from ${ws.id}:`, data);
+        log.ws.info(`Received from ${ws.sessionId}:`, data);
 
         if (data.status === "ready") {
             ws.send(JSON.stringify({ message: "connected" }));
         }
+
+        if (data.active) {
+            checkIdleTimer(sessionId, ws.userId);
+        }
     });
 
-    ws.on("close", () => {
-        connectedClients.delete(clientId);
-        log.ws.info("Client disconnected:", ws.id);
+    ws.on("close", async () => {
+        await wc.callAPI(
+            `https://${config.domains.auth}/disconnect/${ws.sessionId}`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
 
-        // DEVELOPER NEEDED: Update totalDuration when leaving the site both in audit (stats purposes) and session
-        // Requires an API: https://auth.openprofile.app/disconnect/:sessionId;
-        // Its similair to: https://auth.openprofile.app/logout
+        await wc.callAPI(
+            `https://${config.domains.api}/v3/users/presence/offline/${ws.userId}`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
+
+        ws.send(JSON.stringify({ 
+            presence: {
+                id: ws.userId,
+                presence: "offline",
+                lastActive: DateTime.now().toUTC().toISO()
+            }
+        }));
+        
+        connectedClients.delete(ws.sessionId);
+
+        log.ws.info("Client disconnected:", ws.sessionId);
     });
 
     ws.on("error", () => {
-        log.ws.error("Client crashed:", ws.id).save();
-        connectedClients.delete(clientId);
+        log.ws.error("Client crashed:", ws.sessionId).save();
+        connectedClients.delete(sessionId);
     });
 });
 

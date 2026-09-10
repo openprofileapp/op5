@@ -14,6 +14,7 @@ export type PresenceType =
     | "idle"
     | "dnd"
     | "offline"
+    | "hidden"
 ;
 
 export type UserType = {

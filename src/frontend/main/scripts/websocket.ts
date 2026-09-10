@@ -1,4 +1,5 @@
 import { banner } from "../../_common/scripts/banner.js";
+import { usePresenceStore } from "../../_common/stores/presenceStore.js";
 import { log } from "./main.js";
 
 export default class WsClient<TSend = unknown> {
@@ -24,22 +25,34 @@ export default class WsClient<TSend = unknown> {
         };
 
         this.ws.onmessage = (event: MessageEvent<string>) => {
-            const rawData = event.data;
-            const now = Date.now();
-            const lastSeen = this.cooldownMap.get(rawData);
-
-            if (lastSeen && now - lastSeen < this.cooldownMs) {
-                return;
-            }
-
-            this.cooldownMap.set(rawData, now);
-
-            setTimeout(() => {
-                this.cooldownMap.delete(rawData);
-            }, this.cooldownMs);
-            
             try {
                 const data = JSON.parse(event.data);
+
+                if (data.presence) {
+                    const { id, presence, lastActive } = data.presence;
+
+                    if (id && presence) {
+                        usePresenceStore.getState().updatePresence(
+                            id,
+                            presence,
+                            lastActive
+                        );
+                    }
+                }
+
+                const rawData = event.data;
+                const now = Date.now();
+                const lastSeen = this.cooldownMap.get(rawData);
+
+                if (lastSeen && now - lastSeen < this.cooldownMs) {
+                    return;
+                }
+
+                this.cooldownMap.set(rawData, now);
+
+                setTimeout(() => {
+                    this.cooldownMap.delete(rawData);
+                }, this.cooldownMs);
 
                 if (
                     data.action === "DISPLAY_503" && 
