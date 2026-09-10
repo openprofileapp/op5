@@ -101,6 +101,7 @@ export default function UserCard({
     
     const primaryUsername = data.usernames.find(u => u.isPrimary)?.username;
 
+    const Banner = data.banner ? "img" : "div";
     const bannerClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[118px] w-full object-cover";
 
     return (
@@ -266,9 +267,9 @@ export default function UserCard({
             }
 
             <div className="absolute inset-0 group pointer-events-none">
-                <img
+                <Banner
                     className={bannerClassList}
-                    src={data.banner ? `${cdnBaseUrl}${data.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                    src={`${cdnBaseUrl}${data.banner}`}
                     alt={t("words.banner")}
                 />
             </div>

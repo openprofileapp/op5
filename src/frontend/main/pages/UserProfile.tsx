@@ -417,7 +417,7 @@ export default function UserProfile() {
         setActiveTab(tab);
     };
 
-    const Banner = data?.banner ? ZoomableMedia : "img";
+    const Banner = data?.banner ? ZoomableMedia : "div";
     const Avatar = (data?.avatar || data?.animatedAvatar) ? ZoomableMedia : "img";
 
     const buttonClassList = "flex flex-1 gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
@@ -536,7 +536,7 @@ export default function UserProfile() {
                 <div className="hero">
                     <Banner
                         className="mask-graident absolute top-[64px] w-full object-cover h-96"
-                        src={data?.banner ? `${cdnBaseUrl}${data?.banner}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                        src={`${cdnBaseUrl}${data?.banner}`}
                         alt={t("words.banner")}
                     />
                 </div>
