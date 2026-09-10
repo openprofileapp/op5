@@ -20,7 +20,7 @@ export const getPins = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "READ");
 
         const result = db.pins.query<PinType>(
-            `SELECT * FROM pins WHERE ownerId = ?`,
+            `SELECT * FROM pins WHERE ownerId = ? ORDER BY position ASC`,
             [ownerId]
         );
 
