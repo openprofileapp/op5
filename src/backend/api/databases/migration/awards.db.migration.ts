@@ -2,23 +2,20 @@ import { DateTime } from "luxon";
 
 import { db, mdb } from "../db.js";
 import { log } from "../../instances.js";
-import { BadgeNameType } from "../../../../_common/types/badge.type.js";
+import { AwardNameType } from "../../../../_common/types/award.type.js";
 
-const allowed: readonly BadgeNameType[] = [
-    "OFFICIAL",
-    "PARTNER",
-    "PREMIUM",
-    "PROMOTED",
-    "STAFF",
-    "UNOFFICIAL",
-    "VERIFIED",
-    "LIMITED"
+const allowed: readonly AwardNameType[] = [
+    "CONTRIBUTOR",
+    "ENTOMOLOGIST",
+    "PRECURSOR"
 ];
 
 const result = mdb.accounts.query("SELECT * from badges");
 
-db.badges.transaction(q => {
+db.awards.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
+
+    let presursorCount = 0;
 
     const rows = [...result.rows].sort(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -26,38 +23,11 @@ db.badges.transaction(q => {
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    rows.push({
-        user: "8057185762390040",
-        type: "staff",
-        text: "Social Media Manager",
-        date: "2026-05-08 01:53:00"
-    });
-
-    rows.push({
-        user: "3912544802938547",
-        type: "staff",
-        text: "Graphics Designer",
-        date: "2026-06-12 00:17:00"
-    });
-
-    rows.push({
-        user: "4665263395368921",
-        type: "unofficial",
-        text: "OpenProfile",
-        date: "2026-08-21 00:00:00"
-    });
-
     for (const d of rows) {
-        if (d.type === "admin") {
-            d.text = "Administrator";
-        }
+        if (d.type === "precursor") {
+            presursorCount++;
 
-        if (d.type === "moderator") {
-            d.text = "Moderator";
-        }
-
-        if (d.type === "admin" || d.type === "moderator") {
-            d.type = "staff";
+            d.text = `${presursorCount}`;
         }
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -66,12 +36,12 @@ db.badges.transaction(q => {
 
         if (d.user === "0000000000000000" && d.type === "staff") continue;
 
-        if (!allowed.includes(d.type as BadgeNameType)) {
+        if (!allowed.includes(d.type as AwardNameType)) {
             continue;
         }
 
         const result = q(
-            `INSERT INTO badges (
+            `INSERT INTO awards (
                 id,
                 type,
                 comment,

@@ -1,3 +1,4 @@
+import { GetAwardType } from "./award.type.js";
 import { GetBadgeType } from "./badge.type.js";
 import { CollectionType } from "./collection.type.js";
 import { ExperimentsNameType } from "./experiment.type.js";
@@ -59,9 +60,10 @@ export type GetUserItemType = Omit<
 > & {
     usernames: GetUsernameType[];
     badges: GetBadgeType[];
+    awards: GetAwardType[];
     tags: string[];
     flags: ExperimentsNameType[];
-    links?: GetLinkType[];
+    links: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
     isFriends: boolean;
     statistics :Partial<StatisticsType>
