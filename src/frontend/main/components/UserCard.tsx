@@ -8,7 +8,7 @@ import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
 import { cdnBaseUrl } from "../../_common/scripts/domains.js";
 import Badges from "../../_common/components/Badges.js";
-import Presense from "../../_common/components/Presense.js";
+import Presence from "../../_common/components/Presence.js";
 
 type Props = {
     data: GetUserItemType;
@@ -145,32 +145,6 @@ export default function UserCard({
                 />
             )}
 
-            {isBlocked && !isBlockRevealed && (
-                <div 
-                    className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
-                    onClick={(e) => {                        
-                        e.stopPropagation();
-                        setIsBlockRevealed(true);
-                    }}
-                    onContextMenu={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }}
-                >
-                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
-                        
-                    </span>
-
-                    <span className="text-sm font-semibold">
-                        {t("components.cards.isBlocked")}
-                    </span>
-
-                    <span className="text-xs text-sub mt-1">
-                        {t("components.cards.clickToReveal")}
-                    </span>
-                </div>
-            )}
-
             {Boolean(isMature) && !isRevealed && (
                 <div 
                     className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
@@ -215,6 +189,32 @@ export default function UserCard({
 
                     <span className="text-sm font-semibold">
                         {t("components.cards.isSensitive")}
+                    </span>
+
+                    <span className="text-xs text-sub mt-1">
+                        {t("components.cards.clickToReveal")}
+                    </span>
+                </div>
+            )}
+
+            {isBlocked && !isBlockRevealed && (
+                <div 
+                    className="absolute inset-0 z-10 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    onClick={(e) => {                        
+                        e.stopPropagation();
+                        setIsBlockRevealed(true);
+                    }}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <span className="font-nerdfont text-7xl mb-3 leading-none flex items-center justify-center">
+                        
+                    </span>
+
+                    <span className="text-sm font-semibold">
+                        {t("components.cards.isBlocked")}
                     </span>
 
                     <span className="text-xs text-sub mt-1">
@@ -302,7 +302,7 @@ export default function UserCard({
 
                 {data.presence && (
                     <div className="pointer-events-auto absolute bottom-5 right-5">
-                        <Presense
+                        <Presence
                             data={data} 
                         />
                     </div>
