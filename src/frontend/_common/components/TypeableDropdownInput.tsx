@@ -9,6 +9,7 @@ interface TypeableDropdownInputProps {
     placeholder?: string;
     typeable?: boolean;
     title?: string;
+    defaultOpenAbove?: boolean; // Controls whether to default opening direction to top
     onChange?: (idOrValue: string | number) => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -21,6 +22,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     placeholder,
     typeable = true,
     title,
+    defaultOpenAbove = false,
     onChange,
     onFocus,
     onBlur,
@@ -51,7 +53,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     );
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [openAbove, setOpenAbove] = useState<boolean>(false);
+    const [openAbove, setOpenAbove] = useState<boolean>(defaultOpenAbove);
     const [isMobile, setIsMobile] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>(() => getDisplayName(value));
     const [prevValue, setPrevValue] = useState<string | number>(value);
@@ -78,14 +80,22 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     }, []);
 
     useEffect(() => {
-        if (isOpen && !isMobile && containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const menuMaxHeight = 350;
+        if (isOpen && !isMobile) {
+            if (defaultOpenAbove) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setOpenAbove(true);
+                return;
+            }
 
-            setOpenAbove(spaceBelow < menuMaxHeight && rect.top > menuMaxHeight);
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const menuMaxHeight = 350;
+
+                setOpenAbove(spaceBelow < menuMaxHeight && rect.top > menuMaxHeight);
+            }
         }
-    }, [isOpen, isMobile]);
+    }, [isOpen, isMobile, defaultOpenAbove]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
