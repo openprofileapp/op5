@@ -26,7 +26,7 @@ export const postPins = async (req: Request, res: Response) => {
 
         if (whatIsAsset.ownerId !== req.session.userId) {
             throw new AdvancedError({
-                code: 400,
+                code: 401,
                 message: i18n.t("responses.unauthorized")
             });
         }
