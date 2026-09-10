@@ -29,6 +29,12 @@ export type ContextMenuBuilderOptions = {
     isDismissedInteractionLoading?: boolean;
     setIsDismissed?: Dispatch<SetStateAction<boolean>>;
     setIsDismissedInteractionLoading?: (loading: boolean) => void;
+    isPinned?: boolean;
+    setIsPinned?: boolean;
+    isPinLoading?: Dispatch<SetStateAction<boolean>>;
+    setIsPinLoading?: (loading: boolean) => void;
+    doesUnpinDismiss?: boolean;
+    setRefetchPins?: Dispatch<SetStateAction<boolean>>;
     isFollowing?: boolean;
     isFollowInteractionLoading?: boolean;
     setIsFollowing?: Dispatch<SetStateAction<boolean>>;
@@ -61,6 +67,12 @@ export function ContextMenuBuilder({
     isDismissedInteractionLoading,
     setIsDismissed,
     setIsDismissedInteractionLoading,
+    isPinned,
+    setIsPinned,
+    isPinLoading,
+    setIsPinLoading,
+    doesUnpinDismiss,
+    setRefetchPins,
     isFollowing,
     isFollowInteractionLoading,
     setIsFollowing,
@@ -456,6 +468,93 @@ export function ContextMenuBuilder({
 
                     <span className={textClassList}>
                         
+                    </span>
+                </button>
+            </li>
+        ),
+
+        pin: (props: Props = {}): ReactNode => Boolean(setIsPinned)
+            && !isHidden 
+            && isOwner
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={isPinned ? t("words.UnpinFromProfile") : t("words.PinToProfile")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    if (isPinLoading) return;
+
+                    try {
+                        // @ts-ignore
+                        setIsPinLoading(true);
+                        let response;
+
+                        if (isPinned) {
+                            response = await fetch(
+                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                                {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    credentials: "include"
+                                }
+                            );
+
+                            if (doesUnpinDismiss) {
+                                // @ts-ignore
+                                setIsDismissed(true);
+                            }
+                        } else {
+                            response = await fetch(
+                                `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    credentials: "include",
+                                    body: JSON.stringify({
+                                        position: 1,
+                                    }),
+                                }
+                            );
+                        }
+
+                        if (!response.ok) {
+                            throw new Error("Failed to pin asset");
+                        }
+
+                        // @ts-ignore
+                        setIsPinned(!isPinned);
+
+                        toast.show(
+                            `${t("words.You")} ${isPinned ? t("words.unpinned") : t("words.pinned")} ${data.displayName}`,
+                            {
+                                icon: isPinned ? "󰐄" : "󰐃",
+                                type: isPinned ? "info" : "success",
+                            }
+                        );
+                    } catch (error) {
+                        console.error(error);
+
+                        toast.show("Failed to pin asset", {
+                            type: "error",
+                        });
+                    } finally {
+                        // @ts-ignore
+                        setIsPinLoading(false);
+                        // @ts-ignore
+                        setRefetchPins(true);
+                    }    
+                }}
+            >
+                <button className={`justify-between ${props.isQuickAction && quickActionClassList}`}>
+                    {!props.isQuickAction ? isPinned ? t("words.UnpinFromProfile") : t("words.PinToProfile") : ""}
+
+                    <span className={`${isPinLoading ? "loading" : ""} ${textClassList}`}>
+                        {isPinned ? "󰐄" : "󰐃"}
                     </span>
                 </button>
             </li>
@@ -1245,53 +1344,16 @@ export function ContextMenuBuilder({
     };
 }
 
-// DEVELOPER NEEDED: Once working on user profiles, rework pins API and add this menu option
-// Mind the "isPinned" and related states from character card
 /*
- <li>
+    DEVELOPER NEEDED: Polish this and only show on profile page 
+    <li>
     <button 
-        className="justify-between"
-        disabled={isPinLoading}
-        onClick={async () => {
-            try {
-                if (isPinLoading) return;
-                // MAKE THE SESSION USER ID PART RELEVANT TO THE CURRENT URL?
+    className="justify-between text-error"
+    onClick={() => {
 
-                // ONLY PIN TO PROFILE IF THE PROFILE/PROJECT
-
-                setIsPinLoading(true);
-                let response;
-
-                if (isPinned) {
-                    response = await fetch(
-                        `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
-                        {
-                            method: "DELETE",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            credentials: "include"
-                        }
-                    );
-
-                    setIsHidden(true);
-                } else {
-                    response = await fetch(
-                        `https://${window.config.domains.api}/v3/pins/${window.session.userId}/${data.id}`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            credentials: "include",
-                            body: JSON.stringify({
-                                position: 1,
-                            }),
-                        }
-                    );
-                }
-
-                // PER CHARACTER
+    closeContextMenu(data.id);
+    }}
+    // PER CHARACTER
                 <Link className="justify-between " to={`/${user.username || user.id}`}>
                         Submit Fanart
                         <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
@@ -1309,51 +1371,6 @@ export function ContextMenuBuilder({
                     </Link>
                 </li>
 
-                if (!response.ok) {
-                    throw new Error("Failed to pin asset");
-                }
-
-                setIsPinned(!isPinned);
-
-                toast.show(
-                    `You ${isPinned ? "unpinned" : "pinned"} ${data.displayName}`,
-                    {
-                        icon: isPinned ? "󰐄" : "󰐃",
-                        type: isPinned ? "info" : "success",
-                    }
-                );
-            } catch (error) {
-                console.error(error);
-
-                toast.show("Failed to pin asset", {
-                    type: "error",
-                });
-            } finally {
-                setIsPinLoading(false);
-            }
-
-            // closeContextMenu(data.id);
-        }}
-    >
-        <span
-            className={`${isPinned ? "text-error" : "text-base-content"}`}
-        >
-            {isPinned ? "Unpin from Profile" : "Pin to Profile"}
-        </span>
-        <span className={`${isPinLoading ? "loading" : ""} font-nerdfont ${isPinned ? "text-error" : "text-base-content"} text-lg flex h-6 w-4 leading-none items-center justify-center`}>
-            {isPinLoading ? "" : isPinned ? "󰐄" : "󰐃"}
-        </span>
-    </button>
-    </li>
-
-    DEVELOPER NEEDED: Polish this and only show on profile page 
-    <li>
-    <button 
-    className="justify-between text-error"
-    onClick={() => {
-
-    closeContextMenu(data.id);
-    }}
     >
     Hide Collaboration
     <span className="font-nerdfont text-error text-lg flex h-6 w-4 leading-none items-center justify-center">

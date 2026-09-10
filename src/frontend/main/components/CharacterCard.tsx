@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client";
@@ -13,18 +15,24 @@ import Badges from "../../_common/components/Badges.js";
 type Props = {
     data: GetPublishedCharacterItemType
     isPreview?: boolean;
-    isPinnedVisible?: boolean,
+    isPinVisible?: boolean;
+    doesUnpinDismiss?: boolean;
+    setRefetchPins?: Dispatch<SetStateAction<boolean>>;
     displayNotification?: boolean;
-    isHomeScreen?: boolean
+    isHomeScreen?: boolean;
+    isUserProfile?: boolean;
     dragHandleProps?: unknown;
 };
 
 export default function CharacterCard({
     data: rawData,
-    isPinnedVisible = false,
+    isPinVisible = false,
+    doesUnpinDismiss = false,
+    setRefetchPins,
     isPreview = false,
     displayNotification = false,
     isHomeScreen = false,
+    isUserProfile = false,
     dragHandleProps,
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -47,7 +55,7 @@ export default function CharacterCard({
     const [isMature] = useState<boolean>(Boolean(data.isMature));
     const [isRevealed, setIsRevealed] = useState<boolean>(false);
 
-    const [isPinned, setIsPinned] = useState<boolean>(isPinnedVisible);
+    const [isPinned, setIsPinned] = useState<boolean>(isPinVisible);
     const [isPinLoading, setIsPinLoading] = useState<boolean>(false);
 
     const [isDismissed, setIsDismissed] = useState<boolean>(Boolean(data.interactions?.dismisses?.hasInteracted));
@@ -77,6 +85,14 @@ export default function CharacterCard({
         isDismissedInteractionLoading,
         setIsDismissed,
         setIsDismissedInteractionLoading,
+        isPinned,
+        //@ts-ignore
+        setIsPinned,
+        //@ts-ignore
+        isPinLoading,
+        setIsPinLoading,
+        doesUnpinDismiss,
+        setRefetchPins,
         isFollowing,
         isFollowInteractionLoading,
         setIsFollowing,
@@ -296,6 +312,11 @@ export default function CharacterCard({
                         contextMenuBuilder.separator(),
                     contextMenuBuilder.viewInStudio(),
                     window.session.userId === data.owner?.id && 
+                        contextMenuBuilder.separator(),
+                    isUserProfile && 
+                        contextMenuBuilder.pin(),
+                    window.session.userId === data.owner?.id && 
+                        isUserProfile && 
                         contextMenuBuilder.separator(),
                     !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
                         contextMenuBuilder.view(),
