@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
@@ -21,7 +21,7 @@ import { toast } from "../../_common/scripts/toast.js";
 import ExternalLinks from "../components/ExternalLinks.js";
 import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
 import { Tooltip } from "../../_common/components/Tooltip.js";
-import Presense from "../../_common/components/Presense.js";
+import Presence from "../../_common/components/Presence.js";
 import ZoomableMedia from "../../_common/components/ZoomableMedia.js";
 import Awards from "../../_common/components/Awards.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
@@ -125,6 +125,8 @@ export default function UserProfile() {
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
+
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const tabs = useMemo(() => {
         if (!isTranslationReady) return [];
@@ -662,7 +664,7 @@ export default function UserProfile() {
                                             />
                                         )}
 
-                                        <Presense 
+                                        <Presence 
                                             data={data}
                                             largeIcons={true}
                                         />
@@ -1091,9 +1093,48 @@ export default function UserProfile() {
                                         {activeTab === "about" && (
                                             <MarkdownEditor
                                                 initialContent={data?.markdown}
-                                                isEditing={Boolean(data?.markdown?.trim() !== "")}
+                                                //isEditing={Boolean(data?.markdown?.trim() !== "")}
+                                                isEditing={false}
                                                 onChange={(newMarkdown) => {
-                                                    // DEVELOPER NEEDED: Save "newMarkdown" /v3/update API
+                                                    if (timerRef.current) {
+                                                        clearTimeout(timerRef.current);
+                                                    }
+
+                                                    timerRef.current = setTimeout(async () => {
+                                                        try {
+                                                            const response = await fetch(`${apiBaseUrl}/v3/users/update/${data?.id}`, {
+                                                                credentials: "include", 
+                                                                method: "POST", 
+                                                                headers: { "Content-Type": "application/json" }, 
+                                                                body: JSON.stringify({
+                                                                    data: {
+                                                                        markdown: newMarkdown
+                                                                    }
+                                                                })
+                                                            });
+
+                                                            const responseData = await response.json();
+
+                                                            if (response.ok) {
+                                                                toast.show(
+                                                                    t("defaults.savedYourProfile"),
+                                                                    { type: "success" }
+                                                                );
+                                                            } else {
+                                                                toast.show(
+                                                                    t("defaults.failedToSaveProfile"),
+                                                                    {
+                                                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                        // @ts-ignore
+                                                                        subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                                        type: "error",
+                                                                    }
+                                                                );
+                                                            }
+                                                        } catch (error) {
+                                                            console.error(`Failed to save markdown:`, error);
+                                                        }
+                                                    }, 1000);
                                                 }}
                                             />
                                         )}
