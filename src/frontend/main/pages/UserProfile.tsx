@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import Confetti from "react-confetti";
 import { CSS } from "@dnd-kit/utilities";
+
 import { formatNumber } from "kage-library/client";
 
 import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
@@ -13,7 +14,6 @@ import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
 import { formatLongRelative, formatShortRelative, isBirthdayToday } from "../../_common/scripts/time.js";
 import { GetAssetType } from "../../../_common/types/asset.type.js";
-import { MarkdownRenderer } from "../../_common/components/MarkdownRenderer.js";
 import Metadata from "../../_common/components/Metadata.js";
 import { hexToRgba } from "../scripts/colors.js";
 import Badges from "../../_common/components/Badges.js";
@@ -23,6 +23,12 @@ import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.
 import { Tooltip } from "../../_common/components/Tooltip.js";
 import Presense from "../../_common/components/Presense.js";
 import ZoomableMedia from "../../_common/components/ZoomableMedia.js";
+import Awards from "../../_common/components/Awards.js";
+import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
+import AdvertisementBox from "../components/Advertisement.js";
+import MarkdownEditor from "../../_common/components/markdown/editor.js";
+import CharacterCard from "../components/CharacterCard.js";
+import { Pagination } from "../components/Pagination.js";
 
 interface SortableCardProps {
     item: GetAssetType;
@@ -69,19 +75,31 @@ export default function UserProfile() {
     const { id } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
+    
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const query = searchParams.get("query") || "";
+    const sortBy = searchParams.get("sortBy") || "popularDesc";
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
     const { handleFollowInteraction } = useInteractions();
 
     const [activeTab, setActiveTab] = useState("pinned");
+    const [selectedStatistics, setSelectedStatistics] = useState<string>("total");
     
     const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
 
     const [data, setData] = useState<GetUserItemType>();
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isContentLoading, setIsContentLoading] = useState(true);
+
+    const [pageCount, setPageCount] = useState(0);
 
     const [characters, setCharacters] = useState<GetPublishedCharacterItemType[]>([]);
     const [areCharactersLoading, setAreCharactersLoading] = useState(true);
+    const [areInitialCharacters, setAreInitialCharacters] = useState(false);
 
+    const [refetchPins, setRefetchPins] = useState<boolean>(false);
     const [pins, setPins] = useState<GetAssetType[]>([]);
     const [arePinsLoading, setArePinsLoading] = useState(true);
 
@@ -108,6 +126,113 @@ export default function UserProfile() {
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
 
+    const tabs = useMemo(() => {
+        if (!isTranslationReady) return [];
+
+        const availableTabs: { id: string; label: string }[] = [];
+
+        if (pins.length > 0) {
+            availableTabs.push({ id: "pinned", label: t("words.Pinned") });
+        }
+
+        if (data?.markdown || window.session?.userId === data?.id) {
+            availableTabs.push({ id: "about", label: t("words.About") });
+        }
+
+        if (areInitialCharacters) {
+            availableTabs.push({ id: "characters", label: t("words.Characters") });
+        }
+
+        return availableTabs;
+    }, [isTranslationReady, pins.length, data?.markdown, data?.id, areInitialCharacters, t]);
+
+    const defaultTab = tabs[0]?.id || "about";
+
+    const handleSearchChange = (newQuery: string) => {
+        setSearchParams((prev) => {
+            if (newQuery) {
+                prev.set("query", newQuery);
+            } else {
+                prev.delete("query");
+            }
+            prev.delete("page");
+            return prev;
+        }, { replace: true });
+    };
+
+    const handlePageChange = (page: number) => {
+        setSearchParams((prev) => {
+            if (page === 1) {
+                prev.delete("page");
+            } else {
+                prev.set("page", page.toString());
+            }
+            return prev;
+        }, { replace: true });
+    };
+
+    const handleSortChange = (newSortBy: string) => {
+        setSearchParams((prev) => {
+            prev.set("sortBy", newSortBy);
+            prev.delete("page");
+            return prev;
+        }, { replace: true });
+    };
+
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+    const fetchPins = useCallback(async () => {
+        if (!data?.id) return;
+
+        setArePinsLoading(true);
+
+        try {
+            const res = await fetch(`${apiBaseUrl}/v3/pins/${data.id}`, {
+                credentials: "include",
+            });
+            
+            if (!res.ok) return;
+
+            const json = await res.json();
+            setPins(json.items || []);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setArePinsLoading(false);
+            setRefetchPins(false);
+        }
+    }, [data?.id]);
+
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+    const fetchCharacters = useCallback(async () => {
+        if (!data?.id) return;
+
+        setAreCharactersLoading(true);
+
+        try {
+            const res = await fetch(
+                `${apiBaseUrl}/v3/characters?owner=${data.id}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true`, 
+                { credentials: "include" }
+            );
+
+            if (!res.ok) return;
+
+            const json = await res.json();
+
+            if (json?.items?.length > 0) {
+                setAreInitialCharacters(true);
+            }
+            
+            setCharacters(json?.items || []);
+            if (json?.pageCount !== undefined) {
+                setPageCount(json.pageCount);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setAreCharactersLoading(false);
+        }
+    }, [currentPage, data?.id, query, sortBy]);
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -122,97 +247,74 @@ export default function UserProfile() {
                 }
 
                 const json = await res.json();
-                const data: GetUserItemType = json.items[0];
+                const userData: GetUserItemType = json.items[0];
                 
-                setData(data);
+                setData(userData);
 
                 setAuraStyle(
-                    data?.isAuraEnabled
+                    userData?.isAuraEnabled
                         ? {
-                            ["--aura-type" as string]: `aura-${data?.auraType || "flow"}`,
-                            ["--aura-primary" as string]: data?.auraPrimary || "var(--color-accent)",
-                            ["--aura-secondary" as string]: data?.auraSecondary || "var(--color-accent)",
+                            ["--aura-type" as string]: `aura-${userData?.auraType || "flow"}`,
+                            ["--aura-primary" as string]: userData?.auraPrimary || "var(--color-accent)",
+                            ["--aura-secondary" as string]: userData?.auraSecondary || "var(--color-accent)",
                         }
                         : {
                             border: "1px solid #222222",
                         }
                 );
 
-                setPrimaryUsername(data?.usernames?.find(u => u.isPrimary)?.username);
-                setShowConfetti(isBirthdayToday(data?.birthdate) || false);
-                setIsSensitive(data?.isSensitive);
-                setIsMature(data?.isMature);
-                setIsFollowing(data?.interactions?.follows?.hasInteracted || false);
-                setFollowCount(data?.interactions?.follows?.count || 0);
-                setIsHidden(data?.interactions?.hides?.hasInteracted || false);
-                setIsRestricted(data?.interactions?.restricts?.hasInteracted || false);
-                setIsBlocked(data?.interactions?.blocks?.hasInteracted || false);
+                setPrimaryUsername(userData?.usernames?.find(u => u.isPrimary)?.username);
+                setShowConfetti(isBirthdayToday(userData?.birthdate) || false);
+                setIsSensitive(userData?.isSensitive);
+                setIsMature(userData?.isMature);
+                setIsFollowing(userData?.interactions?.follows?.hasInteracted || false);
+                setFollowCount(userData?.interactions?.follows?.count || 0);
+                setIsHidden(userData?.interactions?.hides?.hasInteracted || false);
+                setIsRestricted(userData?.interactions?.restricts?.hasInteracted || false);
+                setIsBlocked(userData?.interactions?.blocks?.hasInteracted || false);
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false);
+                setIsLoading(false);
             }
         };
 
         if (id) fetchUser();
     }, [id, navigate]);
 
-    useEffect(() => {
-        if (!data?.id) return;
-
-        const fetchCharacters = async () => {
-            try {
-                const res = await fetch(
-                    `${apiBaseUrl}/v3/characters?owner=${data?.id}`, 
-                    { credentials: "include" }
-                );
-
-                if (!res.ok) return;
-
-                const json = await res.json();
-
-                setCharacters(json?.items || []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setAreCharactersLoading(false);
-            }
-        };
-
-        fetchCharacters();
-    }, [data?.id]);
+     useEffect(() => {
+        if (!isLoading && !areCharactersLoading && !arePinsLoading) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsContentLoading(false);
+        }
+    }, [isLoading, areCharactersLoading, arePinsLoading]);
 
     useEffect(() => {
-        if (!data?.id) return;
-
-        const fetchPins = async () => {
-            try {
-                const res = await fetch(
-                    `${apiBaseUrl}/v3/pins/${data?.id}`, 
-                    { credentials: "include" }
-                );
-
-                if (!res.ok) return;
-                
-                const json = await res.json();
-
-                setPins(json.pins || []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setArePinsLoading(false);
-            }
-        };
-
-        fetchPins();
-    }, [data?.id]);
+        if (data?.id) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            fetchPins();
+        }
+    }, [data?.id, fetchPins, refetchPins]);
 
     useEffect(() => {
+        if (data?.id) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            fetchCharacters();
+        }
+    }, [data?.id, fetchCharacters]);
+
+    useEffect(() => {
+        if (tabs.length <= 1) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setActiveTab(defaultTab);
+            
+            return;
+        }
+
         const updateTab = () => {
             const hashTab = window.location.hash.replace("#", "");
-            const defaultTab = pins.length > 0 ? "pinned" : "about";
-
-            setActiveTab(hashTab || defaultTab);
+            const isTabValid = tabs.some((tab) => tab.id === hashTab);
+            setActiveTab(isTabValid ? hashTab : defaultTab);
         };
 
         window.addEventListener("hashchange", updateTab);
@@ -221,7 +323,7 @@ export default function UserProfile() {
         return () => {
             window.removeEventListener("hashchange", updateTab);
         };
-    }, [pins.length]);
+    }, [tabs, defaultTab]);
 
     const contextMenuBuilder = ContextMenuBuilder({
         data: data!,
@@ -280,7 +382,7 @@ export default function UserProfile() {
             await Promise.all(
                 updated.map((item, index) =>
                     fetch(
-                        `${apiBaseUrl}/v3/pins/${window.session.userId}/${item.id}`,
+                        `${apiBaseUrl}/v3/pins/${window.session?.userId}/${item.id}`,
                         {
                             method: "POST",
                             headers: {
@@ -300,14 +402,16 @@ export default function UserProfile() {
     };
 
     const setTab = (tab: string) => {
-        const defaultTab = pins.length > 0 ? "pinned" : "about";
-
-        if (tab === defaultTab) {
-            history.replaceState(null, "", window.location.pathname + window.location.search);
-        } else {
-            window.location.hash = tab;
+        if (tabs.length <= 1) {
+            setActiveTab(tab);
+            return;
         }
 
+        const search = window.location.search;
+        const hash = tab === defaultTab ? "" : `#${tab}`;
+        const newUrl = `${window.location.pathname}${hash}${search}`;
+
+        history.replaceState(null, "", newUrl);
         setActiveTab(tab);
     };
 
@@ -317,14 +421,15 @@ export default function UserProfile() {
     const buttonClassList = "flex flex-1 gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
     const buttonTextClassList = "text-base font-nerdfont w-4";
 
-    const boxClassList = "bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit";
-    const boxTextClassList = "w-full text-center text-lg font-bold mb-6"
+    const boxClassList = "bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit z-1";
+    const boxTextClassList = "w-full text-center text-lg font-bold mb-6";
 
-    if (!isTranslationReady) return;
+    if (!isTranslationReady) return null;
 
     return (
         <>
             <Metadata
+                favicon={`${cdnBaseUrl}/crop/circle?url=${cdnBaseUrl}${data?.avatar || window.config.metadata.assets.icon}`}
                 title={data?.displayName || primaryUsername || data?.id}
                 description={data?.about || t("defaults.noUserAbout")}
                 keywords={data?.tags?.toString()}
@@ -437,6 +542,12 @@ export default function UserProfile() {
                 <div className="px-0 py-8 md:px-25 md:py-20">
                     <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-4">
                         <div className="flex flex-col gap-4">
+
+                            <AdvertisementBox
+                                className={boxClassList}
+                                adSlot={data?.id}
+                            />
+
                             <div 
                                 className="aura-effect bg-base-100 rounded-lg z-1 p-6 h-fit" 
                                 style={auraStyle}
@@ -574,88 +685,90 @@ export default function UserProfile() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
-                                        {window.session.userId === data?.id && (
-                                            <button
-                                                className={buttonClassList}
-                                                onClick={() => {
-                                                    // editModal.open(data);
-                                                    toast.show(
-                                                        "DEVELOPER NEEDED: Add edit modal", 
-                                                        { type: "warning" }
-                                                    );
-                                                }}
-                                            >
-                                                <span className={buttonTextClassList}>
-                                                    
-                                                </span>
-                                                {t("words.EditProfile")}
-                                            </button>
-                                        )}
+                                    {window.session.userId && (
+                                        <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
+                                            {window.session.userId === data?.id && (
+                                                <button
+                                                    className={buttonClassList}
+                                                    onClick={() => {
+                                                        // editModal.open(data);
+                                                        toast.show(
+                                                            "DEVELOPER NEEDED: Add edit modal", 
+                                                            { type: "warning" }
+                                                        );
+                                                    }}
+                                                >
+                                                    <span className={buttonTextClassList}>
+                                                        
+                                                    </span>
+                                                    {t("words.EditProfile")}
+                                                </button>
+                                            )}
 
-                                        {window.session.userId !== data?.id 
-                                            && (data && data?.visibility !== "friends" && "isFriends" in data && !data.isFriends) 
-                                        && (
-                                            <button
-                                                className={buttonClassList}
-                                                onClick={async () => {
-                                                    await handleFollowInteraction(
-                                                        data,
-                                                        isFollowing,
-                                                        isFollowInteractionLoading,
-                                                        setIsFollowing,
-                                                        setIsFollowInteractionLoading,
-                                                        setFollowCount
-                                                    );
-                                                }}
-                                            >
-                                                <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
-                                                    {isFollowing ? "" : ""}
-                                                </span>
-                                                {isFollowing ? t("words.Unfollow") : t("words.Follow")}
-                                            </button>
-                                        )}
+                                            {window.session.userId !== data?.id 
+                                                && (data && data?.visibility !== "friends" && "isFriends" in data && !data.isFriends) 
+                                            && (
+                                                <button
+                                                    className={buttonClassList}
+                                                    onClick={async () => {
+                                                        await handleFollowInteraction(
+                                                            data,
+                                                            isFollowing,
+                                                            isFollowInteractionLoading,
+                                                            setIsFollowing,
+                                                            setIsFollowInteractionLoading,
+                                                            setFollowCount
+                                                        );
+                                                    }}
+                                                >
+                                                    <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
+                                                        {isFollowing ? "" : ""}
+                                                    </span>
+                                                    {isFollowing ? t("words.Unfollow") : t("words.Follow")}
+                                                </button>
+                                            )}
 
-                                        {data?.visibility === "friends" && !data?.isFriends && data?.sendMessages === "private" && (
-                                            <button
-                                                className={buttonClassList}
-                                                onClick={() => { 
-                                                    // friendModal.open(data);
-                                                    // If friend, display modal to unfrend, else add a friend or cancel
-                                                    toast.show(
-                                                        "DEVELOPER NEEDED: Add friend modal", 
-                                                        { type: "warning" }
-                                                    );
-                                                }}
-                                            >
-                                                <span className={buttonTextClassList}>
-                                                    
-                                                </span>
+                                            {data?.visibility === "friends" && !data?.isFriends && data?.sendMessages === "private" && (
+                                                <button
+                                                    className={buttonClassList}
+                                                    onClick={() => { 
+                                                        // friendModal.open(data);
+                                                        // If friend, display modal to unfrend, else add a friend or cancel
+                                                        toast.show(
+                                                            "DEVELOPER NEEDED: Add friend modal", 
+                                                            { type: "warning" }
+                                                        );
+                                                    }}
+                                                >
+                                                    <span className={buttonTextClassList}>
+                                                        
+                                                    </span>
 
-                                                {t("words.AddFriend")}
-                                            </button>
-                                        )}
+                                                    {t("words.AddFriend")}
+                                                </button>
+                                            )}
 
-                                        {
-                                            window.session.userId !== data?.id
-                                            && !isHidden 
-                                            && !isBlocked
-                                            && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
-                                            (data?.sendMessages === "friends" && data?.isFriends) ||
-                                            (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
-                                        && (
-                                            <button
-                                                className={`${buttonClassList} tooltip tooltip-accent pointer-events-auto`}
-                                                data-tip={t("words.ComingSoon")}
-                                                disabled={true}
-                                            >
-                                                <span className={buttonTextClassList}>
-                                                    󰍡
-                                                </span>
-                                                {t("words.Message")}
-                                            </button>
-                                        )}
-                                    </div>
+                                            {
+                                                window.session.userId !== data?.id
+                                                && !isHidden 
+                                                && !isBlocked
+                                                && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
+                                                (data?.sendMessages === "friends" && data?.isFriends) ||
+                                                (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
+                                            && (
+                                                <button
+                                                    className={`${buttonClassList} tooltip tooltip-accent pointer-events-auto`}
+                                                    data-tip={t("words.ComingSoon")}
+                                                    disabled={true}
+                                                >
+                                                    <span className={buttonTextClassList}>
+                                                        󰍡
+                                                    </span>
+                                                    {t("words.Message")}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {data?.about && (
                                         <p className="text-sm w-full mt-4">
@@ -730,498 +843,322 @@ export default function UserProfile() {
                                 </div>
                             </div>
 
-                            <div className={boxClassList}>
-                                <div className={boxTextClassList}>
-                                    {t("words.ExternalLinks")}
+                            {data && data?.links?.length > 0 && (
+                                <div className={boxClassList}>
+                                    <div className={boxTextClassList}>
+                                        {t("words.ExternalLinks")}
+                                    </div>
+
+                                    <ExternalLinks
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        links={data?.links}
+                                    />
                                 </div>
+                            )}
 
-                                <ExternalLinks
-                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                    // @ts-ignore
-                                    links={data?.links}
-                                />
-                            </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                            {/* DEVELOPER NEEDED: Migrate non-badges from old db to awards db */}
-
-                            <div className={boxClassList}>
-                                <div className={boxTextClassList}>Awards</div>
-                                <div className="grid grid-cols-3 gap-4 w-full text-center">
-                                    <div 
-                                        className="aspect-square rounded border border-base-300 tooltip"
-                                    >
-                                        <div className="tooltip-content">
-                                            <div className="font-bold">Precursor</div>
-                                            <div className="text-xs">Earned by being within the first 500 registrations. You are #1.</div>
-                                        </div>
-                                        <img 
-                                            src="https://i.postimg.cc/Xv4wrmND/Path.png"
-                                            alt="Precursor"
-                                            className="w-full h-full object-contain p-3"
-                                        />
+                            {data && data?.awards?.length > 0 && (
+                                <div className={boxClassList}>
+                                    <div className={boxTextClassList}>
+                                        {t("words.Awards")}
                                     </div>
-                                    <div 
-                                        className="aspect-square rounded border border-base-300 tooltip"
-                                        data-tip="pinned"
-                                    >
-                                        <img 
-                                            src="https://i.postimg.cc/j5WBLZXR/Patsh.png"
-                                            alt="pinned"
-                                            className="w-full h-full object-contain p-3"
-                                        />
-                                    </div>
-                                    <div 
-                                        className="aspect-square rounded border border-base-300 tooltip"
-                                        data-tip="Entomologist"
-                                    >
-                                        <img 
-                                            src="https://i.postimg.cc/QCtmHPms/Padth.png"
-                                            alt="Entomologist"
-                                            className="w-full h-full object-contain p-3"
-                                        />
-                                    </div>
+
+                                    <Awards 
+                                        data={data as GetUserItemType} 
+                                    />
                                 </div>
-                            </div>
+                            )}
 
                             <div className={boxClassList}>
                                 <div className={boxTextClassList}>Statistics</div>
-                                <div className="grid grid-cols-3 gap-4 w-full text-center">
-                                    <div>
-                                        <div className="font-bold">{formatNumber(383).short}</div>
-                                        <div className="text-xs text-sub">Views</div>
-                                    </div>
 
-                                    <div>
-                                        <div className="font-bold">{formatNumber(21).short}</div>
-                                        <div className="text-xs text-sub">Followers</div>
-                                    </div>
-
-                                    <div>
-                                        <div className="font-bold">{formatNumber(30).short}</div>
-                                        <div className="text-xs text-sub">Following</div>
-                                    </div>
-
-                                    <div>
-                                        <div className="font-bold">{formatNumber(8).short}</div>
-                                        <div className="text-xs text-sub">Likes</div>
-                                    </div>
-
-                                    <div>
-                                        <div className="font-bold">{formatNumber(1).short}</div>
-                                        <div className="text-xs text-sub">Favorites</div>
-                                    </div>
+                                <div className="mb-6">
+                                    <TypeableDropdownInput
+                                        value={selectedStatistics}
+                                        options={[
+                                            { id: "total", name: "Total" },
+                                            { id: "user", name: "User Profile" },
+                                            { id: "content", name: "Content" }
+                                        ]}
+                                        placeholder="Filter Statistics"
+                                        typeable={false}
+                                        defaultOpenAbove={true}
+                                        onChange={(id) => setSelectedStatistics(id as string)}
+                                    />
                                 </div>
-                            </div>
-
-                            <div className="relative flex flex-col items-center{boxClassList}">
-                                <div className="w-full mb-6">
-                                    <div className="w-full text-center text-lg font-bold">Advertisement</div>
-                                    <div className="text-center mt-1 text-xs text-sub">Subscribe to Premium to remove this.</div>
-                                </div>
-                                <img className="rounded-lg border border-base-300 w-48 md:w-full" src={`https://${window.config.domains.gateway}/cdn/uploads/ad.jpg`} />
-                                <div className="text-center mt-6 text-xs text-sub">Provided by AvatarKage</div>
-                            </div>
-                        </div>
-
-                        <div className="bg-base-100 border border-base-300 rounded-lg z-1">
-                            <div className="bg-base-200 border-base-300">
-                                <div className="tabs tabs-lift flex-nowrap">
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "pinned"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("pinned")
-                                        }
-                                    >
-                                        Pinned
-                                    </button>
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "about"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("about")
-                                        }
-                                    >
-                                        About
-                                    </button>
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "universes"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("universes")
-                                        }
-                                    >
-                                        Universes
-                                    </button>
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "profiles"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("profiles")
-                                        }
-                                    >
-                                        Profiles
-                                    </button>
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "collections"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("collections")
-                                        }
-                                    >
-                                        Collections
-                                    </button>
-
-
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "titles"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("titles")
-                                        }
-                                    >
-                                        Titles
-                                    </button>
-
-                                    <button
-                                        className={`tab flex-1 ${
-                                            activeTab === "collaborations"
-                                                ? "tab-active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            setTab("collaborations")
-                                        }
-                                    >
-                                        Collaborations
-                                    </button>
-
-                                </div>
-                            </div>
-
-                            {/* TAB CONTENT */}
-
-                            <div className="p-2 md:p-4">
-
-                                {activeTab === "about" && (
-                                    <div className="p-4 prose text-base-content text-base">
-                                        <MarkdownRenderer content={data?.markdown?.trim()} />
-                                    </div>
-                                )}
-
-                                {activeTab === "pinned" && (
-                                    <DndContext
-                                        collisionDetection={closestCenter}
-                                        onDragEnd={handleDragEnd}
-                                    >
-                                        <SortableContext
-                                            items={pins.map(item => item.id)}
-                                            strategy={rectSortingStrategy}
-                                        >
-                                            <div className="p-4 flex flex-wrap gap-4">
-
-                                                {pins.map((d) => (
-                                                    <SortableCard
-                                                        key={d.id}
-                                                        item={d}
-                                                    >
-                                                        {({ dragHandleProps }) => (
-                                                            <CharacterCard
-                                                                id={d.id}
-
-                                                                aura={{
-                                                                    isEnabled: d.isAuraEnabled,
-                                                                    type: d.auraType,
-                                                                    primary: d.auraPrimary,
-                                                                    secondary: d.auraSecondary
-                                                                }}
-
-                                                                avatar={
-                                                                    d.avatar
-                                                                        ? `${cdnBaseUrl}${d.avatar}`
-                                                                        : ""
-                                                                }
-
-                                                                displayName={d.displayName}
-                                                                slug={d.slug}
-
-                                                                owner={{
-                                                                    id: profiles?.owner?.id,
-                                                                    slug: profiles?.owner?.username,
-                                                                    displayName: profiles?.owner?.displayName,
-                                                                    isVerified: profiles?.owner?.badges?.some(
-                                                                        b => b.type === "VERIFIED"
-                                                                    ),
-                                                                    type: profiles?.owner?.type
-                                                                }}
-
-                                                                about={d.about}
-
-                                                                interactions={{
-                                                                    views: {
-                                                                        count: 0,
-                                                                        interacted: true
-                                                                    },
-                                                                    likes: {
-                                                                        count: 0,
-                                                                        interacted: false
-                                                                    }
-                                                                }}
-
-                                                                isPinnedPass={true}
-                                                                dragHandleProps={dragHandleProps}
-                                                            />
-                                                            )}
-                                                    </SortableCard>
-                                                ))}
-
-                                            </div>
-                                        </SortableContext>
-                                    </DndContext>
-                                )}
-
-                                {activeTab === "universes" && (
-                                    <div className="p-4 flex flex-wrap gap-4">
-
-                                        <ProjectCard
-                                            id="1655391085225720"
-                                            aura={{
-                                                isEnabled: true,
-                                                type: "flow",
-                                                primary: "#76d1ff",
-                                                secondary: "#76d1ff",
-                                            }}
-                                            banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
-                                            displayName="Dragonights"
-                                            slug="dragonights"
-                                            owner={{
-                                                id: "5019646586243236",
-                                                username: "j9studios",
-                                                displayName: "J9 Studios",
-                                                isVerified: true,
-                                                type: "publisher",
-                                            }}
-                                            status="Follow to keep up with the J9 universe."
-                                            about="Dragonights is an upcoming 3D-animated sci-fi action TV series."
-                                            interactions={{
-                                                views: {
-                                                    count: 481,
-                                                    interacted: true,
-                                                },
-                                                follows: {
-                                                    count: 6,
-                                                    interacted: true,
-                                                },
-                                                profiles: {
-                                                    count: 52,
-                                                    interacted: true,
-                                                },
-                                                fanflairs: {
-                                                    count: 5,
-                                                },
-                                            }}
-                                        />
-                                    </div>
-                                )}
-
-                                {activeTab === "profiles" && (
-                                    <>
-                                        <div className="px-0 md:px-4 flex flex-row gap-3">
-                                            <fieldset className="fieldset flex-4">
-                                                <legend className="fieldset-legend">Search</legend>
-                                                <label className="input mb-4 w-full">
-                                                    <span className="font-nerdfont text-base mr-1"></span>
-                                                    <input type="search" placeholder="Name, franchises, topics..." />
-                                                </label>
-                                            </fieldset>
-
-                                            <fieldset className="fieldset flex-1">
-                                                <legend className="fieldset-legend">Filter</legend>
-                                                <select className="select w-full">
-                                                    <option value="updated">Recently Updated</option>
-                                                    <option value="newest">Newest First</option>
-                                                    <option value="oldest">Oldest First</option>
-                                                    <option value="popular-desc" selected>Most Popular</option>
-                                                    <option value="popular-asc">Least Popular</option>
-                                                    <option value="name-asc">Name (A-Z)</option>
-                                                    <option value="name-desc">Name (Z-A)</option>
-                                                </select>
-                                            </fieldset>
-                                        </div>
-                                        
-                                        <div className="px-0 md:px-4 flex flex-wrap gap-4">
-                                            {profileLoading && (
-                                                <>
-                                                    <SkeletonCharacterCard />
-                                                    <SkeletonCharacterCard />
-                                                    <SkeletonCharacterCard />
-                                                    <SkeletonCharacterCard />
-                                                    
-                                                </>
-                                            )}
-                                            
-                                            {!profileLoading &&
-                                                profiles.profiles?.map((d) => (
-                                                    <CharacterCard
-                                                        key={d?.id}
-                                                        id={d?.id}
-                                                        aura={{
-                                                            isEnabled: d.isAuraEnabled,
-                                                            type: d.auraType,
-                                                            primary: d.auraPrimary,
-                                                            secondary: d.auraSecondary
-                                                        }}
-                                                        avatar={
-                                                            d.avatar
-                                                                ? `${cdnBaseUrl}${d.avatar}`
-                                                                : ""
-                                                        }
-                                                        displayName={d?.displayName}
-                                                        slug={d?.slug}
-                                                        owner={{
-                                                            id: profiles.owner.id,
-                                                            slug: profiles.owner.username,
-                                                            displayName: profiles.owner.displayName,
-                                                            isVerified: profiles.owner.badges?.some(
-                                                                (b) => b.type === "VERIFIED"
-                                                            ),
-                                                            type: profiles.owner.type
-                                                        }}
-                                                        about={d?.about}
-                                                        interactions={{
-                                                            views: {
-                                                                count: 0,
-                                                                interacted: true
-                                                            },
-                                                            likes: {
-                                                                count: 0,
-                                                                interacted: false
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
-                                        </div>
-
-                                        <div className="px-0 md:px-4 text-center mt-24 text-xl">You've reached the end!</div>
-                                        <div className="px-0 md:px-4 text-center mb-24 mt-2 text-sm text-sub">Follow {data?.displayName} to never miss a new publication.</div>
-
-                                        <div className="px-0 md:px-4 flex items-center justify-center mt-8 mb-6">
-                                            <div className="join border border-base-300 rounded">
-                                                <button className="join-item btn font-nerdfont"></button>
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="1" />
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="2" />
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="3" />
-                                                <input className="join-item btn btn-square font-nerdfont" type="radio" name="options" aria-label="󰇘" disabled={true} />
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="98" />
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="99" />
-                                                <input className="join-item btn btn-square" type="radio" name="options" aria-label="100" />
-                                                <button className="join-item btn font-nerdfont"></button>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
                                 
-                                {activeTab === "collaborations" && (
-                                    <div className="p-4">
-                                        <br/>
-                                        <div className="text-2xl font-bold">Universes</div>
-                                        <br/><hr/><br/>
-                                        <div className="text-2xl font-bold">Profiles</div>
-                                        <br/><hr/><br/>
-                                        <div className="text-2xl font-bold">Collections</div>
-                                    </div>
-                                )}
+                                <div className="grid grid-cols-3 gap-4 w-full text-center">
+                                    {selectedStatistics === "total" && (
+                                        <>
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(
+                                                        (data?.interactions?.views?.count || 0) +
+                                                        (data?.statistics?.views || 0)
+                                                    )
+                                                    .short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Views")}
+                                                </div>
+                                            </div>
 
-                                {activeTab === "titles" && (
-                                    <div className="p-4 flex flex-wrap gap-4">
-                                        <TitleCard
-                                            key="0"
-                                            id="0"
-                                            avatar="https://play.google.com/books/publisher/content/images/frontcover/5JlREQAAQBAJ?fife=w480-h690"
-                                        />
-                                    </div>
-                                )}
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.reads || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Reads")}
+                                                </div>
+                                            </div>
 
-                                {activeTab === "collections" && (
-                                    <div className="p-4">
-                                        Collections content...
-                                    </div>
-                                )}
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.likes || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Likes")}
+                                                </div>
+                                            </div>
 
-                                {activeTab === "downloadables" && (
-                                    <div className="p-4">
-                                        Downloadables content...
-                                    </div>
-                                )}
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(
+                                                        (data?.interactions?.follows?.count || 0) +
+                                                        (data?.statistics?.followers || 0)
+                                                    )
+                                                    .short}
+                                                </div>
 
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Followers")}
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(
+                                                        (data?.interactions?.shares?.count || 0) +
+                                                        (data?.statistics?.shares || 0)
+                                                    )
+                                                    .short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Shares")}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {selectedStatistics === "user" && (
+                                        <>
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.interactions?.views?.count || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Views")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.interactions?.follows?.count || 0).short}
+                                                </div>
+
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Followers")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.interactions?.shares?.count || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Shares")}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {selectedStatistics === "content" && (
+                                        <>
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.views || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Views")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.reads || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Reads")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.likes || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Likes")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.followers || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Followers")}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="font-bold">
+                                                    {formatNumber(data?.statistics?.shares || 0).short}
+                                                </div>
+                                                <div className="text-xs text-sub">
+                                                    {t("words.Shares")}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-
                         </div>
 
+                        <div className={`${isContentLoading ? "skeleton" : ""} bg-base-100 border border-base-300 rounded-lg z-1`}>
+                            {!isContentLoading && (
+                                <>
+                                    {tabs.length > 1 && (
+                                        <div className="tabs tabs-border">
+                                            {/* DEVELOPER NEEDED: Later on add universes, collections, titles, and collaborations */}
+                                            {tabs.map((tab) => (
+                                                <button
+                                                    key={tab.id}
+                                                    className={`tab flex-1 ${activeTab === tab.id ? "tab-active" : ""}`}
+                                                    onClick={() => setTab(tab.id)}
+                                                >
+                                                    {tab.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="p-2 md:p-4">
+                                        {activeTab === "pinned" && (
+                                            <DndContext
+                                                collisionDetection={closestCenter}
+                                                onDragEnd={handleDragEnd}
+                                            >
+                                                <SortableContext
+                                                    items={pins.map(item => item.id)}
+                                                    strategy={rectSortingStrategy}
+                                                >
+                                                    <div className="p-4 flex flex-wrap gap-4">
+
+                                                        {pins.map((data) => (
+                                                            <SortableCard
+                                                                key={data.id}
+                                                                item={data}
+                                                            >
+                                                                {({ dragHandleProps }) => (
+                                                                    <CharacterCard
+                                                                        key={data.id}
+                                                                        data={data as GetPublishedCharacterItemType}
+                                                                        isPinVisible={true}
+                                                                        doesUnpinDismiss={true}
+                                                                        setRefetchPins={setRefetchPins}
+                                                                        isUserProfile={true}
+                                                                        dragHandleProps={dragHandleProps}
+                                                                    />
+                                                                )}
+                                                            </SortableCard>
+                                                        ))}
+
+                                                    </div>
+                                                </SortableContext>
+                                            </DndContext>
+                                        )}
+                                        
+                                        {activeTab === "about" && (
+                                            <MarkdownEditor
+                                                initialContent={data?.markdown}
+                                                isEditing={Boolean(data?.markdown?.trim() !== "")}
+                                                onChange={(newMarkdown) => {
+                                                    // DEVELOPER NEEDED: Save "newMarkdown" /v3/update API
+                                                }}
+                                            />
+                                        )}
+        
+                                        {activeTab === "characters" && (
+                                            <>
+                                                <div className="px-0 md:px-4 flex flex-row gap-3">
+                                                    <fieldset className="fieldset flex-4">
+                                                        <legend className="fieldset-legend">{t("words.Search")}</legend>
+                                                        <label className="input mb-4 w-full">
+                                                            <span className="font-nerdfont text-base mr-1"></span>
+                                                            <input 
+                                                                type="search" 
+                                                                placeholder={t("pages.userProfile.searchCharacters")}
+                                                                value={query}
+                                                                onChange={(e) => handleSearchChange(e.target.value)}
+                                                            />
+                                                        </label>
+                                                    </fieldset>
+
+                                                    <fieldset className="fieldset flex-1">
+                                                        <legend className="fieldset-legend">Filter</legend>
+                                                        <TypeableDropdownInput
+                                                            value={sortBy}
+                                                            options={[
+                                                                { id: "popularDesc", name: "Most Popular" },
+                                                                { id: "popularAsc", name: "Least Popular" },
+                                                                { id: "newest", name: "Newest First" },
+                                                                { id: "oldest", name: "Oldest First" },
+                                                                { id: "nameAsc", name: "Name (A-Z)" },
+                                                                { id: "nameDesc", name: "Name (Z-A)" }
+                                                            ]}
+                                                            placeholder="Filter Results"
+                                                            typeable={false}
+                                                            onChange={(id) => handleSortChange(id as string)}
+                                                        />
+                                                    </fieldset>
+                                                </div>
+                                                
+                                                <div className="px-0 md:px-4 flex flex-wrap gap-4">
+                                                    {characters?.map((data) => (
+                                                        <CharacterCard
+                                                            key={data.id}
+                                                            data={data as GetPublishedCharacterItemType}
+                                                            isPinVisible={pins.some((pin) => pin.id === data.id)}
+                                                            setRefetchPins={setRefetchPins}
+                                                            isUserProfile={true}
+                                                        />
+                                                    ))}
+                                                </div>
+
+                                                <div className="px-0 md:px-4 text-center mt-24 text-xl">You've reached the end!</div>
+                                                <div className="px-0 md:px-4 text-center mb-24 mt-2 text-sm text-sub">Follow {data?.displayName} to never miss a new publication.</div>
+
+                                                <Pagination 
+                                                    pageCount={pageCount} 
+                                                    currentPage={currentPage}
+                                                    onPageChange={(page) => handlePageChange(page)}
+                                                />
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
