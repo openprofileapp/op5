@@ -2,13 +2,14 @@ import { DateTime } from "luxon";
 
 import { DurationType, parseDuration } from "kage-library";
 
-import whatIs, { WhatIsType } from "../helpers/whatIs.js";
+import whatIs from "../helpers/whatIs.js";
 import { db } from "../databases/db.js";
 import { AlgorithmEventNameType } from "../../../_common/types/algorithm.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import createAuditLogService from "./createAuditLog.service.js";
 import { AuditType } from "../../../_common/types/audit.type.js";
+import { WhatIsType } from "../../../_common/types/whatIs.type.js";
 
 interface eventType {
     score: number;
