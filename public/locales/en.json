@@ -133,7 +133,41 @@
     "Born": "Born",
     "Founded": "Founded",
     "Since": "Since",
-    "ExternalLinks": "External Links"
+    "ExternalLinks": "External Links",
+    "Awards": "Awards",
+    "Registration": "Registration",
+    "AwardedOn": "Awarded on",
+    "Caught": "Caught",
+    "bugs": "bugs",
+    "bug": "bug",
+    "Views": "Views",
+    "Reads": "Reads",
+    "Likes": "Likes",
+    "Followers": "Followers",
+    "Following": "Following",
+    "Shares": "Shares",
+    "Advertisement": "Advertisement",
+    "ProvidedBy": "Provided by",
+    "Sponsor": "Sponsor",
+    "About": "About",
+    "Characters": "Characters",
+    "PinToProfile": "Pin to Profile",
+    "UnpinFromProfile": "Unpin from Profile",
+    "pinned": "pinned",
+    "unpinned": "unpinned",
+    "TogglePreview": "Toggle Preview",
+    "Bold": "Bold",
+    "Italic": "Italic",
+    "Underline": "Underline",
+    "Strikethrough": "Strikethrough",
+    "Heading": "Heading",
+    "Link": "Link",
+    "Image": "Image",
+    "Code": "Code",
+    "Quote": "Quote",
+    "List": "List",
+    "Mention": "Mention",
+    "Verified": "Verified"
   },
   "time": {
     "hour1": "1 Hour",
@@ -146,7 +180,8 @@
     "noUserAbout": "This user does not have an overview.",
     "noFriendView": "as a friend to view their profile.",
     "noFanflair": "Fanflairs are not yet available.",
-    "onlyYou": "Only visible to you"
+    "onlyYou": "Only visible to you",
+    "hideAds": "Subscribe to Premium to hide this."
   },
   "components": {
     "menus": {
@@ -175,6 +210,11 @@
       "premiumName": "Premium",
       "unofficialName": "Community Managed",
       "limitedName": "Private Profile"
+    },
+    "awards": {
+      "contributorName": "Contributor",
+      "entomologistName": "Entomologist",
+      "precursorName": "Precursor"
     },
     "cards": {
       "isBlocked": "Blocked User",
@@ -299,6 +339,9 @@
       "subtext": "Our servers are currently experiencing heavy load.",
       "update": "Your page will refresh automatically in",
       "marquee": "TEMPORARILY UNAVAILABLE"
+    },
+    "userProfile": {
+      "searchCharacters": "Name, franchises, topics..."
     }
   }
 }
