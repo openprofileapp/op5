@@ -9,13 +9,15 @@ const paths = {
     characters: "data/databases/characters.sqlite",
     users: "data/databases/users.sqlite",
     badges: "data/databases/badges.sqlite",
+    awards: "data/databases/awards.sqlite",
     invites: "data/databases/invites.sqlite",
     collections: "data/databases/collections.sqlite",
     links: "data/databases/links.sqlite",
     pins: "data/databases/pins.sqlite",
     interactions: "data/databases/interactions.sqlite",
     media: "data/databases/media.sqlite",
-    notifications: "data/databases/notifications.sqlite"
+    notifications: "data/databases/notifications.sqlite",
+    advertisements: "data/databases/advertisements.sqlite"
 }
 
 export const db = {
@@ -24,13 +26,15 @@ export const db = {
     characters: new Database(paths.characters),
     users: new Database(paths.users),
     badges: new Database(paths.badges),
+    awards: new Database(paths.awards),
     invites: new Database(paths.invites),
     collections: new Database(paths.collections),
     links: new Database(paths.links),
     pins: new Database(paths.pins),
     interactions: new Database(paths.interactions),
     media: new Database(paths.media),
-    notifications: new Database(paths.notifications)
+    notifications: new Database(paths.notifications),
+    advertisements: new Database(paths.advertisements)
 };
 
 db.audits.transaction(q => {
@@ -175,6 +179,13 @@ db.badges.transaction(q => {
     };
 });
 
+db.awards.transaction(q => {
+    if (!q("SELECT * FROM awards LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/awards.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 db.invites.transaction(q => {
     if (!q("SELECT * FROM codes LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/invites/codes.sql`);
@@ -292,6 +303,23 @@ db.notifications.transaction(q => {
     };
 });
 
+db.advertisements.transaction(q => {
+    if (!q("SELECT * FROM pool LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/advertisements/pool.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM views LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/advertisements/views.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM clicks LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/advertisements/clicks.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
@@ -301,6 +329,7 @@ db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`)
 db.characters.query(`ATTACH DATABASE '${paths.links}' AS links`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.users.query(`ATTACH DATABASE '${paths.awards}' AS awards`);
 db.users.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.users.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
 db.users.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
@@ -340,6 +369,7 @@ async function waitForMDB() {
             import("./migration/users/webpush.db.migration.js");
 
             import("./migration/badges.db.migration.js");
+            import("./migration/awards.db.migration.js");
             import("./migration/links.db.migration.js");
             import("./migration/characters/published.db.migration.js");
             import("./migration/characters/drafts.db.migration.js");
