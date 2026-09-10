@@ -1186,8 +1186,8 @@ export default function UserProfile() {
                                                     ))}
                                                 </div>
 
-                                                <div className="px-0 md:px-4 text-center mt-24 text-xl">You've reached the end!</div>
-                                                <div className="px-0 md:px-4 text-center mb-24 mt-2 text-sm text-sub">Follow {data?.displayName} to never miss a new publication.</div>
+                                                <div className="px-0 md:px-4 text-center mt-24 text-xl">{t("pages.userProfile.end")}</div>
+                                                <div className="px-0 md:px-4 text-center mb-24 mt-2 text-sm text-sub">{t("words.Follow")} {data?.displayName} {t("pages.userProfile.endSub")}</div>
 
                                                 <Pagination 
                                                     pageCount={pageCount} 

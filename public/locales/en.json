@@ -354,7 +354,9 @@
       "marquee": "TEMPORARILY UNAVAILABLE"
     },
     "userProfile": {
-      "searchCharacters": "Name, franchises, topics..."
+      "searchCharacters": "Name, franchises, topics...",
+      "end": "You've reached the end!",
+      "endSub": "to never miss a new publication."
     }
   }
 }
