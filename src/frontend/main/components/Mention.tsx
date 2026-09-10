@@ -1,85 +1,78 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { WhatIsType } from "../../../_common/types/whatIs.type.js";
+import { cdnBaseUrl } from "../../_common/scripts/domains.js";
+
 type Props = {
-    id: string;
-    aura?: {
-        isEnabled?: boolean;
-        type?: string;
-        primary?: string;
-        secondary?: string;
-    };
-    avatar?: string;
-    name?: string;
-    slug?: string;
-    verified?: boolean;
+    data: WhatIsType;
     inline?: boolean;
 };
 
 export default function Mention({
-    id,
-    aura,
-    avatar,
-    name,
-    slug,
-    verified,
+    data,
     inline,
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    if (!isTranslationReady) return null;
+    const auraStyle = data?.isAuraEnabled
+        ? {
+            ["--aura-type" as string]: `aura-${data?.auraType || "flow"}`,
+            ["--aura-primary" as string]: data?.auraPrimary || "var(--color-accent)",
+            ["--aura-secondary" as string]: data?.auraSecondary || "var(--color-accent)",
+        }
+        : {
+            border: "1px solid #222222",
+        };
 
-    const auraStyle = aura?.isEnabled
-        ? 
-            {
-                ["--aura-mention-type" as string]:
-                    // eslint-disable-next-line no-constant-binary-expression
-                    `aura-${aura?.type}-mention` || "aura-flow-mention",
+    if (!isTranslationReady || !data?.id) {
+        return null;
+    }
 
+    let rootUrl = "";
 
-                ["--aura-mention-primary" as string]:
-                    aura.primary || "var(--color-accent)",
-
-                ["--aura-mention-secondary" as string]:
-                    aura.secondary || "var(--color-accent)",
-            }
-        : 
-            {
-                border: "1px solid #222222",
-            }
-        ;
-
-    {/* Url for images are only cdn slugs, not the domain. Fix code below */}
-
-    if (!id) {
-        return;
+    switch(data?.type) {
+        case "USER":
+            rootUrl = "/user";
+            break;
+        case "CHARACTER":
+            rootUrl = "/character";
+            break;
     }
 
     const Wrapper = inline ? "span" : "div";
 
     return (
         <Wrapper className={inline ? "inline-flex items-center" : "flex items-center justify-center"}>
-            <div className="mention" style={auraStyle}>
-                <Link className="z-1 link-hover flex items-center justify-center gap-2 text-xs leading-none min-w-0"
-                    to={`/${slug || id}`}
+            <div className="mention aura-effect" style={auraStyle}>
+                <Link 
+                    className="z-1 flex items-center justify-center gap-2 text-xs leading-none min-w-0 group"
+                    to={`${rootUrl}/${data?.primaryUsername || data?.id}`}
                 >
-                    <img className="rounded-full h-4 w-4 flex-shrink-0" src={avatar} alt="avatar" />
+                    <img 
+                        className="rounded-full h-4 w-4 flex-shrink-0" 
+                        src={data?.avatar ? `${cdnBaseUrl}${data?.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                        alt={t("words.avatar")} 
+                    />
 
-                    <span className="truncate min-w-0">
-                        {name || id}
+                    <span className="truncate min-w-0 group-hover:underline">
+                        {data?.displayName || data?.primaryUsername || data?.id}
                     </span>
                 </Link>
 
-                { verified ?
-                    <div className="z-1 relative tooltip font-normal tooltip-top tooltip-accent" 
-                        data-tip="Official">
+                {data?.isVerified ? (
+                    <div 
+                        className="z-1 relative tooltip font-normal tooltip-top tooltip-accent" 
+                        data-tip={t("words.Verified")}
+                    >
                         <a href={`https://${window.config.domains.support}/en-us/articles/verification`}>
-                            <svg className="text-accent" width="15" height="15" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/><path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="#ffffff"/></svg>
+                            <svg className="text-accent" width="15" height="15" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+                                <path d="m6.387.375.876.876h1.24c.69 0 1.25.56 1.25 1.25v1.24l.876.875a1.25 1.25 0 0 1 0 1.768l-.876.876V8.5c0 .69-.56 1.25-1.25 1.25h-1.24l-.876.876a1.25 1.25 0 0 1-1.768 0l-.876-.876H2.504c-.69 0-1.25-.56-1.25-1.25V7.26l-.876-.876a1.25 1.25 0 0 1 0-1.768l.876-.876V2.501c0-.69.56-1.25 1.25-1.25h1.24l.875-.876a1.25 1.25 0 0 1 1.768 0" fill="currentColor"/>
+                                <path d="M5.185 7.238 7.925 4.5a.54.54 0 0 0 .156-.38.5.5 0 0 0-.155-.37.5.5 0 0 0-.37-.154.45.45 0 0 0-.357.166L4.815 6.143l-1.013-1a.5.5 0 0 0-.37-.166q-.214 0-.357.166-.155.143-.155.357 0 .215.155.357l1.383 1.381a.5.5 0 0 0 .357.143.53.53 0 0 0 .37-.143" fill="#ffffff"/>
+                            </svg>
                         </a> 
                     </div>
-
-                    : ""
-                }
+                ) : null}
             </div>
         </Wrapper>
     );
