@@ -118,8 +118,6 @@ async function selectBestAd(
         assertDbSuccess(result);
     }
 
-    console.log(selectedAd)
-
     return selectedAd;
 }
 
