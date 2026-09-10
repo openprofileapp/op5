@@ -18,6 +18,7 @@ export const renderApp = async (req: Request, res: Response) => {
         integrations: {
             webPush: config.integrations.webPush,
             hcaptcha: config.integrations.hcaptcha,
+            adsence: config.integrations.adsence,
             oauth2: config.integrations.oauth2
         },
     }

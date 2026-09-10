@@ -13,6 +13,7 @@ export type ClientConfig = {
     integrations: {
         webPush: Config["integrations"]["webPush"]
         hcaptcha: Config["integrations"]["hcaptcha"]
+        adsence: Config["integrations"]["adsence"]
         oauth2: Config["integrations"]["oauth2"]
     }
 };
@@ -35,5 +36,6 @@ declare global {
         config: ClientConfig,
         session: ClientSession,
         ws: unknown;
+        adsbygoogle: unknown[];
     }
 }
