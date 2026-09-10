@@ -354,6 +354,21 @@ export default function getUsersService({
                     ),
                     json('[]')
                 ) AS badges,
+                COALESCE(
+                    (
+                        SELECT json_group_array(
+                            json_object(
+                                'type', a.type,
+                                'comment', a.comment,
+                                'visibility', a.visibility,
+                                'date', a.date
+                            )
+                        )
+                        FROM awards.awards a
+                        WHERE a.id = users.id
+                    ),
+                    json('[]')
+                ) AS awards,
                 json_object(
                     ${interactionFieldsSql}
                 ) AS interactions,
@@ -571,6 +586,7 @@ export default function getUsersService({
             ...row,
             usernames: parseJson(row.usernames),
             badges: parseJson(row.badges),
+            awards: parseJson(row.awards),
             tags: parseJson(row.tags),
             collections: parseJson(row.collections),
             links: userLinks,
@@ -596,6 +612,7 @@ export default function getUsersService({
                 delete formattedRow.links;
                 delete formattedRow.tags;
                 delete formattedRow.badges;
+                delete formattedRow.awards;
                 delete formattedRow.about;
                 delete formattedRow.markdown;
                 delete formattedRow.pronouns;
