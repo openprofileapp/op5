@@ -38,6 +38,7 @@
     "authorizationHeader": "Missing Authorization header",
     "fileNotFound": "File not found",
     "accountNotFound": "Account not found",
+    "sessionNotFound": "Session not found",
     "emailNotFound": "Email not found",
     "connectionNotFound": "Connection not found",
     "accountSuspended": "This account is suspended",
@@ -49,6 +50,14 @@
     "fileUnknown": "Unknown or not supported file type",
     "fileTooLarge": "File exceeds 1 MB limit",
     "failedAccountRegistration": "Failed to register account",
+    "premiumRequired": "You need to be subscribed to premium to do this.",
+    "invalidAboutLength": "Your overview cannot be longer than 320 characters",
+    "invalidMarkdownLength": "Your about cannot be longer than 16384 characters",
+    "invalidTagsFormat": "Tags can only contain a-z and dashes. Do not include #",
+    "invalidDateFormat": "Invalid date format",
+    "invalidVisibility": "Invalid visibility",
+    "invalidType": "Invalid account type",
+    "cannotChangeHiddenState": "Some parts of your profile have been set hidden by a moderator. It cannot be updated at this time.",
     "ownerInteraction": {
       "follow": "You cannot unfollow your own content.",
       "like": "You cannot unlike your own content."
@@ -167,7 +176,9 @@
     "Quote": "Quote",
     "List": "List",
     "Mention": "Mention",
-    "Verified": "Verified"
+    "Verified": "Verified",
+    "Table": "Table",
+    "Grid": "Grid"
   },
   "time": {
     "hour1": "1 Hour",
@@ -181,7 +192,9 @@
     "noFriendView": "as a friend to view their profile.",
     "noFanflair": "Fanflairs are not yet available.",
     "onlyYou": "Only visible to you",
-    "hideAds": "Subscribe to Premium to hide this."
+    "hideAds": "Subscribe to Premium to hide this.",
+    "failedToSaveProfile": "Failed to save your profile",
+    "savedYourProfile": "Your profile has been saved"
   },
   "components": {
     "menus": {
