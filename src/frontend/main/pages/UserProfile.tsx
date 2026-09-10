@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
@@ -125,8 +125,6 @@ export default function UserProfile() {
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
-
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const tabs = useMemo(() => {
         if (!isTranslationReady) return [];
@@ -545,11 +543,6 @@ export default function UserProfile() {
                     <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-4">
                         <div className="flex flex-col gap-4">
 
-                            <AdvertisementBox
-                                className={boxClassList}
-                                adSlot={data?.id}
-                            />
-
                             <div 
                                 className="aura-effect bg-base-100 rounded-lg z-1 p-6 h-fit" 
                                 style={auraStyle}
@@ -845,6 +838,11 @@ export default function UserProfile() {
                                 </div>
                             </div>
 
+                            <AdvertisementBox
+                                className={boxClassList}
+                                adSlot={`user-profile-${data?.id}`}
+                            />
+
                             {data && data?.links?.length > 0 && (
                                 <div className={boxClassList}>
                                     <div className={boxTextClassList}>
@@ -1093,48 +1091,39 @@ export default function UserProfile() {
                                         {activeTab === "about" && (
                                             <MarkdownEditor
                                                 initialContent={data?.markdown}
-                                                //isEditing={Boolean(data?.markdown?.trim() !== "")}
-                                                isEditing={false}
-                                                onChange={(newMarkdown) => {
-                                                    if (timerRef.current) {
-                                                        clearTimeout(timerRef.current);
-                                                    }
+                                                isEditing={true}
+                                                onSave={async (newMarkdown) => {
+                                                    try {
+                                                        const response = await fetch(`${apiBaseUrl}/v3/users/update/${data?.id}`, {
+                                                            credentials: "include", 
+                                                            method: "POST", 
+                                                            headers: { "Content-Type": "application/json" }, 
+                                                            body: JSON.stringify({
+                                                                data: {
+                                                                    markdown: newMarkdown
+                                                                }
+                                                            })
+                                                        });
 
-                                                    timerRef.current = setTimeout(async () => {
-                                                        try {
-                                                            const response = await fetch(`${apiBaseUrl}/v3/users/update/${data?.id}`, {
-                                                                credentials: "include", 
-                                                                method: "POST", 
-                                                                headers: { "Content-Type": "application/json" }, 
-                                                                body: JSON.stringify({
-                                                                    data: {
-                                                                        markdown: newMarkdown
-                                                                    }
-                                                                })
-                                                            });
+                                                        const responseData = await response.json();
 
-                                                            const responseData = await response.json();
-
-                                                            if (response.ok) {
-                                                                toast.show(
-                                                                    t("defaults.savedYourProfile"),
-                                                                    { type: "success" }
-                                                                );
-                                                            } else {
-                                                                toast.show(
-                                                                    t("defaults.failedToSaveProfile"),
-                                                                    {
-                                                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                                                        // @ts-ignore
-                                                                        subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
-                                                                        type: "error",
-                                                                    }
-                                                                );
-                                                            }
-                                                        } catch (error) {
-                                                            console.error(`Failed to save markdown:`, error);
+                                                        if (response.ok) {
+                                                            toast.show(
+                                                                t("defaults.savedYourProfile"),
+                                                                { type: "success" }
+                                                            );
+                                                        } else {
+                                                            toast.show(
+                                                                t("defaults.failedToSaveProfile"),
+                                                                {
+                                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                                    type: "error",
+                                                                }
+                                                            );
                                                         }
-                                                    }, 1000);
+                                                    } catch (error) {
+                                                        console.error(`Failed to save markdown:`, error);
+                                                    }
                                                 }}
                                             />
                                         )}

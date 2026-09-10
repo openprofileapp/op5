@@ -7,6 +7,7 @@ interface MarkdownEditorProps {
     initialContent?: string;
     isEditing?: boolean;
     onChange?: (val: string) => void;
+    onSave?: (val: string) => Promise<void> | void;
     className?: string;
 }
 
@@ -14,14 +15,25 @@ export default function MarkdownEditor({
     initialContent = "",
     isEditing = false,
     onChange,
+    onSave,
     className = "",
 }: MarkdownEditorProps) {
     const { t, ready: isTranslationReady } = useTranslation();
     
     const [value, setValue] = useState<string>(initialContent ?? "");
+    const [savedValue, setSavedValue] = useState<string>(initialContent ?? "");
     const [isPreview, setIsPreview] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setValue(initialContent ?? "");
+        setSavedValue(initialContent ?? "");
+    }, [initialContent]);
+
+    const savedValueChanged = value !== savedValue;
 
     const adjustHeight = useCallback(() => {
         const textarea = textareaRef.current;
@@ -44,41 +56,28 @@ export default function MarkdownEditor({
 
     const insertMarkdown = (prefix: string, suffix: string = "") => {
         const textarea = textareaRef.current;
-        const currentContent = value ?? "";
+        if (!textarea) return;
 
-        let start = textarea ? textarea.selectionStart : currentContent.length;
-        let end = textarea ? textarea.selectionEnd : currentContent.length;
+        textarea.focus();
 
-        if (typeof start !== "number") start = currentContent.length;
-        if (typeof end !== "number") end = currentContent.length;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        const replacement = `${prefix}${selectedText}${suffix}`;
 
-        const hasSelection = start !== end;
-        const selectedText = currentContent.substring(start, end);
+        const success = document.execCommand("insertText", false, replacement);
 
-        let replacement = "";
-        let newSelectionStart = start;
-        let newSelectionEnd = end;
-
-        if (hasSelection) {
-            replacement = `${prefix}${selectedText}${suffix}`;
-            newSelectionStart = start + prefix.length;
-            newSelectionEnd = end + prefix.length;
-        } else {
-            replacement = `${prefix}${suffix}`;
-            newSelectionStart = start + prefix.length;
-            newSelectionStart = start + prefix.length;
+        if (!success) {
+            const currentContent = value ?? "";
+            const newValue = currentContent.substring(0, start) + replacement + currentContent.substring(end);
+            handleTextChange(newValue);
         }
 
-        const newValue =
-            currentContent.substring(0, start) + replacement + currentContent.substring(end);
-
-        handleTextChange(newValue);
-
+        const newCursorStart = start + prefix.length;
+        const newCursorEnd = selectedText ? end + prefix.length : newCursorStart;
+        
         setTimeout(() => {
-            if (textarea) {
-                textarea.focus();
-                textarea.setSelectionRange(newSelectionStart, newSelectionEnd);
-            }
+            textarea.setSelectionRange(newCursorStart, newCursorEnd);
         }, 0);
     };
 
@@ -139,6 +138,23 @@ export default function MarkdownEditor({
                     }, 0);
                 }
             }
+        }
+    };
+
+    const handleSave = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (isSaving || !savedValueChanged) return;
+
+        setIsSaving(true);
+        try {
+            if (onSave) {
+                await onSave(value);
+            }
+            setSavedValue(value);
+        } catch (error) {
+            console.error("Save error:", error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -298,25 +314,42 @@ export default function MarkdownEditor({
                     </button>
                 </div>
 
-                <div 
-                    className="tooltip"
-                    data-tip={t("words.TogglePreview")}
-                >
-                    <label className="toggle border-base-300 bg-base-200">
-                        <input 
-                            className="bg-base-content rounded-full"
-                            type="checkbox"
-                            onChange={(e) => setIsPreview(e.target.checked)}
-                        />
+                <div className="flex items-center gap-4 text-xs text-sub">
+                    <div 
+                        className="tooltip"
+                        data-tip={t("words.TogglePreview")}
+                    >
+                        <label className="toggle border-base-300 bg-base-200">
+                            <input 
+                                className="bg-base-content rounded-full"
+                                type="checkbox"
+                                onChange={(e) => setIsPreview(e.target.checked)}
+                            />
 
-                        <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
-                            
-                        </span>
+                            <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                
+                            </span>
 
-                        <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
-                            󰈈
+                            <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                󰈈
+                            </span>
+                        </label>
+                    </div>
+
+                    <button
+                        className={`btn flex items-center justify-center border w-24 h-8 rounded font-normal gap-2 transition-colors ${
+                            !savedValueChanged 
+                                ? "bg-base-200 border-base-300 cursor-not-allowed" 
+                                : "bg-success border-success cursor-pointer"
+                        }`}
+                        onClick={handleSave}
+                        disabled={isSaving || !savedValueChanged}
+                    >
+                        <span className={`${buttonTextClassList} ${isSaving ? "loading w-5 h-5" : ""}`}>
+                            {!savedValueChanged && !isSaving ? "" : "󰆓"}
                         </span>
-                    </label>
+                        {!isSaving && (savedValueChanged ? t("words.Save") : t("words.Saved"))}
+                    </button>
                 </div>
             </div>
 

@@ -178,7 +178,9 @@
     "Mention": "Mention",
     "Verified": "Verified",
     "Table": "Table",
-    "Grid": "Grid"
+    "Grid": "Grid",
+    "Save": "Save",
+    "Saved": "Saved"
   },
   "time": {
     "hour1": "1 Hour",
