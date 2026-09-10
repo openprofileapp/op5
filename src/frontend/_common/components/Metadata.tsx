@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { cdnBaseUrl, mainBaseUrl } from '../scripts/domains.js';
 
 type Metadata = {
+    favicon?: string,
     title?: string,
     description?: string,
     keywords?: string, 
@@ -17,6 +18,7 @@ type Metadata = {
 }
 
 export default function Metadata({ 
+    favicon,
     title, 
     description, 
     keywords, 
@@ -75,8 +77,8 @@ export default function Metadata({
 
             <meta name="theme-color" content={window.config.theme.accent} />
 
-            <link rel="icon" href={formattedIcon} />
-            <link rel="apple-touch-icon" href={formattedIcon} />
+            <link rel="icon" href={favicon || formattedIcon} />
+            <link rel="apple-touch-icon" href={favicon || formattedIcon} />
 
             <meta name="application-name" content={window.config.metadata.name} />
             <meta name="apple-mobile-web-app-capable" content="yes" />
