@@ -10,9 +10,7 @@ db.accounts.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
-        if (d.permissions === "295148468129306247231") {
-            d.permissions = PlatformPermissionsService.getRole("premium").value;
-        }
+        d.permissions = PlatformPermissionsService.getRole("premium").value;
 
         if (d.permissions === "1475740088846717550655") {
             d.permissions = PlatformPermissionsService.getRole("partner").value;
@@ -37,6 +35,15 @@ db.accounts.transaction(q => {
 
         if (d.id === "8057185762390040" || d.id === "3912544802938547") {
             d.permissions = PlatformPermissionsService.getRole("staff").value;
+        }
+
+        if (d.id ==="5019646586243236") {
+            const permissions = [
+                ...PlatformPermissionsService.getRole("premium").array,
+                ...PlatformPermissionsService.getRole("verified").array,
+            ];
+
+            d.permissions = PlatformPermissionsService.encode(permissions);
         }
 
         const result = q(
