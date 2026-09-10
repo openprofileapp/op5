@@ -838,10 +838,12 @@ export default function UserProfile() {
                                 </div>
                             </div>
 
-                            <AdvertisementBox
-                                className={boxClassList}
-                                adSlot={`user-profile-${data?.id}`}
-                            />
+                            {data?.id && (
+                                <AdvertisementBox
+                                    className={boxClassList}
+                                    adSlot={`user-profile-${data?.id}`}
+                                />
+                            )}
 
                             {data && data?.links?.length > 0 && (
                                 <div className={boxClassList}>
