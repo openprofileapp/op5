@@ -10,7 +10,7 @@ import { AdvertisementType } from "../../../../_common/types/advertisements.type
 
 export const assignClickController = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id, adSlot } = req.params;
 
         await assertBearer(req);
 
@@ -31,15 +31,15 @@ export const assignClickController = async (req: Request, res: Response) => {
         const source = req.session?.userId || req.ip;
 
         const clickResult = db.advertisements.query(
-            `INSERT INTO clicks (source, target, date)
-             SELECT ?, ?, STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now')
+            `INSERT INTO clicks (source, target, adSlot, date)
+             SELECT ?, ?, ?, STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now')
              WHERE NOT EXISTS (
                  SELECT 1 FROM clicks 
                  WHERE source = ? 
                    AND target = ? 
                    AND date >= STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now', '-24 hours')
              )`,
-            [source, id, source, id]
+            [source, id, adSlot, source, id]
         );
 
         assertDbSuccess(clickResult);

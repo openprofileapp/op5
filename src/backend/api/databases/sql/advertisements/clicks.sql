@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS clicks (
     source TEXT NOT NULL,
     target TEXT NOT NULL,
+    adSlot TEXT NOT NULL,
     date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 
     UNIQUE (source, target, date)

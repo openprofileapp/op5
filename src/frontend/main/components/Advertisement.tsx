@@ -47,7 +47,7 @@ export default function AdvertisementBox({
 
         const fetchAdvertisements = async () => {
             try {
-                const res = await fetch(`${apiBaseUrl}/v3/advertisements`, {
+                const res = await fetch(`${apiBaseUrl}/v3/advertisements?adSlot=${adSlot}`, {
                     credentials: "include",
                 });
 
@@ -81,7 +81,7 @@ export default function AdvertisementBox({
         return () => {
             isMounted = false;
         };
-    }, [adFailed, shouldBypass, t]);
+    }, [adFailed, adSlot, shouldBypass, t]);
 
     useEffect(() => {
         if (shouldBypass || forceApiAd) return;
@@ -141,7 +141,7 @@ export default function AdvertisementBox({
         const targetWindow = window.open("about:blank", "_blank");
 
         try {
-            await fetch(`${apiBaseUrl}/v3/advertisements/click/${apiAd.id}`, {
+            await fetch(`${apiBaseUrl}/v3/advertisements/click/${apiAd.id}/${adSlot}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

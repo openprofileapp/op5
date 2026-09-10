@@ -6,6 +6,6 @@ import { assignClickController } from "../controllers/advertisements/assignClick
 const advertisementRoute = Router();
 
 advertisementRoute.get("/", advertisementsController);
-advertisementRoute.get("/click/:id", assignClickController);
+advertisementRoute.get("/click/:id/:adSlot", assignClickController);
 
 export default advertisementRoute;

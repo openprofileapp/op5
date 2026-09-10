@@ -56,7 +56,8 @@ function getTopTargetTags(interests: InterestItemType[], maxTags = 5): string[] 
 
 async function selectBestAd(
     targetTags: string[],
-    source: string
+    source: string,
+    adSlot: string
 ): Promise<AdvertisementType | null> {
     const baseConditions = "WHERE isActive = 1 AND (isUnlimitedClicks = 1 OR CAST(clicksLeft AS SIGNED) > 0)";
 
@@ -103,15 +104,15 @@ async function selectBestAd(
 
     if (selectedAd) {
         const result = db.advertisements.query(
-            `INSERT INTO views (source, target, date)
-            SELECT ?, ?, STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now')
+            `INSERT INTO views (source, target, adSlot, date)
+            SELECT ?, ?, ?, STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now')
             WHERE NOT EXISTS (
                 SELECT 1 FROM views 
                 WHERE source = ? 
                 AND target = ? 
                 AND date >= STRFTIME('%Y-%m-%dT%H:%M:%SZ', 'now', '-24 hours')
             )`,
-            [source, selectedAd.id, source, selectedAd.id]
+            [source, selectedAd.id, adSlot, source, selectedAd.id]
         );
 
         assertDbSuccess(result);
@@ -124,6 +125,8 @@ async function selectBestAd(
 
 export const advertisementsController = async (req: Request, res: Response) => {
     try {
+        const { adSlot } = req.query;
+
         await assertBearer(req);
 
         let interests;
@@ -139,7 +142,8 @@ export const advertisementsController = async (req: Request, res: Response) => {
 
         const selectedAd = await selectBestAd(
             targetTags, 
-            req.session?.userId || req.ip as string
+            req.session?.userId || req.ip as string,
+            adSlot as string
         );
 
         if (!selectedAd) {
