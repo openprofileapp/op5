@@ -24,6 +24,8 @@ import usernamesRoute from "./routes/usernames.route.js";
 import postregisterRoute from "./routes/postregister.route.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import advertisementRoute from "./routes/advertisement.route.js";
+import whatIsRoute from "./routes/whatIs.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -119,6 +121,20 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     auditRoute
+);
+
+v3.use(
+    "/advertisements", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    advertisementRoute
+);
+
+v3.use(
+    "/whatis", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    whatIsRoute
 );
 
 v3.use(
