@@ -10,6 +10,7 @@ import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../_common/instances.js";
+import whatIs from "../../helpers/whatIs.js";
 
 export const postPins = async (req: Request, res: Response) => {
     try {
@@ -21,19 +22,37 @@ export const postPins = async (req: Request, res: Response) => {
         assertNotNull([ownerId, assetId, position]);
         assertPlatformPermissions(req.session, "WRITE");
 
+        const whatIsAsset = whatIs(assetId as string);
 
-        const getResult = db.pins.query(
-            `SELECT 1 FROM pins WHERE ownerId = ?`,
-            [req.session.userId]
-        );
-
-        assertDbSuccess(getResult);
-
-        if (getResult.rowCount >= 24) {
+        if (whatIsAsset.ownerId !== req.session.userId) {
             throw new AdvancedError({
                 code: 400,
-                message: i18n.t("responses.pinLimit")
-            })
+                message: i18n.t("responses.unauthorized")
+            });
+        }
+
+        const existingPin = db.pins.query(
+            `SELECT 1 FROM pins WHERE ownerId = ? AND assetId = ? LIMIT 1`,
+            [req.session.userId, assetId]
+        );
+
+        assertDbSuccess(existingPin);
+
+        const isNewPin = existingPin.rowCount === 0;
+
+        if (isNewPin) {
+            const countResult = db.pins.query(
+                `SELECT 1 FROM pins WHERE ownerId = ?`,
+                [req.session.userId]
+            );
+            assertDbSuccess(countResult);
+
+            if ((countResult.rowCount ?? 0) >= 24) {
+                throw new AdvancedError({
+                    code: 400,
+                    message: i18n.t("responses.pinLimit")
+                });
+            }
         }
 
         const postResult = db.pins.query(
@@ -41,17 +60,14 @@ export const postPins = async (req: Request, res: Response) => {
                 INSERT INTO pins (ownerId, assetId, position)
                 VALUES (?, ?, ?)
                 ON CONFLICT(ownerId, assetId)
-                DO UPDATE SET
-                    position = excluded.position
+                DO UPDATE SET position = excluded.position
             `,
             [req.session.userId, assetId, position]
         );
 
         assertDbSuccess(postResult);
 
-        res.status(200).json({
-            ok: true
-        });
+        return res.status(200).json({ ok: true });
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

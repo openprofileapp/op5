@@ -10,6 +10,7 @@ import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../_common/instances.js";
+import whatIs from "../../helpers/whatIs.js";
 
 export const deletePins = async (req: Request, res: Response) => {
     try {
@@ -19,6 +20,15 @@ export const deletePins = async (req: Request, res: Response) => {
         assertAccount(req.session);
         assertNotNull([ownerId, assetId]);
         assertPlatformPermissions(req.session, "WRITE");
+
+        const whatIsAsset = whatIs(assetId as string);
+
+        if (whatIsAsset.ownerId !== req.session.userId) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.unauthorized")
+            });
+        }
 
         const result = db.pins.query(
             `
