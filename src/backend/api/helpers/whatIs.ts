@@ -11,22 +11,7 @@ import getPublishedCharactersService from "../services/getPublishedCharacters.se
 import { CollectionType } from "../../../_common/types/collection.type.js";
 import getCollectionsService from "../services/getCollections.service.js";
 import { AssetNameType, GetAssetType } from "../../../_common/types/asset.type.js";
-
-export type WhatIsType = {
-    id: string;
-    ownerId?: string;
-    displayName?: string;
-    primaryUsername?: string;
-    avatar?: string;
-    type: AssetNameType;
-    tags: string[];
-    createdDate: string;
-    updatedDate?: string;
-    isPremium: boolean;
-    isVerified: boolean;
-    isPromoted: boolean;
-    isOfficial: boolean;
-}
+import { WhatIsType } from "../../../_common/types/whatIs.type.js";
 
 function hasBadge(badges: GetBadgeType[], badgeType: BadgeNameType): boolean {
     return badges.some((b) => b.type === badgeType);
@@ -46,6 +31,10 @@ function formatReturnData(
         displayName: data.displayName,
         primaryUsername: ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) as string,
         avatar: data.avatar,
+        ...("isAuraEnabled" in data && { isAuraEnabled: data.isAuraEnabled }),
+        ...("auraType" in data && { auraType: data.auraType }),
+        ...("auraPrimary" in data && { auraPrimary: data.auraPrimary }),
+        ...("auraSecondary" in data && { auraSecondary: data.auraSecondary }),
         type: type,
         tags: data.tags,
         createdDate: data.createdDate,
@@ -74,6 +63,10 @@ function formatReturnData(
  * //   displayName: "Test"
  * //   primaryUsername: "test"
  * //   avatar: "/avatars/00000000000000000/hash.png"
+ * //   isAuraEnabled: true
+ * //   auraType: "flow"
+ * //   auraPrimary: "#000000"
+ * //   auraSecondary: "#000000"
  * //   type: "USER"
  * //   tags: ["author", "writer"]
  * //   createdDate: "2026-01-01T00:00:00Z";
