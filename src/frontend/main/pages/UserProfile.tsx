@@ -30,6 +30,7 @@ import MarkdownEditor from "../../_common/components/markdown/editor.js";
 import CharacterCard from "../components/CharacterCard.js";
 import { Pagination } from "../components/Pagination.js";
 import { useUnsavedChangesWarning } from "../../_common/hooks/useUnsavedChangesWarning.hook.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 
 interface SortableCardProps {
     item: GetAssetType;
@@ -76,7 +77,7 @@ export default function UserProfile() {
     const { id } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
-    
+    const { editUserProfileModal } = useModals();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const query = searchParams.get("query") || "";
@@ -696,11 +697,7 @@ export default function UserProfile() {
                                                 <button
                                                     className={buttonClassList}
                                                     onClick={() => {
-                                                        // editModal.open(data);
-                                                        toast.show(
-                                                            "DEVELOPER NEEDED: Add edit modal", 
-                                                            { type: "warning" }
-                                                        );
+                                                        editUserProfileModal.open(data)
                                                     }}
                                                 >
                                                     <span className={buttonTextClassList}>
