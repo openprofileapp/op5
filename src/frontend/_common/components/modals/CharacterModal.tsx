@@ -393,7 +393,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:gap-3 flex-row w-full mt-2 pt-4 border-t border-base-200 z-10 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-row w-full mt-2 pt-4 z-10 shrink-0">
                     <button 
                         type="button"
                         className="btn btn-neutral flex-1"
