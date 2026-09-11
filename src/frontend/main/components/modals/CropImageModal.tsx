@@ -46,6 +46,10 @@ export default function CropModal({
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 aspectRatio={aspectRatio}
+                defaultSize={({ imageSize, visibleArea }) => ({
+                    width: (visibleArea || imageSize).width,
+                    height: (visibleArea || imageSize).height,
+                })}
             />
 
             <div className="flex items-center justify-center gap-3 mx-4 mt-4 w-full">
