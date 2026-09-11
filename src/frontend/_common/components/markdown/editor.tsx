@@ -25,12 +25,20 @@ export default function MarkdownEditor({
     const [isPreview, setIsPreview] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
+    const [history, setHistory] = useState<string[]>([initialContent ?? ""]);
+    const [historyIndex, setHistoryIndex] = useState<number>(0);
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const content = initialContent ?? "";
+        
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setValue(initialContent ?? "");
-        setSavedValue(initialContent ?? "");
+        setValue(content);
+        setSavedValue(content);
+        setHistory([content]);
+        setHistoryIndex(0);
     }, [initialContent]);
 
     const savedValueChanged = value !== savedValue;
@@ -43,10 +51,46 @@ export default function MarkdownEditor({
         }
     }, []);
 
-    const handleTextChange = (text: string) => {
-        setValue(text);
-        if (onChange) onChange(text);
+    const updateValueWithHistory = (newValue: string) => {
+        if (newValue === value) return;
+
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(newValue);
+        
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+        setValue(newValue);
+
+        if (onChange) onChange(newValue);
     };
+
+    const handleTextChange = (text: string) => {
+        updateValueWithHistory(text);
+    };
+
+    const handleUndo = useCallback(() => {
+        if (isPreview) return;
+
+        if (historyIndex > 0) {
+            const newIndex = historyIndex - 1;
+            const previousValue = history[newIndex];
+            setHistoryIndex(newIndex);
+            setValue(previousValue);
+            if (onChange) onChange(previousValue);
+        }
+    }, [isPreview, history, historyIndex, onChange]);
+
+    const handleRedo = useCallback(() => {
+        if (isPreview) return;
+
+        if (historyIndex < history.length - 1) {
+            const newIndex = historyIndex + 1;
+            const nextValue = history[newIndex];
+            setHistoryIndex(newIndex);
+            setValue(nextValue);
+            if (onChange) onChange(nextValue);
+        }
+    }, [isPreview, history, historyIndex, onChange]);
 
     useEffect(() => {
         if (!isPreview && isEditing) {
@@ -141,8 +185,8 @@ export default function MarkdownEditor({
         }
     };
 
-    const handleSave = async (e: React.MouseEvent) => {
-        e.preventDefault();
+    const handleSave = useCallback(async (e?: React.MouseEvent | KeyboardEvent) => {
+        if (e) e.preventDefault();
         if (isSaving || !savedValueChanged) return;
 
         setIsSaving(true);
@@ -150,13 +194,53 @@ export default function MarkdownEditor({
             if (onSave) {
                 await onSave(value);
             }
+
             setSavedValue(value);
         } catch (error) {
             console.error("Save error:", error);
         } finally {
             setIsSaving(false);
         }
-    };
+    }, [isSaving, savedValueChanged, onSave, value]);
+
+    const handleGlobalKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>) => {
+            const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+
+            if (!isCmdOrCtrl) return;
+
+            if (e.key.toLowerCase() === "s") {
+                e.preventDefault();
+                
+                handleSave();
+
+                return;
+            }
+
+            if (e.key.toLowerCase() === "z") {
+                if (isPreview) return;
+
+                e.preventDefault();
+
+                if (e.shiftKey) {
+                    handleRedo();
+                } else {
+                    handleUndo();
+                }
+
+                return;
+            }
+
+            if (e.key.toLowerCase() === "y") {
+                if (isPreview) return;
+
+                e.preventDefault();
+
+                handleRedo();
+            }
+        },
+        [handleSave, handleUndo, handleRedo, isPreview]
+    );
 
     if (!isEditing) {
         return <MarkdownRenderer
@@ -174,7 +258,12 @@ export default function MarkdownEditor({
     if (!isTranslationReady) return null;
 
     return (
-        <div className={className}>
+        <div 
+            ref={containerRef}
+            tabIndex={0}
+            onKeyDown={handleGlobalKeyDown}
+            className={`outline-none ${className}`}
+        >
             <div className="flex flex-wrap items-center justify-between border-y border-base-300 px-4 py-3 gap-4">
                 <div className="flex items-center gap-2 text-xs text-sub">
                     <button
@@ -353,7 +442,7 @@ export default function MarkdownEditor({
                 </div>
             </div>
 
-            <div className="p-4">
+            <div className="mt-4">
                 {!isPreview ? (
                     <textarea
                         ref={textareaRef}
