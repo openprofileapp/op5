@@ -29,6 +29,7 @@ import AdvertisementBox from "../components/Advertisement.js";
 import MarkdownEditor from "../../_common/components/markdown/editor.js";
 import CharacterCard from "../components/CharacterCard.js";
 import { Pagination } from "../components/Pagination.js";
+import { useUnsavedChangesWarning } from "../../_common/hooks/useUnsavedChangesWarning.hook.js";
 
 interface SortableCardProps {
     item: GetAssetType;
@@ -84,15 +85,19 @@ export default function UserProfile() {
 
     const { handleFollowInteraction } = useInteractions();
 
-    const [activeTab, setActiveTab] = useState("pinned");
+    const [activeTab, setActiveTab] = useState<string>("pinned");
+
     const [selectedStatistics, setSelectedStatistics] = useState<string>("total");
     
     const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
 
     const [data, setData] = useState<GetUserItemType>();
     const [isLoading, setIsLoading] = useState(true);
-    const [isContentLoading, setIsContentLoading] = useState(true);
 
+    const [isEditingAbout, setIsEditingAbout] = useState<boolean>(false);
+    const [about, setAbout] = useState<string>();
+
+    const [isContentLoading, setIsContentLoading] = useState(true);
     const [pageCount, setPageCount] = useState(0);
 
     const [characters, setCharacters] = useState<GetPublishedCharacterItemType[]>([]);
@@ -125,6 +130,8 @@ export default function UserProfile() {
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
+
+    useUnsavedChangesWarning(isEditingAbout);
 
     const tabs = useMemo(() => {
         if (!isTranslationReady) return [];
@@ -193,6 +200,7 @@ export default function UserProfile() {
             if (!res.ok) return;
 
             const json = await res.json();
+
             setPins(json.items || []);
         } catch (err) {
             console.error(err);
@@ -223,6 +231,7 @@ export default function UserProfile() {
             }
             
             setCharacters(json?.items || []);
+
             if (json?.pageCount !== undefined) {
                 setPageCount(json.pageCount);
             }
@@ -247,31 +256,32 @@ export default function UserProfile() {
                 }
 
                 const json = await res.json();
-                const userData: GetUserItemType = json.items[0];
+                const data: GetUserItemType = json.items[0];
                 
-                setData(userData);
+                setData(data);
 
                 setAuraStyle(
-                    userData?.isAuraEnabled
+                    data?.isAuraEnabled
                         ? {
-                            ["--aura-type" as string]: `aura-${userData?.auraType || "flow"}`,
-                            ["--aura-primary" as string]: userData?.auraPrimary || "var(--color-accent)",
-                            ["--aura-secondary" as string]: userData?.auraSecondary || "var(--color-accent)",
+                            ["--aura-type" as string]: `aura-${data?.auraType || "flow"}`,
+                            ["--aura-primary" as string]: data?.auraPrimary || "var(--color-accent)",
+                            ["--aura-secondary" as string]: data?.auraSecondary || "var(--color-accent)",
                         }
                         : {
                             border: "1px solid #222222",
                         }
                 );
 
-                setPrimaryUsername(userData?.usernames?.find(u => u.isPrimary)?.username);
-                setShowConfetti(isBirthdayToday(userData?.birthdate) || false);
-                setIsSensitive(userData?.isSensitive);
-                setIsMature(userData?.isMature);
-                setIsFollowing(userData?.interactions?.follows?.hasInteracted || false);
-                setFollowCount(userData?.interactions?.follows?.count || 0);
-                setIsHidden(userData?.interactions?.hides?.hasInteracted || false);
-                setIsRestricted(userData?.interactions?.restricts?.hasInteracted || false);
-                setIsBlocked(userData?.interactions?.blocks?.hasInteracted || false);
+                setPrimaryUsername(data?.usernames?.find(u => u.isPrimary)?.username);
+                setAbout(data.markdown);
+                setShowConfetti(isBirthdayToday(data?.birthdate) || false);
+                setIsSensitive(data?.isSensitive);
+                setIsMature(data?.isMature);
+                setIsFollowing(data?.interactions?.follows?.hasInteracted || false);
+                setFollowCount(data?.interactions?.follows?.count || 0);
+                setIsHidden(data?.interactions?.hides?.hasInteracted || false);
+                setIsRestricted(data?.interactions?.restricts?.hasInteracted || false);
+                setIsBlocked(data?.interactions?.blocks?.hasInteracted || false);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -696,6 +706,7 @@ export default function UserProfile() {
                                                     <span className={buttonTextClassList}>
                                                         
                                                     </span>
+                                                    
                                                     {t("words.EditProfile")}
                                                 </button>
                                             )}
@@ -1045,6 +1056,7 @@ export default function UserProfile() {
                                             {tabs.map((tab) => (
                                                 <button
                                                     key={tab.id}
+                                                    disabled={isEditingAbout}
                                                     className={`tab flex-1 ${activeTab === tab.id ? "tab-active" : ""}`}
                                                     onClick={() => setTab(tab.id)}
                                                 >
@@ -1091,43 +1103,62 @@ export default function UserProfile() {
                                         )}
                                         
                                         {activeTab === "about" && (
-                                            <MarkdownEditor
-                                                initialContent={data?.markdown}
-                                                isEditing={true}
-                                                onSave={async (newMarkdown) => {
-                                                    try {
-                                                        const response = await fetch(`${apiBaseUrl}/v3/users/update/${data?.id}`, {
-                                                            credentials: "include", 
-                                                            method: "POST", 
-                                                            headers: { "Content-Type": "application/json" }, 
-                                                            body: JSON.stringify({
-                                                                data: {
-                                                                    markdown: newMarkdown
-                                                                }
-                                                            })
-                                                        });
+                                            <div className="px-0 mt-3.5 md:px-4">
+                                                {window.session.userId === data?.id && (
+                                                    <button
+                                                        className={`${buttonClassList} w-full mt-2 mb-4`}
+                                                        onClick={() => {
+                                                            setIsEditingAbout(!isEditingAbout);
+                                                        }}
+                                                    >
+                                                        <span className={buttonTextClassList}>
+                                                            {isEditingAbout ? "" : "󰘙"}
+                                                        </span>
 
-                                                        const responseData = await response.json();
+                                                        {isEditingAbout ? t("words.CloseEditor") : t("words.OpenEditor")}
+                                                    </button>
+                                                )}
 
-                                                        if (response.ok) {
-                                                            toast.show(
-                                                                t("defaults.savedYourProfile"),
-                                                                { type: "success" }
-                                                            );
-                                                        } else {
-                                                            toast.show(
-                                                                t("defaults.failedToSaveProfile"),
-                                                                {
-                                                                    subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
-                                                                    type: "error",
-                                                                }
-                                                            );
+                                                <MarkdownEditor
+                                                    initialContent={about}
+                                                    isEditing={isEditingAbout}
+                                                    onSave={async (newMarkdown) => {
+                                                        setAbout(newMarkdown);
+
+                                                        try {
+                                                            const response = await fetch(`${apiBaseUrl}/v3/users/update/${data?.id}`, {
+                                                                credentials: "include", 
+                                                                method: "POST", 
+                                                                headers: { "Content-Type": "application/json" }, 
+                                                                body: JSON.stringify({
+                                                                    data: {
+                                                                        markdown: newMarkdown
+                                                                    }
+                                                                })
+                                                            });
+
+                                                            const responseData = await response.json();
+
+                                                            if (response.ok) {
+                                                                toast.show(
+                                                                    t("defaults.savedYourProfile"),
+                                                                    { type: "success" }
+                                                                );
+                                                            } else {
+                                                                toast.show(
+                                                                    t("defaults.failedToSaveProfile"),
+                                                                    {
+                                                                        subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                                                        type: "error",
+                                                                    }
+                                                                );
+                                                            }
+                                                        } catch (error) {
+                                                            console.error(`Failed to save markdown:`, error);
                                                         }
-                                                    } catch (error) {
-                                                        console.error(`Failed to save markdown:`, error);
-                                                    }
-                                                }}
-                                            />
+                                                    }}
+                                                />
+                                            </div>
                                         )}
         
                                         {activeTab === "characters" && (
