@@ -106,7 +106,7 @@ export default function UserCard({
 
     return (
         <div
-            className={`aura-effect user-card relative p-4 shadow-sm cursor-pointer transition-all duration-100 ${
+            className={`aura-effect user-card relative p-4 shadow-sm ${!isPreview ? "cursor-pointer" : ""} transition-all duration-100 ${
                 isHidden ? "grayscale opacity-50" : "grayscale-0"
             }`}
             style={auraStyle}
@@ -269,7 +269,11 @@ export default function UserCard({
             <div className="absolute inset-0 group pointer-events-none">
                 <Banner
                     className={bannerClassList}
-                    src={`${cdnBaseUrl}${data.banner}`}
+                    src={
+                        data.banner?.startsWith("blob:")
+                            ? data.banner
+                            : `${cdnBaseUrl}${data.banner}`
+                    }
                     alt={t("words.banner")}
                 />
             </div>
@@ -289,14 +293,22 @@ export default function UserCard({
 
                 <img
                     className="absolute rounded-full h-21 w-21 object-cover"
-                    src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                    src={
+                        data.avatar?.startsWith("blob:")
+                            ? data.avatar
+                            : `${cdnBaseUrl}${data.avatar || window.config.metadata.assets.noImage}`
+                    }
                     alt={t("words.avatar")}
                 />
 
                 {data.animatedAvatar && (
                     <img
                         className="absolute rounded-full h-21 w-21 object-cover opacity-0 group-hover:opacity-100"
-                        src={data.animatedAvatar}
+                        src={
+                            data.animatedAvatar?.startsWith("blob:")
+                                ? data.animatedAvatar
+                                : `${cdnBaseUrl}${data.animatedAvatar}`
+                        }
                         alt={t("words.avatar")}
                     />
                 )}
@@ -375,7 +387,7 @@ export default function UserCard({
 
                 <div className="flex min-w-0 mt-1 items-center overflow-hidden">
                     <span className="truncate text-xs leading-snug">
-                        @{primaryUsername}
+                        @{primaryUsername || data.id}
                         {data.visibility !== "friends" && "isFriends" in data && !data.isFriends ? ` • ${formatNumber(followCount).short} Follower${followCount !== 1 && "s"}` : ""}
                     </span>
                 </div>
