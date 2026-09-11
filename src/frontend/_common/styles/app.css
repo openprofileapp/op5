@@ -16,8 +16,12 @@
     }
 }
 
-input, textarea, .validator {
+input, textarea {
     outline: none;
+}
+
+input:focus, textarea:focus {
+    border-color: #555555;
 }
 
 ::selection {
