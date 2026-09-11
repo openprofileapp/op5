@@ -61,7 +61,8 @@
     "ownerInteraction": {
       "follow": "You cannot unfollow your own content.",
       "like": "You cannot unlike your own content."
-    }
+    },
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
   },
   "words": {
     "You": "You",
@@ -180,7 +181,9 @@
     "Table": "Table",
     "Grid": "Grid",
     "Save": "Save",
-    "Saved": "Saved"
+    "Saved": "Saved",
+    "OpenEditor": "Open Editor",
+    "CloseEditor": "Close Editor"
   },
   "time": {
     "hour1": "1 Hour",
