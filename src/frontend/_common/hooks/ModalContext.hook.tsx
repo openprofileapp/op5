@@ -7,6 +7,7 @@ import BlockModal, { BlockModalRef } from "../components/modals/BlockModal.js";
 import ReportModal, { ReportModalRef } from "../components/modals/ReportModal.js";
 import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
 import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
+import EditUserProfileModal, { EditUserProfileModalRef } from "../../main/components/modals/EditUserProfileModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -37,6 +38,10 @@ interface ModalContextType {
         open: (...args: Parameters<CharacterModalRef["open"]>) => void;
         close: () => void;
     };
+    editUserProfileModal: {
+        open: (...args: Parameters<EditUserProfileModalRef["open"]>) => void;
+        close: () => void;
+    };
 }
 
 const ModalContext = createContext<ModalContextType | null>(null);
@@ -49,6 +54,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const reportModalRef = useRef<ReportModalRef>(null);
     const shareModalRef = useRef<ShareModalRef>(null);
     const characterModalRef = useRef<CharacterModalRef>(null);
+    const editUserProfileModalRef = useRef<EditUserProfileModalRef>(null);
 
     const value = useMemo(
         () => ({
@@ -107,6 +113,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 close: () => {
                     characterModalRef.current?.close();
                 },
+            },
+            editUserProfileModal: {
+                open: (...args: Parameters<EditUserProfileModalRef["open"]>) => {
+                    editUserProfileModalRef.current?.open(...args);
+                },
+                close: () => {
+                    editUserProfileModalRef.current?.close();
+                },
             }
         }),
         []
@@ -121,6 +135,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <ReportModal ref={reportModalRef} />
             <ShareModal ref={shareModalRef} />
             <CharacterModal ref={characterModalRef} />
+            <EditUserProfileModal ref={editUserProfileModalRef} />
 
             {children}
         </ModalContext.Provider>
