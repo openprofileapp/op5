@@ -183,7 +183,8 @@
     "Save": "Save",
     "Saved": "Saved",
     "OpenEditor": "Open Editor",
-    "CloseEditor": "Close Editor"
+    "CloseEditor": "Close Editor",
+    "Close": "Close"
   },
   "time": {
     "hour1": "1 Hour",
