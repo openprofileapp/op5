@@ -112,7 +112,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     const processedContent = trimmedContent.replace(/__(.*?)__/g, "<u>$1</u>");
 
     return (
-        <div className={`markdown-content prose text-base-content max-w-none prose-table:my-0 ${className}`}>
+        <div className={`markdown-content text-base-content max-w-none ${className}`}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
