@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { createBrowserRouter, Navigate, RouterProvider, Outlet } from "react-router-dom"
 import { HelmetProvider } from "react-helmet-async"
 import { I18nextProvider } from "react-i18next"
 
@@ -47,6 +47,46 @@ import NotFound from "../_common/pages/NotFound.js"
 import Unavailable from "../_common/pages/Unavailable.js"
 
 import UserProfile from "./pages/UserProfile.js"
+
+// eslint-disable-next-line react-refresh/only-export-components
+function RootLayout() {
+    return (
+        <ModalProvider>
+            <Layout>
+                <Outlet />
+            </Layout>
+        </ModalProvider>
+    );
+}
+
+const router = createBrowserRouter([
+    {
+        element: <RootLayout />,
+        children: [
+            { path: "/", element: <Home /> },
+            { path: "/search", element: <Search /> },
+            { path: "/universes", element: <ComingSoon /> },
+
+            { path: "/trending", element: <Browse /> },
+            { path: "/popular", element: <Browse /> },
+            { path: "/recent", element: <Browse /> },
+            { path: "/browse", element: <Browse /> },
+            { path: "/browse/:tag", element: <Browse /> },
+
+            { path: "/premium", element: <Premium /> },
+
+            { path: "/account/onboarding", element: <Onboarding /> },
+            { path: "/account/library", element: <ComingSoon /> },
+            { path: "/account/partners", element: <Partners /> },
+
+            { path: "/user/:id", element: <UserProfile /> },
+
+            { path: "/503", element: <Unavailable /> },
+            { path: "/404", element: <NotFound /> },
+            { path: "*", element: <Navigate to="/404" replace /> },
+        ],
+    },
+]);
 
 async function bootstrap() {
     await verifySession();
@@ -126,36 +166,7 @@ async function bootstrap() {
         <React.StrictMode>
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
-                    <BrowserRouter>
-                        <ModalProvider>
-                            <Layout>
-                                <Routes>
-                                    <Route path="/" element={<Home />} />
-                                    <Route path="/search" element={<Search />} />
-                                    <Route path="/universes" element={<ComingSoon />} />
-
-                                    <Route path="/trending" element={<Browse />} />
-                                    <Route path="/popular" element={<Browse />} />
-                                    <Route path="/recent" element={<Browse />} />
-                                    <Route path="/browse" element={<Browse />} />
-                                    <Route path="/browse/:tag" element={<Browse />} />
-
-                                    <Route path="/premium" element={<Premium />} />
-
-                                    <Route path="/account/onboarding" element={<Onboarding />} />
-                                    <Route path="/account/library" element={<ComingSoon />} />
-                                    <Route path="/account/partners" element={<Partners />} />
-                                    
-                                    <Route path="/user/:id" element={<UserProfile />} />
-                                    {/* <Route path="character/:id" element={<CharacterProfile />} /> */}
-
-                                    <Route path="/503" element={<Unavailable />} />
-                                    <Route path="/404" element={<NotFound />} />
-                                    <Route path="*" element={<Navigate to="/404" replace />} />
-                                </Routes>
-                            </Layout>
-                        </ModalProvider>
-                    </BrowserRouter>
+                    <RouterProvider router={router} />
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
