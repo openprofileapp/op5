@@ -1,13 +1,14 @@
 export type LinkType = {
-    id: string;
+    assetId: string;
     url: string;
-    name: string;
+    label: string;
     previewText: string | null;
     visibility: string;
+    position: number;
     date: string;
 };
 
 export type GetLinkType = Omit<
     LinkType, 
-    "id"
+    "assetId"
 >;

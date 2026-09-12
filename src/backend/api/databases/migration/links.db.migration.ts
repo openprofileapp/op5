@@ -5,7 +5,7 @@ import { log } from "../../instances.js";
 
 const domains: Record<string, string> = {
     website: "",
-    youtube: "https://youtube.com/",
+    youtube: "https://youtube.com/@",
     x: "https://x.com/",
     bluesky: "https://bsky.app/profile/",
     facebook: "https://facebook.com/",
@@ -84,9 +84,9 @@ db.links.transaction(q => {
 
         const insertResult = q(
             `INSERT INTO links (
-                id,
+                assetId,
                 url,
-                name,
+                label,
                 previewText,
                 visibility,
                 date
