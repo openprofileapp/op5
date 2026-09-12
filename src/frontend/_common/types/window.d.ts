@@ -14,6 +14,7 @@ export type ClientConfig = {
         webPush: Config["integrations"]["webPush"]
         hcaptcha: Config["integrations"]["hcaptcha"]
         adsence: Config["integrations"]["adsence"]
+        brandfetch: Config["integrations"]["brandfetch"]
         oauth2: Config["integrations"]["oauth2"]
     }
 };
