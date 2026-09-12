@@ -114,13 +114,6 @@ db.audits.transaction(q => {
     };
 });
 
-db.metadata.transaction(q => {
-    if (!q("SELECT * FROM metadata LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/metadata.sql`);
-        if (!result.success) return log.db.error(result.error).save();
-    };
-});
-
 db.characters.transaction(q => {
     if (!q("SELECT * FROM published LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/characters/published.sql`);
