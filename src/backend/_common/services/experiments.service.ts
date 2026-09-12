@@ -27,7 +27,7 @@ const experiments = {
         description: "Gives all active experiments.",
         togglePermissionRequirement: "ADMIN",
         isActive: true,
-        addedDate: "2026-09-04T11:21:04"
+        addedDate: "2026-09-04T11:21:00"
     },
     QUICK_ACTIONS_BAR: {
         bit: 1n,
@@ -35,7 +35,15 @@ const experiments = {
         description: "Moves non-commitment buttons to a quick action bar at the top of context menus.",
         togglePermissionRequirement: "WRITE",
         isActive: true,
-        addedDate: "2026-09-04T11:21:04"
+        addedDate: "2026-09-04T11:21:00"
+    },
+    USE_BRANDFETCH_ICONS: {
+        bit: 2n,
+        name: "Use BrandFetch Icons",
+        description: "Uses BrandFetch's API to render HD external link icons over standard metadata.",
+        togglePermissionRequirement: "WRITE",
+        isActive: true,
+        addedDate: "2026-09-12T01:37:00"
     }
 } as const satisfies Record<string, Experiment>;
 

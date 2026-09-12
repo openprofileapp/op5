@@ -3,6 +3,7 @@ import { PlatformPermissionNameType } from "./permissions.type.js";
 export type ExperimentsNameType = 
     | "ALL"
     | "QUICK_ACTIONS_BAR"
+    | "USE_BRANDFETCH_ICONS"
 ;
 
 export type ExperimentResultType = {
