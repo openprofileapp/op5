@@ -405,3 +405,11 @@ hr {
         rgba(0,0,0,0) 100%
     );
 }
+
+.bg-dots {
+    background-image: 
+        radial-gradient(color-mix(in srgb, var(--aura-primary) 16%, transparent) 1.5px, transparent 1.5px),
+        radial-gradient(color-mix(in srgb, var(--aura-secondary) 16%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px, 16px 16px; /* can be controlled for unique design */
+    background-position: 0px 0px, 8px 8px; /* can be controlled for unique design */
+}
