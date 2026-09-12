@@ -18,7 +18,6 @@ import Metadata from "../../_common/components/Metadata.js";
 import { hexToRgba } from "../scripts/colors.js";
 import Badges from "../../_common/components/Badges.js";
 import { toast } from "../../_common/scripts/toast.js";
-import ExternalLinks from "../components/ExternalLinks.js";
 import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
 import { Tooltip } from "../../_common/components/Tooltip.js";
 import Presence from "../../_common/components/Presence.js";
@@ -26,11 +25,12 @@ import ZoomableMedia from "../../_common/components/ZoomableMedia.js";
 import Awards from "../../_common/components/Awards.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import AdvertisementBox from "../components/Advertisement.js";
-import MarkdownEditor from "../../_common/components/markdown/editor.js";
+import MarkdownEditor from "../../_common/components/markdown/Editor.js";
 import CharacterCard from "../components/CharacterCard.js";
 import { Pagination } from "../components/Pagination.js";
 import { useUnsavedChangesWarning } from "../../_common/hooks/useUnsavedChangesWarning.hook.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import ExternalLink from "../../_common/components/ExternalLink.js";
 
 interface SortableCardProps {
     item: GetAssetType;
@@ -555,7 +555,7 @@ export default function UserProfile() {
                         <div className="flex flex-col gap-4">
 
                             <div 
-                                className="aura-effect bg-base-100 rounded-lg z-1 p-6 h-fit" 
+                                className="aura-effect bg-dots bg-base-100 rounded-lg z-1 p-6 h-fit" 
                                 style={auraStyle}
                             >
                                 {contextMenuBuilder && contextMenuBuilder.items([
@@ -687,7 +687,7 @@ export default function UserProfile() {
 
                                     <div className="flex items-center justify-center gap-2 w-full">
                                         <div className="truncate text-sm text-center text-sub">
-                                            @{data?.usernames[0].username}{data?.pronouns ? ` • ${data?.pronouns}` : ""}
+                                            @{primaryUsername}{data?.pronouns ? ` • ${data?.pronouns}` : ""}
                                         </div>
                                     </div>
 
@@ -790,7 +790,12 @@ export default function UserProfile() {
                                             </div>
                                         </div>
 
-                                        {data?.birthdate && data?.type === "author" && (
+                                        {
+                                            (
+                                                data?.birthdate && data?.type === "user" ||
+                                                data?.birthdate && data?.type === "author"
+                                            )
+                                        && (
                                             <div className="flex items-center gap-2">
                                                 <div className="font-nerdfont leading-none text-base">󰃫</div>
                                                 <div 
@@ -859,14 +864,19 @@ export default function UserProfile() {
                                         {t("words.ExternalLinks")}
                                     </div>
 
-                                    <ExternalLinks
-                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                        // @ts-ignore
-                                        links={data?.links}
-                                    />
+                                    <div className="flex justify-center gap-2 px-2 text-xs font-normal flex-wrap">
+                                        {[...data.links]
+                                            .sort((a, b) => (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER))
+                                            .map((link) => (
+                                                <ExternalLink
+                                                    key={link.url}
+                                                    url={link.url}
+                                                />
+                                            ))}
+                                    </div>
                                 </div>
                             )}
-
+                            
                             {data && data?.awards?.length > 0 && (
                                 <div className={boxClassList}>
                                     <div className={boxTextClassList}>
@@ -1109,7 +1119,7 @@ export default function UserProfile() {
                                                         }}
                                                     >
                                                         <span className={buttonTextClassList}>
-                                                            {isEditingAbout ? "" : "󰘙"}
+                                                            {isEditingAbout ? "" : ""}
                                                         </span>
 
                                                         {isEditingAbout ? t("words.CloseEditor") : t("words.OpenEditor")}
