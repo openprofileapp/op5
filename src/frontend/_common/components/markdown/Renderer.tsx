@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import rehypeRaw from "rehype-raw";
 
-import ImageEmbed from "./render/image.js";
+import ImageEmbed from "./render/Image.js";
 import Mention from "../../../main/components/Mention.js";
 import { apiBaseUrl } from "../../scripts/domains.js";
 import ZoomableMedia from "../ZoomableMedia.js";
-import YouTubeEmbed from "./render/youtube.js";
-import SpotifyEmbed from "./render/spotify.js";
+import YouTubeEmbed from "./render/Youtube.js";
+import SpotifyEmbed from "./render/Spotify.js";
 import { WhatIsType } from "../../../../_common/types/whatIs.type.js";
+import ExternalLink from "../ExternalLink.js";
 
 const RenderMention: React.FC<{ id: string }> = ({ id }) => {
     const [data, setData] = useState<WhatIsType>();
@@ -78,13 +80,15 @@ function getEmbedType(url: string): EmbedType {
         if (isImageUrl(url)) return "image";
 
         if (
-            parsed.hostname.includes("youtube.com") ||
+            parsed.hostname.includes("youtube.com/watch") ||
             parsed.hostname.includes("youtu.be")
         ) {
             return "youtube";
         }
 
-        if (parsed.hostname.includes("spotify.com")) {
+        if (
+            parsed.hostname.includes("open.spotify.com")
+        ) {
             return "spotify";
         }
 
@@ -112,9 +116,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     const processedContent = trimmedContent.replace(/__(.*?)__/g, "<u>$1</u>");
 
     return (
-        <div className={`markdown-content text-base-content max-w-none ${className}`}>
+        <div className={`markdown-content space-y-4 text-base-content max-w-none ${className}`}>
             <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
                     h1({ children }) {
@@ -159,7 +163,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
                     table({ children }) {
                         return (
-                            <div className="overflow-x-auto border border-base-300 rounded m-0 p-0">
+                            <div className="overflow-x-auto border border-base-300 rounded p-0">
                                 <table className="table-auto w-full text-left border-collapse my-0">
                                     {children}
                                 </table>
@@ -206,7 +210,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     p({ children }) {
                         if (!children) return null;
                         return (
-                            <p className="first:mt-0 last:mb-0">
+                            <p className="mb-4 first:mt-0 last:mb-0">
                                 {React.Children.map(children, (child) => {
                                     if (typeof child !== "string") return child;
 
@@ -247,12 +251,22 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                             return <SpotifyEmbed url={href} />;
                         }
 
+                        const isPlainUrl =
+                            typeof children === "string" && children.trim() === href.trim();
+
+                        if (isPlainUrl) {
+                            return <ExternalLink 
+                                url={href}
+                                renderAsEmbed={true}
+                            />;
+                        }
+
                         return (
-                            <a href={href} target="_blank" rel="noreferrer">
+                            <a className="underline" href={href} target="_blank" rel="noreferrer">
                                 {children}
                             </a>
                         );
-                    },
+                    }
                 }}
             >
                 {processedContent}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { MarkdownRenderer } from "./renderer.js";
+import { MarkdownRenderer } from "./Renderer.js";
 import { useTranslation } from "react-i18next";
 import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
 
@@ -343,7 +343,7 @@ export default function MarkdownEditor({
                     <button
                         className={buttonClassList}
                         data-tip={t("words.Link")}
-                        onMouseDown={(e) => handleToolClick(e, `[", "](${mainBaseUrl})`)}
+                        onMouseDown={(e) => handleToolClick(e, "[", `](${mainBaseUrl})`)}
                     >
                         <span className={buttonTextClassList}>
                             
