@@ -5,7 +5,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
-import { GetUserItemType } from "../../../../_common/types/user.type.js";
+import { GetUserItemType, PresenceType } from "../../../../_common/types/user.type.js";
 import ImageInput from "../../../_common/components/ImageInput.js";
 import { useObjectURL } from "../../../_common/hooks/useObjectURL.hook.js";
 import ColorInput from "../../../_common/components/ColorInput.js";
@@ -14,6 +14,9 @@ import UserCard from "../UserCard.js";
 import { cdnBaseUrl } from "../../../_common/scripts/domains.js";
 import ExternalLink from "../../../_common/components/ExternalLink.js";
 import { GetLinkType } from "../../../../_common/types/link.type.js";
+import { VisibilityType } from "../../../../_common/types/visibility.type.js";
+import MarkdownRenderer from "../../../_common/components/markdown/Renderer.js";
+import { Tooltip } from "../../../_common/components/Tooltip.js";
 
 export interface EditUserProfileModalRef {
     open: (data: GetUserItemType) => void;
@@ -571,6 +574,41 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                         />
                                     </div>
 
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label flex gap-2">
+                                            Presence
+
+                                            <Tooltip content={(
+                                                <div className="flex flex-col gap-2 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
+                                                    <div><strong>Online:</strong> Standard online mode that automatically updates to idle if inactive</div>
+                                                    <div><strong>Do Not Disturb:</strong> You will not be notified of notifications. They will still appear in your notifications page.</div>
+                                                    <div><strong>Offline:</strong> You appear offline to everyone.</div>
+                                                </div>
+                                            )}>
+                                                <span className="font-nerdfont text-sm"></span>
+                                            </Tooltip>
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.presence.charAt(0).toUpperCase() + data.presence.slice(1).toLowerCase()
+                                            }
+                                            options={[
+                                                { id: "online", name: "Online" },
+                                                { id: "dnd", name: "Do Not Disturb" },
+                                                { id: "hidden", name: "Offline" }
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "presence",
+                                                    option as PresenceType
+                                                )
+                                            }
+                                        />
+                                    </div>
+
                                     <div className="divider text-xs my-0 mt-3">
                                         <span 
                                             className="flex gap-2 tooltip" 
@@ -594,7 +632,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                                 { id: "true", name: "Enabled" },
                                                 { id: "false", name: "Disabled" },
                                             ]}
-                                            placeholder="Filter Results"
+                                            placeholder="Select Option"
                                             typeable={false}
                                             onChange={(option) =>
                                                 handleFieldChange(
@@ -795,6 +833,203 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                 </fieldset>
                             )}
 
+                            {activeTab === "privacy" && (
+                                <fieldset className="fieldset w-full">
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label flex gap-2">
+                                            Profile Visibility
+
+                                            <Tooltip content={(
+                                                <div className="flex flex-col gap-2 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
+                                                    <div><strong>Public:</strong> Visible to everyone.</div>
+                                                    <div><strong>Unlisted:</strong> Only accessible via direct link.</div>
+                                                    <div><strong>Registered:</strong> Visible only to logged-in users.</div>
+                                                    <div><strong>Friends:</strong> Visible only to friends on your list.</div>
+                                                    <div><strong>Only Me:</strong> Visible only to you.</div>
+                                                </div>
+                                            )}>
+                                                <span className="font-nerdfont text-sm"></span>
+                                            </Tooltip>
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.visibility.charAt(0).toUpperCase() + data.visibility.slice(1).toLowerCase()
+                                            }
+                                            options={[
+                                                { id: "public", name: "Public" },
+                                                { id: "unlisted", name: "Unlisted" },
+                                                { id: "registered", name: "Registered" },
+                                                { id: "friends", name: "Friends" },
+                                                { id: "private", name: "Only Me" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "visibility",
+                                                    option as VisibilityType
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            birthdateVisibility
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            foundedDateVisibility
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            presenceVisibility
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    
+
+                                    <div className="divider text-xs my-0 mt-3">
+                                        <span className="flex gap-2">
+                                            Social
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            areFriendRequestsEnabled
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            sendMessages
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label">
+                                            sendComments
+                                        </label>
+
+                                        <TypeableDropdownInput
+                                            value={
+                                                data.isAuraEnabled ? "true" : "false"
+                                            }
+                                            options={[
+                                                { id: "true", name: "Enabled" },
+                                                { id: "false", name: "Disabled" },
+                                            ]}
+                                            placeholder="Select Option"
+                                            typeable={false}
+                                            onChange={(option) =>
+                                                handleFieldChange(
+                                                    "isAuraEnabled",
+                                                    option === "true"
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                </fieldset>
+                            )}
+
                             {activeTab === "preview" && (
                                 <div className="md:hidden">
                                     {/*<UserCard
@@ -809,11 +1044,11 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
 
                     <div className="hidden md:flex items-center justify-center min-h-[500px] h-full w-full p-4 overflow-hidden">
                         <div className="flex items-center justify-center w-full max-w-[340px]">
-                            <UserCard
+                            {/*<UserCard
                                 key={JSON.stringify(previewData)}
                                 data={previewData}
                                 isPreview={true}
-                            />
+                            />*/}
                         </div>
                     </div>
                 </div>
