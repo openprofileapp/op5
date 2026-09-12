@@ -26,6 +26,7 @@ import collectionRoutes from "./routes/collection.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import advertisementRoute from "./routes/advertisement.route.js";
 import whatIsRoute from "./routes/whatIs.route.js";
+import metadataRoute from "./routes/metadata.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -135,6 +136,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     whatIsRoute
+);
+
+v3.use(
+    "/metadata", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    metadataRoute
 );
 
 v3.use(
