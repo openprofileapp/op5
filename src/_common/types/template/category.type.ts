@@ -4,7 +4,7 @@ import { GetAddedBlockType } from "./block.type.js";
 export type CategoryType = {
     assetId: string;
     categoryId: string;
-    type: CategoryIdType[];
+    types: CategoryIdType[];
     label?: string;
     position: number;
     createdBy: string;
