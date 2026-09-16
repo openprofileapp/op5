@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { Logger } from "kage-library/client";
+import { Logger, Snowflake } from "kage-library/client";
 
 import WsClient from "./websocket.js";
 import PresenceTracker from "../../_common/scripts/presence.js";
@@ -8,6 +8,11 @@ import PresenceTracker from "../../_common/scripts/presence.js";
 export const log = new Logger({
     useNerdFonts: window.config.useNerdFonts
 });
+
+export const snowflake = new Snowflake(
+    "2026-01-01T00:00:00.000Z",
+    1
+);
 
 window.ws = new WsClient(`wss://${window.config.domains.studio}`);
 
