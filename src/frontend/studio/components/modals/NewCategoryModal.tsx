@@ -3,15 +3,16 @@ import { useTranslation } from "react-i18next";
 
 import { Tooltip } from "../../../_common/components/Tooltip.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
-import { sortedCategories } from "../../../../_common/scripts/categories.js";
+import { CategoryIdType, sortedCategories } from "../../../../_common/scripts/categories.js";
 
-export interface DataProps {
+export interface NewCategoryType {
     id: string;
     label: string;
+    types: CategoryIdType[];
 }
 
 interface Props {
-    onAddCategory: (data: DataProps) => void;
+    onAddCategory: (data: NewCategoryType) => void;
 }
 
 export default function NewCategoryModal({ onAddCategory }: Props) {
@@ -21,7 +22,7 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
 
     const [id, setId] = useState<string>("");
     const [label, setLabel] = useState<string>("");
-    const [blockTypes, setBlockTypes] = useState<string[]>([]);
+    const [types, setTypes] = useState<CategoryIdType[]>([]);
 
     const modal = document.getElementById("new-category") as HTMLDialogElement;
 
@@ -33,7 +34,8 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
     function handleSave() {
         onAddCategory({
             id,
-            label
+            label,
+            types
         });
 
         modal?.close();
@@ -124,9 +126,9 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
 
                         <TypeableDropdownInput
                             multiple
-                            value={blockTypes}
+                            value={types}
                             options={sortedCategories}
-                            onChange={(values) => setBlockTypes(values as string[])}
+                            onChange={(values) => setTypes(values as string[])}
                             placeholder="What block types should be visible in this category?"
                         />
                     </div>
