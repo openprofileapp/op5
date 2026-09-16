@@ -84,7 +84,7 @@
     "i18next": "^26.0.8",
     "i18next-http-backend": "^3.0.6",
     "jszip": "^3.10.1",
-    "kage-library": "^1.0.35",
+    "kage-library": "^1.0.36",
     "luxon": "^3.7.2",
     "maxmind": "^5.0.6",
     "node-cron": "^4.2.1",
