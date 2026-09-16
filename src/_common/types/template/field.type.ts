@@ -1,5 +1,5 @@
-import { NoteType } from "./note.type.js";
-import { ThoughtType } from "./thought.type.js";
+import { GetNoteType } from "./note.type.js";
+import { GetThoughtType } from "./thought.type.js";
 import { GetValueType } from "./value.type.js";
 
 export type FieldNameType = 
@@ -10,6 +10,11 @@ export type FieldNameType =
     | "rating"
     | "asset"
     | "button"
+    | "media"
+    | "timeline"
+    | "calendar"
+    | "table"
+    | "spacer"
 ;
 
 export type FieldType = {
@@ -33,6 +38,6 @@ export type GetFieldType = Omit<
     "assetId" | "rowId"
 > & {
     value?: GetValueType;
-    notes: NoteType[];
-    thought?: ThoughtType;
+    notes: GetNoteType[];
+    thoughts?: GetThoughtType;
 };
