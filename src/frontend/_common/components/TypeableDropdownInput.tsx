@@ -57,7 +57,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
 
     const getDisplayName = useCallback(
         (val: DropdownOptionValue) => {
-            const matched = normalizedOptions.find((opt) => opt.id === val || opt.name === val);
+            const matched = normalizedOptions.find((opt) => opt.id === val || opt?.name === val);
             return matched ? matched.name : String(val || "");
         },
         [normalizedOptions]
@@ -132,7 +132,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     const filteredOptions = useMemo(() => {
         if (!typeable) return normalizedOptions;
         const term = (searchTerm || "").toLowerCase();
-        return normalizedOptions.filter((opt) => opt.name.toLowerCase().includes(term));
+        return normalizedOptions.filter((opt) => opt?.name?.toLowerCase().includes(term));
     }, [normalizedOptions, typeable, searchTerm]);
 
     useEffect(() => {
@@ -165,7 +165,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
             onChange?.(next);
             setSearchTerm("");
         } else {
-            setSearchTerm(opt.name);
+            setSearchTerm(opt?.name);
             onChange?.(opt.id);
             handleClose();
         }
@@ -265,7 +265,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                     const isHighlighted = i === highlightedIndex;
                     const isSelected = multiple
                         ? selectedValues.includes(opt.id)
-                        : opt.name === searchTerm || opt.id === value;
+                        : opt?.name === searchTerm || opt.id === value;
 
                     return (
                         <li
@@ -278,7 +278,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                             {multiple ? (
                                 <div className="w-full h-10 min-h-10 flex items-center">
                                     <CheckboxInput
-                                        label={opt.name}
+                                        label={opt?.name}
                                         checked={isSelected ? 1 : 0}
                                         onChange={() => handleSelectOption(opt)}
                                         selected={isSelected || isHighlighted}
@@ -295,7 +295,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                         handleSelectOption(opt);
                                     }}
                                 >
-                                    <span className="truncate">{opt.name}</span>
+                                    <span className="truncate">{opt?.name}</span>
                                 </div>
                             )}
                         </li>
