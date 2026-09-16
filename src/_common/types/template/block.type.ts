@@ -3,7 +3,7 @@ import { VisibilityType } from "../visibility.type.js";
 import { GetRowType } from "./row.type.js";
 
 export type BlockType = {
-    id: string;
+    blockId: string;
     ownerId: string;
     categoryType: CategoryNameType;
     icon?: string;
@@ -11,6 +11,7 @@ export type BlockType = {
     description?: string;
     tags?: string;
     source: "official" | "community";
+    uses: number;
     isRecommended: boolean;
     isSensitive: boolean;
     isMature: boolean;
@@ -33,9 +34,11 @@ export type AddedBlockType = Omit<
     | "categoryType"
     | "tags"
     | "source"
+    | "uses"
     | "isRecommended"
     | "isSensitive"
     | "isMature"
+    | "addedCount"
     | "visibility"
     | "updatedDate"
 > & {
@@ -43,7 +46,6 @@ export type AddedBlockType = Omit<
     sourceBlockId?: string;
     categoryId: string;
     version?: string;
-    isLocked: boolean;
     position: number;
     createdBy: string;
     lastEditedDate: string;
