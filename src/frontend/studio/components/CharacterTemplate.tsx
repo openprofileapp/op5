@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, ReactNode, CSSProperties } from "react";
+import { useEffect, useState, useCallback, ReactNode, CSSProperties } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -13,8 +13,11 @@ import {
     useSensor,
     useSensors,
     CollisionDetection,
-    DragOverEvent,
     DragEndEvent,
+    DragStartEvent,
+    DragOverEvent,
+    DragOverlay,
+    Modifier,
 } from "@dnd-kit/core";
 
 import {
@@ -26,15 +29,20 @@ import {
     sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
 import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "./TemplateField.js";
-import NewRowModal from "./modals/NewRowModal.js";
-import NewFieldModal, { NewFieldData } from "./modals/NewFieldModal.js";
 import { toast } from "../../_common/scripts/toast.js";
-import NewBlockModal from "./modals/NewBlockModal.js";
-import NewCategoryModal from "./modals/NewCategoryModal.js";
+import NewBlockModal, { NewBlockData } from "./modals/NewBlockModal.js";
+import NewCategoryModal, { NewCategoryType } from "./modals/NewCategoryModal.js";
+import { GetCategoryType } from "../../../_common/types/template/category.type.js";
+import { GetAddedBlockType } from "../../../_common/types/template/block.type.js";
+import { GetRowType } from "../../../_common/types/template/row.type.js";
+import { GetFieldType } from "../../../_common/types/template/field.type.js";
+import NewFieldModal, { NewFieldData } from "./modals/NewFieldModal.js";
+import { snowflake } from "../scripts/main.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -50,11 +58,13 @@ export interface DragHandleProps {
 export interface SortableProps {
     ref: (element: HTMLElement | null) => void;
     style: CSSProperties;
+    className?: string;
 }
 
 export interface SortableItemChildrenArgs {
     sortableProps: SortableProps;
     dragHandleProps: DragHandleProps;
+    isDragging: boolean;
 }
 
 export interface SortableItemProps {
@@ -84,10 +94,9 @@ export function SortableItem({ id, children }: SortableItemProps) {
     } = useSortable({ id });
 
     const style: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.35 : 1,
-        zIndex: isDragging ? 999 : "auto",
+        transform: CSS.Translate.toString(transform),
+        transition: transition || "transform 200ms ease",
+        willChange: "transform",
     };
 
     return (
@@ -95,13 +104,14 @@ export function SortableItem({ id, children }: SortableItemProps) {
             {children({
                 sortableProps: {
                     ref: setNodeRef,
-                    style,
+                    style
                 },
                 dragHandleProps: {
                     ref: setActivatorNodeRef,
                     ...attributes,
                     ...listeners,
                 },
+                isDragging,
             })}
         </>
     );
@@ -111,56 +121,43 @@ export default function CharacterTemplate() {
     const { id } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
 
-    const isToastActiveRef = useRef(false);
-    const [drawerOpen, setDrawerOpen] = useState(true);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const [lastToast, setLastToast] = useState<number>(0);
     const [targetRowId, setTargetRowId] = useState<string | null>(null);
-    const [activeCategory, setActiveCategory] = useState("identity");
-    const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-    const [activeYear, setActiveYear] = useState(0);
-    const [activeSeries, setActiveSeries] = useState(0);
+    
+    const [data, setData] = useState<GetCategoryType[]>([]);
 
-    const [template, setTemplate] = useState<Category[]>([
-        {
-            id: "identity",
-            label: "Identity",
-            single: "Identity",
-            blocks: [],
-        },
-        { 
-            id: "socials", 
-            label: "Socials", 
-            single: "Social",
-            blocks: [],
-        },
-    ]);
+    const [activeCategory, setActiveCategory] = useState<string | null>();
+    const [activeBlock, setActiveBlock] = useState<string | null>();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [activeId, setActiveId] = useState<string | null>(null);
 
-    const currentCategory = template.find((cat) => cat.id === activeCategory);
-    const currentBlock = currentCategory?.blocks?.find(t => t.id === activeBlockId);
+    const currentCategory =
+        data.find((category) => category.categoryId === activeCategory) ?? data[0];
 
-    // Keep activeBlockId aligned with current Category
+    const currentBlock = currentCategory?.blocks?.find(
+        (block) => block.blockId === activeBlock
+    );
+
     useEffect(() => {
-        if (!currentCategory || currentCategory.blocks.length === 0) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setActiveBlockId(null);
-            return;
-        }
-    }, [activeCategory, currentCategory, activeBlockId]);
+        if (!currentCategory || !activeBlock) return;
 
-    const showToastOnce = (msg: string, options?: Record<string, unknown>): void => {
-        if (isToastActiveRef.current) return;
-        
-        isToastActiveRef.current = true;
-        toast.show(msg, options);
-        
-        setTimeout(() => {
-            isToastActiveRef.current = false;
-        }, 2000);
-    };
+        const blockExists = currentCategory?.blocks.some(
+            (block) => block.blockId === activeBlock
+        );
+
+        if (!blockExists) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setActiveBlock(null);
+        }
+    }, [currentCategory, activeBlock]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 5,
+                distance: 3,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -185,209 +182,156 @@ export default function CharacterTemplate() {
         return collision ? [collision] : [];
     }, []);
 
-    const findFieldRowInBlock = (block: Block, fieldId: string | number): Row | undefined => {
-        return block.rows?.find((row) => row.fields?.some((f) => f.id === fieldId));
-    };
+    const conditionalVerticalAxisModifier: Modifier = useCallback((args) => {
+        const { active } = args;
+        const activeIdStr = String(active?.id ?? "");
 
-    const handleDragOver = (event: DragOverEvent): void => {
-        const { active, over } = event;
-        if (!over) return;
-
-        const activeStr = String(active.id);
-        const overStr = String(over.id);
-
-        if (!activeStr.startsWith("field:")) return;
-
-        const activeFieldId = activeStr.replace("field:", "");
-
-        const category = template.find((cat) => cat.id === activeCategory);
-        if (!category) return;
-
-        const currentBlock = category.blocks.find((t) => t.id === activeBlockId);
-        if (!currentBlock) return;
-
-        const sourceRow = findFieldRowInBlock(currentBlock, activeFieldId);
-        if (!sourceRow) return;
-
-        let targetRowId: string | null = null;
-        let targetFieldIndex = -1;
-
-        if (overStr.startsWith("field:")) {
-            const overFieldId = overStr.replace("field:", "");
-            const targetRow = findFieldRowInBlock(currentBlock, overFieldId);
-            if (targetRow) {
-                targetRowId = String(targetRow.id);
-                targetFieldIndex = targetRow.fields?.findIndex((f) => f.id === overFieldId) ?? -1;
-            }
-        } else if (overStr.startsWith("row-fields:")) {
-            targetRowId = overStr.replace("row-fields:", "");
+        if (activeIdStr.startsWith("category:") || activeIdStr.startsWith("row:")) {
+            return restrictToVerticalAxis(args);
         }
 
-        if (!targetRowId || (sourceRow.id === targetRowId && overStr.startsWith("row-fields:"))) {
-            return;
-        }
+        return args.transform;
+    }, []);
 
-        const targetRow = currentBlock.rows.find((r) => String(r.id) === targetRowId);
-        if (!targetRow) return;
-
-        if (sourceRow.id !== targetRowId) {
-            const targetFields = targetRow.fields || [];
-
-            if (targetFields.length >= 5) {
-                showToastOnce("A row cannot contain more than 5 fields", { type: "error" });
-                return;
-            }
-
-            const movedField = sourceRow.fields?.find((f) => f.id === activeFieldId);
-            if (!movedField) return;
-
-            setTemplate((prevTemplate) => {
-                return prevTemplate.map((cat) => {
-                    if (cat.id !== activeCategory) return cat;
-
-                    return {
-                        ...cat,
-                        blocks: cat.blocks.map((block) => {
-                            if (block.id !== activeBlockId) return block;
-
-                            return {
-                                ...block,
-                                rows: block.rows.map((row) => {
-                                    if (row.id === sourceRow.id) {
-                                        return {
-                                            ...row,
-                                            fields: (row.fields || []).filter((f) => f.id !== activeFieldId),
-                                        };
-                                    }
-                                    if (String(row.id) === targetRowId) {
-                                        const newFields = [...(row.fields || [])];
-                                        const insertIndex = targetFieldIndex >= 0 ? targetFieldIndex : newFields.length;
-                                        if (!newFields.some((f) => f.id === activeFieldId)) {
-                                            newFields.splice(insertIndex, 0, movedField);
-                                        }
-                                        return { ...row, fields: newFields };
-                                    }
-                                    return row;
-                                }),
-                            };
-                        }),
-                    };
-                });
-            });
-        }
-    };
-
-    const handleAddCategory = (data: { label: string; single?: string }): void => {
-        const newId = data.label.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
-        
-        const newCategory: Category = {
-            id: newId,
-            label: data.label,
-            single: data.single || data.label,
-            blocks: [],
+    const handleAddCategory = (newData: NewCategoryType): void => {        
+        const newCategory: GetCategoryType = {
+            categoryId: newData.id,
+            types: newData.types,
+            label: newData.label,
+            position: data.length ?? 0,
+            createdBy: window.session.userId,
+            lastEditedDate: new Date().toISOString(),
+            createdDate: new Date().toISOString(),
+            blocks: []
         };
 
-        setTemplate((prev) => [newCategory, ...prev]);
-        
-        setActiveCategory(newId);
-        setActiveBlockId(null);
+        setData((prev) => [newCategory, ...prev]);
+        setActiveCategory(newData.id);
+        setActiveBlock(null);
+
+        // SAVE TO API
     };
 
-    const handleAddBlock = (data: NewBlockData): void => {
-        setTemplate((prev: Category[]) =>
-            prev.map((cat) => {
-                if (cat.id !== activeCategory) return cat;
+    const handleAddBlock = (newData: NewBlockData): void => {
+        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
 
-                const newBlock: Block = {
-                    id: data.id,
-                    label: data.label,
-                    description: data.description,
-                    icon: data.icon,
-                    type: data.type,
-                    rows: data.rows ?? [],
+        setData((prev: GetCategoryType[]) =>
+            prev.map((category) => {
+                if (category.categoryId !== targetCategoryId) return category;
+
+                console.log(newData)
+
+                const newBlock: GetAddedBlockType = {
+                    blockId: newData.blockId,
+                    label: newData.label,
+                    description: newData.description,
+                    icon: newData.icon,
+                    position: category.blocks ? category.blocks.length : 0,
+                    createdBy: window.session.userId,
+                    lastEditedDate: new Date().toISOString(),
+                    createdDate: new Date().toISOString(),
+                    rows: newData.rows ?? [],
                 };
 
-                setBlock(data.id);
-
                 return {
-                    ...cat,
-                    blocks: [...(cat.blocks ?? []), newBlock],
+                    ...category,
+                    blocks: [...(category.blocks ?? []), newBlock],
                 };
             })
         );
+
+        setActiveBlock(newData.blockId);
+
+        // SAVE TO API
     };
 
-    const handleAddRow = (data: AddRowFormData): void => {
-        if (!activeBlockId) {
-            toast.show("Please select or create a block first", { type: "error" });
-            return;
-        }
+    const handleAddRow = (): void => {
+        if (!activeBlock) return;
 
-        setTemplate((prev: Category[]) =>
-            prev.map((cat) => {
-                if (cat.id !== activeCategory) return cat;
+        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+
+        const newRow: GetRowType = {
+            rowId: snowflake.gen(),
+            position: 0,
+            createdBy: window.session.userId,
+            createdDate: new Date().toISOString(),
+            fields: []
+        };
+
+        setData((prev: GetCategoryType[]) =>
+            prev.map((category) => {
+                if (category.categoryId !== targetCategoryId) return category;
 
                 return {
-                    ...cat,
-                    blocks: cat.blocks.map((block) => {
-                        if (block.id !== activeBlockId) return block;
+                    ...category,
+                    blocks: category.blocks.map((block) => {
+                        if (block.blockId !== activeBlock) return block;
 
-                        const newRow: Row = {
-                            id: data.id,
-                            type: data.type,
-                            fields: [],
-                            ...(data.label ? { label: data.label } : {}),
-                        };
-
+                        const currentRows = block.rows ?? [];
+                        
                         return {
                             ...block,
-                            rows: [...(block.rows ?? []), newRow],
+                            rows: [...currentRows, { ...newRow, position: currentRows.length }],
                         };
                     }),
                 };
             })
         );
+
+        // SAVE TO API
     };
 
-    const handleAddField = (rowId: string, data: NewFieldData): void => {
-        if (!activeBlockId) return;
+    const handleAddField = (rowId: string, newData: NewFieldData): void => {
+        if (!activeBlock) return;
 
-        const currentCat = template.find((c) => c.id === activeCategory);
-        const currentBlock = currentCat?.blocks.find((t) => t.id === activeBlockId);
-        const targetRow = currentBlock?.rows.find((r) => r.id === rowId);
+        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+        const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
+        const targetBlock = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
+        const targetRow = targetBlock?.rows.find((r) => r.rowId === rowId);
 
-        if (targetRow && targetRow.fields.length >= 5) {
+        if (targetRow && (targetRow.fields || []).length >= 5) {
             toast.show("A row cannot contain more than 5 fields", { type: "error" });
             return;
         }
 
-        setTemplate((prev: Category[]) =>
-            prev.map((cat) => {
-                if (cat.id !== activeCategory) return cat;
+        setData((prev: GetCategoryType[]) =>
+            prev.map((category) => {
+                if (category.categoryId !== targetCategoryId) return category;
 
                 return {
-                    ...cat,
-                    blocks: cat.blocks.map((block) => {
-                        if (block.id !== activeBlockId) return block;
+                    ...category,
+                    blocks: category.blocks.map((block) => {
+                        if (block.blockId !== activeBlock) return block;
 
                         return {
                             ...block,
-                            rows: block.rows.map((r) => {
-                                if (r.id !== rowId) return r;
+                            rows: block.rows.map((row) => {
+                                if (row.rowId !== rowId) return row;
+
+                                const existingFields = row.fields || [];
+                                const newField: GetFieldType = {
+                                    fieldId: newData.id,
+                                    type: newData.type,
+                                    label: newData.label,
+                                    placeholder: newData.placeholder ?? "",
+                                    options: newData.options ?? [],
+                                    guide: newData.guide ?? "",
+                                    isLocked: false,
+                                    position: existingFields.length,
+                                    createdBy: window.session.userId,
+                                    lastEditedDate: new Date().toISOString(),
+                                    createdDate: new Date().toISOString(),
+                                    value: {
+                                        author: newData.value ? window.session.userId : "",
+                                        content: newData.value ?? "",
+                                        date: newData.value ? new Date().toISOString() : "",
+                                    },
+                                    notes: []
+                                };
 
                                 return {
-                                    ...r,
-                                    fields: [
-                                        ...r.fields,
-                                        { 
-                                            id: data.id, 
-                                            label: data.label, 
-                                            type: data.type,
-                                            placeholder: data.placeholder,
-                                            value: data.value,
-                                            guide: data.guide
-                                        },
-                                    ],
+                                    ...row,
+                                    fields: [...existingFields, newField],
                                 };
                             }),
                         };
@@ -395,59 +339,135 @@ export default function CharacterTemplate() {
                 };
             })
         );
+
+        // SAVE TO API
+    };
+
+    const handleDragStart = (event: DragStartEvent): void => {
+        setActiveId(String(event.active.id));
+        document.body.style.cursor = "grabbing";
+    };
+
+    const handleDragOver = (event: DragOverEvent): void => {
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeIdStr = String(active.id);
+        const overIdStr = String(over.id);
+
+        if (!activeIdStr.startsWith("field:")) return;
+
+        const activeFieldId = activeIdStr.replace("field:", "");
+        const overType = overIdStr.includes(":") ? overIdStr.split(":")[0] : "field";
+        const overRawId = overIdStr.includes(":") ? overIdStr.split(":")[1] : overIdStr;
+
+        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+
+        setData((prevData) => {
+            const category = prevData.find((c) => c.categoryId === targetCategoryId);
+            if (!category) return prevData;
+
+            const block = category.blocks.find((b) => b.blockId === activeBlock);
+            if (!block) return prevData;
+
+            const sourceRow = block.rows.find((r) =>
+                (r.fields || []).some((f) => f.fieldId === activeFieldId)
+            );
+            if (!sourceRow) return prevData;
+
+            let targetRow: typeof sourceRow | undefined;
+
+            if (overType === "field") {
+                targetRow = block.rows.find((r) =>
+                    (r.fields || []).some((f) => f.fieldId === overRawId)
+                );
+            } else if (overType === "row-fields" || overType === "row") {
+                targetRow = block.rows.find((r) => r.rowId === overRawId);
+            }
+
+            if (!targetRow) return prevData;
+
+            const targetRowId = targetRow.rowId;
+
+            if (sourceRow.rowId === targetRowId) return prevData;
+
+            if ((targetRow.fields || []).length >= 5) {
+                if (Date.now() - lastToast > 5000) {
+                    toast.show("A row cannot contain more than 5 fields", { type: "error" });
+                    setLastToast(Date.now());
+                }
+
+                return prevData;
+            }
+
+            const movedField = sourceRow.fields.find((f) => f.fieldId === activeFieldId);
+            if (!movedField) return prevData;
+
+            return prevData.map((cat) => {
+                if (cat.categoryId !== targetCategoryId) return cat;
+
+                return {
+                    ...cat,
+                    blocks: cat.blocks.map((b) => {
+                        if (b.blockId !== activeBlock) return b;
+
+                        return {
+                            ...b,
+                            rows: b.rows.map((row) => {
+                                if (row.rowId === sourceRow.rowId) {
+                                    return {
+                                        ...row,
+                                        fields: row.fields.filter((f) => f.fieldId !== activeFieldId),
+                                    };
+                                }
+
+                                if (row.rowId === targetRowId) {
+                                    const overIndex = row.fields.findIndex((f) => f.fieldId === overRawId);
+                                    const newIndex = overIndex >= 0 ? overIndex : row.fields.length;
+
+                                    const nextFields = [...row.fields];
+                                    nextFields.splice(newIndex, 0, movedField);
+
+                                    return {
+                                        ...row,
+                                        fields: nextFields,
+                                    };
+                                }
+
+                                return row;
+                            }),
+                        };
+                    }),
+                };
+            });
+        });
     };
 
     const handleDragEnd = (event: DragEndEvent): void => {
         const { active, over } = event;
-        if (!over) return;
+        setActiveId(null);
+        document.body.style.cursor = "";
 
-        const activeStr = String(active.id);
-        const overStr = String(over.id);
+        if (!over || active.id === over.id) return;
 
-        const [activeType, activeId] = activeStr.split(":");
-        const [overType, overId] = overStr.split(":");
+        const activeIdString = String(active.id);
+        const overIdString = String(over.id);
 
-        if (activeType === "field" && overType === "field") {
-            setTemplate((prev) =>
-                prev.map((cat) => {
-                    if (cat.id !== activeCategory) return cat;
+        const [activeType, activeIdVal] = activeIdString.includes(":")
+            ? activeIdString.split(":")
+            : ["field", activeIdString];
 
-                    return {
-                        ...cat,
-                        blocks: cat.blocks.map((block) => {
-                            if (block.id !== activeBlockId) return block;
-
-                            const row = block.rows.find((r) => r.fields.some((f) => f.id === activeId));
-                            if (!row) return block;
-
-                            const oldIdx = row.fields.findIndex((f) => f.id === activeId);
-                            const newIdx = row.fields.findIndex((f) => f.id === overId);
-
-                            if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
-                                return {
-                                    ...block,
-                                    rows: block.rows.map((r) =>
-                                        r.id === row.id
-                                            ? { ...r, fields: arrayMove(r.fields, oldIdx, newIdx) }
-                                            : r
-                                    ),
-                                };
-                            }
-                            return block;
-                        }),
-                    };
-                })
-            );
-            return;
-        }
-
-        if (activeType !== overType) return;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [overType, overIdVal] = overIdString.includes(":")
+            ? overIdString.split(":")
+            : ["field", overIdString];
 
         if (activeType === "category") {
-            setTemplate((prev) => {
-                const oldIndex = prev.findIndex((c) => c.id === activeId);
-                const newIndex = prev.findIndex((c) => c.id === overId);
-                if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+            setData((prev: GetCategoryType[]) => {
+                const oldIndex = prev.findIndex((c) => c.categoryId === activeIdVal);
+                const newIndex = prev.findIndex((c) => c.categoryId === overIdVal);
+
+                if (oldIndex !== -1 && newIndex !== -1) {
                     return arrayMove(prev, oldIndex, newIndex);
                 }
                 return prev;
@@ -455,15 +475,17 @@ export default function CharacterTemplate() {
             return;
         }
 
-        setTemplate((prev) =>
+        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+
+        setData((prev: GetCategoryType[]) =>
             prev.map((category) => {
-                if (category.id !== activeCategory) return category;
+                if (category.categoryId !== targetCategoryId) return category;
 
-                if (activeType === "block" && category.blocks) {
-                    const oldIndex = category.blocks.findIndex((t) => t.id === activeId);
-                    const newIndex = category.blocks.findIndex((t) => t.id === overId);
+                if (activeType === "block") {
+                    const oldIndex = category.blocks.findIndex((b) => b.blockId === activeIdVal);
+                    const newIndex = category.blocks.findIndex((b) => b.blockId === overIdVal);
 
-                    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                    if (oldIndex !== -1 && newIndex !== -1) {
                         return {
                             ...category,
                             blocks: arrayMove(category.blocks, oldIndex, newIndex),
@@ -476,12 +498,12 @@ export default function CharacterTemplate() {
                     return {
                         ...category,
                         blocks: category.blocks.map((block) => {
-                            if (block.id !== activeBlockId) return block;
+                            if (block.blockId !== activeBlock) return block;
 
-                            const oldIndex = block.rows.findIndex((r) => r.id === activeId);
-                            const newIndex = block.rows.findIndex((r) => r.id === overId);
+                            const oldIndex = block.rows.findIndex((r) => r.rowId === activeIdVal);
+                            const newIndex = block.rows.findIndex((r) => r.rowId === overIdVal);
 
-                            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                            if (oldIndex !== -1 && newIndex !== -1) {
                                 return {
                                     ...block,
                                     rows: arrayMove(block.rows, oldIndex, newIndex),
@@ -492,35 +514,67 @@ export default function CharacterTemplate() {
                     };
                 }
 
+                if (activeType === "field") {
+                    return {
+                        ...category,
+                        blocks: category.blocks.map((block) => {
+                            if (block.blockId !== activeBlock) return block;
+
+                            const targetRow = block.rows.find((r) =>
+                                (r.fields || []).some((f) => f.fieldId === activeIdVal)
+                            );
+
+                            if (targetRow && (targetRow.fields || []).length > 5) {
+                                toast.show("A row cannot contain more than 5 fields", { type: "error" });
+                                return block;
+                            };
+
+                            const oldIndex = targetRow.fields.findIndex((f) => f.fieldId === activeIdVal);
+                            const newIndex = targetRow.fields.findIndex((f) => f.fieldId === overIdVal);
+
+                            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                                return {
+                                    ...block,
+                                    rows: block.rows.map((row) =>
+                                        row.rowId === targetRow.rowId
+                                            ? { ...row, fields: arrayMove(row.fields, oldIndex, newIndex) }
+                                            : row
+                                    ),
+                                };
+                            }
+
+                            return block;
+                        }),
+                    };
+                }
+
                 return category;
             })
         );
+
+        // SAVE TO API
     };
 
     useEffect(() => {
-        if (!activeBlockId || activeBlockId === "about") {
-            history.pushState(
-                null,
-                "",
-                window.location.pathname + window.location.search
-            );
+        if (!activeBlock || activeBlock === "about") {
+            history.replaceState(null, "", window.location.pathname + window.location.search);
         } else {
-            window.location.hash = activeBlockId;
+            window.location.hash = activeBlock;
         }
-    }, [activeBlockId]);
+    }, [activeBlock]);
 
     const setBlock = (block?: string | null): void => {
         if (!block || block === "about") {
-            setActiveBlockId(null);
+            setActiveBlock(null);
         } else {
-            setActiveBlockId(block);
+            setActiveBlock(block);
         }
     };
 
     useEffect(() => {
         const updateBlock = () => {
             const hash = window.location.hash.replace("#", "");
-            setActiveBlockId(hash ? hash : null);
+            setActiveBlock(hash ? hash : null);
         };
 
         window.addEventListener("hashchange", updateBlock);
@@ -536,12 +590,17 @@ export default function CharacterTemplate() {
             <Metadata title="Development" allowIndex="false" />
 
             <NewCategoryModal onAddCategory={handleAddCategory} />
-            <NewRowModal onAddRow={handleAddRow} />
-            <NewFieldModal targetRowId={targetRowId} onAddField={handleAddField} />
+
+            <NewFieldModal
+                targetRowId={targetRowId as string}
+                onAddField={handleAddField}
+            />
 
             <DndContext
                 sensors={sensors}
                 collisionDetection={customCollisionDetection}
+                modifiers={[conditionalVerticalAxisModifier]}
+                onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
             >
@@ -549,8 +608,8 @@ export default function CharacterTemplate() {
                     <input 
                         id="my-drawer-4" 
                         type="checkbox" 
-                        checked={drawerOpen}
-                        onChange={(e) => setDrawerOpen(e.target.checked)}
+                        checked={isDrawerOpen}
+                        onChange={(e) => setIsDrawerOpen(e.target.checked)}
                         className="drawer-toggle" 
                     />
 
@@ -564,391 +623,230 @@ export default function CharacterTemplate() {
                                 </span>
                             </label>
                             <div className="px-4 w-full text-center">
-                                Example Character Here
-                                <div className="text-sub text-xs">By Author</div>
-                            </div>
-                        </nav>
-
-                        <nav className="w-full bg-base-100 border-b border-base-300 hidden">
-                            <div className="mx-4">
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={3}
-                                    step={1}
-                                    value={activeSeries}
-                                    onChange={(e) => setActiveSeries(Number(e.target.value))}
-                                    className="range range-primary w-full h-2"
-                                />
-
-                                <div className="flex justify-between text-xs opacity-60">
-                                    <span>Original Film</span>
-                                    <span>Tv Series</span>
-                                    <span>Film Remake</span>
-                                </div>
-
-                                <div className="hidden mt-2 text-center text-sm font-medium">
-                                    {activeSeries}
-                                </div>
-                            </div>
-
-                            <div className="mx-4 my-4">
-                                <input
-                                    type="range"
-                                    min={2000}
-                                    max={2020}
-                                    step={1}
-                                    value={activeYear}
-                                    onChange={(e) => setActiveYear(Number(e.target.value))}
-                                    className="range range-primary w-full h-2"
-                                />
-
-                                <div className="flex justify-between text-xs opacity-60">
-                                    <span>2000</span>
-                                    <span>2005</span>
-                                    <span>2010</span>
-                                    <span>2015</span>
-                                    <span>2020</span>
-                                </div>
-
-                                <div className="hidden mt-2 text-center text-sm font-medium">
-                                    {activeYear}
-                                </div>
-                            </div>
-                            
-                            <div 
-                                className="tabs tabs-lift overflow-x-auto flex-nowrap scrollbar-none w-full"
-                                onWheel={(e) => {
-                                    if (e.deltaY !== 0) {
-                                        e.currentTarget.scrollLeft += e.deltaY;
-                                    }
-                                }}
-                            >
-                                <SortableContext
-                                    items={currentCategory?.blocks?.map(block => `block:${block.id}`) ?? []}
-                                >
-                                    {currentCategory?.blocks?.map(block => (
-                                        <SortableItem key={block.id} id={`block:${block.id}`}>
-                                            {({ sortableProps, dragHandleProps }) => (
-                                                <button
-                                                    {...sortableProps}
-                                                    className={`tab flex-1 min-w-[max-content] px-4 ${
-                                                        activeBlockId === block.id ? "tab-active bg-base-200" : ""
-                                                    }`}
-                                                    onClick={() => setBlock(block.id)}
-                                                >
-                                                    <span
-                                                        {...dragHandleProps}
-                                                        className="flex items-center cursor-grab touch-none"
-                                                    >
-                                                        <div className="flex items-center justify-center">
-                                                            <div className="flex w-5 items-center justify-center">
-                                                                <span className="text-2xl leading-none font-nerdfont">
-                                                                    󰇝
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </span>
-                                                
-                                                    <span className="flex-1">
-                                                        {block.label}
-                                                    </span>
-                                                </button>
-                                            )}
-                                        </SortableItem>
-                                    ))}
-                                    
-                                    <button className="btn btn-accent text-2xl shrink-0">
-                                        +
-                                    </button>
-                                </SortableContext>
+                                <span className="font-medium">Example Character Here</span>
+                                <div className="text-sub text-xs">Author</div>
                             </div>
                         </nav>
 
                         <div className="flex flex-col items-center p-4 w-full">
                             <div className="bg-base-100 border border-base-300 p-4 rounded-lg z-1 w-full max-w-5xl">
+                                {currentCategory && (
+                                    <>
+                                        {!activeBlock ? (
+                                            <div className="p-2 md:p-4">
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <h2 className="text-2xl font-bold">
+                                                        {currentCategory?.blocks.length === 0 
+                                                            ? "Add Block" 
+                                                            : "Select Block"
+                                                        }
+                                                    </h2>
+                                                </div>
 
-                                {!activeBlockId ? (
-                                    <div className="p-2 md:p-4">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h2 className="text-2xl font-bold">Select {currentCategory?.label}</h2>
-                                        </div>
+                                                <fieldset className="fieldset flex-4">
+                                                    <legend className="fieldset-legend">{t("words.Search")}</legend>
+                                                    <label className="input mb-4 w-full">
+                                                        <span className="font-nerdfont text-base mr-1"></span>
+                                                        <input 
+                                                            type="search" 
+                                                            placeholder="Search blocks..."
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                        />
+                                                    </label>
+                                                </fieldset>
 
-                                        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                                            <fieldset className="fieldset flex-1">
-                                                <legend className="fieldset-legend">Search</legend>
-                                                <label className="input w-full">
-                                                    <span className="font-nerdfont text-base mr-1"></span>
-                                                    <input type="search" placeholder="???..." />
-                                                </label>
-                                            </fieldset>
+                                                {(() => {
+                                                    const query = searchQuery.trim().toLowerCase();
 
-                                            <fieldset className="fieldset shrink-0 w-full sm:w-60">
-                                                <legend className="fieldset-legend">Filter</legend>
-                                                <select defaultValue="updated" className="select w-full">
-                                                    <option value="updated">?????</option>
-                                                    <option value="newest">Newest First</option>
-                                                    <option value="oldest">Oldest First</option>
-                                                    <option value="popular-desc">Most Popular</option>
-                                                    <option value="popular-asc">Least Popular</option>
-                                                    <option value="name-asc">Name (A-Z)</option>
-                                                    <option value="name-desc">Name (Z-A)</option>
-                                                </select>
-                                            </fieldset>
-                                        </div>
+                                                    const filteredBlocks = (currentCategory?.blocks ?? []).filter(block => 
+                                                        !query || 
+                                                        block.blockId?.toLowerCase().includes(query) || 
+                                                        block.label?.toLowerCase().includes(query) ||
+                                                        block.description?.toLowerCase().includes(query)
+                                                    );
 
-                                        <SortableContext
-                                            items={currentCategory?.blocks?.map(block => `block:${block.id}`) ?? []}
-                                            strategy={rectSortingStrategy}
-                                        >
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                                {currentCategory?.blocks?.map(block => (
-                                                    <SortableItem key={block.id} id={`block:${block.id}`}>
-                                                        {({ sortableProps, dragHandleProps }) => (
-                                                            <button
-                                                                {...sortableProps}
-                                                                className="aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer"
-                                                                onClick={() => setBlock(block.id)}
-                                                            >
-                                                                <div
-                                                                    {...dragHandleProps}
-                                                                    className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    <span className="text-2xl leading-none font-nerdfont">
-                                                                        󰇛
-                                                                    </span>
-                                                                </div>
-
-                                                                {/* ADD MORE MENU HERE TO COPY AND DELETE AND OPEN AND STUFF */}
-                                                                <div
-                                                                    className="absolute top-2 right-2 p-1 touch-none"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    <span className="text-lg leading-none font-nerdfont">
-                                                                        󰇘
-                                                                    </span>
-                                                                </div>
-                                                                
-                                                                <img 
-                                                                    className="h-20" 
-                                                                    src={
-                                                                        {
-                                                                            book: "https://openmoji.org/data/color/svg/1F4DA.svg",
-                                                                            author: "https://openmoji.org/data/color/svg/270F.svg",
-                                                                            movie: "https://openmoji.org/data/color/svg/1F3AC.svg",
-                                                                        }[block?.type || ""] ?? block?.icon ?? ""
-                                                                    } 
-                                                                    alt={block?.label} 
-                                                                />
-                                                                <span className="text-lg font-semibold mt-2">{block.label}</span>
-                                                                <span className="text-xs text-sub mt-1">{block.description || block.type}</span>
-                                                            </button>
-                                                        )}
-                                                    </SortableItem>
-                                                ))}
-
-                                                <NewBlockModal onAddBlock={handleAddBlock} initialCategory={currentCategory?.id} />
-
-                                                <button
-                                                    className="aspect-square flex flex-col items-center justify-center p-6 border-2 border-dashed border-base-300 hover:border-accent rounded transition-all text-accent cursor-pointer min-h-[160px]"
-                                                    onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
-                                                >
-                                                    <span className="text-3xl font-bold">+</span>
-                                                    <span className="text-sm font-medium mt-1">Add {currentCategory?.single}</span>
-                                                </button>
-                                            </div>
-                                        </SortableContext>
-                                    </div>
-                                ) : (
-                                    <div className="p-2 md:p-4">
-                                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-300">
-                                            <button
-                                                className="btn btn-ghost btn-sm gap-2 text-base font-normal"
-                                                onClick={() => setBlock(null)}
-                                            >
-                                                <span className="text-xl leading-none">←</span> Back to All
-                                            </button>
-                                            <div className="h-5 w-px bg-base-300" />
-                                            <h2 className="text-xl font-bold">
-                                                {currentCategory?.blocks?.find(t => t.id === activeBlockId)?.label ?? activeBlockId}
-                                            </h2>
-                                        </div>
-
-                                        <SortableContext
-                                            items={currentBlock?.rows?.map(row => `row:${row.id}`) ?? []}
-                                            strategy={verticalListSortingStrategy}
-                                        >
-                                            <div className="flex flex-col gap-1">
-                                                {currentBlock?.rows?.map(row => (
-                                                    <SortableItem key={row.id} id={`row:${row.id}`}>
-                                                        {({ sortableProps, dragHandleProps }) => (
-                                                            <div {...sortableProps} className="flex gap-3">
-                                                                <span
-                                                                    {...dragHandleProps}
-                                                                    className="flex items-center cursor-grab touch-none"
-                                                                >
-                                                                    <div className="flex h-full items-center justify-center py-2">
-                                                                        <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
-                                                                            <span className="text-2xl leading-none font-nerdfont">
-                                                                                󰇝
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </span>
-
-                                                                {(() => {
-                                                                    switch (row.type) {
-                                                                        case "media":
-                                                                            return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-4 border-2 border-dashed border-base-300 rounded-lg flex flex-col items-center justify-center bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer">
-                                                                                    <div className="flex flex-col items-center gap-2 text-sub">
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                                        </svg>
-                                                                                        <div className="text-sm font-medium text-center">
-                                                                                            <span className="text-primary underline">Upload media</span> or drag & drop files here
-                                                                                        </div>
-                                                                                        <span className="text-xs text-sub">PNG, JPG, MP4, PDF up to 10MB</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-
-                                                                        case "split":
-                                                                            return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-base-200/30 rounded-lg border border-base-300">
-                                                                                    <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
-                                                                                        <span className="text-xs text-sub font-medium">Left Column Content</span>
-                                                                                    </div>
-                                                                                    <div className="p-3 bg-base-100 rounded border border-dashed border-base-300 flex items-center justify-center min-h-[60px]">
-                                                                                        <span className="text-xs text-sub font-medium">Right Column Content</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-
-                                                                        case "timeline":
-                                                                            return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-4 bg-base-100 rounded-lg border border-base-300 overflow-x-auto">
-                                                                                    <div className="flex items-center justify-between w-full relative min-w-[320px] py-2">
-                                                                                        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-base-300 -translate-y-1/2 z-0" />
-                                                                                        
-                                                                                        {["Step 1", "Step 2", "In Progress", "Review"].map((label, index) => (
-                                                                                            <div key={index} className="relative z-10 flex flex-col items-center gap-1 bg-base-100 px-2">
-                                                                                                <div className={`w-4 h-4 rounded-full border-2 ${index <= 1 ? "bg-primary border-primary" : "bg-base-100 border-base-300"}`} />
-                                                                                                <span className="text-xs font-semibold text-sub">{label}</span>
-                                                                                                <span className="text-[10px] text-sub">Jul {10 + index}</span>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-
-                                                                        case "calendar":
-                                                                            return (
-                                                                                <div className="flex-1 min-w-0 w-full min-h-[44px] p-3 bg-base-100 rounded-lg border border-base-300">
-                                                                                    <div className="flex items-center justify-between mb-3 px-1">
-                                                                                        <span className="text-sm font-bold text-sub">July 2026</span>
-                                                                                        <div className="flex gap-1 text-xs text-sub">
-                                                                                            <span className="px-2 py-0.5 rounded bg-base-200">Today</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-sub mb-1">
-                                                                                        {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-                                                                                            <div key={idx}>{day}</div>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                                        {Array.from({ length: 14 }).map((_, i) => {
-                                                                                            const dayNum = i + 1;
-                                                                                            const isSelected = dayNum === 15;
-                                                                                            return (
-                                                                                                <div 
-                                                                                                    key={i} 
-                                                                                                    className={`py-1 rounded cursor-pointer transition-colors ${
-                                                                                                        isSelected 
-                                                                                                            ? "bg-primary text-primary-content font-bold" 
-                                                                                                            : "hover:bg-base-200 text-sub"
-                                                                                                    }`}
-                                                                                                >
-                                                                                                    {dayNum}
-                                                                                                </div>
-                                                                                            );
-                                                                                        })}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-
-                                                                        case "field":
-                                                                        default:
-                                                                            return (
-                                                                                <FieldDropZone
-                                                                                    id={`row-fields:${row.id}`}
-                                                                                    className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                    return (
+                                                        <SortableContext
+                                                            items={filteredBlocks.map(block => `block:${block.blockId}`)}
+                                                            strategy={rectSortingStrategy}
+                                                        >
+                                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                                {filteredBlocks.map(block => (
+                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`}>
+                                                                        {({ sortableProps, dragHandleProps }) => (
+                                                                            <button
+                                                                                {...sortableProps}
+                                                                                className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
+                                                                                onClick={() => setBlock(block.blockId)}
+                                                                            >
+                                                                                <div
+                                                                                    {...dragHandleProps}
+                                                                                    className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
+                                                                                    onClick={(e) => e.stopPropagation()}
                                                                                 >
-                                                                                    <SortableContext
-                                                                                        items={(row.fields || []).map(f => `field:${f.id}`)}
-                                                                                        strategy={rectSortingStrategy}
-                                                                                    >
-                                                                                        <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
-                                                                                            {(row.fields || []).map(field => (
-                                                                                                <SortableItem key={field.id} id={`field:${field.id}`}>
-                                                                                                    {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => (
-                                                                                                        <div {...fSortProps} className="flex-1 min-w-0">
-                                                                                                            <TemplateField
-                                                                                                                id={field.id}
-                                                                                                                type={field.type}
-                                                                                                                label={field.label}
-                                                                                                                placeholder={field.placeholder}
-                                                                                                                guide={field.guide}
-                                                                                                                value={field.value}
-                                                                                                                options={field.options}
-                                                                                                                thoughts={field.thoughts}
-                                                                                                                comments={field.comments}
-                                                                                                                dragHandleProps={{
-                                                                                                                    ...fDragProps,
-                                                                                                                    className: `${fDragProps.className || ""} touch-none`,
-                                                                                                                }}
-                                                                                                            />
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                </SortableItem>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </SortableContext>
-                                                                                </FieldDropZone>
-                                                                            );
-                                                                        }
-                                                                })()}
+                                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                                        󰇛
+                                                                                    </span>
+                                                                                </div>
 
-                                                                {(!row.type || row.type === "field") && (
+                                                                                <div
+                                                                                    className="absolute top-2 right-2 p-1 touch-none"
+                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                >
+                                                                                    <span className="text-lg leading-none font-nerdfont">
+                                                                                        󰇘
+                                                                                    </span>
+                                                                                </div>
+                                                                                
+                                                                                <img 
+                                                                                    className="h-20" 
+                                                                                    src={block?.icon} 
+                                                                                    alt={block?.label} 
+                                                                                />
+                                                                                <span className="text-lg font-semibold mt-2">{block.label}</span>
+                                                                                <span className="text-xs text-sub mt-1">{block.description}</span>
+                                                                            </button>
+                                                                        )}
+                                                                    </SortableItem>
+                                                                ))}
+
+                                                                <NewBlockModal 
+                                                                    onAddBlock={handleAddBlock} 
+                                                                    initialCategory={currentCategory?.categoryId} 
+                                                                />
+
+                                                                {(currentCategory?.blocks.length ?? 0) <= 32 && (
                                                                     <button
-                                                                        className="btn btn-accent text-2xl w-10 mt-10"
-                                                                        onClick={() => {
-                                                                            if ((row.fields?.length || 0) >= 5) {
-                                                                                toast.show("A row cannot contain more than 5 fields", { type: "error" });
-                                                                                return;
-                                                                            }
-                                                                            setTargetRowId(row.id);
-                                                                            (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
-                                                                        }}
+                                                                        type="button"
+                                                                        onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
+                                                                        className="cursor-pointer border-2 aspect-square min-h-[160px] border-dashed border-base-300 rounded flex items-center justify-center py-3 transition-colors text-sm opacity-70 hover:opacity-100"
                                                                     >
-                                                                        +
+                                                                        <span className="font-nerdfont text-3xl">
+                                                                            
+                                                                        </span>
                                                                     </button>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                    </SortableItem>
-                                                ))}
+                                                        </SortableContext>
+                                                    );
+                                                })()}
                                             </div>
-                                        </SortableContext>
+                                        ) : (
+                                            <div className="p-2 md:p-4">
+                                                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-300">
+                                                    <button
+                                                        className="flex gap-2 text-sm items-center font-normal cursor-pointer"
+                                                        onClick={() => setBlock(null)}
+                                                    >
+                                                        <span className="font-nerdfont text-lg leading-none">
+                                                            
+                                                        </span> 
+                                                        
+                                                        Back to All
+                                                    </button>
+                                                    <div className="h-5 w-px bg-base-300" />
+                                                    <h2 className="text-xl font-bold">
+                                                        {currentCategory?.blocks?.find(t => t.blockId === activeBlock)?.label ?? activeBlock}
+                                                    </h2>
+                                                </div>
 
-                                        <button
-                                            className="btn btn-accent text-2xl w-full mt-2"
-                                            onClick={() => (document.getElementById("new-row") as HTMLDialogElement | null)?.showModal()}
-                                        >
-                                            +
-                                        </button>
-                                    </div>
+                                                <SortableContext
+                                                    items={currentBlock?.rows?.map(row => `row:${row.rowId}`) ?? []}
+                                                    strategy={verticalListSortingStrategy}
+                                                >
+                                                    <div className="flex flex-col gap-1">
+                                                        {currentBlock?.rows?.map(row => (
+                                                            <SortableItem key={row.rowId} id={`row:${row.rowId}`}>
+                                                                {({ sortableProps, dragHandleProps }) => (
+                                                                    <div {...sortableProps} className={`flex gap-3 ${sortableProps.className ?? ""}`}>
+                                                                        <span
+                                                                            {...dragHandleProps}
+                                                                            className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                                        >
+                                                                            <div className="flex h-full items-center justify-center py-2">
+                                                                                <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
+                                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                                        󰇝
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </span>
+
+                                                                        <FieldDropZone
+                                                                            id={`row-fields:${row.rowId}`}
+                                                                            className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                                        >
+                                                                            <SortableContext
+                                                                                items={(row.fields || []).map((f) => `field:${f.fieldId}`)}
+                                                                                strategy={rectSortingStrategy}
+                                                                            >
+                                                                                <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
+                                                                                    {(row.fields || []).map(field => (
+                                                                                        <SortableItem key={field.fieldId} id={`field:${field.fieldId}`}>
+                                                                                            {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
+                                                                                                const dragProps = fDragProps ?? {};
+                                                                                                
+                                                                                                return (
+                                                                                                    <div 
+                                                                                                        {...fSortProps} 
+                                                                                                        className={`flex-1 min-w-0 ${fSortProps.className ?? ""}`}
+                                                                                                    >
+                                                                                                        <TemplateField
+                                                                                                            id={field.fieldId}
+                                                                                                            type={field.type}
+                                                                                                            label={field.label}
+                                                                                                            placeholder={field.placeholder}
+                                                                                                            guide={field.guide}
+                                                                                                            value={field.value}
+                                                                                                            options={field.options}
+                                                                                                            notes={field.notes}
+                                                                                                            thoughts={field.thoughts}
+                                                                                                            dragHandleProps={{
+                                                                                                                ...dragProps,
+                                                                                                                className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
+                                                                                                            }}
+                                                                                                        />
+
+                                                                                                        {/* ADD AN ON CHANGE (value, notes, thoughts) SO AN API CAN BE CALLED HERE */}
+                                                                                                    </div>
+                                                                                                );
+                                                                                            }}
+                                                                                        </SortableItem>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </SortableContext>
+                                                                        </FieldDropZone>
+
+                                                                        <button
+                                                                            className="btn btn-accent text-2xl w-10 mt-10"
+                                                                            onClick={() => {
+                                                                                if ((row.fields?.length || 0) >= 5) {
+                                                                                    toast.show("A row cannot contain more than 5 fields", { type: "error" });
+                                                                                    return;
+                                                                                }
+                                                                                setTargetRowId(row.rowId);
+                                                                                (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
+                                                                            }}
+                                                                        >
+                                                                            +
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </SortableItem>
+                                                        ))}
+                                                    </div>
+                                                </SortableContext>
+
+                                                <button
+                                                    className="btn btn-accent text-2xl w-full mt-2"
+                                                    onClick={handleAddRow}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -958,23 +856,23 @@ export default function CharacterTemplate() {
                         <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
                         <div className="flex min-h-full flex-col items-center justify-center bg-base-100 is-drawer-close:w-14 is-drawer-open:w-64">
                             <div className="menu w-full">
-                                <SortableContext items={template.map(category => `category:${category.id}`)}>
+                                <SortableContext items={data.map(category => `category:${category.categoryId}`)}>
                                     <ul>
-                                        {template.map(category => (
-                                            <SortableItem key={category.id} id={`category:${category.id}`}>
+                                        {data.map(category => (
+                                            <SortableItem key={category.categoryId} id={`category:${category.categoryId}`}>
                                                 {({ sortableProps, dragHandleProps }) => (
-                                                    <li {...sortableProps}>
+                                                    <li {...sortableProps} className={sortableProps.className}>
                                                         <button
                                                             className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
                                                             data-tip={category.label}
                                                             onClick={() => {
-                                                                setActiveCategory(category.id);
+                                                                setActiveCategory(category.categoryId);
                                                                 setBlock(null);
                                                             }}
                                                         >
                                                             <span
                                                                 {...dragHandleProps}
-                                                                className="flex items-center cursor-grab touch-none"
+                                                                className="flex items-center cursor-grab active:cursor-grabbing touch-none"
                                                             >
                                                                 <div className="flex items-center justify-center py-2">
                                                                     <div className="flex w-5 items-center justify-center">
@@ -1013,6 +911,8 @@ export default function CharacterTemplate() {
                         </div>
                     </div>
                 </div>
+
+                <DragOverlay dropAnimation={null} zIndex={1000} />
             </DndContext>
         </>
     );
