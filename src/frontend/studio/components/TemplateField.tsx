@@ -1,163 +1,28 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import React from "react";
-
 import colors from "tailwindcss/colors";
+import { GetValueType } from "../../../_common/types/template/value.type.js";
+import { GetNoteType } from "../../../_common/types/template/note.type.js";
+import { GetThoughtType } from "../../../_common/types/template/thought.type.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
+import { MediaField } from "./MediaField.js";
 
 interface DropdownOption {
     label: string;
     value: string | number;
 }
 
-interface ComboboxProps {
-    options?: (string | DropdownOption)[];
-    value?: string | number;
-    defaultValue?: string | number;
-    placeholder?: string;
-    onChange?: (value: string | number) => void;
-    onFocus?: () => void;
-    onBlur?: () => void;
-    onContextMenu?: (e: React.MouseEvent) => void;
-    className?: string;
+export interface MetadataObject {
+    author?: string;
+    text?: string;
+    date?: string;
+    createdDate?: string;
+    lastEditedDate?: string;
+    position?: number;
+    isPinned?: boolean;
 }
-
-export const Combobox: React.FC<ComboboxProps> = ({
-    options = [],
-    value,
-    defaultValue = "",
-    placeholder = "Type or select...",
-    onChange,
-    onFocus,
-    onBlur,
-    onContextMenu,
-    className = "",
-}) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Normalize options to object format
-  const normalizedOptions = options.map((opt) =>
-    typeof opt === "object" && opt !== null
-      ? opt
-      : { label: String(opt), value: opt }
-  );
-
-  // Sync state if external value changes
-  useEffect(() => {
-    if (value !== undefined) {
-      const matched = normalizedOptions.find((opt) => opt.value === value);
-      setSearchTerm(matched ? matched.label : String(value));
-    } else if (defaultValue) {
-      const matched = normalizedOptions.find((opt) => opt.value === defaultValue);
-      setSearchTerm(matched ? matched.label : String(defaultValue));
-    }
-  }, [value, defaultValue]);
-
-  // Handle clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        if (isOpen) {
-          setIsOpen(false);
-          onBlur?.();
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onBlur]);
-
-  // Filter options based on user typing
-  const filteredOptions = normalizedOptions.filter((opt) =>
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = e.target.value;
-    setSearchTerm(newVal);
-    setIsOpen(true);
-    onChange?.(newVal);
-  };
-
-  const handleSelect = (option: DropdownOption) => {
-    setSearchTerm(option.label);
-    setIsOpen(false);
-    onChange?.(option.value);
-    onBlur?.();
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      className={`relative w-full ${className}`}
-      onContextMenu={onContextMenu}
-    >
-      <div className="relative flex items-center">
-        {/* Input where user can type */}
-        <input
-          type="text"
-          value={searchTerm}
-          placeholder={placeholder}
-          className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base pr-8 focus:outline-none focus:ring-2 focus:ring-primary"
-          onChange={handleInputChange}
-          onFocus={() => {
-            setIsOpen(true);
-            onFocus?.();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setIsOpen(false);
-              onBlur?.();
-            }
-          }}
-        />
-
-        {/* Dropdown Arrow Indicator */}
-        <button
-          type="button"
-          tabIndex={-1}
-          className="absolute right-3 text-sm opacity-50 hover:opacity-100 cursor-pointer"
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          {isOpen ? "▲" : "▼"}
-        </button>
-      </div>
-
-      {/* Filtered Results Menu */}
-      {isOpen && (
-        <ul
-          className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-base-100 border border-base-300 shadow-lg py-1 text-base focus:outline-none"
-          role="listbox"
-        >
-          {filteredOptions.length === 0 ? (
-            <li className="px-4 py-2 text-sm text-base-content/50">
-              No matching options
-            </li>
-          ) : (
-            filteredOptions.map((opt, i) => (
-              <li
-                key={i}
-                role="option"
-                onClick={() => handleSelect(opt)}
-                className="px-4 py-2 text-sm cursor-pointer hover:bg-base-200 transition-colors"
-              >
-                {opt.label}
-              </li>
-            ))
-          )}
-        </ul>
-      )}
-    </div>
-  );
-};
 
 interface Props {
     id: string;
@@ -165,10 +30,11 @@ interface Props {
     label?: string;
     placeholder?: string;
     guide?: string;
-    value?: string;
+    value?: GetValueType | GetValueType[] | string;
     options?: unknown[];
-    thoughts?: string;
-    comments?: string;
+    notes?: GetNoteType | GetNoteType[] | string;
+    thoughts?: GetThoughtType | GetThoughtType[] | string;
+    onChange?: (value: unknown) => void;
     dragHandleProps?: {
         className?: string;
         ref?: (element: HTMLElement | null) => void;
@@ -176,8 +42,6 @@ interface Props {
     };
 }
 
-{/* rename to fieldRenderer */}
-{/* pass name and type and stuff and gen data api and stuff */}
 export default function TemplateField({
     id,
     type,
@@ -186,15 +50,44 @@ export default function TemplateField({
     guide,
     value,
     options,
+    notes,
     thoughts,
-    comments,
-    dragHandleProps
+    onChange,
+    dragHandleProps,
 }: Props) {
-    const { t, ready: isTranslationReady } = useTranslation();
+    const { ready: isTranslationReady } = useTranslation();
 
     const [isFocused, setIsFocused] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+
+    // Normalize inputs into array of items for rendering tooltips
+    const normalizeMetadataList = (
+        target?: string | MetadataObject | (string | MetadataObject)[]
+    ): MetadataObject[] => {
+        if (!target) return [];
+        const arr = Array.isArray(target) ? target : [target];
+        return arr.map((item) =>
+            typeof item === "object" && item !== null ? item : { text: String(item) }
+        );
+    };
+
+    const getValueString = (
+        target?: GetValueType | GetValueType[] | string
+    ): string => {
+        if (!target) return "";
+        if (Array.isArray(target)) {
+            return target[0]?.text ?? "";
+        }
+        if (typeof target === "object" && target !== null) {
+            return target.text ?? "";
+        }
+        return String(target);
+    };
+
+    const notesList = normalizeMetadataList(notes);
+    const thoughtsList = normalizeMetadataList(thoughts);
+    const displayValue = getValueString(value);
 
     useEffect(() => {
         if (isContextMenuOpen) {
@@ -210,10 +103,8 @@ export default function TemplateField({
 
     const closeContextMenu = useCallback(() => {
         setIsContextMenuOpen(false);
-        document
-            .getElementById(`field-dropdown-${id}`)
-            ?.hidePopover();
-    }, []);
+        document.getElementById(`field-dropdown-${id}`)?.hidePopover();
+    }, [id]);
 
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -245,40 +136,25 @@ export default function TemplateField({
     const getTextColor = (color: string) => {
         const [name, shade] = color.split("-");
 
-        const value =
+        const colorValue =
             colors[name as keyof typeof colors]?.[
                 shade as keyof (typeof colors)[keyof typeof colors]
-            ];
+            ] as string;
 
-        if (!value || typeof value !== "string") {
+        if (!colorValue || typeof colorValue !== "string") {
             return "#1a1a1a";
         }
 
-        const match = value.match(
-            /oklch\(([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/
-        );
+        const match = colorValue.match(/oklch\(([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/);
 
         if (!match) {
             return "#1a1a1a";
         }
 
         const [, l] = match;
-
         const lightness = Number(l);
 
-        const textColor =
-            lightness > 60
-                ? "#1a1a1a"
-                : "#eaeaea";
-
-        console.log({
-            color,
-            value,
-            lightness,
-            textColor,
-        });
-
-        return textColor;
+        return lightness > 60 ? "#1a1a1a" : "#eaeaea";
     };
 
     useEffect(() => {
@@ -301,9 +177,7 @@ export default function TemplateField({
         };
     }, [id, closeContextMenu]);
 
-    const checkCollectionMenuPosition = (
-        e: React.MouseEvent<HTMLLIElement>
-    ) => {
+    const checkCollectionMenuPosition = (e: React.MouseEvent<HTMLLIElement>) => {
         const button = e.currentTarget.getBoundingClientRect();
         const submenuWidth = 208;
         const spaceRight = window.innerWidth - button.right;
@@ -313,10 +187,20 @@ export default function TemplateField({
 
     const renderInputContent = () => {
         switch (type) {
+            case "media":
+                return (
+                    <MediaField 
+                        // MAKE ROW ID RANDOMIZED USING CLIENT TIMESTAMP; Remove row modal, add image media
+
+                        // DEVELOPER NEEDED: On upload, assign the file as base64 as value
+                        // onChange={(file, url) => handleMediaChange(row.rowId, file, url)}
+                    />
+                );
+
             case "button":
                 return (
                     <a
-                        href={url || "#"}
+                        href={displayValue || "#"}
                         target="_blank"
                         rel="noreferrer"
                         className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
@@ -331,24 +215,20 @@ export default function TemplateField({
                 return (
                     <>
                         <TypeableDropdownInput
-                            value={value}
-                            options={options}
+                            value={displayValue}
+                            options={(options as (string | DropdownOption)[]) || []}
                             placeholder="Select or type..."
-                            onChange={(newValue) => {
-                                if (typeof onChange === "function") {
-                                    onChange(newValue);
-                                }
-                            }}
+                            onChange={(newValue) => onChange?.(newValue)}
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             onContextMenu={handleContextMenu}
                         />
                     </>
                 );
-                
+
             case "slider":
                 return (
-                    <div 
+                    <div
                         className="w-full flex items-center h-10"
                         onContextMenu={handleContextMenu}
                     >
@@ -356,34 +236,36 @@ export default function TemplateField({
                             type="range"
                             min="0"
                             max="100"
-                            defaultValue={value ?? 50}
+                            defaultValue={Number(displayValue) || 50}
                             className="range range-accent range-sm w-full"
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
+                            onChange={(e) => onChange?.(e.target.value)}
                         />
                     </div>
                 );
 
             case "color":
                 return (
-                    <div 
+                    <div
                         className="flex gap-2 items-center w-full h-10"
                         onContextMenu={handleContextMenu}
                     >
                         <input
                             type="color"
-                            defaultValue={value || "#3b82f6"}
+                            defaultValue={displayValue || "#3b82f6"}
                             className="input input-bordered h-10 w-16 p-1 cursor-pointer bg-base-100 border border-base-300"
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
+                            onChange={(e) => onChange?.(e.target.value)}
                         />
-                        <span className="font-mono text-sm">{value || "#3b82f6"}</span>
+                        <span className="font-mono text-sm">{displayValue || "#3b82f6"}</span>
                     </div>
                 );
 
             case "rating":
                 return (
-                    <div 
+                    <div
                         className="rating rating-md h-10 items-center"
                         onContextMenu={handleContextMenu}
                     >
@@ -393,9 +275,10 @@ export default function TemplateField({
                                 type="radio"
                                 name={`rating-${id}`}
                                 className="mask mask-star-2 bg-orange-400"
-                                defaultChecked={value === star}
+                                defaultChecked={Number(displayValue) === star}
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
+                                onChange={() => onChange?.(star)}
                             />
                         ))}
                     </div>
@@ -403,15 +286,32 @@ export default function TemplateField({
 
             case "asset":
                 return (
-                    <div 
+                    <div
                         className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base flex items-center justify-between cursor-pointer"
                         onContextMenu={handleContextMenu}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         tabIndex={0}
                     >
-                        <span className="truncate text-sub">{value || "Select Asset..."}</span>
+                        <span className="truncate text-sub">
+                            {displayValue || "Select Asset..."}
+                        </span>
                         <span className="font-nerdfont text-lg"></span>
+                    </div>
+                );
+
+                /*
+            case "spacer":
+                        return (
+                            <div className="flex items-center justify-center w-full py-4">
+                                <div className="border-t border-base-300 rounded-full w-full" />
+                            </div>
+                        );*/
+
+            case "spacer":
+                return (
+                    <div className="flex items-center justify-center w-full py-4 text-xs text-sub opacity-50">
+                        SPACER - TEXT ONLY VISIBLE DURING EDITING
                     </div>
                 );
 
@@ -421,7 +321,7 @@ export default function TemplateField({
                     <textarea
                         className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
                         id={`template-field-${id}`}
-                        defaultValue={value}
+                        defaultValue={displayValue}
                         placeholder={
                             placeholder
                                 ?.replace("{DISPLAY_NAME}", "Alice")
@@ -431,6 +331,7 @@ export default function TemplateField({
                         spellCheck={false}
                         autoCorrect="off"
                         autoCapitalize="off"
+                        onChange={(e) => onChange?.(e.target.value)}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onMouseDown={(e) => {
@@ -457,7 +358,7 @@ export default function TemplateField({
     if (!isTranslationReady) return null;
 
     return (
-        <>                           
+        <div className="flex gap-3 w-full">
             <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                 popover="manual"
@@ -516,7 +417,7 @@ export default function TemplateField({
                             const textarea = document.getElementById(`template-field-${id}`);
 
                             if (textarea) {
-                                textarea.value = "";
+                                textarea.textContent = "";
                             }
 
                             let index = 0;
@@ -525,7 +426,7 @@ export default function TemplateField({
                                 index++;
 
                                 if (textarea) {
-                                    textarea.value = response.slice(0, index);
+                                    textarea.textContent = response.slice(0, index);
                                 }
 
                                 if (index >= response.length) {
@@ -985,184 +886,180 @@ export default function TemplateField({
                 </li>
             </ul>
 
-            <div className="flex gap-3 w-full">
-                <fieldset className="fieldset w-full">
-
-                    <legend className="fieldset-legend text-sm font-normal">
-                        {dragHandleProps && (
-                            <span
-                                {...dragHandleProps}
+            <fieldset className="fieldset w-full">
+                <legend className="fieldset-legend text-sm font-normal flex items-center gap-1">
+                    {dragHandleProps && (
+                        <span {...dragHandleProps}>
+                            <button
+                                type="button"
+                                className="flex items-center justify-center w-4 rounded-full overflow-hidden cursor-grab active:cursor-grabbing"
                             >
-                                <button className="flex items-center justify-center w-4 rounded-full overflow-hidden cursor-grab">
-                                    <span className="font-nerdfont leading-none text-2xl">
-                                        󰇛
-                                    </span>
-                                </button>
-                            </span>
-                        )}
-
-                        {label}
-                        
-                        <span 
-                            className="tooltip hidden"
-                            data-tip="Assigned to AvatarKage"
-                        >
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
+                                <span className="font-nerdfont leading-none text-2xl">
+                                    󰇛
+                                </span>
+                            </button>
                         </span>
+                    )}
 
-                        <span 
-                            className="tooltip hidden"
-                            data-tip="Awaiting publisher review"
-                        >
-                            <span className="font-nerdfont text-xl text-info flex w-4 leading-none items-center justify-center">
-                                󱍸
-                            </span>
+                    <span>{label}</span>
+
+                    <span
+                        className="tooltip hidden"
+                        data-tip="Assigned to AvatarKage"
+                    >
+                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                            
                         </span>
+                    </span>
 
-                        <span 
-                            className="tooltip hidden"
-                            data-tip="Changes approved by J9 Studios"
-                        >
-                            <span className="font-nerdfont text-lg text-success flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
+                    <span
+                        className="tooltip hidden"
+                        data-tip="Awaiting publisher review"
+                    >
+                        <span className="font-nerdfont text-xl text-info flex w-4 leading-none items-center justify-center">
+                            󱍸
                         </span>
+                    </span>
 
-                        <span 
-                            className="tooltip hidden"
-                            data-tip="Changes rejected by J9 Studios (awaiting author revision)"
-                        >
-                            <span className="font-nerdfont text-lg text-error flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
+                    <span
+                        className="tooltip hidden"
+                        data-tip="Changes approved by J9 Studios"
+                    >
+                        <span className="font-nerdfont text-lg text-success flex w-4 leading-none items-center justify-center">
+                            
                         </span>
+                    </span>
 
-                        <span 
-                            className="tooltip hidden"
-                            data-tip="Locked"
-                        >
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
+                    <span
+                        className="tooltip hidden"
+                        data-tip="Changes rejected by J9 Studios (awaiting author revision)"
+                    >
+                        <span className="font-nerdfont text-lg text-error flex w-4 leading-none items-center justify-center">
+                            
                         </span>
+                    </span>
 
-                        <span 
-                            className="tooltip hidden"
-                        >
-                            <div className="flex flex-col gap-1 tooltip-content text-left">
-                                <div className="font-bold text-center">Notes</div>
-                                <div className="text-xs">AvatarKage (07/17/26): Don't forget to include the character's title</div>
-                                <div className="text-xs">J9 Studios (07/17/26): The author should include their suffix</div>
-                            </div>
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
+                    <span className="tooltip hidden" data-tip="Locked">
+                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                            
                         </span>
+                    </span>
 
-                        <span 
-                            className={`tooltip ${thoughts ? "" : "hidden"}`}
-                        >
-                            <div className="flex flex-col gap-1 tooltip-content text-left">
-                                <div className="font-bold text-center">DISPLAY_NAME's Thoughts</div>
-                                <div className="text-xs">{thoughts}</div>
-                            </div>
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                󰟶
-                            </span>
-                        </span>
-
-                        <span 
-                            className={`tooltip ${comments ? "" : "hidden"}`}
-                        >
-                            <div className="flex flex-col gap-1 tooltip-content text-left">
-                                <div className="font-bold text-center">Author's Comment</div>
-                                <div className="text-xs">{comments}</div>
-                            </div>
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                󰅺
-                            </span>
-                        </span>
-                    </legend>
-
-                    {renderInputContent()}
-
-                    {Boolean(guide) && (
-                        <div
-                            className={`overflow-hidden transition-all duration-300 ease-out ${
-                                isFocused
-                                    ? "max-h-[500px] opacity-100 mt-2"
-                                    : "max-h-0 opacity-0 mt-0 pointer-events-none"
-                            }`}
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                            }}
-                        >
-                            <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    components={{
-                                        p: ({ children, node }) => {
-                                            const isFirstParagraph = node?.position?.start.line === 1;
-                                            return (
-                                                <p className={isFirstParagraph ? "" : "mt-2"}>
-                                                    {isFirstParagraph && (
-                                                        <span className="font-nerdfont inline-block mr-2 text-base align-middle">
-                                                            󰋼
-                                                        </span>
-                                                    )}
-                                                    {children}
-                                                </p>
-                                            );
-                                        },
-
-                                        ul: ({ children, node }) => {
-                                            const isFirstList = node?.position?.start.line === 1;
-                                            return (
-                                                <div className="my-1">
-                                                    {isFirstList && (
-                                                        <span className="font-nerdfont inline-block mr-2 text-base align-middle">
-                                                            󰋼
-                                                        </span>
-                                                    )}
-                                                    <ul className="inline-block list-disc pl-5 my-0">
-                                                        {children}
-                                                    </ul>
-                                                </div>
-                                            );
-                                        },
-                                        
-                                        li: ({ children }) => <li className="my-0">{children}</li>,
-
-                                        a: ({ children, ...props }) => (
-                                            <span>
-                                                <span className="font-nerdfont inline-block mx-1 text-sm align-middle">
-                                                    
-                                                </span>
-                                                <a 
-                                                    {...props} 
-                                                    className="font-bold hover:underline inline-block"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    {children}
-                                                </a>
-                                            </span>
-                                        ),
-                                    }}
-                                >
-                                    {
-                                        guide
-                                            ?.replace("{DISPLAY_NAME}", "Alice")
-                                            ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")
-                                    }
-                                </ReactMarkdown>
+                    <span className={`tooltip ${notesList.length > 0 ? "" : "hidden"}`}>
+                        <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
+                            <div className="font-bold text-center">Notes</div>
+                            <div className="flex flex-col gap-1 text-xs">
+                                {notesList.map((item, idx) => (
+                                    <div key={idx} className="border-b border-base-300 last:border-none pb-1 last:pb-0">
+                                        {item.author && <span className="font-semibold block text-[10px] opacity-75">{item.author}</span>}
+                                        <span>{item.text}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    )}
-                </fieldset>
-            </div>
-        </>
+                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                            
+                        </span>
+                    </span>
+
+                    <span className={`tooltip ${thoughtsList.length > 0 ? "" : "hidden"}`}>
+                        <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
+                            <div className="font-bold text-center">
+                                Thoughts
+                            </div>
+                            <div className="flex flex-col gap-1 text-xs">
+                                {thoughtsList.map((item, idx) => (
+                                    <div key={idx} className="border-b border-base-300 last:border-none pb-1 last:pb-0">
+                                        {item.author && <span className="font-semibold block text-[10px] opacity-75">{item.author}</span>}
+                                        <span>{item.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                            󰟶
+                        </span>
+                    </span>
+                </legend>
+
+                {renderInputContent()}
+
+                {Boolean(guide) && (
+                    <div
+                        className={`overflow-hidden transition-all duration-300 ease-out ${
+                            isFocused
+                                ? "max-h-[500px] opacity-100 mt-2"
+                                : "max-h-0 opacity-0 mt-0 pointer-events-none"
+                        }`}
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                        }}
+                    >
+                        <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    p: ({ children, node }) => {
+                                        const isFirstParagraph =
+                                            node?.position?.start.line === 1;
+                                        return (
+                                            <p className={isFirstParagraph ? "" : "mt-2"}>
+                                                {isFirstParagraph && (
+                                                    <span className="font-nerdfont inline-block mr-2 text-base align-middle">
+                                                        󰋼
+                                                    </span>
+                                                )}
+                                                {children}
+                                            </p>
+                                        );
+                                    },
+
+                                    ul: ({ children, node }) => {
+                                        const isFirstList =
+                                            node?.position?.start.line === 1;
+                                        return (
+                                            <div className="my-1">
+                                                {isFirstList && (
+                                                    <span className="font-nerdfont inline-block mr-2 text-base align-middle">
+                                                        󰋼
+                                                    </span>
+                                                )}
+                                                <ul className="inline-block list-disc pl-5 my-0">
+                                                    {children}
+                                                </ul>
+                                            </div>
+                                        );
+                                    },
+
+                                    li: ({ children }) => (
+                                        <li className="my-0">{children}</li>
+                                    ),
+
+                                    a: ({ children, ...props }) => (
+                                        <span>
+                                            <span className="font-nerdfont inline-block mx-1 text-sm align-middle">
+                                                
+                                            </span>
+                                            <a
+                                                {...props}
+                                                className="font-bold hover:underline inline-block"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {children}
+                                            </a>
+                                        </span>
+                                    ),
+                                }}
+                            >
+                                {guide
+                                    ?.replace("{DISPLAY_NAME}", "Alice")
+                                    ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")}
+                            </ReactMarkdown>
+                        </div>
+                    </div>
+                )}
+            </fieldset>
+        </div>
     );
 }
