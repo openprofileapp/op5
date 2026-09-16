@@ -1,25 +1,15 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Row } from "../CharacterTemplate.js";
+import { BlockType } from "../../../../_common/types/template/block.type.js";
 
 type Screen = "menu" | "configure";
 
-export interface BlockLibraryItem {
-    id: string;
-    label?: string;
-    description?: string;
-    icon?: string;
-    source: "official" | "addon";
-    pack?: string; // Merge source with pack?
-    uses?: number;
-    rows?: Row[];
-}
-
 // eslint-disable-next-line react-refresh/only-export-components
-export const library: Record<string, BlockLibraryItem[]> = {
+export const library: Record<string, BlockType[]> = {
     identity: [
         {
-            id: "legal",
+            blockId: "legal",
             label: "Legal",
             description: "Legal name, living status, citizenship, and identifiers.",
             icon: "https://openmoji.org/data/color/svg/1F9D1.svg",
@@ -27,13 +17,13 @@ export const library: Record<string, BlockLibraryItem[]> = {
             uses: 100,
             rows: [
                 {
-                    id: "full-name",
-                    type: "field",
+                    rowId: "full-name",
+                    type: "text",
                     fields: [
                         // Remove placeholders?
                         // Maybe have fill in value variables where the user can link values from one field to another: {identity.legal.full-name.first-name}  
                         { 
-                            id: "first-name",
+                            fieldId: "first-name",
                             type: "text",
                             label: "First Name",
                             placeholder: "What is {DISPLAY_NAME_POSSESSIVE} first name?",
@@ -43,14 +33,14 @@ export const library: Record<string, BlockLibraryItem[]> = {
                             // comments: "This is an example of an author's BTS comment."
                         },
                         { 
-                            id: "middle-name",
+                            fieldId: "middle-name",
                             type: "text",
                             label: "Middle Name",
                             placeholder: "What is {DISPLAY_NAME_POSSESSIVE} middle name?",
                             guide: "Middle names aren't always required and are more often used for realism or an alternate calling.",
                         },
                         { 
-                            id: "last-name",
+                            fieldId: "last-name",
                             type: "text",
                             label: "Last Name",
                             placeholder: "What is {DISPLAY_NAME_POSSESSIVE} last name?",
@@ -59,25 +49,25 @@ export const library: Record<string, BlockLibraryItem[]> = {
                     ],
                 },
                 {
-                    id: "affixes",
-                    type: "field",
+                    rowId: "affixes",
+                    type: "text",
                     fields: [
                         { 
-                            id: "prefix",
+                            fieldId: "prefix",
                             type: "text",
                             label: "Prefix / Title",
                             placeholder: "e.g., Dr., Sir, Lady, Hon.",
                             guide: "Formal honorific, academic, or noble title preceding {DISPLAY_NAME_POSSESSIVE} name.",
                         },
                         { 
-                            id: "suffix",
+                            fieldId: "suffix",
                             type: "text",
                             label: "Suffix",
                             placeholder: "e.g., Jr., III, Esq., PhD",
                             guide: "Generational designation, lineage numeral, or post-nominal professional title.",
                         },
                         {
-                            id: "maiden-name",
+                            fieldId: "maiden-name",
                             type: "text",
                             label: "Maiden Name",
                             placeholder: "Does the {DISPLAY_NAME} have a legal maiden name?",
@@ -86,25 +76,25 @@ export const library: Record<string, BlockLibraryItem[]> = {
                     ],
                 },
                 {
-                    id: "lifespan",
-                    type: "field",
+                    rowId: "lifespan",
+                    type: "text",
                     fields: [
                         {
-                            id: "date-of-birth",
+                            fieldId: "date-of-birth",
                             type: "text",
                             label: "Date of Birth",
                             placeholder: "When was {DISPLAY_NAME} born?",
                             guide: "The official birth date recorded on {DISPLAY_NAME_POSSESSIVE} birth certificate or legal ledger.",
                         },
                         {
-                            id: "chronological-age",
+                            fieldId: "chronological-age",
                             type: "text",
                             label: "Age",
                             placeholder: "How old is {DISPLAY_NAME}?",
                             guide: "The actual number of years {DISPLAY_NAME} has existed between birth and death.",
                         },
                         {
-                            id: "date-of-death",
+                            fieldId: "date-of-death",
                             type: "text",
                             label: "Date of Death",
                             placeholder: "When did {DISPLAY_NAME} pass away?",
@@ -113,18 +103,18 @@ export const library: Record<string, BlockLibraryItem[]> = {
                     ],
                 },
                 {
-                    id: "lifespan-places",
-                    type: "field",
+                    rowId: "lifespan-places",
+                    type: "text",
                     fields: [
                         {
-                            id: "place-of-birth",
+                            fieldId: "place-of-birth",
                             type: "text",
                             label: "Place of Birth",
                             placeholder: "Where was {DISPLAY_NAME} born?",
                             guide: "City, nation, or region of birth recorded in official records.",
                         },
                         {
-                            id: "place-of-death",
+                            fieldId: "place-of-death",
                             type: "text",
                             label: "Place of Death",
                             placeholder: "Where was {DISPLAY_NAME} found deceased?",
@@ -133,11 +123,11 @@ export const library: Record<string, BlockLibraryItem[]> = {
                     ],
                 },
                 {
-                    id: "citizenship",
-                    type: "field",
+                    rowId: "citizenship",
+                    type: "text",
                     fields: [
                         {
-                            id: "nationality",
+                            fieldId: "nationality",
                             type: "dropdown",
                             label: "Country of Citizenship",
                             guide: "The country where {DISPLAY_NAME} holds legal citizenship. If multi-nationality, add all of them",
@@ -344,7 +334,7 @@ export const library: Record<string, BlockLibraryItem[]> = {
                             ]
                         },
                         {
-                            id: "identification",
+                            fieldId: "identification",
                             type: "text",
                             label: "Identification Number",
                             placeholder: "",
@@ -423,7 +413,7 @@ export const library: Record<string, BlockLibraryItem[]> = {
 
 
 export interface NewBlockData {
-    id: string;
+    blockId: string;
     label: string;
     description?: string;
     icon?: string;
@@ -512,7 +502,7 @@ export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockM
         const finalId = blockId.trim() || `${selectedItem.id}-${Date.now()}`;
 
         onAddBlock({
-            id: finalId,
+            blockId: finalId,
             label: finalLabel,
             description: selectedItem.description,
             icon: selectedItem.icon,
