@@ -37,12 +37,12 @@ const TYPES: AssetTypeOption[] = [
     }
 ];
 
-export interface NewFieldData {
+export interface DataProps {
     id: string;
     label: string;
     type: AssetNameType;
     url?: string;
-    value?: any;
+    value?: string;
     options?: string[];
 }
 
