@@ -2,7 +2,7 @@ export type ValueType = {
     assetId: string;
     fieldId: string;
     author: string;
-    text: string;
+    content: string;
     date: string;
 }
 
