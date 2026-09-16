@@ -11,6 +11,7 @@ interface FieldTypeOption {
     icon: string;
     title: string;
     description: string;
+    comingSoon?: boolean;
 }
 
 const index: FieldTypeOption[] = [
@@ -33,28 +34,62 @@ const index: FieldTypeOption[] = [
         description: "Select a value within a range."
     },
     {
-        type: "color",
-        icon: "󰏘",
-        title: "Color",
-        description: "Choose a color value such as HEX, RGB, or other formats."
-    },
-    {
         type: "rating",
         icon: "",
         title: "Rating",
         description: "Rate using a custom icon or a score."
     },
     {
-        type: "asset",
-        icon: "",
-        title: "Asset",
-        description: "Select an existing asset to define a relationship."
+        type: "color",
+        icon: "󰏘",
+        title: "Color",
+        description: "Choose a color value such as HEX, RGB, or other formats."
+    },
+    {
+        type: "media",
+        icon: "󰋩",
+        title: "Media",
+        description: "Upload or link a single image or video."
     },
     {
         type: "button",
         icon: "",
         title: "Button",
         description: "Trigger an action or open a link."
+    },
+    {
+        type: "spacer",
+        icon: "󰡏",
+        title: "Spacer",
+        description: "Insert vertical blank space with optional horizontal line."
+    },
+    {
+        type: "asset",
+        icon: "",
+        title: "Asset",
+        description: "Select an existing asset to define a relationship.",
+        comingSoon: true
+    },
+    {
+        type: "calendar",
+        icon: "󰃭",
+        title: "Calendar",
+        description: "Display events, tasks, or routines by day, week, or month.",
+        comingSoon: true
+    },
+    {
+        type: "timeline",
+        icon: "󰙮",
+        title: "Timeline",
+        description: "Present events in chronological order along a visual timeline.",
+        comingSoon: true
+    },
+    {
+        type: "table",
+        icon: "󰓫",
+        title: "Table",
+        description: "Organize structured grid data with rows and columns.",
+        comingSoon: true
     }
 ];
 
@@ -68,12 +103,12 @@ export interface NewFieldData {
     value?: string;
 }
 
-interface NewFieldModalProps {
+interface Props {
     targetRowId: string;
     onAddField: (targetRowId: string, data: NewFieldData) => void;
 }
 
-export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModalProps) {
+export default function NewFieldModal({ targetRowId, onAddField }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -93,7 +128,9 @@ export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModal
 
     function go(type: FieldNameType) {
         setType(type);
-        setScreen("configure");
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        setScreen(type === "menu" ? "menu" : "configure");
     }
 
     function resetForm() {
@@ -148,7 +185,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModal
                 {!isSingletype && screen !== "menu" && (
                     <button
                         type="button"
-                        className="absolute left-0 top-1 m-5 flex items-center gap-2 cursor-pointer z-10"
+                        className="absolute left-0 top-1 m-5 flex items-center gap-2 cursor-pointer"
                         onClick={() => setScreen("menu")}
                     >
                         <span className="text-xl font-nerdfont leading-none">
@@ -186,17 +223,32 @@ export default function NewFieldModal({ targetRowId, onAddField }: NewFieldModal
                                 <button
                                     key={index}
                                     type="button"
-                                    className="btn bg-base-100 border border-base-300 gap-4 h-16"
-                                    onClick={() => go(item.type)}
+                                    className={`
+                                        btn bg-base-100 border border-base-300 gap-4 h-16
+                                        ${item.comingSoon ? "tooltip tooltip-accent cursor-default" : ""}
+                                    `}
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    onClick={() => go(!item.comingSoon ? item.type : "menu")}
+                                    data-tip={item.comingSoon ? "Coming Soon" : ""}
                                 >
-                                    <div className="text-xl w-6 font-nerdfont">
+                                    <div className={`
+                                        text-xl w-6 font-nerdfont
+                                        ${item.comingSoon ? "opacity-50" : ""}
+                                    `}>
                                         {item.icon}
                                     </div>
 
-                                    <div className="flex flex-col text-left flex-1">
+                                    <div className={`
+                                        flex flex-col text-left flex-1
+                                        ${item.comingSoon ? "opacity-50" : ""}
+                                    `}>
                                         <div>{item.title}</div>
 
-                                        <div className="text-xs font-normal text-sub">
+                                        <div className={`
+                                            text-xs font-normal
+                                            ${item.comingSoon ? "opacity-50" : "text-sub"}
+                                        `}>
                                             {item.description}
                                         </div>
                                     </div>
