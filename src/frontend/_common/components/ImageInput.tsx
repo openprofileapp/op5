@@ -20,6 +20,7 @@ type Props = {
     width?: string;
     label?: string;
     className?: string;
+    skipCrop?: boolean;
 };
 
 function dataURLtoFile(dataUrl: string, filename: string): File {
@@ -54,6 +55,7 @@ export default function ImageInput({
     width,
     label,
     className = "",
+    skipCrop = false,
 }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -300,10 +302,14 @@ export default function ImageInput({
 
                         resetInput();
 
-                        const cropPreviewUrl = URL.createObjectURL(file);
-                        setRawFile(file);
-                        setRawImage(cropPreviewUrl);
-                        setShowCrop(true);
+                        if (skipCrop) {
+                            handleCropComplete(file);
+                        } else {
+                            const cropPreviewUrl = URL.createObjectURL(file);
+                            setRawFile(file);
+                            setRawImage(cropPreviewUrl);
+                            setShowCrop(true);
+                        }
                     }}
                 />
             </div>
