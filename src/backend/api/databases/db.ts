@@ -325,6 +325,16 @@ db.templates.transaction(q => {
         const result = q(`${config.folders.sql.api}/templates/rows.sql`);
         if (!result.success) return log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM fields LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/fields.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q(`SELECT * FROM "values" LIMIT 1`).success) { 
+        const result = q(`${config.folders.sql.api}/templates/values.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
 });
 
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
@@ -366,6 +376,8 @@ async function waitForMDB() {
             // Import preload files here
             import("./preload/blocks.db.preload.js");
             import("./preload/rows.db.preload.js");
+            import("./preload/fields.db.preload.js");
+            import("./preload/values.db.preload.js");
 
             // Import migration files here
             import("./migration/audits/follows.db.migration.js");
