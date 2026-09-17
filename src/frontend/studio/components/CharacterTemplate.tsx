@@ -37,12 +37,13 @@ import TemplateField from "./TemplateField.js";
 import { toast } from "../../_common/scripts/toast.js";
 import NewCategoryModal, { NewCategoryData } from "./modals/NewCategoryModal.js";
 import { GetCategoryType } from "../../../_common/types/template/category.type.js";
-import { GetRowType } from "../../../_common/types/template/row.type.js";
+import { GetRowType, TemplateRowItemType } from "../../../_common/types/template/row.type.js";
 import { GetFieldType } from "../../../_common/types/template/field.type.js";
 import NewFieldModal, { NewFieldData } from "./modals/NewFieldModal.js";
 import { snowflake } from "../scripts/main.js";
 import { GetBlockItemType } from "../../../_common/types/template/block.type.js";
 import NewBlockModal from "./modals/NewBlockModal.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -209,7 +210,7 @@ export default function CharacterTemplate() {
         const newCategory: GetCategoryType = {
             categoryId: newData.id,
             types: newData.types,
-            label: newData.label,
+            label: newData.label || "Untitled",
             position: data.length ?? 0,
             createdBy: window.session.userId,
             lastEditedDate: new Date().toISOString(),
@@ -226,7 +227,7 @@ export default function CharacterTemplate() {
         return true;
     };
 
-    const handleAddBlock = (newData: NewBlockData): boolean => {
+    const handleAddBlock = async (newData: NewBlockData): Promise<boolean> => {
         const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
 
         if (!targetCategoryId) {
@@ -234,32 +235,94 @@ export default function CharacterTemplate() {
             return false;
         }
 
+        let fetchedRows: TemplateRowItemType[] = [];
+
+        if (newData.blockId) {
+            try {
+                const res = await fetch(`${apiBaseUrl}/v3/templates/rows/${newData.blockId}`, {
+                    credentials: "include",
+                });
+
+                if (res.ok) {
+                    const json = await res.json();
+                    fetchedRows = json.items ?? [];
+                } else {
+                    toast.show("Failed to fetch rows for this block", { type: "error" });
+                }
+            } catch (error) {
+                console.error("Failed to fetch block rows:", error);
+                toast.show("Error fetching block rows", { type: "error" });
+            }
+        }
+
+        const rawRows = fetchedRows.length > 0 ? fetchedRows : (newData.rows ?? []);
+
+        const existingFieldIds = new Set<string>();
+        data.forEach((category) => {
+            category.blocks?.forEach((block) => {
+                block.rows?.forEach((row) => {
+                    row.fields?.forEach((field) => {
+                        if (field.fieldId) {
+                            existingFieldIds.add(field.fieldId);
+                        }
+                    });
+                });
+            });
+        });
+
+        const getUniqueFieldId = (id: string): string => {
+            let uniqueId = id;
+            while (existingFieldIds.has(uniqueId)) {
+                const random4Digits = Math.floor(1000 + Math.random() * 9000);
+                uniqueId = `${id}-${random4Digits}`;
+            }
+            existingFieldIds.add(uniqueId);
+            return uniqueId;
+        };
+
+        const uniqueRows = rawRows.map((row) => ({
+            ...row,
+            fields: row.fields?.map((field) => ({
+                ...field,
+                fieldId: getUniqueFieldId(field.fieldId),
+            })) ?? [],
+        }));
+
+        const newBlockId = snowflake.gen();
+
+        const newBlock: GetBlockItemType = {
+            blockId: newBlockId,
+            label: newData.label,
+            description: newData.description,
+            icon: newData.icon,
+            position: 0,
+            createdBy: window.session.userId,
+            lastEditedDate: new Date().toISOString(),
+            createdDate: new Date().toISOString(),
+            rows: uniqueRows,
+        };
+
         setData((prev: GetCategoryType[]) =>
             prev.map((category) => {
                 if (category.categoryId !== targetCategoryId) return category;
 
-                const newBlock: GetBlockItemType = {
-                    blockId: snowflake.gen(),
-                    label: newData.label,
-                    description: newData.description,
-                    icon: newData.icon,
-                    position: category.blocks ? category.blocks.length : 0,
-                    createdBy: window.session.userId,
-                    lastEditedDate: new Date().toISOString(),
-                    createdDate: new Date().toISOString(),
-                    rows: newData.rows ?? [],
-                };
-
+                const currentBlocks = category.blocks ?? [];
                 return {
                     ...category,
-                    blocks: [...(category.blocks ?? []), newBlock],
+                    blocks: [
+                        ...currentBlocks,
+                        {
+                            ...newBlock,
+                            position: currentBlocks.length,
+                        },
+                    ],
                 };
             })
         );
 
-        setActiveBlock(newData.blockId);
+        setActiveBlock(newBlockId);
 
-        // SAVE TO API
+        // TODO: SAVE TO API HERE
 
         return true;
     };
@@ -678,10 +741,7 @@ export default function CharacterTemplate() {
                                             <div className="p-2 md:p-4">
                                                 <div className="flex justify-between items-center mb-6">
                                                     <h2 className="text-2xl font-bold">
-                                                        {currentCategory?.blocks.length === 0 
-                                                            ? "Add Block" 
-                                                            : "Select Block"
-                                                        }
+                                                        {currentCategory?.label}
                                                     </h2>
                                                 </div>
 
@@ -802,7 +862,7 @@ export default function CharacterTemplate() {
                                                         {currentBlock?.rows?.map(row => (
                                                             <SortableItem key={row.rowId} id={`row:${row.rowId}`}>
                                                                 {({ sortableProps, dragHandleProps }) => (
-                                                                    <div {...sortableProps} className={`flex gap-3 ${sortableProps.className ?? ""}`}>
+                                                                    <div {...sortableProps} className={` min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}>
                                                                         <span
                                                                             {...dragHandleProps}
                                                                             className="flex items-center cursor-grab active:cursor-grabbing touch-none"
