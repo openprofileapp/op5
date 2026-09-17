@@ -28,6 +28,7 @@ import advertisementRoute from "./routes/advertisement.route.js";
 import whatIsRoute from "./routes/whatIs.route.js";
 import metadataRoute from "./routes/metadata.route.js";
 import presenceRoute from "./routes/presence.route.js";
+import templateRoutes from "./routes/template.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -136,6 +137,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     whatIsRoute
+);
+
+v3.use(
+    "/templates", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    templateRoutes
 );
 
 v3.use(

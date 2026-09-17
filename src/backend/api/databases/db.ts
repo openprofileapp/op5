@@ -17,7 +17,8 @@ const paths = {
     interactions: "data/databases/interactions.sqlite",
     media: "data/databases/media.sqlite",
     notifications: "data/databases/notifications.sqlite",
-    advertisements: "data/databases/advertisements.sqlite"
+    advertisements: "data/databases/advertisements.sqlite",
+    templates: "data/databases/templates.sqlite"
 }
 
 export const db = {
@@ -34,7 +35,8 @@ export const db = {
     interactions: new Database(paths.interactions),
     media: new Database(paths.media),
     notifications: new Database(paths.notifications),
-    advertisements: new Database(paths.advertisements)
+    advertisements: new Database(paths.advertisements),
+    templates: new Database(paths.templates)
 };
 
 db.audits.transaction(q => {
@@ -313,6 +315,18 @@ db.advertisements.transaction(q => {
     };
 });
 
+db.templates.transaction(q => {
+    if (!q("SELECT * FROM blocks LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/blocks.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM rows LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/rows.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
@@ -349,6 +363,10 @@ async function waitForMDB() {
             mdb?.partners &&
             mdb?.interactions
         ) {
+            // Import preload files here
+            import("./preload/blocks.db.preload.js");
+            import("./preload/rows.db.preload.js");
+
             // Import migration files here
             import("./migration/audits/follows.db.migration.js");
             import("./migration/audits/friends.db.migration.js");
