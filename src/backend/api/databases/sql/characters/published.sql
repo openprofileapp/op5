@@ -21,6 +21,6 @@ CREATE TABLE IF NOT EXISTS published (
     readVisibility TEXT NOT NULL DEFAULT 'default',
     sendComments TEXT NOT NULL DEFAULT 'default',
     isScheduled INTEGER NOT NULL DEFAULT 0, -- The scheduled conditions are in scheduled.sql
-    updatedDate TEXT,
-    createdDate TEXT
+    updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
