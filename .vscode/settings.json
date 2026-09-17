@@ -60,6 +60,12 @@
       "base": "test",
       "color": "#8515cf",
       "folderNames": ["nightly"]
+    },
+    {
+      "name": "preload",
+      "base": "migrations",
+      "color": "#7e57c2",
+      "folderNames": ["preload"]
     }
   ],
   "material-icon-theme.files.customClones": [
@@ -98,6 +104,12 @@
       "base": "database",
       "color": "#ec407a",
       "fileExtensions": ["db.migration.ts", "db.migration.js"]
+    },
+    {
+      "name": "migration",
+      "base": "database",
+      "color": "#7e57c2",
+      "fileExtensions": ["db.preload.ts", "db.preload.js"]
     }
   ],
   "editor.tokenColorCustomizations": {
