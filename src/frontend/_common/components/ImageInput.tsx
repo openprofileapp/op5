@@ -88,10 +88,17 @@ export default function ImageInput({
         (previewUrl ? /\.gif($|\?)/i.test(previewUrl) : false) ||
         (animatedDefaultUrl ? /\.gif($|\?)/i.test(animatedDefaultUrl) : false);
 
+    const isSvg =
+        value?.type === "image/svg+xml" ||
+        rawFile?.type === "image/svg+xml" ||
+        (previewUrl ? /^data:image\/svg\+xml/i.test(previewUrl) : false) ||
+        (previewUrl ? /\.svg($|\?)/i.test(previewUrl) : false) ||
+        (defaultUrl ? /\.svg($|\?)/i.test(defaultUrl) : false);
+
     useEffect(() => {
         const sourceForStaticFrame = animatedUrl || previewUrl;
 
-        if (!sourceForStaticFrame) {
+        if (!sourceForStaticFrame || isSvg) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setStaticFrameUrl(null);
             return;
@@ -166,7 +173,7 @@ export default function ImageInput({
         return () => {
             isMounted = false;
         };
-    }, [previewUrl, animatedUrl, isGif]);
+    }, [previewUrl, animatedUrl, isGif, isSvg]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -256,7 +263,7 @@ export default function ImageInput({
 
     const sizeClasses = `${height ? `h-${height}` : ""} ${width ? `w-${width}` : ""}`.trim();
 
-    const displayImageSrc = isHovered 
+    const displayImageSrc = isHovered || isSvg
         ? animatedUrl || previewUrl 
         : staticFrameUrl || previewUrl;
 
@@ -273,7 +280,9 @@ export default function ImageInput({
                         <img
                             src={displayImageSrc ?? undefined}
                             alt={label ?? "image"}
-                            className="h-full w-full object-cover rounded"
+                            className={`h-full w-full rounded ${
+                                isSvg ? "object-contain" : "object-cover"
+                            }`}
                             onError={() => setHasError(true)}
                         />
 
@@ -302,7 +311,7 @@ export default function ImageInput({
 
                         resetInput();
 
-                        if (skipCrop) {
+                        if (skipCrop || file.type === "image/svg+xml") {
                             handleCropComplete(file);
                         } else {
                             const cropPreviewUrl = URL.createObjectURL(file);
