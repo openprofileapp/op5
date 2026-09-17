@@ -1,54 +1,59 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Tooltip } from "../../../_common/components/Tooltip.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import { CategoryIdType, sortedCategories } from "../../../../_common/scripts/categories.js";
 
-export interface NewCategoryType {
+export interface NewCategoryData {
     id: string;
     label: string;
     types: CategoryIdType[];
 }
 
 interface Props {
-    onAddCategory: (data: NewCategoryType) => void;
+    onAddCategory: (data: NewCategoryData) => boolean;
 }
 
 export default function NewCategoryModal({ onAddCategory }: Props) {
-    const { t, ready: isTranslationReady } = useTranslation();
+    const { ready: isTranslationReady } = useTranslation();
+    const modalRef = useRef<HTMLDialogElement>(null);
 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading] = useState<boolean>(false);
 
     const [id, setId] = useState<string>("");
     const [label, setLabel] = useState<string>("");
     const [types, setTypes] = useState<CategoryIdType[]>([]);
 
-    const modal = document.getElementById("new-category") as HTMLDialogElement;
-
     function resetForm() {
         setLabel("");
         setId("");
+        setTypes([]);
     }
 
     function handleSave() {
-        onAddCategory({
+        const payload: NewCategoryData = {
             id,
             label,
             types
-        });
+        };
 
-        modal?.close();
+        const isSuccess = onAddCategory(payload);
 
-        resetForm();
+        if (isSuccess) {
+            // Closes modal; native onClose triggers resetForm()
+            modalRef.current?.close();
+        }
     }
 
     if (!isTranslationReady) return null;
 
     return (
         <dialog 
+            ref={modalRef}
             className="modal"
             id="new-category"
+            onClose={resetForm}
         >
             <div className="modal-box flex flex-col">
                 <form method="dialog">
@@ -70,7 +75,6 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
                     </h3>
                 </div>
 
-
                 <fieldset className="fieldset w-full">
                     <div className="flex flex-col gap-1 mt-1">
                         <label className="label">
@@ -80,12 +84,10 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
                         <input
                             type="text"
                             className="input w-full"
-                            placeholder={"What does this category covers?"}
-                            value={label ?? ""}
+                            placeholder="What does this category cover?"
+                            value={label}
                             maxLength={64}
-                            onChange={(e) =>
-                                setLabel(e.target.value)
-                            }
+                            onChange={(e) => setLabel(e.target.value)}
                         />
                     </div>
                     
@@ -105,15 +107,15 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
                         <input
                             type="text"
                             className="input w-full"
-                            placeholder={"What is the unique id for this category?"}
-                            value={id ?? ""}
+                            placeholder="What is the unique id for this category?"
+                            value={id}
                             maxLength={64}
                             onChange={(e) =>
                                 setId(
                                     e.target.value
-                                    .toLowerCase()
-                                    .replace(/\s+/g, "-")
-                                    .replace(/[^a-z-]/g, "")
+                                        .toLowerCase()
+                                        .replace(/\s+/g, "-")
+                                        .replace(/[^a-z-]/g, "")
                                 )
                             }
                         />
@@ -128,7 +130,7 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
                             multiple
                             value={types}
                             options={sortedCategories}
-                            onChange={(values) => setTypes(values as string[])}
+                            onChange={(values) => setTypes(values as CategoryIdType[])}
                             placeholder="What block types should be visible in this category?"
                         />
                     </div>
