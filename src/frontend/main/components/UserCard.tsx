@@ -282,6 +282,7 @@ export default function UserCard({
                 {(
                     data?.fanflair === "true" &&
                     (data?.id === "5719552362357773" ||
+                    data?.id === "8986001119807525" ||
                     data?.id === "5019646586243236")
                 ) && (
                     // DEVELOPER NEEDED: Disable id override and add fanflairs
