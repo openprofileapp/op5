@@ -35,14 +35,14 @@ import { CSS } from "@dnd-kit/utilities";
 import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "./TemplateField.js";
 import { toast } from "../../_common/scripts/toast.js";
-import NewBlockModal, { NewBlockData } from "./modals/NewBlockModal.js";
-import NewCategoryModal, { NewCategoryType } from "./modals/NewCategoryModal.js";
+import NewCategoryModal, { NewCategoryData } from "./modals/NewCategoryModal.js";
 import { GetCategoryType } from "../../../_common/types/template/category.type.js";
-import { GetAddedBlockType } from "../../../_common/types/template/block.type.js";
 import { GetRowType } from "../../../_common/types/template/row.type.js";
 import { GetFieldType } from "../../../_common/types/template/field.type.js";
 import NewFieldModal, { NewFieldData } from "./modals/NewFieldModal.js";
 import { snowflake } from "../scripts/main.js";
+import { GetBlockItemType } from "../../../_common/types/template/block.type.js";
+import NewBlockModal from "./modals/NewBlockModal.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -193,7 +193,19 @@ export default function CharacterTemplate() {
         return args.transform;
     }, []);
 
-    const handleAddCategory = (newData: NewCategoryType): void => {        
+    const handleAddCategory = (newData: NewCategoryData): boolean => {
+        if (!newData.id.trim()) {
+            toast.show("Category ID is required", { type: "error" });
+            return false;
+        }
+
+        const isDuplicate = data.some((cat) => cat.categoryId === newData.id);
+
+        if (isDuplicate) {
+            toast.show(`A category with ID "${newData.id}" already exists`, { type: "error" });
+            return false;
+        }
+
         const newCategory: GetCategoryType = {
             categoryId: newData.id,
             types: newData.types,
@@ -210,19 +222,24 @@ export default function CharacterTemplate() {
         setActiveBlock(null);
 
         // SAVE TO API
+
+        return true;
     };
 
-    const handleAddBlock = (newData: NewBlockData): void => {
+    const handleAddBlock = (newData: NewBlockData): boolean => {
         const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+
+        if (!targetCategoryId) {
+            toast.show("No active category selected", { type: "error" });
+            return false;
+        }
 
         setData((prev: GetCategoryType[]) =>
             prev.map((category) => {
                 if (category.categoryId !== targetCategoryId) return category;
 
-                console.log(newData)
-
-                const newBlock: GetAddedBlockType = {
-                    blockId: newData.blockId,
+                const newBlock: GetBlockItemType = {
+                    blockId: snowflake.gen(),
                     label: newData.label,
                     description: newData.description,
                     icon: newData.icon,
@@ -243,6 +260,8 @@ export default function CharacterTemplate() {
         setActiveBlock(newData.blockId);
 
         // SAVE TO API
+
+        return true;
     };
 
     const handleAddRow = (): void => {
@@ -281,17 +300,39 @@ export default function CharacterTemplate() {
         // SAVE TO API
     };
 
-    const handleAddField = (rowId: string, newData: NewFieldData): void => {
-        if (!activeBlock) return;
+    const handleAddField = (rowId: string, newData: NewFieldData): boolean => {
+        if (!activeBlock) return false;
+
+        if (!newData.id.trim()) {
+            toast.show("Field ID is required", { type: "error" });
+            return false;
+        }
 
         const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
         const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
         const targetBlock = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
         const targetRow = targetBlock?.rows.find((r) => r.rowId === rowId);
 
-        if (targetRow && (targetRow.fields || []).length >= 5) {
+        if (!targetRow) return false;
+
+        const existingFields = targetRow.fields || [];
+
+        if (existingFields.length >= 5) {
             toast.show("A row cannot contain more than 5 fields", { type: "error" });
-            return;
+            return false;
+        }
+
+        const isDuplicateId = data.some((category) =>
+            category.blocks.some((block) =>
+                block.rows.some((row) =>
+                    (row.fields || []).some((field) => field.fieldId === newData.id)
+                )
+            )
+        );
+
+        if (isDuplicateId) {
+            toast.show(`A field with ID "${newData.id}" already exists`, { type: "error" });
+            return false;
         }
 
         setData((prev: GetCategoryType[]) =>
@@ -308,7 +349,6 @@ export default function CharacterTemplate() {
                             rows: block.rows.map((row) => {
                                 if (row.rowId !== rowId) return row;
 
-                                const existingFields = row.fields || [];
                                 const newField: GetFieldType = {
                                     fieldId: newData.id,
                                     type: newData.type,
@@ -341,6 +381,8 @@ export default function CharacterTemplate() {
         );
 
         // SAVE TO API
+
+        return true;
     };
 
     const handleDragStart = (event: DragStartEvent): void => {
@@ -529,14 +571,14 @@ export default function CharacterTemplate() {
                                 return block;
                             };
 
-                            const oldIndex = targetRow.fields.findIndex((f) => f.fieldId === activeIdVal);
-                            const newIndex = targetRow.fields.findIndex((f) => f.fieldId === overIdVal);
+                            const oldIndex = targetRow?.fields.findIndex((f) => f.fieldId === activeIdVal) || 0;
+                            const newIndex = targetRow?.fields.findIndex((f) => f.fieldId === overIdVal) || 0;
 
                             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                                 return {
                                     ...block,
                                     rows: block.rows.map((row) =>
-                                        row.rowId === targetRow.rowId
+                                        row.rowId === targetRow?.rowId
                                             ? { ...row, fields: arrayMove(row.fields, oldIndex, newIndex) }
                                             : row
                                     ),
@@ -694,13 +736,14 @@ export default function CharacterTemplate() {
                                                                                     className="absolute top-2 right-2 p-1 touch-none"
                                                                                     onClick={(e) => e.stopPropagation()}
                                                                                 >
+                                                                                    {/* DEVELOPER NEEDED: Add a context menu with "view, edit, delete, copyId" */}
                                                                                     <span className="text-lg leading-none font-nerdfont">
                                                                                         󰇘
                                                                                     </span>
                                                                                 </div>
                                                                                 
                                                                                 <img 
-                                                                                    className="h-20" 
+                                                                                    className="h-20 rounded" 
                                                                                     src={block?.icon} 
                                                                                     alt={block?.label} 
                                                                                 />
@@ -713,7 +756,7 @@ export default function CharacterTemplate() {
 
                                                                 <NewBlockModal 
                                                                     onAddBlock={handleAddBlock} 
-                                                                    initialCategory={currentCategory?.categoryId} 
+                                                                    types={currentCategory?.types ?? []} 
                                                                 />
 
                                                                 {(currentCategory?.blocks.length ?? 0) <= 32 && (
@@ -818,19 +861,20 @@ export default function CharacterTemplate() {
                                                                             </SortableContext>
                                                                         </FieldDropZone>
 
-                                                                        <button
-                                                                            className="btn btn-accent text-2xl w-10 mt-10"
-                                                                            onClick={() => {
-                                                                                if ((row.fields?.length || 0) >= 5) {
-                                                                                    toast.show("A row cannot contain more than 5 fields", { type: "error" });
-                                                                                    return;
-                                                                                }
-                                                                                setTargetRowId(row.rowId);
-                                                                                (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
-                                                                            }}
-                                                                        >
-                                                                            +
-                                                                        </button>
+                                                                        {(row.fields?.length ?? 0) < 5 && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    setTargetRowId(row.rowId);
+                                                                                    (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
+                                                                                }}
+                                                                                className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
+                                                                            >
+                                                                                <span className="font-nerdfont text-lg">
+                                                                                    
+                                                                                </span>
+                                                                            </button>
+                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </SortableItem>
@@ -839,10 +883,13 @@ export default function CharacterTemplate() {
                                                 </SortableContext>
 
                                                 <button
-                                                    className="btn btn-accent text-2xl w-full mt-2"
+                                                    type="button"
                                                     onClick={handleAddRow}
+                                                    className="cursor-pointer border-2 w-full mt-2 border-dashed border-base-300 rounded flex items-center justify-center py-2 transition-colors text-sm opacity-70 hover:opacity-100"
                                                 >
-                                                    +
+                                                    <span className="font-nerdfont text-xl">
+                                                        
+                                                    </span>
                                                 </button>
                                             </div>
                                         )}
@@ -896,14 +943,17 @@ export default function CharacterTemplate() {
                                             </SortableItem>
                                         ))}
 
-                                        <button 
-                                            className="btn btn-accent text-2xl w-full mt-2"
+                                        <button
+                                            type="button"
                                             onClick={() => {
                                                 const modal = document.getElementById("new-category") as HTMLDialogElement | null;
                                                 modal?.showModal();
                                             }}
+                                            className="cursor-pointer border-2 w-full mt-2 border-dashed border-base-300 rounded flex items-center justify-center py-2 transition-colors text-sm opacity-70 hover:opacity-100"
                                         >
-                                            +
+                                            <span className="font-nerdfont text-xl">
+                                                
+                                            </span>
                                         </button>
                                     </ul>
                                 </SortableContext>
