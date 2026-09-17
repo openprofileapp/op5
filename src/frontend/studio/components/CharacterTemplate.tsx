@@ -195,20 +195,10 @@ export default function CharacterTemplate() {
     }, []);
 
     const handleAddCategory = (newData: NewCategoryData): boolean => {
-        if (!newData.id.trim()) {
-            toast.show("Category ID is required", { type: "error" });
-            return false;
-        }
-
-        const isDuplicate = data.some((cat) => cat.categoryId === newData.id);
-
-        if (isDuplicate) {
-            toast.show(`A category with ID "${newData.id}" already exists`, { type: "error" });
-            return false;
-        }
+        const id = snowflake.gen();
 
         const newCategory: GetCategoryType = {
-            categoryId: newData.id,
+            categoryId: id,
             types: newData.types,
             label: newData.label || "Untitled",
             position: data.length ?? 0,
@@ -219,7 +209,7 @@ export default function CharacterTemplate() {
         };
 
         setData((prev) => [newCategory, ...prev]);
-        setActiveCategory(newData.id);
+        setActiveCategory(id);
         setActiveBlock(null);
 
         // SAVE TO API

@@ -1,12 +1,10 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Tooltip } from "../../../_common/components/Tooltip.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import { CategoryIdType, sortedCategories } from "../../../../_common/scripts/categories.js";
 
 export interface NewCategoryData {
-    id: string;
     label: string;
     types: CategoryIdType[];
 }
@@ -21,19 +19,16 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
 
     const [isLoading] = useState<boolean>(false);
 
-    const [id, setId] = useState<string>("");
     const [label, setLabel] = useState<string>("");
     const [types, setTypes] = useState<CategoryIdType[]>([]);
 
     function resetForm() {
         setLabel("");
-        setId("");
         setTypes([]);
     }
 
     function handleSave() {
         const payload: NewCategoryData = {
-            id,
             label,
             types
         };
@@ -91,36 +86,6 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
                         />
                     </div>
                     
-                    <div className="flex flex-col gap-1 mt-1">
-                        <label className="label flex gap-2">
-                            ID
-
-                            <Tooltip content={(
-                                <div className="flex flex-col gap-2 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
-                                    The ID should be human-readable for parsing and migration purposes.
-                                </div>
-                            )}>
-                                <span className="font-nerdfont text-sm"></span>
-                            </Tooltip>
-                        </label>
-
-                        <input
-                            type="text"
-                            className="input w-full"
-                            placeholder="What is the unique id for this category?"
-                            value={id}
-                            maxLength={64}
-                            onChange={(e) =>
-                                setId(
-                                    e.target.value
-                                        .toLowerCase()
-                                        .replace(/\s+/g, "-")
-                                        .replace(/[^a-z-]/g, "")
-                                )
-                            }
-                        />
-                    </div>
-
                     <div className="flex flex-col gap-1 mt-1">
                         <label className="label">
                             Block Types
