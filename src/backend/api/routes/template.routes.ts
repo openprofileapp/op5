@@ -6,6 +6,6 @@ import { templateDataController } from "../controllers/templates/data.controller
 const templateRoutes = Router();
 
 templateRoutes.get("/blocks", templateBlockController);
-templateRoutes.get("/rows/:blockId", templateDataController);
+templateRoutes.get("/data/:blockId", templateDataController);
 
 export default templateRoutes;

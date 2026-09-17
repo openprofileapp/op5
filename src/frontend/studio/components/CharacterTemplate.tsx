@@ -239,7 +239,7 @@ export default function CharacterTemplate() {
 
         if (newData.blockId) {
             try {
-                const res = await fetch(`${apiBaseUrl}/v3/templates/rows/${newData.blockId}`, {
+                const res = await fetch(`${apiBaseUrl}/v3/templates/data/${newData.blockId}`, {
                     credentials: "include",
                 });
 
