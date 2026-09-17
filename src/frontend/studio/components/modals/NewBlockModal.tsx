@@ -156,6 +156,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
         if (!selectedItem) return;
 
         const isSuccess = onAddBlock({
+            blockId: selectedItem.blockId,
             label: label.trim(),
             description: description.trim(),
             icon: previewUrl ?? "",
