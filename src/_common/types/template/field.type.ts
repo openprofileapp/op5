@@ -17,7 +17,22 @@ export type FieldNameType =
     | "spacer"
 ;
 
-export type FieldType = {
+export type TemplateFieldItemType = {
+    blockId: string;
+    fieldId: string;
+    rowId: string;
+    type: FieldNameType;
+    label?: string;
+    placeholder?: string;
+    options?: Record<string, string>[];
+    guide?: string;
+    isLocked: boolean;
+    position: number;
+    createdBy: string;
+    createdDate: string;
+}
+
+export type FieldItemType = {
     assetId: string;
     fieldId: string;
     rowId: string;
@@ -33,11 +48,25 @@ export type FieldType = {
     createdDate: string;
 }
 
-export type GetFieldType = Omit<
-    FieldType, 
-    "assetId" | "rowId"
+export type GetTemplateFieldItemType = Omit<
+    TemplateFieldItemType, 
+    "blockId" | "FieldId"
 > & {
     value?: GetValueType;
     notes: GetNoteType[];
     thoughts?: GetThoughtType;
 };
+
+export type GetFieldItemType = Omit<
+    FieldItemType, 
+    "assetId" | "FieldId"
+> & {
+    value?: GetValueType;
+    notes: GetNoteType[];
+    thoughts?: GetThoughtType;
+};
+
+export type GetFieldType = {
+    items: GetFieldItemType[],
+    count: number
+}
