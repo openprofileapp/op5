@@ -1,524 +1,181 @@
-import { useState, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Row } from "../CharacterTemplate.js";
-import { BlockType } from "../../../../_common/types/template/block.type.js";
+
+import { formatNumber } from "kage-library/client";
+
+import { CategoryIdType } from "../../../../_common/scripts/categories.js";
+import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
+import { toast } from "../../../_common/scripts/toast.js";
+import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
+import ImageInput from "../../../_common/components/ImageInput.js";
+import { GetBlockItemType, GetTemplateBlockType, TemplateBlockItemType } from "../../../../_common/types/template/block.type.js";
 
 type Screen = "menu" | "configure";
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const library: Record<string, BlockType[]> = {
-    identity: [
-        {
-            blockId: "legal",
-            label: "Legal",
-            description: "Legal name, living status, citizenship, and identifiers.",
-            icon: "https://openmoji.org/data/color/svg/1F9D1.svg",
-            source: "official",
-            uses: 100,
-            rows: [
-                {
-                    rowId: "full-name",
-                    type: "text",
-                    fields: [
-                        // Remove placeholders?
-                        // Maybe have fill in value variables where the user can link values from one field to another: {identity.legal.full-name.first-name}  
-                        { 
-                            fieldId: "first-name",
-                            type: "text",
-                            label: "First Name",
-                            placeholder: "What is {DISPLAY_NAME_POSSESSIVE} first name?",
-                            guide: "First names are generally given by parents or legal guardians. It could reflect something from their personalities or how they view {DISPLAY_NAME}.\n\nIt is recommended choosing a name that fits {DISPLAY_NAME_POSSESSIVE} ethnic background, social class, and birth era.\n\n[Learn more](https://support.openprofile.app/en-us/article/choosing-a-name)",
-                            // value: "Jane",
-                            // thoughts: "I've always wanted to get my name changed, but at the same time, I'm unsure. I wish I had a rarer name that stood out more, yk?",
-                            // comments: "This is an example of an author's BTS comment."
-                        },
-                        { 
-                            fieldId: "middle-name",
-                            type: "text",
-                            label: "Middle Name",
-                            placeholder: "What is {DISPLAY_NAME_POSSESSIVE} middle name?",
-                            guide: "Middle names aren't always required and are more often used for realism or an alternate calling.",
-                        },
-                        { 
-                            fieldId: "last-name",
-                            type: "text",
-                            label: "Last Name",
-                            placeholder: "What is {DISPLAY_NAME_POSSESSIVE} last name?",
-                            guide: "Last names typically reflect ancestral heritage, family history, or paternal lineage.",
-                        }
-                    ],
-                },
-                {
-                    rowId: "affixes",
-                    type: "text",
-                    fields: [
-                        { 
-                            fieldId: "prefix",
-                            type: "text",
-                            label: "Prefix / Title",
-                            placeholder: "e.g., Dr., Sir, Lady, Hon.",
-                            guide: "Formal honorific, academic, or noble title preceding {DISPLAY_NAME_POSSESSIVE} name.",
-                        },
-                        { 
-                            fieldId: "suffix",
-                            type: "text",
-                            label: "Suffix",
-                            placeholder: "e.g., Jr., III, Esq., PhD",
-                            guide: "Generational designation, lineage numeral, or post-nominal professional title.",
-                        },
-                        {
-                            fieldId: "maiden-name",
-                            type: "text",
-                            label: "Maiden Name",
-                            placeholder: "Does the {DISPLAY_NAME} have a legal maiden name?",
-                            guide: "Lastname held prior to legal changes such as marriage.",
-                        },
-                    ],
-                },
-                {
-                    rowId: "lifespan",
-                    type: "text",
-                    fields: [
-                        {
-                            fieldId: "date-of-birth",
-                            type: "text",
-                            label: "Date of Birth",
-                            placeholder: "When was {DISPLAY_NAME} born?",
-                            guide: "The official birth date recorded on {DISPLAY_NAME_POSSESSIVE} birth certificate or legal ledger.",
-                        },
-                        {
-                            fieldId: "chronological-age",
-                            type: "text",
-                            label: "Age",
-                            placeholder: "How old is {DISPLAY_NAME}?",
-                            guide: "The actual number of years {DISPLAY_NAME} has existed between birth and death.",
-                        },
-                        {
-                            fieldId: "date-of-death",
-                            type: "text",
-                            label: "Date of Death",
-                            placeholder: "When did {DISPLAY_NAME} pass away?",
-                            guide: "The official death date recorded on {DISPLAY_NAME_POSSESSIVE} death certificate or legal ledger.",
-                        },
-                    ],
-                },
-                {
-                    rowId: "lifespan-places",
-                    type: "text",
-                    fields: [
-                        {
-                            fieldId: "place-of-birth",
-                            type: "text",
-                            label: "Place of Birth",
-                            placeholder: "Where was {DISPLAY_NAME} born?",
-                            guide: "City, nation, or region of birth recorded in official records.",
-                        },
-                        {
-                            fieldId: "place-of-death",
-                            type: "text",
-                            label: "Place of Death",
-                            placeholder: "Where was {DISPLAY_NAME} found deceased?",
-                            guide: "City, nation, or region of death recorded in official records.",
-                        },
-                    ],
-                },
-                {
-                    rowId: "citizenship",
-                    type: "text",
-                    fields: [
-                        {
-                            fieldId: "nationality",
-                            type: "dropdown",
-                            label: "Country of Citizenship",
-                            guide: "The country where {DISPLAY_NAME} holds legal citizenship. If multi-nationality, add all of them",
-                            options: [
-                                "Afghanistan",
-                                "Albania",
-                                "Algeria",
-                                "Andorra",
-                                "Angola",
-                                "Antigua and Barbuda",
-                                "Argentina",
-                                "Armenia",
-                                "Australia",
-                                "Austria",
-                                "Azerbaijan",
-                                "Bahamas",
-                                "Bahrain",
-                                "Bangladesh",
-                                "Barbados",
-                                "Belarus",
-                                "Belgium",
-                                "Belize",
-                                "Benin",
-                                "Bhutan",
-                                "Bolivia",
-                                "Bosnia and Herzegovina",
-                                "Botswana",
-                                "Brazil",
-                                "Brunei",
-                                "Bulgaria",
-                                "Burkina Faso",
-                                "Burundi",
-                                "Cabo Verde",
-                                "Cambodia",
-                                "Cameroon",
-                                "Canada",
-                                "Central African Republic",
-                                "Chad",
-                                "Chile",
-                                "China",
-                                "Colombia",
-                                "Comoros",
-                                "Congo (Congo-Brazzaville)",
-                                "Costa Rica",
-                                "Croatia",
-                                "Cuba",
-                                "Cyprus",
-                                "Czechia (Czech Republic)",
-                                "Democratic Republic of the Congo",
-                                "Denmark",
-                                "Djibouti",
-                                "Dominica",
-                                "Dominican Republic",
-                                "Ecuador",
-                                "Egypt",
-                                "El Salvador",
-                                "Equatorial Guinea",
-                                "Eritrea",
-                                "Estonia",
-                                "Eswatini",
-                                "Ethiopia",
-                                "Fiji",
-                                "Finland",
-                                "France",
-                                "Gabon",
-                                "Gambia",
-                                "Georgia",
-                                "Germany",
-                                "Ghana",
-                                "Greece",
-                                "Grenada",
-                                "Guatemala",
-                                "Guinea",
-                                "Guinea-Bissau",
-                                "Guyana",
-                                "Haiti",
-                                "Holy See (Vatican City)",
-                                "Honduras",
-                                "Hong Kong",
-                                "Hungary",
-                                "Iceland",
-                                "India",
-                                "Indonesia",
-                                "Iran",
-                                "Iraq",
-                                "Ireland",
-                                "Israel",
-                                "Italy",
-                                "Ivory Coast (Cote d'Ivoire)",
-                                "Jamaica",
-                                "Japan",
-                                "Jordan",
-                                "Kazakhstan",
-                                "Kenya",
-                                "Kiribati",
-                                "Kuwait",
-                                "Kyrgyzstan",
-                                "Laos",
-                                "Latvia",
-                                "Lebanon",
-                                "Lesotho",
-                                "Liberia",
-                                "Libya",
-                                "Liechtenstein",
-                                "Lithuania",
-                                "Luxembourg",
-                                "Macau",
-                                "Madagascar",
-                                "Malawi",
-                                "Malaysia",
-                                "Maldives",
-                                "Mali",
-                                "Malta",
-                                "Marshall Islands",
-                                "Mauritania",
-                                "Mauritius",
-                                "Mexico",
-                                "Micronesia",
-                                "Moldova",
-                                "Monaco",
-                                "Mongolia",
-                                "Montenegro",
-                                "Morocco",
-                                "Mozambique",
-                                "Myanmar (Burma)",
-                                "Namibia",
-                                "Nauru",
-                                "Nepal",
-                                "Netherlands",
-                                "New Zealand",
-                                "Nicaragua",
-                                "Niger",
-                                "Nigeria",
-                                "North Korea",
-                                "North Macedonia",
-                                "Norway",
-                                "Oman",
-                                "Pakistan",
-                                "Palau",
-                                "Palestine",
-                                "Panama",
-                                "Papua New Guinea",
-                                "Paraguay",
-                                "Peru",
-                                "Philippines",
-                                "Poland",
-                                "Portugal",
-                                "Puerto Rico",
-                                "Qatar",
-                                "Romania",
-                                "Russia",
-                                "Rwanda",
-                                "Saint Kitts and Nevis",
-                                "Saint Lucia",
-                                "Saint Vincent and the Grenadines",
-                                "Samoa",
-                                "San Marino",
-                                "Sao Tome and Principe",
-                                "Saudi Arabia",
-                                "Senegal",
-                                "Serbia",
-                                "Seychelles",
-                                "Sierra Leone",
-                                "Singapore",
-                                "Slovakia",
-                                "Slovenia",
-                                "Solomon Islands",
-                                "Somalia",
-                                "South Africa",
-                                "South Korea",
-                                "South Sudan",
-                                "Spain",
-                                "Sri Lanka",
-                                "Sudan",
-                                "Suriname",
-                                "Sweden",
-                                "Switzerland",
-                                "Syria",
-                                "Taiwan",
-                                "Tajikistan",
-                                "Tanzania",
-                                "Thailand",
-                                "Timor-Leste",
-                                "Togo",
-                                "Tonga",
-                                "Trinidad and Tobago",
-                                "Tunisia",
-                                "Turkey",
-                                "Turkmenistan",
-                                "Tuvalu",
-                                "Uganda",
-                                "Ukraine",
-                                "United Arab Emirates",
-                                "United Kingdom",
-                                "United States",
-                                "Uruguay",
-                                "Uzbekistan",
-                                "Vanuatu",
-                                "Venezuela",
-                                "Vietnam",
-                                "Yemen",
-                                "Zambia",
-                                "Zimbabwe"
-                            ]
-                        },
-                        {
-                            fieldId: "identification",
-                            type: "text",
-                            label: "Identification Number",
-                            placeholder: "",
-                            guide: "The primary identifier used by authorities to track {DISPLAY_NAME_POSSESSIVE} legal status.\n\n- **Passport Numbers:** International (e.g. A12345678), US/UK (9 digits)\n- **National IDs:** EU / Global ID (Alphanumeric), India Aadhaar (12 digits), Mexico CURP (18 chars), China National ID (18 chars), Japan My Number (12 digits)\n- **Tax & Social Security Numbers:** US SSN (XXX-XX-XXXX), UK NINO (e.g. QQ123456A), Canada SIN (XXX-XXX-XXX), Brazil CPF (XXX.XXX.XXX-XX), France NIR (15 digits), Germany Steuer-ID (11 digits), Australia TFN (9 digits)",
-                        }
-                    ],
-                },
-            ]
-        },
-
-
-
-
-
-
-// add preffered name
-//   DISPALY NAME GUIDE: "A name, at first glance, gives personality to an outsider, so pick one that truely defines your character!\n\n[Need help?](https://support.openprofile.app/en-us/article/choosing-a-name)",
-
-    ],
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export interface NewBlockData {
-    blockId: string;
-    label: string;
-    description?: string;
-    icon?: string;
-    source?: "official" | "addon";
-    rows?: Row[];
-}
-
 interface NewBlockModalProps {
-    onAddBlock: (data: NewBlockData) => void;
-    initialCategory: string;
+    onAddBlock: (data: Partial<GetBlockItemType>) => boolean;
+    types: CategoryIdType[];
 }
 
-export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockModalProps) {
+export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps) {
     const { t, ready: isTranslationReady } = useTranslation();
+    const modalRef = useRef<HTMLDialogElement>(null);
 
     const [screen, setScreen] = useState<Screen>("menu");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterSort, setFilterSort] = useState("popular-desc");
-    const [selectedItem, setSelectedItem] = useState<BlockLibraryItem | null>(null);
-    const [blockLabel, setBlockLabel] = useState("");
-    const [blockId, setBlockId] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+    const [sortBy, setSortBy] = useState("popularDesc");
 
-    const filteredItems = useMemo(() => {
-        const categoryItems = library[initialCategory] ?? [];
+    const [selectedItem, setSelectedItem] = useState<GetBlockItemType | null>(null);
 
-        return categoryItems
-            .filter((item) => {
-                const q = searchQuery.toLowerCase();
-                const matchesSearch =
-                    (item.label && item.label.toLowerCase().includes(q)) ||
-                    (item.description && item.description.toLowerCase().includes(q));
+    const [icon, setIcon] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string>("");
 
-                return matchesSearch;
-            })
-            .sort((a, b) => {
-                if (a.source === "official" && b.source !== "official") return -1;
-                if (a.source !== "official" && b.source === "official") return 1;
+    const [label, setLabel] = useState("");
+    const [description, setDescription] = useState("");
 
-                const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-                const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-                const popA = a.uses ?? 0;
-                const popB = b.uses ?? 0;
+    const [blocks, setBlocks] = useState<TemplateBlockItemType[]>([]);
+    const [count, setCount] = useState<number>(0);
 
-                switch (filterSort) {
-                    case "newest":
-                        return dateB - dateA;
-                    case "oldest":
-                        return dateA - dateB;
-                    case "popular-desc":
-                        if (popB !== popA) return popB - popA;
-                        return (a.label || "").localeCompare(b.label || "");
-                    case "popular-asc":
-                        if (popA !== popB) return popA - popB;
-                        return (a.label || "").localeCompare(b.label || "");
-                    case "name-asc":
-                        return (a.label || "").localeCompare(b.label || "");
-                    case "name-desc":
-                        return (b.label || "").localeCompare(a.label || "");
-                    case "updated":
-                    default:
-                        return dateB - dateA;
+    useEffect(() => {
+        const dialogEl = modalRef.current;
+        if (!dialogEl) return;
+
+        const observer = new MutationObserver(() => {
+            setIsOpen(dialogEl.hasAttribute("open"));
+        });
+
+        observer.observe(dialogEl, { attributes: true, attributeFilter: ["open"] });
+
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (searchQuery.trim() !== debouncedSearchQuery) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsSearching(true);
+        }
+
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery.trim());
+        }, 300);
+
+        return () => clearTimeout(handler);
+    }, [searchQuery, debouncedSearchQuery]);
+
+    useEffect(() => {
+        if (!isOpen || screen !== "menu") return;
+
+        const controller = new AbortController();
+
+        async function fetchblocks() {
+            if (debouncedSearchQuery) {
+                setIsSearching(true);
+            } else {
+                setIsLoading(true);
+            }
+
+            try {
+                const queryParams = new URLSearchParams({
+                    types: types.join(","),
+                    q: debouncedSearchQuery,
+                    sortBy: sortBy,
+                });
+
+                const res = await fetch(`${apiBaseUrl}/v3/templates/blocks?${queryParams.toString()}`, {
+                    credentials: "include",
+                    signal: controller.signal,
+                });
+
+                if (!res.ok) {
+                    toast.show("Failed to fetch blocks", { type: "error" });
+                    return;
                 }
-            });
-    }, [searchQuery, filterSort, initialCategory]);
 
-    function handleSelect(item: BlockLibraryItem) {
-        setSelectedItem(item);
-        setBlockLabel(item.label || "New Block");
-        setBlockId(`${item.id}-${Date.now().toString().slice(-4)}`);
+                const json: GetTemplateBlockType = await res.json();
+
+                setBlocks(json.items ?? []);
+                setCount(json.count ?? 0);
+            } catch (err: unknown) {
+                if ((err as Error).name !== "AbortError") {
+                    console.error(err);
+                }
+            } finally {
+                setIsLoading(false);
+                setIsSearching(false);
+            }
+        }
+
+        fetchblocks();
+
+        return () => {
+            controller.abort();
+        };
+    }, [isOpen, screen, debouncedSearchQuery, sortBy, types]);
+
+    function handleSelect(item?: GetBlockItemType) {
+        setIcon(null);
+        if (item) {
+            setSelectedItem(item);
+            setPreviewUrl(item.icon ? `${cdnBaseUrl}${item.icon}` : "");
+            setLabel(item.label || "");
+            setDescription(item.description || "");
+        } else {
+            setSelectedItem({
+                icon: "",
+                label: "",
+                description: "",
+                rows: [],
+            } as unknown as GetBlockItemType);
+            
+            setPreviewUrl("");
+            setLabel("");
+            setDescription("");
+        }
         setScreen("configure");
     }
 
     function resetForm() {
         setScreen("menu");
         setSelectedItem(null);
-        setBlockLabel("");
-        setBlockId("");
+        setIcon(null);
+        setPreviewUrl("");
+        setLabel("");
+        setDescription("");
         setSearchQuery("");
-        setFilterSort("popular-desc");
+        setDebouncedSearchQuery("");
+        setSortBy("popularDesc");
+        setIsOpen(false);
     }
 
     function handleSave() {
         if (!selectedItem) return;
 
-        const finalLabel = blockLabel.trim() || selectedItem.label || "New Block";
-        const finalId = blockId.trim() || `${selectedItem.id}-${Date.now()}`;
-
-        onAddBlock({
-            blockId: finalId,
-            label: finalLabel,
-            description: selectedItem.description,
-            icon: selectedItem.icon,
-            source: selectedItem.source,
-            rows: selectedItem.rows,
+        const isSuccess = onAddBlock({
+            label: label.trim(),
+            description: description.trim(),
+            icon: previewUrl ?? "",
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            rows: selectedItem?.rows ?? [],
         });
 
-        const modal = document.getElementById("new-block") as HTMLDialogElement | null;
-        modal?.close();
-        resetForm();
+        if (isSuccess) {
+            modalRef.current?.close();
+            resetForm();
+        }
     }
 
     if (!isTranslationReady) return null;
 
+    const showLoadingState = isLoading || isSearching;
+
     return (
-        <dialog id="new-block" className="modal" onClose={resetForm}>
+        <dialog id="new-block" ref={modalRef} className="modal" onClose={resetForm}>
             <div 
                 className={`modal-box flex flex-col relative 
                     ${screen === "menu" ? "max-w-245" : "max-w-md"}
@@ -544,15 +201,14 @@ export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockM
                     </button>
                 )}
 
-                <div className="mb-6 text-center mt-2">
-                    <h3 className="text-2xl font-bold">
+                <div className="absolute top-12 left-6 right-6 md:relative md:top-0 md:right-0 md:left-0 pointer-events-none mb-6">
+                    <h3 className="font-nerdfont text-6xl text-center mb-4">
+                        {screen === "menu" ? "" : ""}
+                    </h3>
+
+                    <h3 className="text-center text-2xl font-bold">
                         {screen === "menu" ? "Add New Block" : "Configure Block"}
                     </h3>
-                    <p className="text-sm text-sub mt-1">
-                        {screen === "menu"
-                            ? "Browse and select a block template from the library"
-                            : "Customize the label and unique ID for this block."}
-                    </p>
                 </div>
 
                 {screen === "menu" && (
@@ -573,132 +229,156 @@ export default function NewBlockModal({ onAddBlock, initialCategory }: NewBlockM
 
                             <fieldset className="fieldset shrink-0 w-full sm:w-60">
                                 <legend className="fieldset-legend">Filter</legend>
-                                <select
-                                    value={filterSort}
-                                    onChange={(e) => setFilterSort(e.target.value)}
-                                    className="select w-full"
-                                >
-                                    <option value="updated">Recently Updated</option>
-                                    <option value="newest">Newest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="popular-desc">Most Popular</option>
-                                    <option value="popular-asc">Least Popular</option>
-                                    <option value="name-asc">Name (A-Z)</option>
-                                    <option value="name-desc">Name (Z-A)</option>
-                                </select>
+                                <TypeableDropdownInput
+                                    value={sortBy}
+                                    options={[
+                                        { id: "popularDesc", name: "Most Popular" },
+                                        { id: "popularAsc", name: "Least Popular" },
+                                        { id: "newest", name: "Newest First" },
+                                        { id: "oldest", name: "Oldest First" },
+                                        { id: "nameAsc", name: "Name (A-Z)" },
+                                        { id: "nameDesc", name: "Name (Z-A)" }
+                                    ]}
+                                    placeholder="Filter Results"
+                                    typeable={false}
+                                    onChange={(id) => setSortBy(id as string)}
+                                />
                             </fieldset>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto p-1">
-                            {filteredItems.map((item) => (
-                                <button
-                                    key={item.id}
-                                    type="button"
-                                    className="aspect-square relative flex flex-col items-center justify-center p-3 bg-base-200 hover:bg-base-300 border border-base-300 rounded shadow-xs cursor-pointer text-center group"
-                                    onClick={() => handleSelect(item)}
-                                >
-                                    {item.source !== "official" && (
-                                        <div
-                                            className="absolute top-2 left-4 tooltip tooltip-accent"
-                                            data-tip="Addon"
-                                        >
-                                            <div>
-                                                <span className="font-nerdfont leading-none text-sm mr-2">
-                                                    󰐱
-                                                </span>
-                                                <span className="text-xs">{item.pack}</span>
-                                            </div>
-                                        </div>
-                                    )}
+                        {showLoadingState && (
+                            <div className="col-span-full py-16 text-center text-sub flex flex-col items-center gap-2">
+                                <span className="loading loading-spinner loading-lg"></span>
+                                <span>{isSearching ? "Searching blocks..." : "Loading blocks..."}</span>
+                            </div>
+                        )}
 
-                                    <img
-                                        className="h-16 w-16 object-contain"
-                                        src={
-                                            item.icon ||
-                                            "https://openmoji.org/data/color/svg/2728.svg"
-                                        }
-                                        alt={item.label || "Block"}
-                                    />
-
-                                    <span className="text-base font-semibold mt-2">
-                                        {item.label}
-                                    </span>
-                                    {item.description && (
-                                        <span className="text-xs text-sub mt-1 line-clamp-2">
-                                            {item.description}
+                        {!showLoadingState && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto p-1">
+                                {!searchQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSelect()}
+                                        className="cursor-pointer border-2 aspect-square h-full w-full border-dashed border-base-300 rounded flex items-center justify-center py-3 transition-colors text-sm opacity-70 hover:opacity-100"
+                                    >
+                                        <span className="font-nerdfont text-3xl">
+                                            
                                         </span>
-                                    )}
+                                    </button>
+                                )}
+                                
+                                {blocks.map((item) => (
+                                    <button
+                                        key={item.blockId}
+                                        type="button"
+                                        className="aspect-square w-full relative flex flex-col justify-between items-center p-4 bg-base-200 hover:bg-[#151515] border border-base-300 rounded cursor-pointer text-center group overflow-hidden"
+                                        onClick={() => handleSelect(item)}
+                                    >
+                                        {item.source === "official" && (
+                                            <div className="absolute top-1 left-1">
+                                                <span className="flex gap-2 text-xs font-medium rounded-br items-center px-3 py-1.5">
+                                                    <span className="font-nerdfont leading-none text-sm">
+                                                        󰏔
+                                                    </span>
 
-                                    <div className="absolute bottom-2 left-4">
-                                        <div>
-                                            <span className="font-nerdfont leading-none text-sm mr-2">
-                                                󱔗
+                                                    {formatNumber(item.addedCount || 0).short}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex flex-col items-center justify-center my-auto w-full">
+                                            {item.icon && (
+                                                <img
+                                                    className="h-18 w-18 object-contain"
+                                                    src={`${cdnBaseUrl}${item.icon}`}
+                                                    alt="icon"
+                                                />
+                                            )}
+
+                                            <span className="text-base font-semibold mt-1">
+                                                {item.label}
                                             </span>
-                                            <span className="text-xs">Added to {item.uses} template{item.uses !== 1 ? "s" : ""}</span>
+                                            {item.description && (
+                                                <span className="text-xs text-sub mt-1 line-clamp-4">
+                                                    {item.description}
+                                                </span>
+                                            )}
                                         </div>
-                                    </div>
-                                </button>
-                            ))}
+                                    </button>
+                                ))}
 
-                            {filteredItems.length === 0 && (
-                                <div className="col-span-full py-12 text-center text-sub">
-                                    No blocks found matching "{searchQuery}"
-                                </div>
-                            )}
-                        </div>
+                                {searchQuery && blocks.length === 0 && (
+                                    <div className="col-span-full py-12 text-center text-sub">
+                                        {`No blocks found matching "${debouncedSearchQuery}"`}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </>
                 )}
 
                 {screen === "configure" && selectedItem && (
                     <div className="flex flex-col gap-6 py-4 max-w-md mx-auto w-full">
-                        {/* Selected Template Preview */}
-                        <div className="flex items-center gap-4 p-4 bg-base-200 border border-base-300 rounded-lg">
-                            <img
-                                className="h-12 w-12 object-contain shrink-0"
-                                src={
-                                    selectedItem.icon ||
-                                    "https://openmoji.org/data/color/svg/2728.svg"
-                                }
-                                alt={selectedItem.label}
-                            />
-                            <div className="flex flex-col text-left">
-                                <span className="text-xs text-sub uppercase font-semibold">
-                                    Template
-                                </span>
-                                <span className="font-bold text-lg">
-                                    {selectedItem.label}
-                                </span>
-                            </div>
-                        </div>
-
                         <div className="flex flex-col gap-4">
-                            <fieldset className="fieldset">
-                                <legend className="fieldset-legend">Block Title</legend>
-                                <input
-                                    type="text"
-                                    className="input input-bordered w-full"
-                                    placeholder="Block Title / Name"
-                                    value={blockLabel}
-                                    onChange={(e) => setBlockLabel(e.target.value)}
-                                />
-                            </fieldset>
+                            <fieldset className="fieldset w-full">
+                                <div className="flex flex-col justify-center items-center gap-1 mt-1">
+                                    <label className="label self-start">
+                                        Icon
+                                    </label>
 
-                            <fieldset className="fieldset">
-                                <legend className="fieldset-legend">Block Unique ID</legend>
-                                <input
-                                    type="text"
-                                    className="input input-bordered w-full font-mono text-sm"
-                                    placeholder="Block ID (e.g., legal-identity-1)"
-                                    value={blockId}
-                                    onChange={(e) =>
-                                        setBlockId(
-                                            e.target.value.toLowerCase().replace(/\s+/g, "-")
-                                        )
-                                    }
-                                />
+                                    <div className="flex justify-center items-center w-full my-2">
+                                        <ImageInput
+                                            className="aspect-square h-24 w-24"
+                                            value={icon}
+                                            defaultUrl={previewUrl}
+                                            onChange={(file, base64Url) => {
+                                                if (file && file.size > 1 * 1024 * 1024) {
+                                                    toast.show("File is too large (1 MB maximum)", { type: "error" });
+                                                    return;
+                                                }
+
+                                                setIcon(file);
+                                                setPreviewUrl(base64Url || "");
+                                            }}
+                                            accept="image/png, image/jpeg, image/jpg, image/svg+xml"
+                                            label="icon"
+                                            skipCrop={true}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-1 mt-1">
+                                    <label className="label">
+                                        Label
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        placeholder="What does this block cover?"
+                                        value={label}
+                                        maxLength={64}
+                                        onChange={(e) => setLabel(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-1 mt-1">
+                                    <label className="label">
+                                        Description
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        placeholder="Add a short description..."
+                                        value={description}
+                                        maxLength={64}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                    />
+                                </div>
                             </fieldset>
                         </div>
-
+                        
                         <button
                             type="button"
                             onClick={handleSave}
