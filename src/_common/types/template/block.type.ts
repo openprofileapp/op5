@@ -1,11 +1,11 @@
-import { CategoryNameType } from "../../scripts/categories.js";
+import { CategoryIdType } from "../../scripts/categories.js";
 import { VisibilityType } from "../visibility.type.js";
 import { GetRowType } from "./row.type.js";
 
-export type BlockType = {
+export type TemplateBlockItemType = {
     blockId: string;
     ownerId: string;
-    categoryType: CategoryNameType;
+    categoryType: CategoryIdType;
     icon?: string;
     label?: string;
     description?: string;
@@ -21,15 +21,8 @@ export type BlockType = {
     createdDate: string;
 }
 
-export type GetBlockType = Omit<
-    BlockType, 
-    "ownerId"
-> & {
-    rows: GetRowType[];
-};
-
-export type AddedBlockType = Omit<
-    BlockType,
+export type BlockItemType = Omit<
+    TemplateBlockItemType,
     | "ownerId"
     | "categoryType"
     | "tags"
@@ -51,9 +44,19 @@ export type AddedBlockType = Omit<
     lastEditedDate: string;
 };
 
-export type GetAddedBlockType = Omit<
-    AddedBlockType, 
+export type GetBlockItemType = Omit<
+    BlockItemType, 
     "assetId" | "categoryId"
 > & {
     rows: GetRowType[];
 };
+
+export type GetTemplateBlockType = {
+    items: TemplateBlockItemType[],
+    count: number
+}
+
+export type GetBlockType = {
+    items: GetBlockItemType[],
+    count: number
+}
