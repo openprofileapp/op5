@@ -1,11 +1,11 @@
 import { Router } from "express";
 
 import { templateBlockController } from "../controllers/templates/block.controller.js";
-import { templateRowController } from "../controllers/templates/row.controller.js";
+import { templateDataController } from "../controllers/templates/data.controller.js";
 
 const templateRoutes = Router();
 
 templateRoutes.get("/blocks", templateBlockController);
-templateRoutes.get("/rows/:blockId", templateRowController);
+templateRoutes.get("/rows/:blockId", templateDataController);
 
 export default templateRoutes;
