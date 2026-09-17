@@ -8,16 +8,7 @@ export const library: Record<string, GetAddedBlockType[]> = {
                     fields: [
                         // Remove placeholders?
                         // Maybe have fill in value variables where the user can link values from one field to another: {identity.legal.full-name.first-name}  
-                        { 
-                            fieldId: "first-name",
-                            type: "text",
-                            label: "First Name",
-                            placeholder: "What is {DISPLAY_NAME_POSSESSIVE} first name?",
-                            guide: "First names are generally given by parents or legal guardians. It could reflect something from their personalities or how they view {DISPLAY_NAME}.\n\nIt is recommended choosing a name that fits {DISPLAY_NAME_POSSESSIVE} ethnic background, social class, and birth era.\n\n[Learn more](https://support.openprofile.app/en-us/article/choosing-a-name)",
-                            // value: "Jane",
-                            // thoughts: "I've always wanted to get my name changed, but at the same time, I'm unsure. I wish I had a rarer name that stood out more, yk?",
-                            // comments: "This is an example of an author's BTS comment."
-                        },
+
                         { 
                             fieldId: "middle-name",
                             type: "text",
