@@ -77,10 +77,10 @@ export default function TemplateField({
     ): string => {
         if (!target) return "";
         if (Array.isArray(target)) {
-            return target[0]?.text ?? "";
+            return target[0]?.content ?? "";
         }
         if (typeof target === "object" && target !== null) {
-            return target.text ?? "";
+            return target.content ?? "";
         }
         return String(target);
     };
