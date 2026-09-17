@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { FieldNameType } from "../../../../_common/types/template/field.type.js";
@@ -105,11 +105,12 @@ export interface NewFieldData {
 
 interface Props {
     targetRowId: string;
-    onAddField: (targetRowId: string, data: NewFieldData) => void;
+    onAddField: (targetRowId: string, data: NewFieldData) => boolean;
 }
 
 export default function NewFieldModal({ targetRowId, onAddField }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
+    const modalRef = useRef<HTMLDialogElement>(null);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -122,9 +123,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
     const [placeholder, setPlaceholder] = useState<string>("");
     const [options, setOptions] = useState<Record<string, string>[]>([]);
     const [guide, setGuide] = useState<string>("");
-    const [value, setValue] = useState<string>("")
-
-    const modal = document.getElementById("new-field") as HTMLDialogElement;
+    const [value, setValue] = useState<string>("");
 
     function go(type: FieldNameType) {
         setType(type);
@@ -155,22 +154,22 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
             value
         };
 
-        onAddField(
-            targetRowId, 
-            payload
-        );
+        const isSuccess = onAddField(targetRowId, payload);
 
-        modal?.close();
-
-        resetForm();
+        if (isSuccess) {
+            // Close modal only on success; onClose event fires naturally and triggers resetForm()
+            modalRef.current?.close();
+        }
     }
 
     if (!isTranslationReady) return null;
 
     return (
         <dialog 
+            ref={modalRef}
             className="modal"
             id="new-field"
+            onClose={resetForm}
         >
             <div className={`modal-box flex flex-col max-h-[650px] ${index.length > 5 && screen === "menu" ? "max-w-245" : ""}`}>
                 <form method="dialog">
@@ -219,9 +218,9 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
                                 index.length > 5 ? "grid-cols-2" : "grid-cols-1"
                             }`}
                         >
-                            {index.map((item, index) => (
+                            {index.map((item, idx) => (
                                 <button
-                                    key={index}
+                                    key={idx}
                                     type="button"
                                     className={`
                                         btn bg-base-100 border border-base-300 gap-4 h-16
