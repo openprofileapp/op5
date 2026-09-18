@@ -21,6 +21,7 @@ interface TypeableDropdownInputProps {
     value?: DropdownOptionValue | DropdownOptionValue[];
     options?: DropdownOptionsType;
     placeholder?: string;
+    largeText?: boolean;
     typeable?: boolean;
     multiple?: boolean;
     title?: string;
@@ -35,6 +36,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     value = "",
     options = [],
     placeholder,
+    largeText = false,
     typeable = true,
     multiple = false,
     title,
@@ -418,12 +420,12 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 }
                 className={
                     isMobile
-                        ? "flex scrollbar flex-col w-full h-full min-h-0 overflow-y-auto text-sm overscroll-contain"
-                        : "flex flex-col z-[2147483647] max-h-80 overflow-y-auto rounded-md bg-base-200 border border-base-300 shadow-2xl text-sm focus:outline-none overscroll-contain"
+                        ? `flex scrollbar flex-col w-full h-full min-h-0 overflow-y-auto ${largeText ? "text-base" : "text-sm"} overscroll-contain`
+                        : `flex flex-col z-[2147483647] max-h-80 overflow-y-auto rounded-md bg-base-200 border border-base-300 shadow-2xl ${largeText ? "text-base" : "text-sm"} focus:outline-none overscroll-contain`
                 }
             >
                 {groupedFilteredOptions.length === 0 ? (
-                    <li className="flex items-center px-4 h-10 min-h-10 text-sm text-sub w-full text-left">
+                    <li className={`flex items-center px-4 h-10 min-h-10 ${largeText ? "text-base" : "text-sm"} text-sub w-full text-left`}>
                         No matching options
                     </li>
                 ) : (
@@ -447,7 +449,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                         data-option-index={currentIndex}
                                         role="option"
                                         aria-selected={isSelected}
-                                        className="flex items-center w-full h-10 min-h-10 text-sm shrink-0"
+                                        className={`flex items-center w-full h-10 min-h-10 ${largeText ? "text-base" : "text-sm"} shrink-0`}
                                         onMouseEnter={() => setHighlightedIndex(currentIndex)}
                                     >
                                         {multiple ? (
@@ -493,7 +495,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         >
             <div className="relative w-full flex flex-col">
                 <div
-                    className={`input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-auto py-1.5 pl-3 pr-10 text-sm flex flex-wrap items-center gap-1.5 focus-within:outline-none ${
+                    className={`input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-auto py-1.5 pl-3 pr-10 ${largeText ? "text-base" : "text-sm"} flex flex-wrap items-center gap-1.5 focus-within:outline-none ${
                         !typeable ? "cursor-pointer select-none" : ""
                     }`}
                     onClick={() => {
@@ -533,7 +535,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                         readOnly={!typeable}
                         value={inputValue}
                         placeholder={selectedValues.length > 0 ? "" : resolvedPlaceholder}
-                        className={`bg-transparent outline-none flex-1 min-w-[60px] text-sm ${
+                        className={`bg-transparent outline-none flex-1 min-w-[60px] ${largeText ? "text-base" : "text-sm"} ${
                             !typeable ? "cursor-pointer select-none caret-transparent" : ""
                         }`}
                         onChange={handleInputChange}
@@ -548,7 +550,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                     className="absolute right-0 top-0 h-10 flex items-center justify-center px-3 text-sub transition-colors cursor-pointer"
                 >
                     <span
-                        className={`font-nerdfont flex items-center justify-center text-sm leading-none h-4 w-4 transition-transform duration-200 ${
+                        className={`font-nerdfont flex items-center justify-center ${largeText ? "text-base" : "text-sm"} leading-none h-4 w-4 transition-transform duration-200 ${
                             isOpen ? "rotate-180" : ""
                         }`}
                     >
@@ -582,7 +584,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                     autoCorrect="off"
                                     autoCapitalize="off"
                                     spellCheck={false}
-                                    className="input input-bordered w-full text-sm text-left focus:outline-none shrink-0"
+                                    className={`input input-bordered w-full ${largeText ? "text-base" : "text-sm"} text-left focus:outline-none shrink-0`}
                                     placeholder="Search..."
                                     value={inputValue}
                                     onChange={handleInputChange}
