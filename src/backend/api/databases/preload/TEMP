@@ -7,13 +7,7 @@ export const library: Record<string, GetAddedBlockType[]> = {
                     type: "text",
                     fields: [
                         
-                        { 
-                            fieldId: "suffix",
-                            type: "text",
-                            label: "Suffix",
-                            placeholder: "e.g., Jr., III, Esq., PhD",
-                            guide: "Generational designation, lineage numeral, or post-nominal professional title.",
-                        },
+                        
                         {
                             fieldId: "maiden-name",
                             type: "text",
