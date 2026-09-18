@@ -1,5 +1,5 @@
 import { CategoryIdType } from "../../scripts/categories.js";
-import { GetAddedBlockType } from "./block.type.js";
+import { GetBlockType } from "./block.type.js";
 
 export type CategoryType = {
     assetId: string;
@@ -16,5 +16,5 @@ export type GetCategoryType = Omit<
     CategoryType, 
     "assetId"
 > & {
-    blocks: GetAddedBlockType[];
+    blocks: GetBlockType[];
 };

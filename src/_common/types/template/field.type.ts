@@ -1,3 +1,4 @@
+import { DropdownOptionsType } from "../dropdown.type.js";
 import { GetNoteType } from "./note.type.js";
 import { GetThoughtType } from "./thought.type.js";
 import { GetValueType } from "./value.type.js";
@@ -24,7 +25,7 @@ export type TemplateFieldItemType = {
     type: FieldNameType;
     label?: string;
     placeholder?: string;
-    options?: Record<string, string>[];
+    options?: DropdownOptionsType;
     guide?: string;
     isLocked: boolean;
     position: number;
@@ -39,7 +40,7 @@ export type FieldItemType = {
     type: FieldNameType;
     label?: string;
     placeholder?: string;
-    options?: Record<string, string>[];
+    options?: DropdownOptionsType;
     guide?: string;
     isLocked: boolean;
     position: number;
