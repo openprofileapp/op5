@@ -1,7 +1,7 @@
 export type TemplateValueType = {
     blockId: string;
     fieldId: string;
-    author: string;
+    authorId: string;
     content: string;
     date: string;
 }
@@ -9,7 +9,7 @@ export type TemplateValueType = {
 export type ValueType = {
     assetId: string;
     fieldId: string;
-    author: string;
+    authorId: string;
     content: string;
     date: string;
 }

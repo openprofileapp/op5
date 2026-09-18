@@ -1,6 +1,6 @@
 export type ThoughtType = {
     fieldId: string;
-    author: string;
+    authorId: string;
     text: string;
     lastEditedDate: string;
     createdDate: string;

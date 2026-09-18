@@ -1,6 +1,6 @@
 export type NoteType = {
     fieldId: string;
-    author: string;
+    authorId: string;
     text: string;
     position: number;
     isPinned: boolean;
