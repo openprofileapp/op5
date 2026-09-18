@@ -106,7 +106,7 @@
       "fileExtensions": ["db.migration.ts", "db.migration.js"]
     },
     {
-      "name": "migration",
+      "name": "preload",
       "base": "database",
       "color": "#7e57c2",
       "fileExtensions": ["db.preload.ts", "db.preload.js"]
