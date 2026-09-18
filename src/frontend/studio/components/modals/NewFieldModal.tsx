@@ -298,7 +298,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
                                         setId(
                                             e.target.value
                                             .toLowerCase()
-                                            .replace(/\s+/g, "-")
+                                            .replace(/\s+/g, "_")
                                             .replace(/[^a-z-]/g, "")
                                         )
                                     }
