@@ -1158,7 +1158,7 @@ export default function CharacterTemplate() {
                                 onClick={() => setIsPreviewMode(!isPreviewMode)}
                                 className=""
                             >
-                                <span className="flex h-8 w-4 leading-none items-center justify-center">
+                                <span className="flex h-8 w-4 leading-none items-center justify-center cursor-pointer mr-3">
                                     <span className="font-nerdfont text-xl">
                                         {isPreviewMode ? "󰈉" : "󰈈"}
                                     </span>
@@ -1352,7 +1352,7 @@ export default function CharacterTemplate() {
                                                                                                         return (
                                                                                                             <div 
                                                                                                                 {...fSortProps} 
-                                                                                                                className={`flex-1 min-w-0 ${fSortProps.className ?? ""}`}
+                                                                                                                className={`flex-${field.flex} min-w-0 ${fSortProps.className ?? ""}`}
                                                                                                             >
                                                                                                                 <TemplateField
                                                                                                                     id={field.fieldId}
