@@ -26,6 +26,7 @@ export const templateDataController = async (req: Request, res: Response) => {
                             'blockId', f.blockId,
                             'fieldId', f.fieldId,
                             'rowId', f.rowId,
+                            'flex', f.flex,
                             'type', f.type,
                             'label', f.label,
                             'placeholder', f.placeholder,

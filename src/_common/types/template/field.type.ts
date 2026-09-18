@@ -22,6 +22,7 @@ export type TemplateFieldItemType = {
     blockId: string;
     fieldId: string;
     rowId: string;
+    flex: number;
     type: FieldNameType;
     label?: string;
     placeholder?: string;
@@ -37,6 +38,7 @@ export type FieldItemType = {
     assetId: string;
     fieldId: string;
     rowId: string;
+    flex: number;
     type: FieldNameType;
     label?: string;
     placeholder?: string;

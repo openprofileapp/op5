@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS fields (
     blockId TEXT NOT NULL,
     fieldId TEXT PRIMARY KEY NOT NULL,
     rowId TEXT NOT NULL,
+    flex INTEGER NOT NULL DEFAULT 1,
     type TEXT,
     label TEXT,
     placeholder TEXT,
