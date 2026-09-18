@@ -59,6 +59,7 @@ export default function TemplateField({
 
     const [isFocused, setIsFocused] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
     // Normalize inputs into array of items for rendering tooltips
@@ -88,6 +89,14 @@ export default function TemplateField({
     const notesList = normalizeMetadataList(notes);
     const thoughtsList = normalizeMetadataList(thoughts);
     const displayValue = getValueString(value);
+
+    // Internal state synced to incoming displayValue prop to handle smooth local edits
+    const [localValue, setLocalValue] = useState(displayValue);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLocalValue(displayValue);
+    }, [displayValue]);
 
     useEffect(() => {
         if (isContextMenuOpen) {
@@ -188,19 +197,12 @@ export default function TemplateField({
     const renderInputContent = () => {
         switch (type) {
             case "media":
-                return (
-                    <MediaField 
-                        // MAKE ROW ID RANDOMIZED USING CLIENT TIMESTAMP; Remove row modal, add image media
-
-                        // DEVELOPER NEEDED: On upload, assign the file as base64 as value
-                        // onChange={(file, url) => handleMediaChange(row.rowId, file, url)}
-                    />
-                );
+                return <MediaField />;
 
             case "button":
                 return (
                     <a
-                        href={displayValue || "#"}
+                        href={localValue || "#"}
                         target="_blank"
                         rel="noreferrer"
                         className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
@@ -213,17 +215,18 @@ export default function TemplateField({
 
             case "dropdown":
                 return (
-                    <>
-                        <TypeableDropdownInput
-                            value={displayValue}
-                            options={(options as (string | DropdownOption)[]) || []}
-                            placeholder="Select or type..."
-                            onChange={(newValue) => onChange?.(newValue)}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onContextMenu={handleContextMenu}
-                        />
-                    </>
+                    <TypeableDropdownInput
+                        value={localValue}
+                        options={JSON.parse(options) || []}
+                        placeholder="Select or type..."
+                        onChange={(newValue) => {
+                            setLocalValue(String(newValue));
+                            onChange?.(newValue);
+                        }}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onContextMenu={handleContextMenu}
+                    />
                 );
 
             case "slider":
@@ -236,11 +239,14 @@ export default function TemplateField({
                             type="range"
                             min="0"
                             max="100"
-                            defaultValue={Number(displayValue) || 50}
+                            value={Number(localValue) || 50}
                             className="range range-accent range-sm w-full"
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
-                            onChange={(e) => onChange?.(e.target.value)}
+                            onChange={(e) => {
+                                setLocalValue(e.target.value);
+                                onChange?.(e.target.value);
+                            }}
                         />
                     </div>
                 );
@@ -253,13 +259,16 @@ export default function TemplateField({
                     >
                         <input
                             type="color"
-                            defaultValue={displayValue || "#3b82f6"}
+                            value={localValue || "#3b82f6"}
                             className="input input-bordered h-10 w-16 p-1 cursor-pointer bg-base-100 border border-base-300"
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
-                            onChange={(e) => onChange?.(e.target.value)}
+                            onChange={(e) => {
+                                setLocalValue(e.target.value);
+                                onChange?.(e.target.value);
+                            }}
                         />
-                        <span className="font-mono text-sm">{displayValue || "#3b82f6"}</span>
+                        <span className="font-mono text-sm">{localValue || "#3b82f6"}</span>
                     </div>
                 );
 
@@ -275,10 +284,13 @@ export default function TemplateField({
                                 type="radio"
                                 name={`rating-${id}`}
                                 className="mask mask-star-2 bg-orange-400"
-                                defaultChecked={Number(displayValue) === star}
+                                checked={Number(localValue) === star}
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
-                                onChange={() => onChange?.(star)}
+                                onChange={() => {
+                                    setLocalValue(String(star));
+                                    onChange?.(star);
+                                }}
                             />
                         ))}
                     </div>
@@ -294,19 +306,11 @@ export default function TemplateField({
                         tabIndex={0}
                     >
                         <span className="truncate text-sub">
-                            {displayValue || "Select Asset..."}
+                            {localValue || "Select Asset..."}
                         </span>
                         <span className="font-nerdfont text-lg"></span>
                     </div>
                 );
-
-                /*
-            case "spacer":
-                        return (
-                            <div className="flex items-center justify-center w-full py-4">
-                                <div className="border-t border-base-300 rounded-full w-full" />
-                            </div>
-                        );*/
 
             case "spacer":
                 return (
@@ -321,7 +325,7 @@ export default function TemplateField({
                     <textarea
                         className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
                         id={`template-field-${id}`}
-                        defaultValue={displayValue}
+                        value={localValue}
                         placeholder={
                             placeholder
                                 ?.replace("{DISPLAY_NAME}", "Alice")
@@ -331,7 +335,10 @@ export default function TemplateField({
                         spellCheck={false}
                         autoCorrect="off"
                         autoCapitalize="off"
-                        onChange={(e) => onChange?.(e.target.value)}
+                        onChange={(e) => {
+                            setLocalValue(e.target.value);
+                            onChange?.(e.target.value);
+                        }}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onMouseDown={(e) => {
@@ -359,7 +366,7 @@ export default function TemplateField({
 
     return (
         <div className="flex gap-3 w-full">
-            <ul
+                <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                 popover="manual"
                 id={`field-dropdown-${id}`}
@@ -902,48 +909,6 @@ export default function TemplateField({
                     )}
 
                     <span>{label}</span>
-
-                    <span
-                        className="tooltip hidden"
-                        data-tip="Assigned to AvatarKage"
-                    >
-                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </span>
-
-                    <span
-                        className="tooltip hidden"
-                        data-tip="Awaiting publisher review"
-                    >
-                        <span className="font-nerdfont text-xl text-info flex w-4 leading-none items-center justify-center">
-                            󱍸
-                        </span>
-                    </span>
-
-                    <span
-                        className="tooltip hidden"
-                        data-tip="Changes approved by J9 Studios"
-                    >
-                        <span className="font-nerdfont text-lg text-success flex w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </span>
-
-                    <span
-                        className="tooltip hidden"
-                        data-tip="Changes rejected by J9 Studios (awaiting author revision)"
-                    >
-                        <span className="font-nerdfont text-lg text-error flex w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </span>
-
-                    <span className="tooltip hidden" data-tip="Locked">
-                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </span>
 
                     <span className={`tooltip ${notesList.length > 0 ? "" : "hidden"}`}>
                         <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
