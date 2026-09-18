@@ -37,8 +37,8 @@ export type BlockItemType = Omit<
 > & {
     assetId: string;
     sourceBlockId?: string;
+    isSourceBlockConnected?: boolean;
     categoryId: string;
-    version?: string;
     position: number;
     createdBy: string;
     lastEditedDate: string;
