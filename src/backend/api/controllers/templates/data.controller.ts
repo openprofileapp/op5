@@ -44,6 +44,7 @@ export const templateDataController = async (req: Request, res: Response) => {
                                 ) 
                             END
                         )
+                        ORDER BY f.position ASC
                     )
                 END AS fields
             FROM rows r
