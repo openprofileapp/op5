@@ -328,8 +328,8 @@ export default function TemplateField({
                         value={localValue}
                         placeholder={
                             placeholder
-                                ?.replace("{DISPLAY_NAME}", "Alice")
-                                ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")
+                                ?.replace("{display_name}", "Alice")
+                                ?.replace("{display_name.possessive}", "Alice's")
                         }
                         rows={1}
                         spellCheck={false}
