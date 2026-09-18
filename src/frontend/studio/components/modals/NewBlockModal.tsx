@@ -159,7 +159,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
             blockId: selectedItem.blockId,
             label: label.trim(),
             description: description.trim(),
-            icon: previewUrl ?? "",
+            icon: previewUrl ?? null,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             rows: selectedItem?.rows ?? [],
