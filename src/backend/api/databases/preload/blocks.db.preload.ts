@@ -11,7 +11,7 @@ const index: Partial<TemplateBlockItemType>[] = [
         ownerId,
         categoryType: "identity",
         icon: "/graphics/openmoji/1F9D1.svg",
-        label: "Legal",
+        label: "General",
         description: "Legal name, living status, citizenship, and identifiers.",
         tags: JSON.stringify([]),
         source: "official",
