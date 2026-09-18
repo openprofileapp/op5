@@ -43,6 +43,7 @@ const index: Partial<TemplateFieldItemType>[] = [
         blockId: "93861942229209088",
         fieldId: "honorific",
         rowId: "93861942229209090",
+        flex: 1,
         type: "dropdown",
         label: "Honorific",
         placeholder: "What is {display_name.possessive} honorific?",
@@ -55,7 +56,7 @@ const index: Partial<TemplateFieldItemType>[] = [
                 { id: "mx", name: "Mx." },
                 { id: "master", name: "Master" }
             ],
-            "Academic & Professional": [
+            "Academic": [
                 { id: "doctor", name: "Doctor (Dr.)" },
                 { id: "professor", name: "Professor (Prof.)" }
             ],
@@ -64,29 +65,17 @@ const index: Partial<TemplateFieldItemType>[] = [
                 { id: "his_excellency", name: "His Excellency (H.E.)" },
                 { id: "her_excellency", name: "Her Excellency (H.E.)" }
             ],
-            "Royalty & Nobility": [
-                { id: "his_highness", name: "His Highness (H.H.)" },
-                { id: "her_highness", name: "Her Highness (H.H.)" },
+            "Royalty": [
                 { id: "his_majesty", name: "His Majesty (H.M.)" },
                 { id: "her_majesty", name: "Her Majesty (H.M.)" },
                 { id: "his_royal_highness", name: "His Royal Highness (H.R.H.)" },
                 { id: "her_royal_highness", name: "Her Royal Highness (H.R.H.)" },
+                { id: "his_highness", name: "His Highness (H.H.)" },
+                { id: "her_highness", name: "Her Highness (H.H.)" },
                 { id: "sir", name: "Sir" },
                 { id: "dame", name: "Dame" },
-                { id: "lady", name: "Lady" },
                 { id: "lord", name: "Lord" },
-                { id: "baron", name: "Baron" },
-                { id: "baroness", name: "Baroness" },
-                { id: "viscount", name: "Viscount" },
-                { id: "viscountess", name: "Viscountess" },
-                { id: "count", name: "Count" },
-                { id: "countess", name: "Countess" },
-                { id: "marquess", name: "Marquess" },
-                { id: "marchioness", name: "Marchioness" },
-                { id: "duke", name: "Duke" },
-                { id: "duchess", name: "Duchess" },
-                { id: "prince", name: "Prince" },
-                { id: "princess", name: "Princess" }
+                { id: "lady", name: "Lady" }
             ],
             "Religious": [
                 { id: "reverend", name: "Reverend (Rev.)" },
@@ -105,6 +94,98 @@ const index: Partial<TemplateFieldItemType>[] = [
         guide: "Honorifics are formal and societial prefixes preceding {display_name.possessive} name.",
         position: 0,
         createdBy
+    },
+    {
+        blockId: "93861942229209088",
+        fieldId: "title",
+        rowId: "93861942229209090",
+        flex: 1,
+        type: "dropdown",
+        label: "Title",
+        placeholder: "What is {display_name.possessive} official title or rank?",
+        options: {
+            "Monarchy": [
+                { id: "king", name: "King" },
+                { id: "queen", name: "Queen" },
+                { id: "prince", name: "Prince" },
+                { id: "princess", name: "Princess" },
+                { id: "duke", name: "Duke" },
+                { id: "duchess", name: "Duchess" },
+                { id: "marquess", name: "Marquess" },
+                { id: "marchioness", name: "Marchioness" },
+                { id: "count", name: "Count" },
+                { id: "countess", name: "Countess" },
+                { id: "viscount", name: "Viscount" },
+                { id: "viscountess", name: "Viscountess" },
+                { id: "baron", name: "Baron" },
+                { id: "baroness", name: "Baroness" }
+            ],
+            "Government": [
+                { id: "president", name: "President" },
+                { id: "prime_minister", name: "Prime Minister" },
+                { id: "chancellor", name: "Chancellor" },
+                { id: "vice_president", name: "Vice President" },
+                { id: "governor", name: "Governor" },
+                { id: "minister", name: "Minister" },
+                { id: "senator", name: "Senator" },
+                { id: "mayor", name: "Mayor" },
+                { id: "ambassador", name: "Ambassador" },
+                { id: "judge", name: "Judge" }
+            ],
+            "Military": [
+                { id: "general", name: "General" },
+                { id: "admiral", name: "Admiral" },
+                { id: "colonel", name: "Colonel" },
+                { id: "commander", name: "Commander" },
+                { id: "major", name: "Major" },
+                { id: "captain_ground", name: "Captain" },
+                { id: "lieutenant", name: "Lieutenant" },
+                { id: "sergeant", name: "Sergeant" }
+            ],
+            "Civil": [
+                { id: "commissioner", name: "Commissioner" },
+                { id: "chief", name: "Chief" },
+                { id: "sheriff", name: "Sheriff" },
+                { id: "inspector", name: "Inspector" },
+                { id: "detective", name: "Detective" },
+                { id: "officer", name: "Officer" },
+                { id: "deputy", name: "Deputy" }
+            ]
+        },
+        guide: "Official titles or ranks are designated by legal commission, active service, or state protocol. They differ from common honorifics and hold real power.",
+        position: 1,
+        createdBy
+    },
+    {
+        blockId: "93861942229209088",
+        fieldId: "suffix",
+        flex: 1,
+        rowId: "93861942229209090",
+        type: "dropdown",
+        label: "Suffix",
+        placeholder: "What is {display_name.possessive} suffix?",
+        options: {
+            "Generational": [
+                { id: "jr", name: "Junior (Jr.)" },
+                { id: "sr", name: "Senior (Sr.)" },
+                { id: "ii", name: "The Second (II)" },
+                { id: "iii", name: "The Third (III)" },
+                { id: "iv", name: "The Fourth (IV)" },
+                { id: "v", name: "The Fifth (V)" }
+            ],
+            "Academic": [
+                { id: "phd", name: "Doctor of Philosophy (Ph.D.)" },
+                { id: "md", name: "Doctor of Medicine (M.D.)" }
+            ],
+            "Professional": [
+                { id: "esq", name: "Esquire (Esq.)" },
+                { id: "pe", name: "Professional Engineer (P.E.)" },
+                { id: "rn", name: "Registered Nurse (R.N.)" }
+            ]
+        },
+        guide: "Suffixes are post-nominal designations following {display_name.possessive} name indicating lineage, academic degrees, professional credentials, or state honors.",
+        position: 2,
+        createdBy: "system"
     }
 ];
 
@@ -115,6 +196,7 @@ db.templates.transaction(q => {
                 blockId,
                 fieldId,
                 rowId,
+                flex,
                 type,
                 label,
                 placeholder,
@@ -122,11 +204,12 @@ db.templates.transaction(q => {
                 guide,
                 position,
                 createdBy
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.blockId,
                 d.fieldId,
                 d.rowId,
+                d.flex || 1,
                 d.type,
                 d.label,
                 d.placeholder,
