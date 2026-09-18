@@ -218,7 +218,8 @@ export default function TemplateField({
                     <TypeableDropdownInput
                         value={localValue}
                         options={JSON.parse(options) || []}
-                        placeholder="Select or type..."
+                        placeholder={placeholder || "Select or type..."}
+                        largeText={true}
                         onChange={(newValue) => {
                             setLocalValue(String(newValue));
                             onChange?.(newValue);
