@@ -1,0 +1,58 @@
+import type { Request, Response } from "express";
+import { AdvancedError } from "kage-library";
+
+import { log } from "../../../../instances.js";
+import { assertBearer } from "../../../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../../../_common/asserts/account.assert.js";
+import { assertPlatformPermissions } from "../../../../../_common/asserts/platformPermissions.assert.js";
+import { i18n } from "../../../../../_common/instances.js";
+import { db } from "../../../../databases/db.js";
+import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import whatIs from "../../../../helpers/whatIs.js";
+
+export const positionRows = async (req: Request, res: Response) => {
+    try {
+        const { assetId } = req.params;
+        const { data } = req.body;
+
+        await assertBearer(req);
+        assertAccount(req.session);
+        assertPlatformPermissions(req.session, "WRITE");
+
+        const whatIsData = whatIs(assetId as string);
+
+        if (whatIsData.ownerId !== req.session.userId) {
+            throw new AdvancedError({
+                code: 401,
+                message: i18n.t("responses.unauthorized")
+            });
+        }
+
+        if (!Array.isArray(data)) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.malformedRequest")
+            });
+        }
+
+        data.forEach((item, position) => {
+            if (item && typeof item.rowId === "string") {
+                const updateResult = db.characters.query(
+                    "UPDATE draft_rows SET position = ? WHERE rowId = ?",
+                    [position, item.rowId]
+                );
+                assertDbSuccess(updateResult);
+            }
+        });
+
+        return res.status(200).json({ ok: true });
+    } catch (error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({ id: error.id, message: error.message });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({ message: i18n.t("responses.unknown") });
+        }
+    }
+};
