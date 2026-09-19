@@ -213,7 +213,7 @@ const RestrictModal = forwardRef<RestrictModalRef>((_, ref) => {
                             className="btn flex-1 bg-base-300 text-white border-[var(--color-base-300)]" 
                             onClick={handleClose}
                         >
-                            {t("components.modals.close")}
+                            {t("components.modals.cancel")}
                         </button>
 
                         <button
