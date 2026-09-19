@@ -41,6 +41,8 @@
     "linkLimit": "You have reach the maximum amount (15) of links",
     "delegationLimit": "You have reach the maximum amount (8) of delegated accounts",
     "authorizationHeader": "Missing Authorization header",
+    "characterNotFound": "Character not found",
+    "datasetNotFound": "Dataset not found",
     "fileNotFound": "File not found",
     "accountNotFound": "Account not found",
     "sessionNotFound": "Session not found",
@@ -73,7 +75,8 @@
       "follow": "You cannot unfollow your own content.",
       "like": "You cannot unlike your own content."
     },
-    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+    "duplicateId": "Duplicate ID found:"
   },
   "words": {
     "You": "You",
@@ -195,7 +198,19 @@
     "Saved": "Saved",
     "OpenEditor": "Open Editor",
     "CloseEditor": "Close Editor",
-    "Close": "Close"
+    "Close": "Close",
+    "MoveToTrash": "Move to Trash",
+    "Restore": "Restore",
+    "DeletePermanently": "Delete Permanently",
+    "Restored": "Restored",
+    "restore": "restore",
+    "move": "move",
+    "Move": "Move",
+    "Moved": "Moved",
+    "toTrash": "to trash",
+    "deleted": "deleted",
+    "delete": "delete",
+    "Delete": "Delete"
   },
   "time": {
     "hour1": "1 Hour",
@@ -260,6 +275,7 @@
     },
     "modals": {
       "close": "Close",
+      "cancel": "Cancel",
       "save": "Save",
       "captchaHeader": "Are you a robot?",
       "limit": {
@@ -293,6 +309,15 @@
         "rowStaffOneSubtext": "Staff members can still interact with you for platform support.",
         "notEnough": "Not Enough? Try Blocking Instead!",
         "result": "You restricted"
+      },
+      "trash": {
+        "rowOneTitle": "It will be automatically deleted in 30 days.",
+        "rowOneSubtext": "You can restore it from your trash until then.",
+        "toTrash": "to Trash"
+      },
+      "delete": {
+        "rowOneTitle": "This action is permanent and cannot be undone.",
+        "rowOneSubtext": "OpenProfile support will not be able to recover this."
       },
       "report": {
         "title": "Report",
@@ -374,7 +399,12 @@
     "userProfile": {
       "searchCharacters": "Name, franchises, topics...",
       "end": "You've reached the end!",
+      "noCharactersFound": "No characters found.",
       "endSub": "to never miss a new publication."
+    },
+    "datasets": {
+      "notFound": "No datasets found.",
+      "searchDatasets": "Name, description, data entries..."
     }
   }
 }
