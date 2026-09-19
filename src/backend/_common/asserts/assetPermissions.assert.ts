@@ -6,7 +6,7 @@ import { i18n } from "../instances.js";
  * Asserts that the current session must have the requested permissions.
  *
  * @example
- * assertPlatformPermissions(req.session, "VIEW");
+ * assertPlatformPermissions(req.session.userId, "VIEW", assetId);
  */
 export function assertAssetPermissions(
     userId: string, 
