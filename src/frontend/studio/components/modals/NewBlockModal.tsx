@@ -282,7 +282,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
                                                         󰏔
                                                     </span>
 
-                                                    {formatNumber(item.addedCount || 0).short}
+                                                    {formatNumber(item.uses || 0).short}
                                                 </span>
                                             </div>
                                         )}
