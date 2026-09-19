@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
 
-import { cdnBaseUrl } from "../../scripts/domains.js";
+import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
 import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
 import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
@@ -123,7 +123,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         {loading ? (
                                             <div className="skeleton rounded-full h-4 w-24"></div>
                                         ) : (
-                                            "Created"
+                                            "Registered"
                                         )}
                                     </span>
                                     {loading ? (
@@ -164,7 +164,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     ) : (
                                         <Link 
                                             className="text-sm hover:underline w-fit"
-                                            to={`/user/${data.owner?.username || data.owner?.id}`}
+                                            to={`${mainBaseUrl}/user/${data.owner?.username || data.owner?.id}`}
                                             onClick={handleClose}
                                         >
                                             {data.owner?.displayName || data.owner?.username || data.owner?.id}
