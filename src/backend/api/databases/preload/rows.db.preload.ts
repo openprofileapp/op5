@@ -35,6 +35,18 @@ const index: Partial<TemplateRowItemType>[] = [
         blockId: "93861942229209088",
         position: 4,
         createdBy,
+    },
+    {
+        rowId: "93861942229209094",
+        blockId: "93861942229209088",
+        position: 5,
+        createdBy,
+    },
+    {
+        rowId: "93861942229209095",
+        blockId: "93861942229209088",
+        position: 6,
+        createdBy,
     }
 ];
 
