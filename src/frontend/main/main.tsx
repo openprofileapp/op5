@@ -7,7 +7,7 @@ import { I18nextProvider } from "react-i18next"
 import i18n from "../_common/i18n.js"
 import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 
-import setupWebPushNotifications from "./scripts/webPush.js"
+import setupWebPushNotifications from "../_common/scripts/webPush.js"
 import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
 import { verifySession } from "../_common/scripts/session.js"

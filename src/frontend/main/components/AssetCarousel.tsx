@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import CharacterCard from "../components/CharacterCard.js";
-import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import CharacterCard from "../../_common/components/CharacterCard.js";
+import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { Link } from "react-router-dom";
 import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
 

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Metadata from "../../_common/components/Metadata.js";
-import CharacterCard from "../components/CharacterCard.js";
-import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import CharacterCard from "../../_common/components/CharacterCard.js";
+import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";

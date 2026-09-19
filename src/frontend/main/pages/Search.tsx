@@ -3,8 +3,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import Metadata from "../../_common/components/Metadata.js";
-import CharacterCard from "../components/CharacterCard.js";
-import SkeletonCharacterCard from "../components/SkeletonCharacterCard.js";
+import CharacterCard from "../../_common/components/CharacterCard.js";
+import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";

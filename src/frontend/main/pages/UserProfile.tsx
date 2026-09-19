@@ -26,7 +26,7 @@ import Awards from "../../_common/components/Awards.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import AdvertisementBox from "../components/Advertisement.js";
 import MarkdownEditor from "../../_common/components/markdown/Editor.js";
-import CharacterCard from "../components/CharacterCard.js";
+import CharacterCard from "../../_common/components/CharacterCard.js";
 import { Pagination } from "../components/Pagination.js";
 import { useUnsavedChangesWarning } from "../../_common/hooks/useUnsavedChangesWarning.hook.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
