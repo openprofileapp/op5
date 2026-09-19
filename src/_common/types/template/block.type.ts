@@ -11,11 +11,10 @@ export type TemplateBlockItemType = {
     description?: string;
     tags?: string;
     source: "official" | "community";
-    uses: number;
     isRecommended: boolean;
     isSensitive: boolean;
     isMature: boolean;
-    addedCount: number;
+    uses: number;
     visibility: VisibilityType;
     updatedDate: string;
     createdDate: string;
@@ -27,11 +26,10 @@ export type BlockItemType = Omit<
     | "categoryType"
     | "tags"
     | "source"
-    | "uses"
     | "isRecommended"
     | "isSensitive"
     | "isMature"
-    | "addedCount"
+    | "uses"
     | "visibility"
     | "updatedDate"
 > & {
