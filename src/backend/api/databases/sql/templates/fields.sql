@@ -6,11 +6,10 @@ CREATE TABLE IF NOT EXISTS fields (
     type TEXT,
     label TEXT,
     placeholder TEXT,
-    options TEXT DEFAULT '[]',
+    dataset TEXT,
     guide TEXT,
     isLocked INTEGER NOT NULL DEFAULT 0,
     position INTEGER NOT NULL DEFAULT 0,
-    addedCount INTEGER NOT NULL DEFAULT 0,
     createdBy TEXT NOT NULL,
     createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
