@@ -97,7 +97,7 @@ function SortableFieldset({
                 {children}
 
                 <button type="button" className="cursor-pointer">
-                    <div className="font-nerdfont text-accent text-lg leading-none"></div>
+                    <div className="font-nerdfont text-accent text-lg leading-none">󰆴</div>
                     {/* ☰ https://youtube.com; no url label, just icon as type and update name of link w/ trash icon at the end, fetch metadata on unfocus */}
                 </button>
 
