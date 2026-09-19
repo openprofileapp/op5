@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { getPublishedCharacters } from "../controllers/characters/getPublishedCharacters.controller.js";
+import { getDraftCharacters } from "../controllers/characters/getDraftCharacters.controller.js";
 import { getTrendingPublishedCharacters } from "../controllers/characters/getTrendingPublishedCharacters.controller.js";
 import { getPopularPublishedCharacters } from "../controllers/characters/getPopularPublishedCharacters.controller.js";
 import { getRecentPublishedCharacters } from "../controllers/characters/getRecentPublishedCharacters.controller.js";
@@ -20,10 +21,15 @@ import { deleteRows } from "../controllers/characters/updates/rows/deleteRow.con
 import { insertFields } from "../controllers/characters/updates/fields/insertField.controller.js";
 import { positionFields } from "../controllers/characters/updates/fields/positionField.controller.js";
 import { deleteFields } from "../controllers/characters/updates/fields/deleteField.controller.js";
+import { restoreCharacter } from "../controllers/characters/restore.controller.js";
+import { trashCharacter } from "../controllers/characters/trash.controller.js";
+import { deleteCharacter } from "../controllers/characters/delete.controller.js";
 
 const characterRoutes = Router();
 
 characterRoutes.get("/", getPublishedCharacters);
+characterRoutes.get("/drafts", getDraftCharacters);
+
 characterRoutes.get("/trending", getTrendingPublishedCharacters);
 characterRoutes.get("/popular", getPopularPublishedCharacters);
 characterRoutes.get("/recent", getRecentPublishedCharacters);
@@ -31,6 +37,10 @@ characterRoutes.get("/tag/:tag", getTaggedPublishedCharacters);
 characterRoutes.get("/recent/following", getRecentFollowingPublishedCharacters);
 characterRoutes.get("/recommended", getRecommendedPublishedCharacters);
 characterRoutes.get("/recommended/:tag", getRecommendedTaggedPublishedCharacters);
+
+characterRoutes.get("/restore/:id", restoreCharacter);
+characterRoutes.get("/trash/:id", trashCharacter);
+characterRoutes.delete("/delete/:id", deleteCharacter);
 
 characterRoutes.post("/insert/:assetId/categories", insertCategories);
 characterRoutes.post("/update/:assetId/categories/positions", positionCategories);
