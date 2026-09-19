@@ -33,7 +33,7 @@ export const templateDataController = async (req: Request, res: Response) => {
                             'options', f.options,
                             'guide', f.guide,
                             'position', f.position,
-                            'addedCount', f.addedCount,
+                            'uses', f.uses,
                             'createdBy', f.createdBy,
                             'createdDate', f.createdDate,
                             'value', CASE 
