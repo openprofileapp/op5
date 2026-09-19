@@ -15,7 +15,7 @@ import { toast } from '../scripts/toast.js';
 import { useModals } from '../hooks/ModalContext.hook.js';
 import { GetNotificationMuteType, GetNotificationSubscriptionType } from '../../../_common/types/notification.type.js';
 import { formatRemainingTime, getRemainingTimeIcon } from '../scripts/time.js';
-import { GetPublishedCharacterItemType } from '../../../_common/types/character.type.js';
+import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/character.type.js';
 
 type Props = {
     isQuickAction?: boolean
@@ -110,6 +110,8 @@ export function ContextMenuBuilder({
         restrictModal,
         blockModal,
         reportModal,
+        trashModal,
+        deleteModal,
         shareModal
     } = useModals();
     
@@ -316,6 +318,7 @@ export function ContextMenuBuilder({
 
     const flexClassList = "flex items-center justify-center";
     const textClassList = `${flexClassList} w-4 h-6 text-lg font-nerdfont leading-none shrink-0`;
+    const trashClassList = `${flexClassList} w-4 h-6 text-xl font-nerdfont leading-none shrink-0`;
     const copyIdTextClassList = `${flexClassList} w-4 h-6 text-3xl font-nerdfont leading-none shrink-0`;
     const friendTextClassList = `${flexClassList} w-4 h-6 text-base font-nerdfont leading-none shrink-0`;
     const tooltipClassList =  "tooltip tooltip-top tooltip-accent";
@@ -1028,8 +1031,7 @@ export function ContextMenuBuilder({
                                                 }
                                             );
 
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                            const responseData = await response.json() as any;
+                                            const responseData = await response.json();
 
                                             if (response.ok) {
                                                 setIsMuted(true);
@@ -1077,8 +1079,7 @@ export function ContextMenuBuilder({
                                 }
                             );
 
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const responseData = await response.json() as any;
+                            const responseData = await response.json();
 
                             if (response.ok) {
                                 setIsMuted(false);
@@ -1337,6 +1338,113 @@ export function ContextMenuBuilder({
 
                     <span className={textClassList}>
                         
+                    </span>
+                </button>
+            </li>
+        ),
+
+        trash: (props: Props = {}): ReactNode => 
+            Boolean(setIsDismissed)
+            && window.session.userId
+            && isOwner
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.MoveToTrash")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    trashModal.open(data as GetDraftCharacterItemType, {
+                        setIsDismissed
+                    });
+                }}
+            >
+                <button className={`
+                        justify-between text-accent
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.MoveToTrash")) : ""}
+
+                    <span className={trashClassList}>
+                        󰆴
+                    </span>
+                </button>
+            </li>
+        ),
+
+        restore: (props: Props = {}): ReactNode => 
+            Boolean(setIsDismissed)
+            && window.session.userId
+            && isOwner
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Restore")}
+                onClick={async () => {
+                    const response = await fetch(
+                        `${apiBaseUrl}/v3/characters/restore/${data.id}`, 
+                        { credentials: "include" }
+                    );
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        // @ts-ignore
+                        setIsDismissed(true);
+
+                        toast.show(
+                            `${t("words.Restored")} ${data.displayName || data.id}`, 
+                            { icon: "", type: "info" }
+                        );
+                    } else {
+                        toast.show(
+                            `Failed to ${t("words.restore")} ${data.displayName || data.id}`, 
+                            { 
+                                subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                                type: "error" 
+                            }
+                        );
+                    }
+
+                    closeContextMenu(data.id);
+                }}
+            >
+                <button className={`
+                        justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Restore")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
+        ),
+
+        delete: (props: Props = {}): ReactNode => 
+            window.session.userId
+            && isOwner
+        && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.DeletePermanently")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    deleteModal.open(data as GetDraftCharacterItemType, {
+                        setIsDismissed
+                    });
+                }}
+            >
+                <button className={`
+                        justify-between text-accent
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.DeletePermanently")) : ""}
+
+                    <span className={trashClassList}>
+                        󰗨
                     </span>
                 </button>
             </li>
