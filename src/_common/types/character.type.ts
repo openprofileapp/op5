@@ -54,4 +54,52 @@ export type GetPublishedCharacterType = {
     count: number
 }
 
-// DEVELOPER NEEDED: Add DraftCharacterType here
+export type DraftCharacterType = {
+    algorithmScore: number;
+    id: string;
+    ownerId: string;
+    slug?: string;
+    displayName?: string;
+    avatar?: string;
+    animatedAvatar?: string;
+    banner?: string;
+    about?: string;
+    tags: string;
+    license: string;
+    licenseId: string;
+    isAuraEnabled: boolean;
+    auraType: string;
+    auraPrimary: string;
+    auraSecondary: string;
+    isSensitive: boolean;
+    isMature: boolean;
+    visibility: VisibilityType;
+    readVisibility: VisibilityType;
+    sendComments: string;
+    isScheduled: boolean;
+    updatedDate: string;
+    createdDate: string;
+    isDeleted: boolean;
+    deletedDate: string;
+}
+
+export type GetDraftCharacterItemType = Omit<
+    DraftCharacterType, 
+    "ownerId" | 
+    "tags"
+> & {
+    owner: OwnerType;
+    tags: string[];
+    badges: GetBadgeType[];
+    links?: GetLinkType[];
+    interactions?: Partial<GetInteractionCollection>;
+    notifications: GetNotificationCollection;
+    isCharacterInAnyCollections: boolean;
+    media?: GetMediaType[];
+    isPinned?: boolean;
+};
+
+export type GetDraftCharacterType = {
+    items: GetDraftCharacterItemType[],
+    count: number
+}
