@@ -6,20 +6,20 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
 import { GetUserItemType, PresenceType } from "../../../../_common/types/user.type.js";
-import ImageInput from "../../../_common/components/ImageInput.js";
-import { useObjectURL } from "../../../_common/hooks/useObjectURL.hook.js";
-import ColorInput from "../../../_common/components/ColorInput.js";
-import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
-import UserCard from "../UserCard.js";
-import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
-import ExternalLink from "../../../_common/components/ExternalLink.js";
+import ImageInput from "../ImageInput.js";
+import { useObjectURL } from "../../hooks/useObjectURL.hook.js";
+import ColorInput from "../ColorInput.js";
+import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
+import UserCard from "../../../main/components/UserCard.js";
+import { apiBaseUrl, cdnBaseUrl } from "../../scripts/domains.js";
+import ExternalLink from "../ExternalLink.js";
 import { GetLinkType } from "../../../../_common/types/link.type.js";
 import { VisibilityType } from "../../../../_common/types/visibility.type.js";
-import { Tooltip } from "../../../_common/components/Tooltip.js";
-import { toast } from "../../../_common/scripts/toast.js";
-import { DateInput } from "../../../_common/components/DateInput.js";
-import { CheckboxInput } from "../../../_common/components/CheckboxInput.js";
-import { recommendedTags } from "../../../_common/scripts/tags.js";
+import { Tooltip } from "../Tooltip.js";
+import { toast } from "../../scripts/toast.js";
+import { DateInput } from "../DateInput.js";
+import { CheckboxInput } from "../CheckboxInput.js";
+import { recommendedTags } from "../../scripts/tags.js";
 
 export interface EditUserProfileModalRef {
     open: (

@@ -6,11 +6,11 @@ import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client";
 
 import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
-import { cdnBaseUrl } from "../../_common/scripts/domains.js";
-import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
-import { useModals } from "../../_common/hooks/ModalContext.hook.js";
-import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
-import Badges from "../../_common/components/Badges.js";
+import { cdnBaseUrl } from "../scripts/domains.js";
+import { useInteractions } from "../hooks/useInteractions.hook.js";
+import { useModals } from "../hooks/ModalContext.hook.js";
+import { ContextMenuBuilder } from "./ContextMenuBuilder.js";
+import Badges from "./Badges.js";
 
 type Props = {
     data: GetPublishedCharacterItemType
@@ -21,6 +21,8 @@ type Props = {
     displayNotification?: boolean;
     isHomeScreen?: boolean;
     isUserProfile?: boolean;
+    isStudio?: boolean;
+    isTrash?: boolean;
     dragHandleProps?: unknown;
 };
 
@@ -33,6 +35,8 @@ export default function CharacterCard({
     displayNotification = false,
     isHomeScreen = false,
     isUserProfile = false,
+    isStudio = false,
+    isTrash = false,
     dragHandleProps,
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -297,7 +301,7 @@ export default function CharacterCard({
                 )}
             </div>
 
-            {!isPreview && 
+            {(!isPreview && !isTrash) && 
                 contextMenuBuilder.items([
                     window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
                         contextMenuBuilder.quickActions([
@@ -310,8 +314,8 @@ export default function CharacterCard({
                         contextMenuBuilder.dismiss(),
                     window.session.userId && isHomeScreen && 
                         contextMenuBuilder.separator(),
-                    contextMenuBuilder.viewInStudio(),
-                    window.session.userId === data.owner?.id && 
+                    !isStudio && contextMenuBuilder.viewInStudio(),
+                    !isStudio && window.session.userId === data.owner?.id && 
                         contextMenuBuilder.separator(),
                     isUserProfile && 
                         contextMenuBuilder.pin(),
@@ -341,10 +345,22 @@ export default function CharacterCard({
                     contextMenuBuilder.report(),
                     contextMenuBuilder.moderate(),
                     contextMenuBuilder.manage(),
+                    isStudio && contextMenuBuilder.separator(),
+                    isStudio && contextMenuBuilder.trash(),
                     (Boolean(window.session.user?.isDeveloper) || !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR")) && 
                         contextMenuBuilder.separator(),
                     !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
                         contextMenuBuilder.share(),
+                    contextMenuBuilder.copyId()
+                ].filter(Boolean))
+            }
+
+            {(!isPreview && isTrash) && 
+                contextMenuBuilder.items([
+                    contextMenuBuilder.restore(),
+                    contextMenuBuilder.separator(),
+                    contextMenuBuilder.delete(),
+                    contextMenuBuilder.separator(),
                     contextMenuBuilder.copyId()
                 ].filter(Boolean))
             }
