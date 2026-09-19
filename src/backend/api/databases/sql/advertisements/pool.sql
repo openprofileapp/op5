@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS pool (
     id TEXT PRIMARY KEY NOT NULL,
     provierId TEXT NOT NULL,
-    tags TEXT DEFAULT '[]',
+    tags TEXT NOT NULL DEFAULT '[]',
     imageUrl TEXT NOT NULL,
     onClickUrl TEXT NOT NULL,
     clicksLeft INTEGER DEFAULT 0,

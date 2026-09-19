@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     status TEXT,
     about TEXT,
     markdown TEXT,
-    tags TEXT DEFAULT '[]',
+    tags TEXT NOT NULL DEFAULT '[]',
     pronouns TEXT,
     birthDate TEXT,
     birthDateVisibility TEXT NOT NULL DEFAULT 'friends',

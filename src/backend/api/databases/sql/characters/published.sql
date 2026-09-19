@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS published (
     animatedAvatar TEXT,
     banner TEXT,
     about TEXT,
-    tags TEXT DEFAULT '[]',
+    tags TEXT NOT NULL DEFAULT '[]',
     license TEXT,
     licenseId TEXT,
     isAuraEnabled INTEGER NOT NULL DEFAULT 0,

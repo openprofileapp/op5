@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS collections (
     displayName TEXT,
     avatar TEXT,
     about TEXT,
-    tags TEXT DEFAULT '[]',
+    tags TEXT NOT NULL DEFAULT '[]',
     isFavorites INTEGER NOT NULL DEFAULT 0,
     isSensitive INTEGER NOT NULL DEFAULT 0,
     isMature INTEGER NOT NULL DEFAULT 0,
