@@ -1126,7 +1126,7 @@ export default function CharacterTemplate() {
             >
                 <div className="drawer lg:drawer-open">
                     <input 
-                        id="my-drawer-4" 
+                        id="my-drawer" 
                         type="checkbox" 
                         checked={isDrawerOpen}
                         onChange={(e) => setIsDrawerOpen(e.target.checked)}
@@ -1136,7 +1136,7 @@ export default function CharacterTemplate() {
                     <div className="drawer-content border-l border-base-300">
                         <nav className="navbar w-full bg-base-100 flex items-center justify-between px-4">
                             <label 
-                                htmlFor="my-drawer-4" 
+                                htmlFor="my-drawer" 
                                 aria-label="open sidebar" 
                                 className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
                             >
@@ -1156,9 +1156,9 @@ export default function CharacterTemplate() {
                                 type="button"
                                 aria-label="toggle preview mode"
                                 onClick={() => setIsPreviewMode(!isPreviewMode)}
-                                className=""
+                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
                             >
-                                <span className="flex h-8 w-4 leading-none items-center justify-center cursor-pointer mr-3">
+                                <span className="flex h-8 w-4 leading-none items-center justify-center">
                                     <span className="font-nerdfont text-xl">
                                         {isPreviewMode ? "󰈉" : "󰈈"}
                                     </span>
@@ -1425,7 +1425,7 @@ export default function CharacterTemplate() {
                     </div>
 
                     <div className="drawer-side is-drawer-close:overflow-visible">
-                        <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
+                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                         <div className="flex min-h-full flex-col items-center justify-center bg-base-100 is-drawer-close:w-14 is-drawer-open:w-64">
                             <div className="menu w-full">
                                 <SortableContext items={data.map(category => `category:${category.categoryId}`)}>
