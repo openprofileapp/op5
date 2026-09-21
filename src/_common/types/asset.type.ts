@@ -1,4 +1,4 @@
-import { GetPublishedCharacterItemType } from "./character.type.js";
+import { GetPublishedCharacterItemType } from "./characters/character.type.js";
 import { GetCollectionItemType } from "./collection.type.js";
 import { GetUserItemType } from "./user.type.js";
 

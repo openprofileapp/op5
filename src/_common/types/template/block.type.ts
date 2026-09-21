@@ -1,60 +1,31 @@
 import { CategoryIdType } from "../../scripts/categories.js";
-import { VisibilityType } from "../visibility.type.js";
-import { GetRowType } from "./row.type.js";
+import { GetTemplateRowType } from "./row.type.js";
 
 export type TemplateBlockItemType = {
+    templateId: string;
     blockId: string;
-    ownerId: string;
+    categoryId: string;
     categoryType: CategoryIdType;
+    sourceBlockId: string;
+    isSourceBlockConnected: boolean;
     icon?: string;
     label?: string;
     description?: string;
-    tags?: string;
-    source: "official" | "community";
-    isRecommended: boolean;
-    isSensitive: boolean;
-    isMature: boolean;
-    uses: number;
-    visibility: VisibilityType;
+    position: number;
+    createdBy: string;
     updatedDate: string;
     createdDate: string;
 }
 
-export type BlockItemType = Omit<
-    TemplateBlockItemType,
-    | "ownerId"
-    | "categoryType"
-    | "tags"
-    | "source"
-    | "isRecommended"
-    | "isSensitive"
-    | "isMature"
-    | "uses"
-    | "visibility"
-    | "updatedDate"
-> & {
-    assetId: string;
-    sourceBlockId?: string;
-    isSourceBlockConnected?: boolean;
-    categoryId: string;
-    position: number;
-    createdBy: string;
-    lastEditedDate: string;
-};
 
-export type GetBlockItemType = Omit<
-    BlockItemType, 
-    "assetId" | "categoryId"
+export type GetTemplateBlockItemType = Omit<
+    TemplateBlockItemType, 
+    "templateId" | "categoryId"
 > & {
-    rows: GetRowType[];
+    rows: GetTemplateRowType[];
 };
 
 export type GetTemplateBlockType = {
-    items: TemplateBlockItemType[],
-    count: number
-}
-
-export type GetBlockType = {
-    items: GetBlockItemType[],
+    items: GetTemplateBlockItemType[],
     count: number
 }

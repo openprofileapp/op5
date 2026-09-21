@@ -1,20 +1,25 @@
 import { CategoryIdType } from "../../scripts/categories.js";
-import { GetBlockType } from "./block.type.js";
+import { GetTemplateBlockType } from "./block.type.js";
 
-export type CategoryType = {
-    assetId: string;
+export type TemplateCategoryItemType = {
+    templateId: string;
     categoryId: string;
     types: CategoryIdType[];
     label?: string;
     position: number;
     createdBy: string;
-    lastEditedDate: string;
+    updatedDate: string;
     createdDate: string;
 }
 
-export type GetCategoryType = Omit<
-    CategoryType, 
-    "assetId"
+export type GetTemplateCategoryItemType = Omit<
+    TemplateCategoryItemType, 
+    "templateId"
 > & {
-    blocks: GetBlockType[];
+    blocks: GetTemplateBlockType[];
 };
+
+export type GetTemplateCategoryType = {
+    items: GetTemplateCategoryItemType[],
+    count: number
+}

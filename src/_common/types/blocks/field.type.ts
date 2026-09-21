@@ -1,8 +1,8 @@
 import { FieldNameType } from "../field.type.js";
-import { GetTemplateValueType } from "./value.type.js";
+import { GetValueType } from "./value.type.js";
 
-export type TemplateFieldItemType = {
-    templateId: string;
+export type FieldItemType = {
+    blockId: string;
     rowId: string;
     fieldId: string;
     flex: number;
@@ -18,14 +18,14 @@ export type TemplateFieldItemType = {
     createdDate: string;
 }
 
-export type GetTemplateFieldItemType = Omit<
-    TemplateFieldItemType, 
-    "templateId" | "rowId"
+export type GetFieldItemType = Omit<
+    FieldItemType, 
+    "blockId" | "rowId" | "fieldId"
 > & {
-    value?: GetTemplateValueType;
+    value?: GetValueType;
 };
 
-export type GetTemplateFieldType = {
-    items: GetTemplateFieldItemType[],
+export type GetFieldType = {
+    items: GetFieldItemType[],
     count: number
 }

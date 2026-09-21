@@ -1,10 +1,10 @@
-import { GetBadgeType } from "./badge.type.js";
-import { GetInteractionCollection } from "./interaction.type.js";
-import { GetLinkType } from "./link.type.js";
-import { GetMediaType } from "./media.type.js";
-import { GetNotificationCollection } from "./notification.type.js";
-import { OwnerType } from "./owner.type.js";
-import { VisibilityType } from "./visibility.type.js";
+import { GetBadgeType } from "../badge.type.js";
+import { GetInteractionCollection } from "../interaction.type.js";
+import { GetLinkType } from "../link.type.js";
+import { GetMediaType } from "../media.type.js";
+import { GetNotificationCollection } from "../notification.type.js";
+import { OwnerType } from "../owner.type.js";
+import { VisibilityType } from "../visibility.type.js";
 
 export type PublishedCharacterType = {
     algorithmScore: number;
