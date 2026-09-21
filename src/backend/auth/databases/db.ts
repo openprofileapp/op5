@@ -1,7 +1,12 @@
-import { Database } from "kage-library";
+import { Database, Logger } from "kage-library";
 
 import { config } from "../../../../app.config.js";
-import { log } from "../instances.js";
+
+const log = new Logger({
+    path: "/logs/auth",
+    useNerdFonts: config.useNerdFonts,
+    saveAllToFile: config.debug.logger.api
+});
 
 export const db = {
     accounts: new Database("data/databases/accounts.sqlite")
