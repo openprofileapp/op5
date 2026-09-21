@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 
 import { config } from "../../../../app.config.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import { GetDraftCharacterItemType, GetDraftCharacterType } from "../../../_common/types/character.type.js";
+import { GetDraftCharacterItemType, GetDraftCharacterType } from "../../../_common/types/characters/character.type.js";
 import { SortByType } from "../../../_common/types/sortBy.type.js";
 import { parseJson } from "../../_common/helpers/parseJson.js";
 import { db } from "../databases/db.js";

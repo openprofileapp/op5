@@ -6,7 +6,7 @@ import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import getUsersService from "../services/getUsers.service.js";
-import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 import getPublishedCharactersService from "../services/getPublishedCharacters.service.js";
 import { CollectionType } from "../../../_common/types/collection.type.js";
 import getCollectionsService from "../services/getCollections.service.js";

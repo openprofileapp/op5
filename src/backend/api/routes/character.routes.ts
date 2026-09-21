@@ -48,7 +48,7 @@ characterRoutes.post("/delete/:assetId/categories/:categoryId", deleteCategories
 
 characterRoutes.post("/insert/:assetId/blocks", insertBlock);
 characterRoutes.post("/update/:assetId/blocks/positions", positionBlocks);
-characterRoutes.post("/delete/:assetId/blocks/:blockId", deleteBlock);
+characterRoutes.post("/delete/:assetId/blocks/:assetId", deleteBlock);
 
 characterRoutes.post("/insert/:assetId/rows", insertRows);
 characterRoutes.post("/update/:assetId/rows/positions", positionRows);
