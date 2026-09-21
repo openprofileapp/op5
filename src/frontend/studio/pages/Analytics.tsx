@@ -38,7 +38,7 @@ export default function Analytics() {
         <>
             <Metadata
                 title="Analytics"
-                allowIndex="false"
+                allowIndex={false}
             />
 
             <div className="relative w-full max-h-[calc(100vh-2rem)] overflow-hidden m-4">

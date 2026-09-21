@@ -22,7 +22,7 @@ export default function Dashboard() {
         <>
             <Metadata
                 title="Dashboard"
-                allowIndex="false"
+                allowIndex={false}
             />
 
             <div className="flex gap-4 w-full h-full overflow-hidden m-4">

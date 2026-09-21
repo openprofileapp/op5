@@ -11,7 +11,7 @@ import { formatNumber } from "kage-library/client";
 import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
-import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType } from "../../../_common/types/characters/character.type.js";
 import { formatLongRelative, formatShortRelative, isBirthdayToday } from "../../_common/scripts/time.js";
 import { GetAssetType } from "../../../_common/types/asset.type.js";
 import Metadata from "../../_common/components/Metadata.js";
@@ -460,6 +460,7 @@ export default function UserProfile() {
                 keywords={data?.tags?.toString()}
                 image={`${data?.avatar ? data?.avatar : `${cdnBaseUrl}${window.config.metadata.assets.icon}`}`}
                 author={primaryUsername || data?.id}
+                useThumbnail={true}
             />
 
             {showConfetti && (

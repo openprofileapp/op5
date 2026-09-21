@@ -54,7 +54,7 @@ export default function Onboarding() {
         <>
             <Metadata
                 title="Onboarding"
-                allowIndex="false"
+                allowIndex={false}
             />
             
             <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">

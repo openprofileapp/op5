@@ -2,15 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { GetDraftCharacterItemType } from "../../../../_common/types/character.type.js";
-import { apiBaseUrl } from "../../../_common/scripts/domains.js";
-import Metadata from "../../../_common/components/Metadata.js";
-import { Pagination } from "../../../main/components/Pagination.js";
-import CharacterCard from "../../../_common/components/CharacterCard.js";
-import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
-import SkeletonCharacterCard from "../../../_common/components/SkeletonCharacterCard.js";
+import { GetDraftCharacterItemType } from "../../../_common/types/characters/character.type.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import Metadata from "../../_common/components/Metadata.js";
+import { Pagination } from "../../main/components/Pagination.js";
+import CharacterCard from "../../_common/components/CharacterCard.js";
+import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
+import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 
-export default function Characters() {
+export default function Content() {
     const { t, ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -98,7 +98,7 @@ export default function Characters() {
 
     return (
         <>
-            <Metadata title="Characters" />
+            <Metadata title="Your Characters" />
 
             <div className="w-full min-h-screen px-4 md:px-9 py-2">
                 <div className="my-6 text-xl font-bold text-left flex-4">

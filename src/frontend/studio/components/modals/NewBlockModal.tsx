@@ -8,12 +8,19 @@ import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
 import { toast } from "../../../_common/scripts/toast.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import ImageInput from "../../../_common/components/ImageInput.js";
-import { GetBlockItemType, GetTemplateBlockType, TemplateBlockItemType } from "../../../../_common/types/template/block.type.js";
+import { GetBlockItemType } from "../../../../_common/types/blocks/block.type.js";
 
 type Screen = "menu" | "configure";
 
+export type NewBlockType = {
+    assetId?: string;
+    label: string;
+    description: string;
+    icon: string;
+};
+
 interface NewBlockModalProps {
-    onAddBlock: (data: Partial<GetBlockItemType>) => boolean;
+    onAddBlock: (data: NewBlockType) => boolean;
     types: CategoryIdType[];
 }
 
@@ -155,15 +162,15 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
     function handleSave() {
         if (!selectedItem) return;
 
-        const isSuccess = onAddBlock({
-            blockId: selectedItem.blockId,
+        const blockData: NewBlockType = {
+            assetId: selectedItem.assetId,
             label: label.trim(),
             description: description.trim(),
-            icon: previewUrl ?? null,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
+            icon: previewUrl || null,
             rows: selectedItem?.rows ?? [],
-        });
+        };
+
+        const isSuccess = onAddBlock(blockData);
 
         if (isSuccess) {
             modalRef.current?.close();
@@ -270,7 +277,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
                                 
                                 {blocks.map((item) => (
                                     <button
-                                        key={item.blockId}
+                                        key={item.assetId}
                                         type="button"
                                         className="aspect-square w-full relative flex flex-col justify-between items-center p-4 bg-base-200 hover:bg-[#151515] border border-base-300 rounded cursor-pointer text-center group overflow-hidden"
                                         onClick={() => handleSelect(item)}

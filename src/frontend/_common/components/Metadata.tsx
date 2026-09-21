@@ -14,7 +14,8 @@ type Metadata = {
     keywords?: string, 
     image?: string,
     author?: string,
-    allowIndex?: string
+    allowIndex?: boolean,
+    useThumbnail?: boolean
 }
 
 export default function Metadata({ 
@@ -24,7 +25,8 @@ export default function Metadata({
     keywords, 
     image,
     author,
-    allowIndex = "true"
+    allowIndex = true,
+    useThumbnail = false
 }: Metadata ) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -33,9 +35,11 @@ export default function Metadata({
 
     if (!isTranslationReady) return null;
 
+    const isStudio = window.location.hostname.includes("studio.");
+
     const formattedTitle = title 
-        ? `${title} | ${window.config.metadata.name}`
-        : `${window.config.metadata.name}${t("metadata.tagline") ? " | " : ""}${t("metadata.tagline")}`;
+        ? `${title} | ${window.config.metadata.name}${isStudio ? " Studio" : ""}`
+        : `${window.config.metadata.name}${t("metadata.tagline") ? " | " : ""}${t("metadata.tagline")}${isStudio ? " Studio" : ""}`;
 
     const formattedDescription = description || t("metadata.description") ;
     const formattedKeywords = [t("metadata.keywords"), keywords].filter(Boolean).join(", ");
@@ -48,10 +52,13 @@ export default function Metadata({
         }`;
 
     const formattedIcon = `${cdnBaseUrl}/crop/circle?url=${cdnBaseUrl}${window.config.metadata.assets.icon}`;
-    const formattedAuthor = window.config.metadata.legal.owner || author
+    const formattedAuthor = window.config.metadata.legal.owner || author;
     const formattedUrl = `${url.protocol}://${url.subdomain ?? ""}${url.subdomain ? "." : ""}${url.domain}${url.path}`;
     const formattedVersion = `${window.config.metadata.version.semver}-${window.config.metadata.version.stage}-${window.config.metadata.version.build}`;
-    const formattedRobots = allowIndex === "true" ? "index, follow" : "noindex, nofollow";
+    const formattedRobots = allowIndex ? "index, follow" : "noindex, nofollow";
+
+    const twitterCardType = useThumbnail ? "summary" : "summary_large_image";
+    const imageSize = useThumbnail ? "600" : "";
 
     return (
         <Helmet>
@@ -64,10 +71,14 @@ export default function Metadata({
             <meta property="og:title" content={formattedTitle} />
             <meta property="og:description" content={formattedDescription} />
             <meta property="og:image" content={formattedImage} />
+            <meta property="og:image:type" content="image/png" />
+            <meta property="og:image:width" content={imageSize} />
+            <meta property="og:image:height" content={imageSize} />
+
             <meta property="og:url" content={formattedUrl} />
             <meta property="og:site_name" content={window.config.metadata.name} />
 
-            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:card" content={twitterCardType} />
             <meta name="twitter:title" content={formattedTitle} />
             <meta name="twitter:description" content={formattedDescription} />
             <meta name="twitter:image" content={formattedImage} />

@@ -15,7 +15,7 @@ import { toast } from '../scripts/toast.js';
 import { useModals } from '../hooks/ModalContext.hook.js';
 import { GetNotificationMuteType, GetNotificationSubscriptionType } from '../../../_common/types/notification.type.js';
 import { formatRemainingTime, getRemainingTimeIcon } from '../scripts/time.js';
-import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/character.type.js';
+import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/characters/character.type.js';
 
 type Props = {
     isQuickAction?: boolean

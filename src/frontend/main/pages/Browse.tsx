@@ -140,7 +140,7 @@ export default function SearchProfiles() {
         <>  
             <Metadata
                 title="Search"
-                allowIndex="false"
+                allowIndex={false}
             />
 
             <div className="px-4 py-4 md:px-14">

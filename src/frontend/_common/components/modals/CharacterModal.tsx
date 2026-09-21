@@ -3,7 +3,7 @@ import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
 
 import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
-import { GetPublishedCharacterItemType } from "../../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType } from "../../../../_common/types/characters/character.type.js";
 import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
 import Badges from "../Badges.js";

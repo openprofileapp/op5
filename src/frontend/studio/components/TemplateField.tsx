@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import colors from "tailwindcss/colors";
-import { GetValueType } from "../../../_common/types/template/value.type.js";
-import { GetNoteType } from "../../../_common/types/template/note.type.js";
-import { GetThoughtType } from "../../../_common/types/template/thought.type.js";
+import { GetValueType } from "../../../_common/types/blocks/value.type.js";
+import { GetNoteType } from "../../../_common/types/blocks/note.type.js";
+import { GetThoughtType } from "../../../_common/types/blocks/thought.type.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import { MediaField } from "./MediaField.js";
 
@@ -19,7 +19,7 @@ export interface MetadataObject {
     text?: string;
     date?: string;
     createdDate?: string;
-    lastEditedDate?: string;
+    updatedDate?: string;
     position?: number;
     isPinned?: boolean;
 }

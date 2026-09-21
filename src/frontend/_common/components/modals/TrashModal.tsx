@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef, Dispatch, SetStateAction } from "react";
 
-import { GetDraftCharacterItemType } from "../../../../_common/types/character.type.js";
+import { GetDraftCharacterItemType } from "../../../../_common/types/characters/character.type.js";
 import { apiBaseUrl } from "../../scripts/domains.js";
 import { toast } from "../../scripts/toast.js";
 

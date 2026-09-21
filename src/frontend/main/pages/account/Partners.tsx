@@ -12,7 +12,7 @@ export default function Partners() {
         <>
             <Metadata
                 title="Partner Stats"
-                allowIndex="false"
+                allowIndex={false}
             />
 
             <div className="mt-14 md:mt-0 flex flex-col md:flex-row min-h-[calc(100vh-64px)]">

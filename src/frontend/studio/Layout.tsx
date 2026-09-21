@@ -188,14 +188,15 @@ export default function Layout() {
                                 id="account-dropdown"
                             >
                                 <li>
-                                    {/* On click, close menu */}
                                     <Link 
                                         className="flex items-center justify-between gap-4" 
                                         to={`${mainBaseUrl}/user/${window.session.user.usernames?.find(u => u.isPrimary)?.username || window.session.user.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                     >
-                                        View Profile
+                                        Go to Profile
                                         <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
-                                            󰈈
+                                            
                                         </span>
                                     </Link>
                                 </li>
@@ -356,64 +357,18 @@ export default function Layout() {
                                 </li>
 
                                 <li>
-                                    <details
-                                        ref={contentDetailsRef}
-                                        className="no-arrow tooltip tooltip-accent tooltip-right"
+                                    <Link 
+                                        className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
                                         data-tip="Content"
-                                        onClick={(e) => {
-                                            const drawer = document.getElementById("my-drawer");
-
-                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                            // @ts-ignore
-                                            if (drawer && !drawer.checked) {
-                                                e.preventDefault();
-                                            }
-                                        }}
+                                        to={"/content"}
                                     >
-                                        <summary className="flex gap-4">
-                                            <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
-                                                󰪷
-                                            </span>
-                                            <span className="is-drawer-close:hidden text-sm">
-                                                Content
-                                            </span>
-                                            <span className="ml-auto font-nerdfont details-arrow is-drawer-close:hidden">
-                                                
-                                            </span>
-                                        </summary>
-                                        
-                                        <div className="details-content">
-                                            <div>
-                                                <ul>
-                                                    <li>
-                                                        <Link 
-                                                            className="flex items-center gap-4"
-                                                            to={"/content/characters"}
-                                                        >
-                                                            <span className="flex h-8 items-center justify-center is-drawer-close:hidden text-sm">
-                                                                Characters
-                                                            </span>
-                                                        </Link>
-                                                    </li>
-
-                                                    <li>
-                                                        <button 
-                                                            className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
-                                                            data-tip="Content"
-                                                            disabled={true}
-                                                            onClick={async () => {
-                                                                // ACTION HERE
-                                                            }}
-                                                        >
-                                                            <span className="flex h-8 items-center justify-center is-drawer-close:hidden text-sm">
-                                                                Universes
-                                                            </span>
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </details>
+                                        <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                            󰪷
+                                        </span>
+                                        <span className="is-drawer-close:hidden text-sm">
+                                            Content
+                                        </span>
+                                    </Link>
                                 </li>
 
                                 <hr />
@@ -458,7 +413,7 @@ export default function Layout() {
                                     <Link 
                                         className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
                                         data-tip="Templates"
-                                        to={"/tempates"}
+                                        to={"/templates"}
                                     >
                                         <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
                                             󱔗
@@ -622,6 +577,7 @@ export default function Layout() {
                                     <button 
                                         className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
                                         data-tip="Settings"
+                                        disabled={true}
                                         onClick={async () => {
                                             // ACTION HERE
                                         }}

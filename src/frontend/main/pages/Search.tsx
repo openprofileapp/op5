@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../../_common/components/CharacterCard.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
-import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterItemType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import UserCard from "../components/UserCard.js";
@@ -204,7 +204,7 @@ export default function Search() {
         <>
             <Metadata
                 title={query ? `Searching "${query}"` : "Search"}
-                allowIndex="false"
+                allowIndex={false}
                 image={`/render/landscape/6690301862165288`}
             />
 

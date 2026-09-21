@@ -14,7 +14,7 @@ export default function ComingSoon() {
         <>
             <Metadata
                 title={t("metadata.titles.construction")}
-                allowIndex="false"
+                allowIndex={false}
             />
 
             <div className="relative min-h-screen w-full flex items-center justify-center md:p-4 bg-base-200 overflow-hidden select-none"> 

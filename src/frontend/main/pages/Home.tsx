@@ -7,7 +7,7 @@ import { log } from "../scripts/main.js";
 import Metadata from "../../_common/components/Metadata.js";
 
 import { characterApiType } from "../../_common/types/characterApi.type.js";
-import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";

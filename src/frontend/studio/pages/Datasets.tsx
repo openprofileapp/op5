@@ -177,11 +177,11 @@ export default function Datasets() {
 
     return (
         <>
-            <Metadata title="Datasets" />
+            <Metadata title="Your Datasets" />
 
             <div className="w-full px-4 md:px-9 py-2">
                 <div className="my-6 text-xl font-bold text-left flex-4">
-                    Datasets
+                    Your Datasets
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-3 mb-6">

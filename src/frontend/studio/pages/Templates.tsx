@@ -2,26 +2,24 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { GetDraftCharacterItemType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
-import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
-import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
-import CharacterCard from "../../_common/components/CharacterCard.js";
 import { Pagination } from "../../main/components/Pagination.js";
+import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
+import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
+import TemplateCard from "../../_common/components/TemplateCard.js";
 
-export default function Trash() {
+export default function Templates() {
     const { t, ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const query = searchParams.get("q") || "";
-    const sortBy = searchParams.get("sortBy") || "popularDesc";
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
     const [pageCount, setPageCount] = useState(0);
 
-    const [characters, setCharacters] = useState<GetDraftCharacterItemType[]>([]);
-    const [areCharactersLoading, setAreCharactersLoading] = useState(true);
+    const [templates, setTemplates] = useState<GetTemplateItemType[]>([]);
+    const [areTemplatesLoading, setAreTemplatesLoading] = useState(true);
 
     const handleSearchChange = (newQuery: string) => {
         setSearchParams(
@@ -52,32 +50,21 @@ export default function Trash() {
         );
     };
 
-    const handleSortChange = (newSortBy: string) => {
-        setSearchParams(
-            (prev) => {
-                prev.set("sortBy", newSortBy);
-                prev.delete("page");
-                return prev;
-            },
-            { replace: true }
-        );
-    };
-
-    const fetchCharacters = useCallback(async () => {
+    const fetchtemplates = useCallback(async () => {
         if (!window.session.userId) return;
 
-        setAreCharactersLoading(true);
+        setAreTemplatesLoading(true);
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/characters/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&isTrash=true`,
+                `${apiBaseUrl}/v3/templates?owner=${window.session.userId}&q=${encodeURIComponent(query)}&page=${currentPage}`,
                 { credentials: "include" }
             );
 
             if (!res.ok) return;
 
             const json = await res.json();
-            setCharacters(json?.items || []);
+            setTemplates(json?.items || []);
 
             if (json?.pageCount !== undefined) {
                 setPageCount(json.pageCount);
@@ -85,24 +72,24 @@ export default function Trash() {
         } catch (err) {
             console.error(err);
         } finally {
-            setAreCharactersLoading(false);
+            setAreTemplatesLoading(false);
         }
-    }, [currentPage, query, sortBy]);
+    }, [currentPage, query]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchCharacters();
-    }, [fetchCharacters]);
+        fetchtemplates();
+    }, [fetchtemplates]);
 
     if (!isTranslationReady) return null;
 
     return (
         <>
-            <Metadata title="Trash" />
+            <Metadata title="Your Templates" />
 
             <div className="w-full min-h-screen px-4 md:px-9 py-2">
                 <div className="my-6 text-xl font-bold text-left flex-4">
-                    Trash
+                    Your Templates
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-3 mb-6">
@@ -118,27 +105,9 @@ export default function Trash() {
                             />
                         </label>
                     </fieldset>
-
-                    <fieldset className="fieldset md:w-64">
-                        <legend className="fieldset-legend">Filter</legend>
-                        <TypeableDropdownInput
-                            value={sortBy}
-                            options={[
-                                { id: "popularDesc", name: "Most Popular" },
-                                { id: "popularAsc", name: "Least Popular" },
-                                { id: "newest", name: "Newest First" },
-                                { id: "oldest", name: "Oldest First" },
-                                { id: "nameAsc", name: "Name (A-Z)" },
-                                { id: "nameDesc", name: "Name (Z-A)" },
-                            ]}
-                            placeholder="Filter Results"
-                            typeable={false}
-                            onChange={(id) => handleSortChange(id as string)}
-                        />
-                    </fieldset>
                 </div>
 
-                {areCharactersLoading ? (
+                {areTemplatesLoading ? (
                     <div className="flex flex-wrap gap-4">
                         {Array.from({ length: 5 }).map((_, index) => (
                             <SkeletonCharacterCard
@@ -149,26 +118,25 @@ export default function Trash() {
                 ) : (
                     <>
                         <div className="flex flex-wrap gap-4">
-                            {characters.map((character) => (
-                                <CharacterCard
+                            {templates.map((character) => (
+                                <TemplateCard
                                     key={character.id}
                                     data={character}
-                                    isTrash={true}
                                 />
                             ))}
                         </div>
 
-                        {characters.length === 0 && (
+                        {templates.length === 0 && (
                             <div className="text-center py-12 text-sub text-base">
-                                {t("pages.userProfile.noCharactersFound")}
+                                {t("pages.templates.notFound")}
                             </div>
                         )}
 
-                        {characters.length > 0 && (
+                        {templates.length > 0 && (
                             <>
                                 {
-                                    (currentPage === pageCount) ||
-                                    (currentPage === 1) 
+                                    ((currentPage === pageCount) ||
+                                    (currentPage === 1)) 
                                 && (
                                     <div className="text-center my-16 text-xl">
                                         {t("pages.userProfile.end")}

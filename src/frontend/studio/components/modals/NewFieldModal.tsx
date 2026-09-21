@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { FieldNameType } from "../../../../_common/types/template/field.type.js";
+import { FieldNameType } from "../../../../_common/types/blocks/field.type.js";
 import { Tooltip } from "../../../_common/components/Tooltip.js";
 
 type Screen = "menu" | "configure";
@@ -93,7 +93,7 @@ const index: FieldTypeOption[] = [
     }
 ];
 
-export interface NewFieldData {
+export interface NewFieldType {
     id: string;
     type: FieldNameType;
     label: string;
@@ -105,7 +105,7 @@ export interface NewFieldData {
 
 interface Props {
     targetRowId: string;
-    onAddField: (targetRowId: string, data: NewFieldData) => boolean;
+    onAddField: (targetRowId: string, data: NewFieldType) => boolean;
 }
 
 export default function NewFieldModal({ targetRowId, onAddField }: Props) {
@@ -144,7 +144,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
     }
 
     function handleSave() {
-        const payload: NewFieldData = {
+        const payload: NewFieldType = {
             id,
             type,
             label,

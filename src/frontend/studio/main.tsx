@@ -39,13 +39,13 @@ import Messages from "../_common/components/Messages.js"
 
 import Dashboard from "./pages/Dashboard.js"
 import Analytics from "./pages/Analytics.js"
-import Characters from "./pages/content/Characters.js"
+import Content from "./pages/Content.js"
+import Templates from "./pages/Templates.js"
 import Datasets from "./pages/Datasets.js"
 import Trash from "./pages/Trash.js"
 
-import CharacterTemplate from "./components/CharacterTemplate.js"
+import Template from "./pages/Template.js"
 
-import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
 
@@ -141,16 +141,18 @@ async function bootstrap() {
                         <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
                         <Messages />
                         <Routes>
-                            <Route path="/template" element={<CharacterTemplate />} />
+                            <Route 
+                                path="/template/:templateId/:categoryId?/:blockId?" 
+                                element={<Template />} 
+                            />
 
                             <Route element={<RootLayout />}>
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/analytics" element={<Analytics />} />
-                                <Route path="/content/characters" element={<Characters />} />
-                                <Route path="/content/universes" element={<ComingSoon />} />
+                                <Route path="/content" element={<Content />} />
 
-                                <Route path="/templates" element={<ComingSoon />} />
+                                <Route path="/templates" element={<Templates />} />
                                 <Route path="/datasets" element={<Datasets />} />
 
                                 <Route path="/trash" element={<Trash />} />

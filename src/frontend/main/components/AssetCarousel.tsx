@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import CharacterCard from "../../_common/components/CharacterCard.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { Link } from "react-router-dom";
-import { GetPublishedCharacterType } from "../../../_common/types/character.type.js";
+import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 
 type Props = {
     name: string;

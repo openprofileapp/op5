@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { useEffect, useState, useCallback, useRef, ReactNode, CSSProperties } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -32,18 +34,16 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
-import Metadata from "../../_common/components/Metadata.js";
-import TemplateField from "./TemplateField.js";
-import { toast } from "../../_common/scripts/toast.js";
-import NewCategoryModal, { NewCategoryData } from "./modals/NewCategoryModal.js";
-import { GetCategoryType } from "../../../_common/types/template/category.type.js";
-import { GetRowType, TemplateRowItemType } from "../../../_common/types/template/row.type.js";
-import { GetFieldType } from "../../../_common/types/template/field.type.js";
-import NewFieldModal, { NewFieldData } from "./modals/NewFieldModal.js";
-import { snowflake } from "../scripts/main.js";
-import { GetBlockItemType } from "../../../_common/types/template/block.type.js";
-import NewBlockModal from "./modals/NewBlockModal.js";
+import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
+import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { snowflake } from "../scripts/main.js";
+import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
+import { toast } from "../../_common/scripts/toast.js";
+import Metadata from "../../_common/components/Metadata.js";
+import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
+import NewFieldModal from "../components/modals/NewFieldModal.js";
+import NewBlockModal from "../components/modals/NewBlockModal.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -106,7 +106,7 @@ export function SortableItem({ id, children, disabled = false }: SortableItemPro
             {children({
                 sortableProps: {
                     ref: setNodeRef,
-                    style
+                    style,
                 },
                 dragHandleProps: {
                     ref: setActivatorNodeRef,
@@ -119,60 +119,271 @@ export function SortableItem({ id, children, disabled = false }: SortableItemPro
     );
 }
 
-export default function CharacterTemplate() {
-    const { id } = useParams();
+export default function Template() {
+    const { templateId, categoryId, blockId } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
+    const navigate = useNavigate();
+
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
     const [isPreviewMode, setIsPreviewMode] = useState(false);
-
     const [lastToast, setLastToast] = useState<number>(0);
-    const [targetRowId, setTargetRowId] = useState<string | null>(null);
-    
-    const [data, setData] = useState<GetCategoryType[]>([]);
-
-    const [activeCategory, setActiveCategory] = useState<string | null>();
-    const [activeBlock, setActiveBlock] = useState<string | null>();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [activeId, setActiveId] = useState<string | null>(null);
 
     const debounceTimers = useRef<{ [fieldId: string]: NodeJS.Timeout }>({});
     const valuesMapRef = useRef<{ [fieldId: string]: string }>({});
 
-    const currentCategory =
-        data.find((category) => category.categoryId === activeCategory) ?? data[0];
+    const [isTemplateLoading, setIsTemplateLoading] = useState<boolean>(true);
 
-    const currentBlock = currentCategory?.blocks?.find(
-        (block) => block.blockId === activeBlock
-    );
+    const [template, setTemplate] = useState<GetTemplateItemType>();
+    const [templateData, setTemplateData] = useState<GetTemplateCategoryItemType[]>([]);
+
+    const [currentLocation, setCurrentLocation] = useState<{ categoryId?: string; blockId?: string }>({});
+    const [currentCategoryData, setCurrentCategoryData] = useState<GetTemplateCategoryItemType>();
+    const [currentBlockData, setCurrentBlockData] = useState<GetTemplateBlockItemType>();
+
+    const [activeDragId, setActiveDragId] = useState<string>();
+    const [dragTargetRowId, setDragTargetRowId] = useState<string>();
+
+    const currentCategoryId =
+        currentLocation.categoryId 
+        || categoryId 
+        || templateData[0]?.categoryId;
+
+    const currentBlockId = 
+        blockId 
+        || currentLocation.blockId 
+        || "";
 
     useEffect(() => {
-        data.forEach((category) => {
-            category.blocks?.forEach((block) => {
-                block.rows?.forEach((row) => {
-                    row.fields?.forEach((field) => {
-                        if (field.fieldId && field.value?.content !== undefined) {
-                            valuesMapRef.current[field.fieldId] = field.value.content;
+        const fetchTemplate = async () => {
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/templates?id=${templateId}`,
+                    { credentials: "include" }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data?.items?.[0]) {
+                    navigate("/templates", { replace: true });
+                    return;
+                }
+
+                setTemplate(data.items[0]);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        if (templateId) {
+            fetchTemplate();
+        }
+    }, [templateId, navigate]);
+
+    useEffect(() => {
+        const fetchTemplateData = async () => {
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/templates/${templateId}/data`,
+                    { credentials: "include" }
+                );
+
+                const json = await response.json();
+
+                if (!response.ok) {
+                    toast.show(
+                        "Failed to load template",
+                        {
+                            subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                            type: "error",
                         }
+                    );
+
+                    return;
+                }
+
+                setTemplateData(json || []);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsTemplateLoading(false);
+            }
+        };
+
+        if (templateId) {
+            fetchTemplateData();
+        }
+    }, [templateId, navigate]);
+
+    useEffect(() => {
+        if (!Array.isArray(templateData)) return;
+
+        valuesMapRef.current = {};
+
+        templateData.forEach((category) => {
+            category.blocks?.forEach((blockWrapper) => {
+                blockWrapper.items?.forEach((block) => {
+                    block.rows?.forEach((rowWrapper) => {
+                        rowWrapper.items.forEach((row) => {
+                            row.fields?.forEach((fieldWrapper) => {
+                                fieldWrapper.items.forEach((field) => {
+                                    if (
+                                        field.fieldId &&
+                                        field.value?.content !== undefined
+                                    ) {
+                                        valuesMapRef.current[field.fieldId] = field.value.content;
+                                    }
+                                });
+                            });
+                        });
                     });
                 });
             });
         });
-    }, [data]);
+    }, [templateData]);
+
+    const resolveDynamicValues = useCallback((text: string | undefined): string => {
+        if (!text) return "";
+
+        return text.replace(/\{([^}]+)\}/g, (match, fieldId) => {
+            const trimmedId = fieldId.trim();
+
+            if (valuesMapRef.current[trimmedId] !== undefined) {
+                return valuesMapRef.current[trimmedId] || match;
+            }
+
+            templateData.forEach((category) => {
+                category.blocks?.forEach((blockWrapper) => {
+                    blockWrapper.items?.forEach((block) => {
+                        block.rows?.forEach((rowWrapper) => {
+                            rowWrapper.items.forEach((row) => {
+                                row.fields?.forEach((fieldWrapper) => {
+                                    fieldWrapper.items.forEach((field) => {
+                                        if (field.fieldId === trimmedId) {
+                                            return field.value?.content || match;
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
+            return match;
+        });
+    }, [templateData]);
 
     useEffect(() => {
-        if (!currentCategory || !activeBlock) return;
+        if (categoryId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setCurrentLocation((prev) => ({ ...prev, categoryId }));
+        }
 
-        const blockExists = currentCategory?.blocks.some(
-            (block) => block.blockId === activeBlock
+        if (blockId) {
+            setCurrentLocation((prev) => ({ ...prev, blockId }));
+        }
+    }, [categoryId, blockId]);
+
+    useEffect(() => {
+        if (!templateData.length || isTemplateLoading || !templateId) return;
+
+        if (!categoryId && currentCategoryId) {
+            const targetUrl = currentBlockId
+                ? `/template/${templateId}/${currentCategoryId}/${currentBlockId}`
+                : `/template/${templateId}/${currentCategoryId}`;
+
+            navigate(targetUrl, { replace: true });
+        }
+    }, [categoryId, currentCategoryId, currentBlockId, templateId, templateData.length, isTemplateLoading, navigate]);
+
+    useEffect(() => {
+        if (!templateData.length || !currentCategoryId) return;
+
+        const category = templateData.find(
+            (c) => String(c.categoryId) === String(currentCategoryId)
         );
 
-        if (!blockExists) {
+        if (category) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setActiveBlock(null);
+            setCurrentCategoryData(category);
+
+            let foundBlock: GetTemplateBlockItemType | undefined;
+
+            if (category?.blocks && currentBlockId) {
+                for (const blockWrapper of category.blocks) {
+                    const matched = blockWrapper.items?.find(
+                        (b) => String(b.blockId) === String(currentBlockId)
+                    );
+
+                    if (matched) {
+                        foundBlock = matched;
+                        break;
+                    }
+                }
+            }
+
+            setCurrentBlockData(foundBlock);
         }
-    }, [currentCategory, activeBlock]);
+    }, [templateData, currentCategoryId, currentBlockId]);
+
+    const setCurrentCategory = useCallback(
+        (newCategoryId: string) => {
+            setCurrentLocation({ categoryId: newCategoryId, blockId: "" });
+
+            navigate(`/template/${templateId}/${newCategoryId}`);
+        },
+        [navigate, templateId]
+    );
+
+    const setCurrentBlock = useCallback(
+        (newBlockId: string, targetCategoryId?: string) => {
+            const categoryToUse = targetCategoryId || currentLocation.categoryId || categoryId || templateData[0]?.categoryId;
+
+            setCurrentLocation((prev) => ({
+                categoryId: targetCategoryId || prev.categoryId,
+                blockId: newBlockId,
+            }));
+
+            if (categoryToUse) {
+                navigate(`/template/${templateId}/${categoryToUse}/${newBlockId}`);
+            }
+        },
+        [currentLocation.categoryId, categoryId, templateData, navigate, templateId]
+    );
+
+    const scrollToField = useCallback((fieldId: string) => {
+        if (!fieldId) return;
+
+        setTimeout(() => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                if ("focus" in element && typeof element.focus === "function") {
+                    element.focus({ preventScroll: true });
+                }
+            }
+        }, 150);
+    }, []);
+
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.replace("#", "");
+            if (hash) {
+                scrollToField(hash);
+            }
+        };
+
+        window.addEventListener("hashchange", handleHashChange);
+
+        if (window.location.hash) {
+            scrollToField(window.location.hash.replace("#", ""));
+        }
+
+        return () => window.removeEventListener("hashchange", handleHashChange);
+    }, [scrollToField]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -204,44 +415,147 @@ export default function CharacterTemplate() {
 
     const conditionalVerticalAxisModifier: Modifier = useCallback((args) => {
         const { active } = args;
-        const activeIdStr = String(active?.id ?? "");
+        const activeDragIdStr = String(active?.id ?? "");
 
-        if (activeIdStr.startsWith("category:") || activeIdStr.startsWith("row:")) {
+        if (activeDragIdStr.startsWith("category:") || activeDragIdStr.startsWith("row:")) {
             return restrictToVerticalAxis(args);
         }
 
         return args.transform;
     }, []);
 
-    const resolveDynamicValues = useCallback((text: string | undefined): string => {
-        if (!text) return "";
+    const handleAddCategory = async (incoming: NewCategoryType): Promise<boolean> => {
+        const newCategory: GetTemplateCategoryItemType = {
+            categoryId: snowflake.gen(),
+            types: incoming?.types,
+            label: incoming?.label || "Untitled",
+            position: templateData?.length ?? 0,
+            createdBy: window.session.userId,
+            updatedDate: new Date().toISOString(),
+            createdDate: new Date().toISOString(),
+            blocks: [],
+        };
 
-        return text.replace(/\{([^}]+)\}/g, (match, fieldId) => {
-            const trimmedId = fieldId.trim();
-
-            if (valuesMapRef.current[trimmedId] !== undefined) {
-                return valuesMapRef.current[trimmedId] || match;
-            }
-
-            for (const category of data) {
-                for (const block of category.blocks || []) {
-                    for (const row of block.rows || []) {
-                        for (const field of row.fields || []) {
-                            if (field.fieldId === trimmedId) {
-                                return field.value?.content || match;
-                            }
-                        }
-                    }
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/categories/insert`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        categoryId: newCategory.categoryId,
+                        label: newCategory.label,
+                        types: newCategory.types,
+                        position: newCategory.position,
+                    }),
                 }
+            );
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                toast.show(
+                    "Failed to create category",
+                    {
+                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                        type: "error",
+                    }
+                );
+
+                return false;
             }
-            return match;
-        });
-    }, [data]);
+        } catch (error) {
+            console.error("Failed to create category:", error);
+
+            toast.show(
+                "Failed to create category",
+                {
+                    subtext: String(error),
+                    type: "error",
+                }
+            );
+
+            return false;
+        }
+
+        setCurrentLocation({ categoryId: newCategory.categoryId, blockId: "" });
+        setCurrentCategoryData(newCategory);
+        setTemplateData((prev) => [...prev, newCategory]);
+
+        navigate(`/template/${templateId}/${newCategory.categoryId}`);
+
+        return true;
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
     const handleFieldChange = (fieldId: string, newValue: string) => {
         valuesMapRef.current[fieldId] = newValue;
 
-        setData((prev: GetCategoryType[]) =>
+        setTemplateData((prev: GetCategoryType[]) =>
             prev.map((category) => ({
                 ...category,
                 blocks: category.blocks.map((block) => ({
@@ -253,7 +567,7 @@ export default function CharacterTemplate() {
 
                             return {
                                 ...field,
-                                lastEditedDate: new Date().toISOString(),
+                                updatedDate: new Date().toISOString(),
                                 value: {
                                     author: window.session?.userId ?? "",
                                     content: newValue,
@@ -275,56 +589,10 @@ export default function CharacterTemplate() {
         }, 300);
     };
 
-    const handleAddCategory = async (newData: NewCategoryData): Promise<boolean> => {
-    const id = snowflake.gen();
-    const position = data.length ?? 0;
-    const assetId = "2662847145319592";
+    
 
-    const newCategory: GetCategoryType = {
-        categoryId: id,
-        types: newData.types,
-        label: newData.label || "Untitled",
-        position,
-        createdBy: window.session.userId,
-        lastEditedDate: new Date().toISOString(),
-        createdDate: new Date().toISOString(),
-        blocks: []
-    };
-
-    try {
-        const response = await fetch(`${apiBaseUrl}/v3/characters/insert/${assetId}/categories`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                categoryId: id,
-                label: newCategory.label,
-                types: newCategory.types,
-                position,
-            }),
-        });
-
-        if (!response.ok) {
-            toast.show("Failed to create category on server", { type: "error" });
-            return false;
-        }
-    } catch (error) {
-        console.error("Failed to insert category:", error);
-        toast.show("Error creating category", { type: "error" });
-        return false;
-    }
-
-    setData((prev) => [newCategory, ...prev]);
-    setActiveCategory(id);
-    setActiveBlock(null);
-
-    return true;
-};
-
-    const handleAddBlock = async (newData: NewBlockData): Promise<boolean> => {
-        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+    const handleAddBlock = async (newtemplate: NewBlocktemplate): Promise<boolean> => {
+        const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
 
         if (!targetCategoryId) {
             toast.show("No active category selected", { type: "error" });
@@ -333,9 +601,9 @@ export default function CharacterTemplate() {
 
         let fetchedRows: TemplateRowItemType[] = [];
 
-        if (newData.blockId) {
+        if (newtemplateData?.blockId) {
             try {
-                const res = await fetch(`${apiBaseUrl}/v3/templates/data/${newData.blockId}`, {
+                const res = await fetch(`${apiBaseUrl}/v3/templates/blocks/template/${newtemplateData?.blockId}`, {
                     credentials: "include",
                 });
 
@@ -351,10 +619,10 @@ export default function CharacterTemplate() {
             }
         }
 
-        const rawRows = fetchedRows.length > 0 ? fetchedRows : (newData.rows ?? []);
+        const rawRows = fetchedRows.length > 0 ? fetchedRows : (newtemplateData?.rows ?? []);
 
         const existingFieldIds = new Set<string>();
-        data.forEach((category) => {
+        templateData?.forEach((category) => {
             category.blocks?.forEach((block) => {
                 block.rows?.forEach((row) => {
                     row.fields?.forEach((field) => {
@@ -386,14 +654,11 @@ export default function CharacterTemplate() {
 
         const newBlockId = snowflake.gen();
 
-        const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
+        const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
         const position = targetCategory?.blocks?.length ?? 0;
 
-        // DEVELOPER NEEDED: REMOVE THIS
-        const assetId = "2662847145319592";
-
         try {
-            const response = await fetch(`${apiBaseUrl}/v3/characters/insert/${assetId}/blocks`, {
+            const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/blocks`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -401,17 +666,17 @@ export default function CharacterTemplate() {
                 credentials: "include",
                 body: JSON.stringify({
                     blockId: newBlockId,
-                    categoryId: targetCategoryId,
-                    sourceBlockId: newData.blockId ?? null,
-                    icon: newData.icon ?? null,
-                    label: newData.label ?? null,
-                    description: newData.description ?? null,
+                    categoryId: String(BigInt(targetCategory)),
+                    sourceBlockId: newtemplateData?.blockId ?? null,
+                    icon: newtemplateData?.icon ?? null,
+                    label: newtemplateData?.label ?? null,
+                    description: newtemplateData?.description ?? null,
                     position,
                 }),
             });
 
             if (!response.ok) {
-                toast.show("Failed to create block on server", { type: "error" });
+                toast.show("Failed to create block", { type: "error" });
                 return false;
             }
         } catch (error) {
@@ -422,17 +687,17 @@ export default function CharacterTemplate() {
 
         const newBlock: GetBlockItemType = {
             blockId: newBlockId,
-            label: newData.label,
-            description: newData.description,
-            icon: newData.icon,
+            label: newtemplateData?.label,
+            description: newtemplateData?.description,
+            icon: newtemplateData?.icon,
             position,
             createdBy: window.session.userId,
-            lastEditedDate: new Date().toISOString(),
+            updatedDate: new Date().toISOString(),
             createdDate: new Date().toISOString(),
             rows: uniqueRows,
         };
 
-        setData((prev: GetCategoryType[]) =>
+        setTemplateData((prev: GetCategoryType[]) =>
             prev.map((category) => {
                 if (category.categoryId !== targetCategoryId) return category;
 
@@ -450,26 +715,25 @@ export default function CharacterTemplate() {
             })
         );
 
-        setActiveBlock(newBlockId);
+        setCurrentBlockId(newBlockId);
 
         return true;
     };
 
     const handleAddRow = async (): Promise<void> => {
-    if (!activeBlock) return;
+    if (!currentBlockId) return;
 
-    const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
-    const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
-    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
+    const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
+    const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
+    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
     
     if (!targetBlock) return;
 
     const newRowId = snowflake.gen();
     const position = targetBlock.rows?.length ?? 0;
-    const assetId = "2662847145319592";
 
     try {
-        const response = await fetch(`${apiBaseUrl}/v3/characters/insert/${assetId}/rows`, {
+        const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/rows`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -477,13 +741,13 @@ export default function CharacterTemplate() {
             credentials: "include",
             body: JSON.stringify({
                 rowId: newRowId,
-                blockId: activeBlock,
+                blockId: currentBlockId,
                 position,
             }),
         });
 
         if (!response.ok) {
-            toast.show("Failed to create row on server", { type: "error" });
+            toast.show("Failed to create row", { type: "error" });
             return;
         }
     } catch (error) {
@@ -500,14 +764,14 @@ export default function CharacterTemplate() {
         fields: []
     };
 
-    setData((prev: GetCategoryType[]) =>
+    setTemplateData((prev: GetCategoryType[]) =>
         prev.map((category) => {
             if (category.categoryId !== targetCategoryId) return category;
 
             return {
                 ...category,
                 blocks: category.blocks.map((block) => {
-                    if (block.blockId !== activeBlock) return block;
+                    if (block.blockId !== currentBlockId) return block;
 
                     const currentRows = block.rows ?? [];
                     return {
@@ -520,17 +784,17 @@ export default function CharacterTemplate() {
     );
 };
 
-    const handleAddField = async (rowId: string, newData: NewFieldData): Promise<boolean> => {
-    if (!activeBlock) return false;
+    const handleAddField = async (rowId: string, newtemplate: NewFieldtemplate): Promise<boolean> => {
+    if (!currentBlockId) return false;
 
-    if (!newData.id.trim()) {
+    if (!newtemplateData?.id.trim()) {
         toast.show("Field ID is required", { type: "error" });
         return false;
     }
 
-    const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
-    const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
-    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
+    const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
+    const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
+    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
     const targetRow = targetBlock?.rows.find((r) => r.rowId === rowId);
 
     if (!targetRow) return false;
@@ -542,45 +806,44 @@ export default function CharacterTemplate() {
         return false;
     }
 
-    const isDuplicateId = data.some((category) =>
+    const isDuplicateId = templateData?.some((category) =>
         category.blocks.some((block) =>
             block.rows.some((row) =>
-                (row.fields || []).some((field) => field.fieldId === newData.id)
+                (row.fields || []).some((field) => field.fieldId === newtemplateData?.id)
             )
         )
     );
 
     if (isDuplicateId) {
-        toast.show(`A field with ID "${newData.id}" already exists`, { type: "error" });
+        toast.show(`A field with ID "${newtemplateData?.id}" already exists`, { type: "error" });
         return false;
     }
 
-    const initialContent = newData.value ?? "";
+    const initialContent = newtemplateData?.value ?? "";
     const position = existingFields.length;
-    const assetId = "2662847145319592";
 
     try {
-        const response = await fetch(`${apiBaseUrl}/v3/characters/insert/${assetId}/fields`, {
+        const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/fields`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             credentials: "include",
             body: JSON.stringify({
-                fieldId: newData.id,
+                fieldId: newtemplateData?.id,
                 rowId,
-                type: newData.type,
-                label: newData.label,
-                placeholder: newData.placeholder ?? "",
-                options: newData.options ?? [],
-                guide: newData.guide ?? "",
+                type: newtemplateData?.type,
+                label: newtemplateData?.label,
+                placeholder: newtemplateData?.placeholder ?? "",
+                options: newtemplateData?.options ?? [],
+                guide: newtemplateData?.guide ?? "",
                 value: initialContent,
                 position,
             }),
         });
 
         if (!response.ok) {
-            toast.show("Failed to create field on server", { type: "error" });
+            toast.show("Failed to create field", { type: "error" });
             return false;
         }
     } catch (error) {
@@ -589,19 +852,19 @@ export default function CharacterTemplate() {
         return false;
     }
 
-    valuesMapRef.current[newData.id] = initialContent;
+    valuesMapRef.current[newtemplateData?.id] = initialContent;
 
     const newField: GetFieldType = {
-        fieldId: newData.id,
-        type: newData.type,
-        label: newData.label,
-        placeholder: newData.placeholder ?? "",
-        options: newData.options ?? [],
-        guide: newData.guide ?? "",
+        fieldId: newtemplateData?.id,
+        type: newtemplateData?.type,
+        label: newtemplateData?.label,
+        placeholder: newtemplateData?.placeholder ?? "",
+        options: newtemplateData?.options ?? [],
+        guide: newtemplateData?.guide ?? "",
         isLocked: false,
         position,
         createdBy: window.session.userId,
-        lastEditedDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
         createdDate: new Date().toISOString(),
         value: {
             author: initialContent ? window.session.userId : "",
@@ -611,14 +874,14 @@ export default function CharacterTemplate() {
         notes: []
     };
 
-    setData((prev: GetCategoryType[]) =>
+    setTemplateData((prev: GetCategoryType[]) =>
         prev.map((category) => {
             if (category.categoryId !== targetCategoryId) return category;
 
             return {
                 ...category,
                 blocks: category.blocks.map((block) => {
-                    if (block.blockId !== activeBlock) return block;
+                    if (block.blockId !== currentBlockId) return block;
 
                     return {
                         ...block,
@@ -641,7 +904,7 @@ export default function CharacterTemplate() {
 
     const handleDragStart = (event: DragStartEvent): void => {
         if (isPreviewMode) return;
-        setActiveId(String(event.active.id));
+        setActiveDragId(String(event.active.id));
         document.body.style.cursor = "grabbing";
     };
 
@@ -650,28 +913,28 @@ export default function CharacterTemplate() {
         const { active, over } = event;
         if (!over) return;
 
-        const activeIdStr = String(active.id);
+        const activeDragIdStr = String(active.id);
         const overIdStr = String(over.id);
 
-        if (!activeIdStr.startsWith("field:")) return;
+        if (!activeDragIdStr.startsWith("field:")) return;
 
-        const activeFieldId = activeIdStr.replace("field:", "");
+        const activeFieldId = activeDragIdStr.replace("field:", "");
         const overType = overIdStr.includes(":") ? overIdStr.split(":")[0] : "field";
         const overRawId = overIdStr.includes(":") ? overIdStr.split(":")[1] : overIdStr;
 
-        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+        const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
 
-        setData((prevData) => {
-            const category = prevData.find((c) => c.categoryId === targetCategoryId);
-            if (!category) return prevData;
+        setTemplateData((prevtemplate) => {
+            const category = prevtemplateData?.find((c) => c.categoryId === targetCategoryId);
+            if (!category) return prevtemplate;
 
-            const block = category.blocks.find((b) => b.blockId === activeBlock);
-            if (!block) return prevData;
+            const block = category.blocks.find((b) => b.blockId === currentBlockId);
+            if (!block) return prevtemplate;
 
             const sourceRow = block.rows.find((r) =>
                 (r.fields || []).some((f) => f.fieldId === activeFieldId)
             );
-            if (!sourceRow) return prevData;
+            if (!sourceRow) return prevtemplate;
 
             let targetRow: typeof sourceRow | undefined;
 
@@ -683,11 +946,11 @@ export default function CharacterTemplate() {
                 targetRow = block.rows.find((r) => r.rowId === overRawId);
             }
 
-            if (!targetRow) return prevData;
+            if (!targetRow) return prevtemplate;
 
-            const targetRowId = targetRow.rowId;
+            const dragtargetRowId = targetRow.rowId;
 
-            if (sourceRow.rowId === targetRowId) return prevData;
+            if (sourceRow.rowId === dragtargetRowId) return prevtemplate;
 
             if ((targetRow.fields || []).length >= 5) {
                 if (Date.now() - lastToast > 5000) {
@@ -695,19 +958,19 @@ export default function CharacterTemplate() {
                     setLastToast(Date.now());
                 }
 
-                return prevData;
+                return prevtemplate;
             }
 
             const movedField = sourceRow.fields.find((f) => f.fieldId === activeFieldId);
-            if (!movedField) return prevData;
+            if (!movedField) return prevtemplate;
 
-            return prevData.map((cat) => {
+            return prevtemplateData?.map((cat) => {
                 if (cat.categoryId !== targetCategoryId) return cat;
 
                 return {
                     ...cat,
                     blocks: cat.blocks.map((b) => {
-                        if (b.blockId !== activeBlock) return b;
+                        if (b.blockId !== currentBlockId) return b;
 
                         return {
                             ...b,
@@ -719,7 +982,7 @@ export default function CharacterTemplate() {
                                     };
                                 }
 
-                                if (row.rowId === targetRowId) {
+                                if (row.rowId === dragtargetRowId) {
                                     const overIndex = row.fields.findIndex((f) => f.fieldId === overRawId);
                                     const newIndex = overIndex >= 0 ? overIndex : row.fields.length;
 
@@ -745,48 +1008,46 @@ export default function CharacterTemplate() {
         if (isPreviewMode) return;
 
         const { active, over } = event;
-        setActiveId(null);
+        setActiveDragId(null);
         document.body.style.cursor = "";
 
         if (!over || active.id === over.id) return;
 
-        const activeIdString = String(active.id);
+        const activeDragIdString = String(active.id);
         const overIdString = String(over.id);
 
-        const [activeType, activeIdValue] = activeIdString.includes(":")
-            ? activeIdString.split(":")
-            : ["field", activeIdString];
+        const [activeType, activeDragIdValue] = activeDragIdString.includes(":")
+            ? activeDragIdString.split(":")
+            : ["field", activeDragIdString];
 
         const [, overIdValue] = overIdString.includes(":")
             ? overIdString.split(":")
             : ["field", overIdString];
 
-        const assetId = "2662847145319592";
-
         if (activeType === "category") {
-            const oldIndex = data.findIndex((c) => c.categoryId === activeIdValue);
-            const newIndex = data.findIndex((c) => c.categoryId === overIdValue);
+            const oldIndex = templateData?.findIndex((c) => c.categoryId === activeDragIdValue);
+            const newIndex = templateData?.findIndex((c) => c.categoryId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const originalData = data;
-                const reorderedCategories = arrayMove(originalData, oldIndex, newIndex);
+                const originaltemplate = template;
+                const reorderedCategories = arrayMove(originaltemplate, oldIndex, newIndex);
 
-                setData(reorderedCategories);
+                setTemplateData(reorderedCategories);
 
                 queueMicrotask(async () => {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 1000);
 
-                    const revertUI = () => setData(originalData);
+                    const revertUI = () => setTemplateData(originaltemplate);
 
                     try {
-                        const response = await fetch(`${apiBaseUrl}/v3/characters/update/${assetId}/categories/positions`, {
+                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/categories/positions`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             credentials: "include",
                             signal: controller.signal,
                             body: JSON.stringify({
-                                data: reorderedCategories.map((c) => ({ categoryId: c.categoryId })),
+                                template: reorderedCategories.map((c) => ({ categoryId: c.categoryId })),
                             }),
                         });
 
@@ -812,20 +1073,20 @@ export default function CharacterTemplate() {
             return;
         }
 
-        const targetCategoryId = activeCategory ?? currentCategory?.categoryId;
+        const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
 
         if (activeType === "block") {
-            const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
+            const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
             if (!targetCategory) return;
 
-            const oldIndex = targetCategory.blocks.findIndex((b) => b.blockId === activeIdValue);
+            const oldIndex = targetCategory.blocks.findIndex((b) => b.blockId === activeDragIdValue);
             const newIndex = targetCategory.blocks.findIndex((b) => b.blockId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                 const originalBlocks = targetCategory.blocks;
                 const reorderedBlocks = arrayMove(originalBlocks, oldIndex, newIndex);
 
-                setData((prev: GetCategoryType[]) =>
+                setTemplateData((prev: GetCategoryType[]) =>
                     prev.map((category) =>
                         category.categoryId === targetCategoryId
                             ? { ...category, blocks: reorderedBlocks }
@@ -838,7 +1099,7 @@ export default function CharacterTemplate() {
                     const timeoutId = setTimeout(() => controller.abort(), 1000);
 
                     const revertUI = () => {
-                        setData((prev: GetCategoryType[]) =>
+                        setTemplateData((prev: GetCategoryType[]) =>
                             prev.map((category) =>
                                 category.categoryId === targetCategoryId
                                     ? { ...category, blocks: originalBlocks }
@@ -848,13 +1109,13 @@ export default function CharacterTemplate() {
                     };
 
                     try {
-                        const response = await fetch(`${apiBaseUrl}/v3/characters/update/${assetId}/blocks/positions`, {
+                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/blocks/positions`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             credentials: "include",
                             signal: controller.signal,
                             body: JSON.stringify({
-                                data: reorderedBlocks.map((block) => ({ blockId: block.blockId })),
+                                template: reorderedBlocks.map((block) => ({ blockId: block.blockId })),
                             }),
                         });
 
@@ -881,25 +1142,25 @@ export default function CharacterTemplate() {
         }
 
         if (activeType === "row") {
-            const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
-            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
+            const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
+            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
             if (!targetBlockItem) return;
 
-            const oldIndex = targetBlockItem.rows.findIndex((r) => r.rowId === activeIdValue);
+            const oldIndex = targetBlockItem.rows.findIndex((r) => r.rowId === activeDragIdValue);
             const newIndex = targetBlockItem.rows.findIndex((r) => r.rowId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                 const originalRows = targetBlockItem.rows;
                 const reorderedRows = arrayMove(originalRows, oldIndex, newIndex);
 
-                setData((prev: GetCategoryType[]) =>
+                setTemplateData((prev: GetCategoryType[]) =>
                     prev.map((category) => {
                         if (category.categoryId !== targetCategoryId) return category;
 
                         return {
                             ...category,
                             blocks: category.blocks.map((block) => {
-                                if (block.blockId !== activeBlock) return block;
+                                if (block.blockId !== currentBlockId) return block;
 
                                 return {
                                     ...block,
@@ -915,14 +1176,14 @@ export default function CharacterTemplate() {
                     const timeoutId = setTimeout(() => controller.abort(), 1000);
 
                     const revertUI = () => {
-                        setData((prev: GetCategoryType[]) =>
+                        setTemplateData((prev: GetCategoryType[]) =>
                             prev.map((category) => {
                                 if (category.categoryId !== targetCategoryId) return category;
 
                                 return {
                                     ...category,
                                     blocks: category.blocks.map((block) => {
-                                        if (block.blockId !== activeBlock) return block;
+                                        if (block.blockId !== currentBlockId) return block;
 
                                         return {
                                             ...block,
@@ -935,14 +1196,14 @@ export default function CharacterTemplate() {
                     };
 
                     try {
-                        const response = await fetch(`${apiBaseUrl}/v3/characters/update/${assetId}/rows/positions`, {
+                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/rows/positions`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             credentials: "include",
                             signal: controller.signal,
                             body: JSON.stringify({
-                                blockId: activeBlock,
-                                data: reorderedRows.map((row) => ({ rowId: row.rowId })),
+                                blockId: currentBlockId,
+                                template: reorderedRows.map((row) => ({ rowId: row.rowId })),
                             }),
                         });
 
@@ -969,12 +1230,12 @@ export default function CharacterTemplate() {
         }
 
         if (activeType === "field") {
-            const targetCategory = data.find((c) => c.categoryId === targetCategoryId);
-            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === activeBlock);
+            const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
+            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
             if (!targetBlockItem) return;
 
             const targetRow = targetBlockItem.rows.find((r) =>
-                (r.fields || []).some((f) => f.fieldId === activeIdValue)
+                (r.fields || []).some((f) => f.fieldId === activeDragIdValue)
             );
 
             if (!targetRow) return;
@@ -984,21 +1245,21 @@ export default function CharacterTemplate() {
                 return;
             }
 
-            const oldIndex = targetRow.fields.findIndex((f) => f.fieldId === activeIdValue);
+            const oldIndex = targetRow.fields.findIndex((f) => f.fieldId === activeDragIdValue);
             const newIndex = targetRow.fields.findIndex((f) => f.fieldId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
                 const originalFields = targetRow.fields;
                 const reorderedFields = arrayMove(originalFields, oldIndex, newIndex);
 
-                setData((prev: GetCategoryType[]) =>
+                setTemplateData((prev: GetCategoryType[]) =>
                     prev.map((category) => {
                         if (category.categoryId !== targetCategoryId) return category;
 
                         return {
                             ...category,
                             blocks: category.blocks.map((block) => {
-                                if (block.blockId !== activeBlock) return block;
+                                if (block.blockId !== currentBlockId) return block;
 
                                 return {
                                     ...block,
@@ -1018,14 +1279,14 @@ export default function CharacterTemplate() {
                     const timeoutId = setTimeout(() => controller.abort(), 1000);
 
                     const revertUI = () => {
-                        setData((prev: GetCategoryType[]) =>
+                        setTemplateData((prev: GetCategoryType[]) =>
                             prev.map((category) => {
                                 if (category.categoryId !== targetCategoryId) return category;
 
                                 return {
                                     ...category,
                                     blocks: category.blocks.map((block) => {
-                                        if (block.blockId !== activeBlock) return block;
+                                        if (block.blockId !== currentBlockId) return block;
 
                                         return {
                                             ...block,
@@ -1042,14 +1303,14 @@ export default function CharacterTemplate() {
                     };
 
                     try {
-                        const response = await fetch(`${apiBaseUrl}/v3/characters/update/${assetId}/fields/positions`, {
+                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/fields/positions`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             credentials: "include",
                             signal: controller.signal,
                             body: JSON.stringify({
                                 rowId: targetRow.rowId,
-                                data: reorderedFields.map((field) => ({ fieldId: field.fieldId })),
+                                template: reorderedFields.map((field) => ({ fieldId: field.fieldId })),
                             }),
                         });
 
@@ -1075,44 +1336,78 @@ export default function CharacterTemplate() {
         }
     };
 
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
     useEffect(() => {
-        if (!activeBlock || activeBlock === "about") {
-            history.replaceState(null, "", window.location.pathname + window.location.search);
-        } else {
-            window.location.hash = activeBlock;
+        if (!currentCategoryData || !currentBlockId) return;
+
+        const blockExists = currentCategoryData?.blocks.some(
+            (block) => block.blockId === currentBlockId
+        );
+
+        if (!blockExists) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setCurrentBlockId(null);
         }
-    }, [activeBlock]);
+    }, [currentCategoryData, currentBlockId]);
 
-    const setBlock = (block?: string | null): void => {
-        if (!block || block === "about") {
-            setActiveBlock(null);
-        } else {
-            setActiveBlock(block);
-        }
-    };
 
-    useEffect(() => {
-        const updateBlock = () => {
-            const hash = window.location.hash.replace("#", "");
-            setActiveBlock(hash ? hash : null);
-        };
 
-        window.addEventListener("hashchange", updateBlock);
-        updateBlock();
 
-        return () => window.removeEventListener("hashchange", updateBlock);
-    }, []);
+
 
     if (!isTranslationReady) return null;
 
     return (
         <>
-            <Metadata title="Development" allowIndex="false" />
+            <Metadata 
+                title={`${template?.displayName} Template`}
+                allowIndex={false} 
+            />
 
             <NewCategoryModal onAddCategory={handleAddCategory} />
 
             <NewFieldModal
-                targetRowId={targetRowId as string}
+                dragtargetRowId={dragTargetRowId as string}
                 onAddField={handleAddField}
             />
 
@@ -1168,13 +1463,13 @@ export default function CharacterTemplate() {
 
                         <div className="flex flex-col items-center p-4 w-full">
                             <div className="bg-base-100 border border-base-300 p-4 rounded-lg z-1 w-full max-w-5xl">
-                                {currentCategory && (
+                                {currentCategoryData && (
                                     <>
-                                        {!activeBlock ? (
+                                        {!currentBlockId ? (
                                             <div className="p-2 md:p-4">
                                                 <div className="flex justify-between items-center mb-6">
                                                     <h2 className="text-2xl font-bold">
-                                                        {currentCategory?.label}
+                                                        {currentCategoryData?.label}
                                                     </h2>
                                                 </div>
 
@@ -1194,7 +1489,7 @@ export default function CharacterTemplate() {
                                                 {(() => {
                                                     const query = searchQuery.trim().toLowerCase();
 
-                                                    const filteredBlocks = (currentCategory?.blocks ?? []).filter(block => 
+                                                    const filteredBlocks = (currentCategoryData?.blocks ?? []).filter(block => 
                                                         !query || 
                                                         block.blockId?.toLowerCase().includes(query) || 
                                                         block.label?.toLowerCase().includes(query) ||
@@ -1253,11 +1548,11 @@ export default function CharacterTemplate() {
                                                                 {!isPreviewMode && (
                                                                     <NewBlockModal 
                                                                         onAddBlock={handleAddBlock} 
-                                                                        types={currentCategory?.types ?? []} 
+                                                                        types={currentCategoryData?.types ?? []} 
                                                                     />
                                                                 )}
 
-                                                                {!isPreviewMode && (currentCategory?.blocks.length ?? 0) <= 32 && (
+                                                                {!isPreviewMode && (currentCategoryData?.blocks.length ?? 0) <= 32 && (
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
@@ -1288,7 +1583,7 @@ export default function CharacterTemplate() {
                                                     </button>
                                                     <div className="h-5 w-px bg-base-300" />
                                                     <h2 className="text-xl font-bold">
-                                                        {currentCategory?.blocks?.find(t => t.blockId === activeBlock)?.label ?? activeBlock}
+                                                        {currentCategoryData?.blocks?.find(t => t.blockId === currentBlockId)?.label ?? currentBlockId}
                                                     </h2>
                                                 </div>
 
@@ -1387,7 +1682,7 @@ export default function CharacterTemplate() {
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={() => {
-                                                                                        setTargetRowId(row.rowId);
+                                                                                        setdragTargetRowId(row.rowId);
                                                                                         (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
                                                                                     }}
                                                                                     className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
@@ -1428,18 +1723,17 @@ export default function CharacterTemplate() {
                         <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                         <div className="flex min-h-full flex-col items-center justify-center bg-base-100 is-drawer-close:w-14 is-drawer-open:w-64">
                             <div className="menu w-full">
-                                <SortableContext items={data.map(category => `category:${category.categoryId}`)}>
+                                <SortableContext items={templateData?.map(category => `category:${category.categoryId}`)}>
                                     <ul>
-                                        {data.map(category => (
+                                        {templateData?.map(category => (
                                             <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreviewMode}>
                                                 {({ sortableProps, dragHandleProps }) => (
                                                     <li {...sortableProps} className={sortableProps.className}>
                                                         <button
                                                             className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
-                                                            data-tip={category.label}
+                                                            template-tip={category.label}
                                                             onClick={() => {
-                                                                setActiveCategory(category.categoryId);
-                                                                setBlock(null);
+                                                                setCurrentCategory(category.categoryId);
                                                             }}
                                                         >
                                                             {!isPreviewMode && (

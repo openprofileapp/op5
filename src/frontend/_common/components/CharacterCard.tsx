@@ -5,15 +5,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client";
 
-import { GetPublishedCharacterItemType } from "../../../_common/types/character.type.js";
-import { cdnBaseUrl } from "../scripts/domains.js";
+import { GetPublishedCharacterItemType } from "../../../_common/types/characters/character.type.js";
+import { cdnBaseUrl, mainBaseUrl } from "../scripts/domains.js";
 import { useInteractions } from "../hooks/useInteractions.hook.js";
 import { useModals } from "../hooks/ModalContext.hook.js";
 import { ContextMenuBuilder } from "./ContextMenuBuilder.js";
 import Badges from "./Badges.js";
 
 type Props = {
-    data: GetPublishedCharacterItemType
+    data: GetPublishedCharacterItemType;
     isPreview?: boolean;
     isPinVisible?: boolean;
     doesUnpinDismiss?: boolean;
@@ -419,7 +419,7 @@ export default function CharacterCard({
                             <div className="flex min-w-0 items-center overflow-hidden">
                                 <Link 
                                     className="truncate text-xs leading-snug hover:underline" 
-                                    to={`/user/${data.owner.username || data.owner.id}`}
+                                    to={`${mainBaseUrl}/user/${data.owner.username || data.owner.id}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                     }}

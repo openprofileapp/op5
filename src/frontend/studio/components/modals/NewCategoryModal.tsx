@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import { CategoryIdType, sortedCategories } from "../../../../_common/scripts/categories.js";
 
-export interface NewCategoryData {
+export interface NewCategoryType {
     label: string;
     types: CategoryIdType[];
 }
 
 interface Props {
-    onAddCategory: (data: NewCategoryData) => boolean;
+    onAddCategory: (data: NewCategoryType) => boolean;
 }
 
 export default function NewCategoryModal({ onAddCategory }: Props) {
@@ -28,7 +28,7 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
     }
 
     function handleSave() {
-        const payload: NewCategoryData = {
+        const payload: NewCategoryType = {
             label,
             types
         };
