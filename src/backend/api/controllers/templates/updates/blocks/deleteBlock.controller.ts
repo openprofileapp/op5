@@ -9,18 +9,17 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 
-export const positionRows = async (req: Request, res: Response) => {
+export const deleteBlock = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
-        const { data } = req.body;
+        const { templateId, blockId } = req.params;
 
-        await assertBearer(req);
+        await assertBearer(req); 
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const getResult = db.characters.query(
-            "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+        const getResult = db.templates.query(
+            "SELECT * FROM templates WHERE id = ?",
+            [templateId]
         );
 
         assertDbSuccess(getResult);
@@ -28,7 +27,7 @@ export const positionRows = async (req: Request, res: Response) => {
         if (getResult.rowCount === 0) {
             throw new AdvancedError({
                 code: 404,
-                message: i18n.t("responses.characterNotFound")
+                message: i18n.t("responses.templateNotFound")
             });
         }
 
@@ -39,31 +38,49 @@ export const positionRows = async (req: Request, res: Response) => {
             });
         }
 
-        if (!Array.isArray(data)) {
+        if (!blockId) {
             throw new AdvancedError({
                 code: 400,
                 message: i18n.t("responses.malformedRequest")
             });
         }
 
-        data.forEach((item, position) => {
-            if (item && typeof item.rowId === "string") {
-                const updateResult = db.characters.query(
-                    "UPDATE draft_rows SET position = ? WHERE rowId = ?",
-                    [position, item.rowId]
-                );
-                assertDbSuccess(updateResult);
-            }
-        });
+        const deleteResult = db.templates.query(
+            "DELETE FROM fields WHERE templateId = ? AND blockId = ?",
+            [templateId, blockId]
+        );
 
-        return res.status(200).json({ ok: true });
+        assertDbSuccess(deleteResult);
+
+        const deleteRowsResult = db.templates.query(
+            "DELETE FROM rows WHERE templateId = ? AND blockId = ?",
+            [templateId, blockId]
+        );
+
+        assertDbSuccess(deleteRowsResult);
+
+        const deleteBlockResult = db.templates.query(
+            "DELETE FROM blocks WHERE templateId = ? AND blockId = ?",
+            [templateId, blockId]
+        );
+
+        assertDbSuccess(deleteBlockResult);
+
+        return res.status(200).json({
+            ok: true,
+        });
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
-            return res.status(error.code).json({ id: error.id, message: error.message });
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
         } else {
             log.unknown.error(error).save();
-            return res.status(500).json({ message: i18n.t("responses.unknown") });
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
         }
     }
 };

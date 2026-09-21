@@ -6,10 +6,10 @@ import { assertDbSuccess } from '../../../../_common/asserts/dbSuccess.assert.js
 import { AdvancedError } from 'kage-library';
 import { log } from '../../instances.js';
 import { i18n } from '../../../_common/instances.js';
-import { GetRowItemType } from '../../../../_common/types/template/row.type.js';
+import { GetRowItemType } from '../../../../_common/types/blocks/row.type.js';
 import { assertAccount } from '../../../_common/asserts/account.assert.js';
 
-export const templateDataController = async (req: Request, res: Response) => {
+export const templateBlockDataController = async (req: Request, res: Response) => {
     try {
         const { blockId } = req.params;
 

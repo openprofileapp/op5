@@ -8,7 +8,6 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
-import whatIs from "../../../../helpers/whatIs.js";
 
 export const deleteFields = async (req: Request, res: Response) => {
     try {
@@ -18,9 +17,21 @@ export const deleteFields = async (req: Request, res: Response) => {
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const whatIsData = whatIs(assetId as string);
+        const getResult = db.characters.query(
+            "SELECT * FROM drafts WHERE id = ?",
+            [assetId]
+        );
 
-        if (whatIsData.ownerId !== req.session.userId) {
+        assertDbSuccess(getResult);
+
+        if (getResult.rowCount === 0) {
+            throw new AdvancedError({
+                code: 404,
+                message: i18n.t("responses.characterNotFound")
+            });
+        }
+
+        if (getResult.rows[0].ownerId !== req.session.userId) {
             throw new AdvancedError({
                 code: 401,
                 message: i18n.t("responses.unauthorized")

@@ -9,17 +9,18 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 
-export const deleteBlock = async (req: Request, res: Response) => {
+export const insertBlock = async (req: Request, res: Response) => {
     try {
-        const { assetId, blockId } = req.params;
+        const { templateId } = req.params;
+        const { blockId, categoryId, sourceBlockId, icon, label, description, position } = req.body;
 
         await assertBearer(req); 
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const getResult = db.characters.query(
-            "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+        const getResult = db.templates.query(
+            "SELECT * FROM templates WHERE id = ?",
+            [templateId]
         );
 
         assertDbSuccess(getResult);
@@ -27,7 +28,7 @@ export const deleteBlock = async (req: Request, res: Response) => {
         if (getResult.rowCount === 0) {
             throw new AdvancedError({
                 code: 404,
-                message: i18n.t("responses.characterNotFound")
+                message: i18n.t("responses.templateNotFound")
             });
         }
 
@@ -38,35 +39,60 @@ export const deleteBlock = async (req: Request, res: Response) => {
             });
         }
 
-        if (!blockId) {
+        if (!blockId || typeof blockId !== "string" || !categoryId || typeof categoryId !== "string") {
             throw new AdvancedError({
                 code: 400,
                 message: i18n.t("responses.malformedRequest")
             });
         }
 
-        const deleteResult = db.characters.query(
-            "DELETE FROM draft_fields WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
+        const countResult = db.templates.query<{ count: number }>(
+            "SELECT 1 FROM blocks WHERE templateId = ?",
+            [templateId]
         );
 
-        assertDbSuccess(deleteResult);
+        assertDbSuccess(countResult);
 
-        const deleteRowsResult = db.characters.query(
-            "DELETE FROM draft_rows WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
+        if (countResult.rowCount >= 32) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.blockLimit")
+            });
+        }
+
+        const targetPosition = 
+            typeof position === "number" 
+                ? position 
+                : countResult.rowCount;
+
+        const insertResult = db.templates.query(
+            `INSERT INTO blocks (
+                templateId, 
+                blockId, 
+                categoryId, 
+                sourceBlockId, 
+                icon, 
+                label, 
+                description, 
+                position, 
+                createdBy
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                templateId,
+                blockId,
+                categoryId,
+                sourceBlockId ?? null,
+                icon ?? null,
+                label ?? null,
+                description ?? null,
+                targetPosition,
+                req.session.userId
+            ]
         );
 
-        assertDbSuccess(deleteRowsResult);
+        assertDbSuccess(insertResult);
 
-        const deleteBlockResult = db.characters.query(
-            "DELETE FROM draft_blocks WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
-        );
-        
-        assertDbSuccess(deleteBlockResult);
-
-        return res.status(200).json({
+        return res.status(201).json({
             ok: true,
         });
     } catch (error) {

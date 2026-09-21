@@ -6,7 +6,7 @@ import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../../databases/db.js";
-import { DraftCharacterType } from "../../../../_common/types/character.type.js";
+import { DraftCharacterType } from "../../../../_common/types/characters/character.type.js";
 import { i18n } from "../../../_common/instances.js";
 import { log } from "../../instances.js";
 

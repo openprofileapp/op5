@@ -8,8 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
-import whatIs from "../../../../helpers/whatIs.js";
-import { BlockItemType } from "../../../../../../_common/types/template/block.type.js";
+import { BlockItemType } from "../../../../../../_common/types/blocks/block.type.js";
 
 export const positionBlocks = async (req: Request, res: Response) => {
     try {
@@ -20,9 +19,21 @@ export const positionBlocks = async (req: Request, res: Response) => {
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const whatIsData = whatIs(assetId as string);
+        const getResult = db.characters.query(
+            "SELECT * FROM drafts WHERE id = ?",
+            [assetId]
+        );
 
-        if (whatIsData.ownerId !== req.session.userId) {
+        assertDbSuccess(getResult);
+
+        if (getResult.rowCount === 0) {
+            throw new AdvancedError({
+                code: 404,
+                message: i18n.t("responses.characterNotFound")
+            });
+        }
+
+        if (getResult.rows[0].ownerId !== req.session.userId) {
             throw new AdvancedError({
                 code: 401,
                 message: i18n.t("responses.unauthorized")
@@ -53,7 +64,9 @@ export const positionBlocks = async (req: Request, res: Response) => {
                 [
                     position,
                     assetId,
-                    block.blockId
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    block?.blockId
                 ]
             );
 

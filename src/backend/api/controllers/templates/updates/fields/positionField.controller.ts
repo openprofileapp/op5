@@ -9,18 +9,18 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 
-export const positionRows = async (req: Request, res: Response) => {
+export const positionFields = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
+        const { templateId } = req.params;
         const { data } = req.body;
 
         await assertBearer(req);
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const getResult = db.characters.query(
-            "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+        const getResult = db.templates.query(
+            "SELECT * FROM templates WHERE id = ?",
+            [templateId]
         );
 
         assertDbSuccess(getResult);
@@ -28,7 +28,7 @@ export const positionRows = async (req: Request, res: Response) => {
         if (getResult.rowCount === 0) {
             throw new AdvancedError({
                 code: 404,
-                message: i18n.t("responses.characterNotFound")
+                message: i18n.t("responses.templateNotFound")
             });
         }
 
@@ -47,10 +47,10 @@ export const positionRows = async (req: Request, res: Response) => {
         }
 
         data.forEach((item, position) => {
-            if (item && typeof item.rowId === "string") {
-                const updateResult = db.characters.query(
-                    "UPDATE draft_rows SET position = ? WHERE rowId = ?",
-                    [position, item.rowId]
+            if (item && typeof item.fieldId === "string") {
+                const updateResult = db.templates.query(
+                    "UPDATE fields SET position = ? WHERE fieldId = ?",
+                    [position, item.fieldId]
                 );
                 assertDbSuccess(updateResult);
             }

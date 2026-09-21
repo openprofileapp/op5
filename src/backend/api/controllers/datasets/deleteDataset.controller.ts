@@ -1,14 +1,14 @@
 import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 
-import { assertBearer } from "../../../../_common/asserts/bearer.assert.js";
-import { assertAccount } from "../../../../_common/asserts/account.assert.js";
-import { assertDbSuccess } from "../../../../../_common/asserts/dbSuccess.assert.js";
-import { db } from "../../../databases/db.js";
-import { log } from "../../../instances.js";
-import { i18n } from "../../../../_common/instances.js";
-import { assertPlatformPermissions } from "../../../../_common/asserts/platformPermissions.assert.js";
-import { DatasetItemType } from "../../../../../_common/types/template/dataset.type.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
+import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
+import { i18n } from "../../../_common/instances.js";
+import { log } from "../../instances.js";
+import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
+import { db } from "../../databases/db.js";
+import { DatasetItemType } from "../../../../_common/types/template/dataset.type.js";
 
 export const deleteDatasetController = async (req: Request, res: Response) => {
     try {

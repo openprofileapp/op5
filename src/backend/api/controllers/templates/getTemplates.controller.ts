@@ -1,20 +1,21 @@
 import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 
-import { assertBearer } from "../../../../_common/asserts/bearer.assert.js";
-import { assertAccount } from "../../../../_common/asserts/account.assert.js";
-import { assertDbSuccess } from "../../../../../_common/asserts/dbSuccess.assert.js";
-import { db } from "../../../databases/db.js";
-import { log } from "../../../instances.js";
-import { i18n } from "../../../../_common/instances.js";
-import { config } from "../../../../../../app.config.js";
-import { parseJson } from "../../../../_common/helpers/parseJson.js";
+import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
+import { assertAccount } from "../../../_common/asserts/account.assert.js";
+import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
+import { db } from "../../databases/db.js";
+import { log } from "../../instances.js";
+import { i18n } from "../../../_common/instances.js";
+import { config } from "../../../../../app.config.js";
+import whatIs from "../../helpers/whatIs.js";
 
-export const getDatasetController = async (req: Request, res: Response) => {
+export const getTemplatesController = async (req: Request, res: Response) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
 
+        const id = req.query.id as string | undefined;
         const q = req.query.q as string | undefined;
         const sortBy = req.query.sortBy as string;
         
@@ -22,21 +23,28 @@ export const getDatasetController = async (req: Request, res: Response) => {
         const offset = Number(req.query.offset) || 0;
 
         const accessClause = "WHERE ownerId = ?";
-        const accessParams = [req.session.userId];
+        const accessParams: (string | number)[] = [req.session.userId];
+
+        let idClause = "";
+        const idParams: string[] = [];
+
+        if (id) {
+            idClause = "AND id = ?";
+            idParams.push(id);
+        }
 
         const trimmedQuery = q?.trim();
         const queryTerm = `%${trimmedQuery}%`;
 
         const queryClause = trimmedQuery
             ? `AND (
-                label LIKE ? 
-                OR description LIKE ? 
-                OR data LIKE ?
+                displayName LIKE ? 
+                OR about LIKE ?
             )`
             : "";
 
         const queryParams = trimmedQuery
-            ? [queryTerm, queryTerm, queryTerm]
+            ? [queryTerm, queryTerm]
             : [];
 
         let formattedSortBy: string;
@@ -69,14 +77,16 @@ export const getDatasetController = async (req: Request, res: Response) => {
         const result = db.templates.query(
             `
                 SELECT *
-                FROM datasets
+                FROM templates
                 ${accessClause}
+                ${idClause}
                 ${queryClause}
                 ORDER BY ${formattedSortBy}
                 LIMIT ? OFFSET ?
             `,
             [
                 ...accessParams,
+                ...idParams,
                 ...queryParams,
                 limit,
                 offset
@@ -88,24 +98,23 @@ export const getDatasetController = async (req: Request, res: Response) => {
         const countResult = db.templates.query<{ total: number }>(
             `
                 SELECT 1
-                FROM datasets
+                FROM templates
                 ${accessClause}
+                ${idClause}
                 ${queryClause}
             `,
             [
                 ...accessParams,
+                ...idParams,
                 ...queryParams
             ]
         );
 
         assertDbSuccess(countResult);
 
-        const parsedRows = result.rows.map(row => ({
+        const parsedRows = result.rows.map(({ ownerId, ...row }) => ({
             ...row,
-            tags: parseJson(row.tags),
-            isRecommended: Boolean(row.isRecommended),
-            isSensitive: Boolean(row.isSensitive),
-            isMature: Boolean(row.isMature),
+            owner: whatIs(ownerId as string)
         }));
 
         return res.status(200).json({

@@ -9,18 +9,18 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 
-export const insertCategories = async (req: Request, res: Response) => {
+export const insertFields = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
-        const { categoryId, label, types, position } = req.body;
+        const { templateId } = req.params;
+        const { fieldId, rowId, type, label, placeholder, options, guide, position } = req.body;
 
-        await assertBearer(req); 
+        await assertBearer(req);
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
-        const getResult = db.characters.query(
-            "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+        const getResult = db.templates.query(
+            "SELECT * FROM templates WHERE id = ?",
+            [templateId]
         );
 
         assertDbSuccess(getResult);
@@ -28,7 +28,7 @@ export const insertCategories = async (req: Request, res: Response) => {
         if (getResult.rowCount === 0) {
             throw new AdvancedError({
                 code: 404,
-                message: i18n.t("responses.characterNotFound")
+                message: i18n.t("responses.templateNotFound")
             });
         }
 
@@ -39,38 +39,51 @@ export const insertCategories = async (req: Request, res: Response) => {
             });
         }
 
-        if (!categoryId || typeof categoryId !== "string") {
+        if (!fieldId || !rowId || typeof fieldId !== "string" || typeof rowId !== "string") {
             throw new AdvancedError({
                 code: 400,
                 message: i18n.t("responses.malformedRequest")
             });
         }
 
-        const countResult = db.characters.query<{ count: number }>(
-            "SELECT COUNT(*) as count FROM draft_categories WHERE assetId = ?",
-            [assetId]
+        const countResult = db.templates.query<{ count: number }>(
+            "SELECT 1 FROM fields WHERE rowId = ?",
+            [rowId]
         );
 
         assertDbSuccess(countResult);
 
-        const currentCount = countResult.rows?.[0]?.count ?? countResult.rowCount ?? 0;
+        if (countResult.rowCount >= 5) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.fieldLimit")
+            });
+        }
 
-        const targetPosition = typeof position === "number" ? position : currentCount;
+        const targetPosition = typeof position === "number" ? position : countResult.rowCount;
 
-        const insertResult = db.characters.query(
-            `INSERT INTO draft_categories (
-                assetId, 
-                categoryId, 
+        const insertResult = db.templates.query(
+            `INSERT INTO fields (
+                templateId,
+                fieldId, 
+                rowId, 
+                type, 
                 label, 
-                types, 
+                placeholder, 
+                options, 
+                guide, 
                 position, 
                 createdBy
-            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                assetId,
-                categoryId,
-                label ?? "Untitled",
-                JSON.stringify(types ?? []),
+                templateId,
+                fieldId,
+                rowId,
+                type ?? "text",
+                label ?? "",
+                placeholder ?? "",
+                JSON.stringify(options ?? []),
+                guide ?? "",
                 targetPosition,
                 req.session.userId
             ]
