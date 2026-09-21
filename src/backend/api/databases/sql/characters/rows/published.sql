@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS published_rows (
     assetId TEXT NOT NULL,
-    rowId TEXT PRIMARY KEY NOT NULL,
     blockId TEXT NOT NULL,
+    rowId TEXT PRIMARY KEY NOT NULL,
     position INTEGER NOT NULL DEFAULT 0
 );
