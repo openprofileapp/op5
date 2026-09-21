@@ -41,6 +41,7 @@
     "linkLimit": "You have reach the maximum amount (15) of links",
     "delegationLimit": "You have reach the maximum amount (8) of delegated accounts",
     "authorizationHeader": "Missing Authorization header",
+    "templateNotFound": "Template not found",
     "characterNotFound": "Character not found",
     "datasetNotFound": "Dataset not found",
     "fileNotFound": "File not found",
@@ -220,6 +221,7 @@
   },
   "defaults": {
     "noCharacterAbout": "This character does not have an overview.",
+    "noTemplateAbout": "This template does not have a description.",
     "noUserAbout": "This user does not have an overview.",
     "noFriendView": "as a friend to view their profile.",
     "noFanflair": "Fanflairs are not yet available.",
@@ -405,6 +407,9 @@
     "datasets": {
       "notFound": "No datasets found.",
       "searchDatasets": "Name, description, data entries..."
+    },
+    "templates": {
+      "notFound": "No templates found."
     }
   }
 }
