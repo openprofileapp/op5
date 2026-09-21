@@ -1,11 +1,11 @@
-import { db } from "../db.js";
-import { log } from "../../instances.js";
-import { TemplateBlockItemType } from "../../../../_common/types/template/block.type.js";
+import { db } from "../../db.js";
+import { log } from "../../../instances.js";
+import { BlockItemType } from "../../../../../_common/types/blocks/block.type.js";
 
 // @openprofile
 const ownerId = "9534968913312158";
 
-const index: Partial<TemplateBlockItemType>[] = [
+const index: Partial<BlockItemType>[] = [
     {
         blockId: "93861942229209088",
         ownerId,
@@ -18,7 +18,7 @@ const index: Partial<TemplateBlockItemType>[] = [
     }
 ];
 
-db.templates.transaction(q => {
+db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
             `INSERT INTO blocks (

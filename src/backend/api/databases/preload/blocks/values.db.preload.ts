@@ -1,11 +1,11 @@
-import { db } from "../db.js";
-import { log } from "../../instances.js";
-import { TemplateValueType } from "../../../../_common/types/template/value.type.js";
+import { db } from "../../db.js";
+import { log } from "../../../instances.js";
+import { ValueType } from "framer-motion";
 
 // @openprofile
 // const author = "9534968913312158";
 
-const index: Partial<TemplateValueType>[] = [
+const index: Partial<ValueType>[] = [
     /*{
         blockId: "93861942229209088",
         fieldId: "first-name",
@@ -14,7 +14,7 @@ const index: Partial<TemplateValueType>[] = [
     }*/
 ];
 
-db.templates.transaction(q => {
+db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
             `INSERT INTO "values" (

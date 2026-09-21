@@ -1,11 +1,11 @@
-import { db } from "../db.js";
-import { log } from "../../instances.js";
-import { TemplateFieldItemType } from "../../../../_common/types/template/field.type.js";
+import { db } from "../../db.js";
+import { log } from "../../../instances.js";
+import { FieldItemType } from "../../../../../_common/types/blocks/field.type.js";
 
 // @openprofile
 const createdBy = "9534968913312158";
 
-const index: Partial<TemplateFieldItemType>[] = [
+const index: Partial<FieldItemType>[] = [
     {
         blockId: "93861942229209088",
         fieldId: "first_name",
@@ -91,7 +91,7 @@ const index: Partial<TemplateFieldItemType>[] = [
     }
 ];
 
-db.templates.transaction(q => {
+db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
             `INSERT INTO fields (
