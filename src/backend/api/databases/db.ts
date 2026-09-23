@@ -425,6 +425,11 @@ db.templates.transaction(q => {
         if (!result.success) log.db.error(result.error).save();
     };
 
+    if (!q(`SELECT * FROM history LIMIT 1`).success) { 
+        const result = q(`${config.folders.sql.api}/templates/history.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
     if (!q("SELECT * FROM datasets LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/templates/datasets.sql`);
         if (!result.success) log.db.error(result.error).save();
