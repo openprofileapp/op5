@@ -103,9 +103,11 @@ export interface NewFieldType {
     value?: string;
 }
 
+// DEVELOEPR NEEDED: ADD FLEX AND DATASET
+
 interface Props {
     targetRowId: string;
-    onAddField: (targetRowId: string, data: NewFieldType) => boolean;
+    onAddField: (targetRowId: string, data: NewFieldType) => Promise<boolean>;
 }
 
 export default function NewFieldModal({ targetRowId, onAddField }: Props) {
@@ -143,7 +145,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
         setValue("");
     }
 
-    function handleSave() {
+    async function handleSave() {
         const payload: NewFieldType = {
             id,
             type,
@@ -154,7 +156,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
             value
         };
 
-        const isSuccess = onAddField(targetRowId, payload);
+        const isSuccess = await onAddField(targetRowId, payload);
 
         if (isSuccess) {
             // Close modal only on success; onClose event fires naturally and triggers resetForm()
