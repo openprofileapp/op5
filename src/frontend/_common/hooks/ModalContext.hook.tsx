@@ -9,53 +9,57 @@ import TrashModal, { TrashModalRef } from "../components/modals/TrashModal.js";
 import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
 import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
 import EditUserProfileModal, { EditUserProfileModalRef } from "../components/modals/EditUserProfileModal.js";
-import { GetUserItemType } from "../../../_common/types/user.type.js";
 import DeleteModal, { DeleteModalRef } from "../components/modals/DeleteModal.js";
 import DatasetEditorModal, { DataEditorModalRef } from "../components/modals/DataEditorModal.js";
+import SaveFailedModal, { SaveFailedModalRef } from "../../studio/components/modals/SaveFailedModal.js";
 
 interface ModalContextType {
     notificationsModal: {
-        open: (...args: Parameters<NotificationsModalRef["open"]>) => ReturnType<NotificationsModalRef["open"]>;
+        open: (...args: Parameters<NotificationsModalRef["open"]>) => ReturnType<NotificationsModalRef["open"]> | undefined;
         close: () => void;
     };
     muteModal: {
-        open: (...args: Parameters<MuteModalRef["open"]>) => ReturnType<MuteModalRef["open"]>;
+        open: (...args: Parameters<MuteModalRef["open"]>) => ReturnType<MuteModalRef["open"]> | undefined;
         close: () => void;
     };
     restrictModal: {
-        open: (...args: Parameters<RestrictModalRef["open"]>) => ReturnType<RestrictModalRef["open"]>;
+        open: (...args: Parameters<RestrictModalRef["open"]>) => ReturnType<RestrictModalRef["open"]> | undefined;
         close: () => void;
     };
     blockModal: {
-        open: (...args: Parameters<BlockModalRef["open"]>) => ReturnType<BlockModalRef["open"]>;
+        open: (...args: Parameters<BlockModalRef["open"]>) => ReturnType<BlockModalRef["open"]> | undefined;
         close: () => void;
     };
     reportModal: {
-        open: (...args: Parameters<ReportModalRef["open"]>) => ReturnType<ReportModalRef["open"]>;
+        open: (...args: Parameters<ReportModalRef["open"]>) => ReturnType<ReportModalRef["open"]> | undefined;
         close: () => void;
     };
     trashModal: {
-        open: (...args: Parameters<TrashModalRef["open"]>) => ReturnType<TrashModalRef["open"]>;
+        open: (...args: Parameters<TrashModalRef["open"]>) => ReturnType<TrashModalRef["open"]> | undefined;
         close: () => void;
     };
     deleteModal: {
-        open: (...args: Parameters<DeleteModalRef["open"]>) => ReturnType<DeleteModalRef["open"]>;
+        open: (...args: Parameters<DeleteModalRef["open"]>) => ReturnType<DeleteModalRef["open"]> | undefined;
         close: () => void;
     };
     shareModal: {
-        open: (...args: Parameters<ShareModalRef["open"]>) => ReturnType<ShareModalRef["open"]>;
+        open: (...args: Parameters<ShareModalRef["open"]>) => ReturnType<ShareModalRef["open"]> | undefined;
         close: () => void;
     };
     characterModal: {
-        open: (...args: Parameters<CharacterModalRef["open"]>) => ReturnType<CharacterModalRef["open"]>;
+        open: (...args: Parameters<CharacterModalRef["open"]>) => ReturnType<CharacterModalRef["open"]> | undefined;
         close: () => void;
     };
     editUserProfileModal: {
-        open: (data: GetUserItemType, onSave?: (updatedData: GetUserItemType) => void) => Promise<GetUserItemType | null | undefined>;
+        open: (...args: Parameters<EditUserProfileModalRef["open"]>) => ReturnType<EditUserProfileModalRef["open"]> | undefined;
         close: () => void;
     };
     dataEditorModal: {
-        open: (...args: Parameters<DataEditorModalRef["open"]>) => ReturnType<DataEditorModalRef["open"]>;
+        open: (...args: Parameters<DataEditorModalRef["open"]>) => ReturnType<DataEditorModalRef["open"]> | undefined;
+        close: () => void;
+    };
+    saveFailedModal: {
+        open: (...args: Parameters<SaveFailedModalRef["open"]>) => ReturnType<SaveFailedModalRef["open"]> | undefined;
         close: () => void;
     };
 }
@@ -74,6 +78,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const characterModalRef = useRef<CharacterModalRef>(null);
     const editUserProfileModalRef = useRef<EditUserProfileModalRef>(null);
     const dataEditorModalRef = useRef<DataEditorModalRef>(null);
+    const saveFailedModalRef = useRef<SaveFailedModalRef>(null);
 
     const value = useMemo(
         () => ({
@@ -150,8 +155,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 },
             },
             editUserProfileModal: {
-                open: async (data: GetUserItemType, onSave?: (updatedData: GetUserItemType) => void) => {
-                    return editUserProfileModalRef.current?.open(data, onSave);
+                open: (...args: Parameters<EditUserProfileModalRef["open"]>) => {
+                    return editUserProfileModalRef.current?.open(...args);
                 },
                 close: () => {
                     editUserProfileModalRef.current?.close();
@@ -164,14 +169,20 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 close: () => {
                     dataEditorModalRef.current?.close();
                 },
+            },
+            saveFailedModal: {
+                open: (...args: Parameters<SaveFailedModalRef["open"]>) => {
+                    return saveFailedModalRef.current?.open(...args);
+                },
+                close: () => {
+                    saveFailedModalRef.current?.close();
+                },
             }
         }),
         []
     );
 
     return (
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         <ModalContext.Provider value={value}>
             <NotificationsModal ref={notificationsModalRef} />
             <MuteModal ref={muteModalRef} />
@@ -184,6 +195,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <CharacterModal ref={characterModalRef} />
             <EditUserProfileModal ref={editUserProfileModalRef} />
             <DatasetEditorModal ref={dataEditorModalRef} />
+            <SaveFailedModal ref={saveFailedModalRef} />
 
             {children}
         </ModalContext.Provider>
