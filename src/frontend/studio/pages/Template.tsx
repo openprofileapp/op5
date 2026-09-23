@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { useEffect, useState, useCallback, useRef, ReactNode, CSSProperties } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -34,16 +32,22 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
-import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
-import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
-import { apiBaseUrl } from "../../_common/scripts/domains.js";
-import { snowflake } from "../scripts/main.js";
-import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
-import { toast } from "../../_common/scripts/toast.js";
-import Metadata from "../../_common/components/Metadata.js";
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
-import NewFieldModal from "../components/modals/NewFieldModal.js";
-import NewBlockModal from "../components/modals/NewBlockModal.js";
+import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { toast } from "../../_common/scripts/toast.js";
+import { GetTemplateFieldItemType } from "../../../_common/types/template/field.type.js";
+import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
+import { snowflake } from "../scripts/main.js";
+import NewBlockModal, { NewBlockType } from "../components/modals/NewBlockModal.js";
+import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
+import { GetTemplateRowItemType } from "../../../_common/types/template/row.type.js";
+import NewFieldModal, { NewFieldType } from "../components/modals/NewFieldModal.js";
+import { FieldNameType } from "../../../_common/types/field.type.js";
+import Metadata from "../../_common/components/Metadata.js";
+import TemplateField from "../components/TemplateField.js";
+import SaveFailedModal from "../components/modals/SaveFailedModalOld.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -122,6 +126,7 @@ export function SortableItem({ id, children, disabled = false }: SortableItemPro
 export default function Template() {
     const { templateId, categoryId, blockId } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
+    const { saveFailedModal } = useModals()
     const navigate = useNavigate();
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -132,28 +137,35 @@ export default function Template() {
 
     const debounceTimers = useRef<{ [fieldId: string]: NodeJS.Timeout }>({});
     const valuesMapRef = useRef<{ [fieldId: string]: string }>({});
+    const snapshotTemplateDataRef = useRef<GetTemplateCategoryItemType[] | null>(null);
 
     const [isTemplateLoading, setIsTemplateLoading] = useState<boolean>(true);
 
     const [template, setTemplate] = useState<GetTemplateItemType>();
     const [templateData, setTemplateData] = useState<GetTemplateCategoryItemType[]>([]);
 
-    const [currentLocation, setCurrentLocation] = useState<{ categoryId?: string; blockId?: string }>({});
-    const [currentCategoryData, setCurrentCategoryData] = useState<GetTemplateCategoryItemType>();
-    const [currentBlockData, setCurrentBlockData] = useState<GetTemplateBlockItemType>();
-
-    const [activeDragId, setActiveDragId] = useState<string>();
+    const [activeDragId, setActiveDragId] = useState<string | null>();
     const [dragTargetRowId, setDragTargetRowId] = useState<string>();
 
-    const currentCategoryId =
-        currentLocation.categoryId 
-        || categoryId 
-        || templateData[0]?.categoryId;
+    const currentCategoryId = 
+        categoryId 
+        || (templateData[0]?.categoryId 
+            ? templateData[0].categoryId
+            : ""
+        );
+        
+    const currentBlockId = blockId ? blockId : "";
 
-    const currentBlockId = 
-        blockId 
-        || currentLocation.blockId 
-        || "";
+    const currentCategoryData = templateData.find(
+        (c) => c.categoryId === currentCategoryId
+    );
+
+    const currentCategoryBlocks: GetTemplateBlockItemType[] =
+        currentCategoryData?.blocks?.items ?? [];
+
+    const currentBlockData = currentCategoryBlocks.find(
+        (b) => b.blockId === currentBlockId
+    );
 
     useEffect(() => {
         const fetchTemplate = async () => {
@@ -222,21 +234,15 @@ export default function Template() {
         valuesMapRef.current = {};
 
         templateData.forEach((category) => {
-            category.blocks?.forEach((blockWrapper) => {
-                blockWrapper.items?.forEach((block) => {
-                    block.rows?.forEach((rowWrapper) => {
-                        rowWrapper.items.forEach((row) => {
-                            row.fields?.forEach((fieldWrapper) => {
-                                fieldWrapper.items.forEach((field) => {
-                                    if (
-                                        field.fieldId &&
-                                        field.value?.content !== undefined
-                                    ) {
-                                        valuesMapRef.current[field.fieldId] = field.value.content;
-                                    }
-                                });
-                            });
-                        });
+            category.blocks?.items?.forEach((block) => {
+                block.rows?.items?.forEach((row) => {
+                    row.fields?.items?.forEach((field: GetTemplateFieldItemType) => {
+                        if (
+                            field.fieldId &&
+                            field.value?.content !== undefined
+                        ) {
+                            valuesMapRef.current[field.fieldId] = field.value.content;
+                        }
                     });
                 });
             });
@@ -253,104 +259,67 @@ export default function Template() {
                 return valuesMapRef.current[trimmedId] || match;
             }
 
-            templateData.forEach((category) => {
-                category.blocks?.forEach((blockWrapper) => {
-                    blockWrapper.items?.forEach((block) => {
-                        block.rows?.forEach((rowWrapper) => {
-                            rowWrapper.items.forEach((row) => {
-                                row.fields?.forEach((fieldWrapper) => {
-                                    fieldWrapper.items.forEach((field) => {
-                                        if (field.fieldId === trimmedId) {
-                                            return field.value?.content || match;
-                                        }
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-
             return match;
         });
-    }, [templateData]);
+    }, []);
 
     useEffect(() => {
-        if (categoryId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setCurrentLocation((prev) => ({ ...prev, categoryId }));
+        if (isTemplateLoading || !templateData.length || !templateId) return;
+
+        const targetCategoryId = categoryId ?? "";
+        const targetBlockId = blockId ?? "";
+
+        let category = templateData.find(
+            (c) => c.categoryId === targetCategoryId
+        );
+
+        if (!category) {
+            category = templateData[0];
+            if (category?.categoryId) {
+                navigate(
+                    `/template/${templateId}/${category.categoryId}`, 
+                    { replace: true }
+                );
+            }
+            return;
         }
 
         if (blockId) {
-            setCurrentLocation((prev) => ({ ...prev, blockId }));
-        }
-    }, [categoryId, blockId]);
+            const blocks = category.blocks?.items ?? [];
 
-    useEffect(() => {
-        if (!templateData.length || isTemplateLoading || !templateId) return;
+            const foundBlock = blocks.find(
+                (b) => b.blockId === targetBlockId
+            );
 
-        if (!categoryId && currentCategoryId) {
-            const targetUrl = currentBlockId
-                ? `/template/${templateId}/${currentCategoryId}/${currentBlockId}`
-                : `/template/${templateId}/${currentCategoryId}`;
-
-            navigate(targetUrl, { replace: true });
-        }
-    }, [categoryId, currentCategoryId, currentBlockId, templateId, templateData.length, isTemplateLoading, navigate]);
-
-    useEffect(() => {
-        if (!templateData.length || !currentCategoryId) return;
-
-        const category = templateData.find(
-            (c) => String(c.categoryId) === String(currentCategoryId)
-        );
-
-        if (category) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setCurrentCategoryData(category);
-
-            let foundBlock: GetTemplateBlockItemType | undefined;
-
-            if (category?.blocks && currentBlockId) {
-                for (const blockWrapper of category.blocks) {
-                    const matched = blockWrapper.items?.find(
-                        (b) => String(b.blockId) === String(currentBlockId)
-                    );
-
-                    if (matched) {
-                        foundBlock = matched;
-                        break;
-                    }
-                }
+            if (!foundBlock && blocks.length > 0) {
+                navigate(
+                    `/template/${templateId}/${category.categoryId}`, 
+                    { replace: true }
+                );
             }
-
-            setCurrentBlockData(foundBlock);
         }
-    }, [templateData, currentCategoryId, currentBlockId]);
+    }, [templateData, isTemplateLoading, templateId, categoryId, blockId, navigate]);
 
     const setCurrentCategory = useCallback(
         (newCategoryId: string) => {
-            setCurrentLocation({ categoryId: newCategoryId, blockId: "" });
-
             navigate(`/template/${templateId}/${newCategoryId}`);
         },
         [navigate, templateId]
     );
 
     const setCurrentBlock = useCallback(
-        (newBlockId: string, targetCategoryId?: string) => {
-            const categoryToUse = targetCategoryId || currentLocation.categoryId || categoryId || templateData[0]?.categoryId;
+        (newBlockId?: string | null | undefined, targetCategoryId?: string) => {
+            const categoryId = targetCategoryId || currentCategoryId;
 
-            setCurrentLocation((prev) => ({
-                categoryId: targetCategoryId || prev.categoryId,
-                blockId: newBlockId,
-            }));
+            if (!categoryId) return;
 
-            if (categoryToUse) {
-                navigate(`/template/${templateId}/${categoryToUse}/${newBlockId}`);
+            if (newBlockId) {
+                navigate(`/template/${templateId}/${categoryId}/${newBlockId}`);
+            } else {
+                navigate(`/template/${templateId}/${categoryId}`);
             }
         },
-        [currentLocation.categoryId, categoryId, templateData, navigate, templateId]
+        [currentCategoryId, navigate, templateId]
     );
 
     const scrollToField = useCallback((fieldId: string) => {
@@ -415,7 +384,7 @@ export default function Template() {
 
     const conditionalVerticalAxisModifier: Modifier = useCallback((args) => {
         const { active } = args;
-        const activeDragIdStr = String(active?.id ?? "");
+        const activeDragIdStr = active?.id !== undefined ? String(active.id) : "";
 
         if (activeDragIdStr.startsWith("category:") || activeDragIdStr.startsWith("row:")) {
             return restrictToVerticalAxis(args);
@@ -424,8 +393,10 @@ export default function Template() {
         return args.transform;
     }, []);
 
-    const handleAddCategory = async (incoming: NewCategoryType): Promise<boolean> => {
-        const newCategory: GetTemplateCategoryItemType = {
+    const handleAddCategory = async (
+        incoming: NewCategoryType
+    ): Promise<boolean> => {
+        const payload: GetTemplateCategoryItemType = {
             categoryId: snowflake.gen(),
             types: incoming?.types,
             label: incoming?.label || "Untitled",
@@ -433,7 +404,10 @@ export default function Template() {
             createdBy: window.session.userId,
             updatedDate: new Date().toISOString(),
             createdDate: new Date().toISOString(),
-            blocks: [],
+            blocks: {
+                items: [],
+                count: 0,
+            },
         };
 
         try {
@@ -446,10 +420,10 @@ export default function Template() {
                     },
                     credentials: "include",
                     body: JSON.stringify({
-                        categoryId: newCategory.categoryId,
-                        label: newCategory.label,
-                        types: newCategory.types,
-                        position: newCategory.position,
+                        categoryId: payload.categoryId,
+                        label: payload.label,
+                        types: payload.types,
+                        position: payload.position,
                     }),
                 }
             );
@@ -481,102 +455,417 @@ export default function Template() {
             return false;
         }
 
-        setCurrentLocation({ categoryId: newCategory.categoryId, blockId: "" });
-        setCurrentCategoryData(newCategory);
-        setTemplateData((prev) => [...prev, newCategory]);
+        setTemplateData((prev) => [...prev, payload]);
 
-        navigate(`/template/${templateId}/${newCategory.categoryId}`);
+        navigate(`/template/${templateId}/${payload.categoryId}`);
 
         return true;
     };
 
+    const handleAddBlock = async (
+        incoming: NewBlockType
+    ): Promise<boolean> => {
+        if (!currentCategoryId) {
+            toast.show(
+                "No category selected", 
+                { type: "error" }
+            );
 
+            return false;
+        }
 
+        let payload: GetTemplateBlockItemType;
 
+        if (incoming.sourceBlockId) {
+            payload = {
+                blockId: snowflake.gen(),
+                sourceBlockId: incoming.sourceBlockId,
+                isSourceBlockConnected: true,
+                icon: "",
+                label: "",
+                description: "",
+                position: currentCategoryBlocks?.length ?? 0,
+                createdBy: window.session.userId,
+                updatedDate: new Date().toISOString(),
+                createdDate: new Date().toISOString(),
+                rows: {
+                    items: [],
+                    count: 0,
+                },
+            };
+        } else {
+            payload = {
+                blockId: snowflake.gen(),
+                sourceBlockId: "",
+                isSourceBlockConnected: false,
+                icon: incoming?.icon,
+                label: incoming?.label || "Untitled",
+                description: incoming?.description,
+                position: currentCategoryBlocks?.length ?? 0,
+                createdBy: window.session.userId,
+                updatedDate: new Date().toISOString(),
+                createdDate: new Date().toISOString(),
+                rows: {
+                    items: [],
+                    count: 0,
+                },
+            };
+        }
 
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/blocks/insert`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        blockId: payload.blockId,
+                        categoryId: currentCategoryId,
+                        sourceBlockId: payload.sourceBlockId,
+                        icon: payload.sourceBlockId ? payload.icon : "",
+                        label: payload.sourceBlockId ? payload.label : "",
+                        description: payload.sourceBlockId ? payload.description : "",
+                        position: payload.position,
+                    }),
+                }
+            );
 
+            const json = await response.json();
 
+            if (!response.ok) {
+                toast.show(
+                    "Failed to create block",
+                    {
+                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                        type: "error",
+                    }
+                );
 
+                return false;
+            }
+        } catch (error) {
+            console.error("Failed to create block:", error);
 
+            toast.show(
+                "Failed to create block",
+                {
+                    subtext: String(error),
+                    type: "error",
+                }
+            );
 
+            return false;
+        }
 
+        setTemplateData((prev) =>
+            prev.map((category) => {
+                if (category.categoryId !== currentCategoryId) return category;
 
+                const currentBlocks = category.blocks?.items ?? [];
+                const updatedBlocks = [
+                    ...currentBlocks,
+                    {
+                        ...payload,
+                        position: currentBlocks.length,
+                    },
+                ];
 
+                return {
+                    ...category,
+                    blocks: {
+                        items: updatedBlocks,
+                        count: updatedBlocks.length,
+                    },
+                };
+            })
+        );
 
+        navigate(`/template/${templateId}/${currentCategoryId}/${payload.blockId}`);
 
+        return true;
+    };
 
+    const handleAddRow = async (): Promise<boolean> => {
+        if (!currentCategoryId) {
+            toast.show("No category selected", { type: "error" });
+            return false;
+        }
 
+        if (!currentBlockId) {
+            toast.show("No block selected", { type: "error" });
+            return false;
+        }
 
+        const activeBlockRows = currentBlockData?.rows?.items ?? [];
 
+        const payload: GetTemplateRowItemType = {
+            rowId: snowflake.gen(),
+            position: activeBlockRows.length,
+            createdBy: window.session.userId,
+            createdDate: new Date().toISOString(),
+            fields: {
+                items: [],
+                count: 0,
+            },
+        };
 
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/rows/insert`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        rowId: payload.rowId,
+                        blockId: currentBlockId,
+                        position: payload.position,
+                    }),
+                }
+            );
 
+            const json = await response.json();
 
+            if (!response.ok) {
+                toast.show("Failed to create row", {
+                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                    type: "error",
+                });
+                return false;
+            }
+        } catch (error) {
+            console.error("Failed to create row:", error);
+            toast.show("Failed to create row", {
+                subtext: String(error),
+                type: "error",
+            });
+            return false;
+        }
 
+        setTemplateData((prevCategories: GetTemplateCategoryItemType[]) =>
+            prevCategories.map((category) => {
+                if (category.categoryId !== currentCategoryId) {
+                    return category;
+                }
 
+                const updatedBlocks = (category.blocks?.items ?? []).map((block) => {
+                    if (block.blockId !== currentBlockId) {
+                        return block;
+                    }
 
+                    const existingRows = block.rows?.items ?? [];
+                    const updatedRows = [...existingRows, payload];
 
+                    return {
+                        ...block,
+                        rows: {
+                            items: updatedRows,
+                            count: updatedRows.length,
+                        },
+                    };
+                });
 
+                return {
+                    ...category,
+                    blocks: {
+                        items: updatedBlocks,
+                        count: updatedBlocks.length,
+                    },
+                };
+            })
+        );
 
+        return true;
+    };
 
+    const handleAddField = async (
+        targetRowId: string,
+        incoming: NewFieldType
+    ): Promise<boolean> => {
+        if (!currentCategoryId) {
+            toast.show("No category selected", { type: "error" });
+            return false;
+        }
 
+        if (!currentBlockId) {
+            toast.show("No block selected", { type: "error" });
+            return false;
+        }
 
+        if (!incoming?.id.trim()) {
+            toast.show("Field ID is required", { type: "error" });
+            return false;
+        }
 
+        const activeBlockRows = currentBlockData?.rows?.items ?? [];
 
+        const targetRow = activeBlockRows.find(
+            (r) => r.rowId === targetRowId
+        );
 
+        const targetFields = targetRow?.fields?.items ?? [];
 
+        if (targetFields.length >= 5) {
+            toast.show("A row cannot contain more than 5 fields", { type: "error" });
+            return false;
+        }
 
+        const isDuplicateId = Boolean(
+            incoming?.id &&
+            templateData?.some((category) =>
+                category.blocks?.items?.some((block) =>
+                    block.rows?.items?.some((row) =>
+                        row.fields?.items?.some((field) => field.fieldId === incoming.id)
+                    )
+                )
+            )
+        );
 
+        if (isDuplicateId) {
+            toast.show(`A field with ID "${incoming?.id}" already exists`, { type: "error" });
+            return false;
+        }
 
+        const payload: GetTemplateFieldItemType = {
+            fieldId: snowflake.gen(),
+            type: incoming.type as FieldNameType,
+            flex: incoming.flex ?? 1,
+            label: incoming.label || "New Field",
+            placeholder: incoming.placeholder || "",
+            dataset: incoming.dataset || "",
+            isLocked: false,
+            position: targetFields.length,
+            createdBy: window.session.userId,
+            updatedDate: new Date().toISOString(),
+            createdDate: new Date().toISOString(),
+            value: undefined,
+        };
 
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/fields/insert`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        fieldId: payload.fieldId,
+                        rowId: targetRowId,
+                        type: payload.type,
+                        flex: payload.flex,
+                        label: payload.label,
+                        placeholder: payload.placeholder,
+                        dataset: payload.dataset,
+                        position: payload.position,
+                    }),
+                }
+            );
 
+            const json = await response.json();
 
+            if (!response.ok) {
+                toast.show("Failed to create field", {
+                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                    type: "error",
+                });
+                return false;
+            }
+        } catch (error) {
+            console.error("Failed to create field:", error);
+            toast.show("Failed to create field", {
+                subtext: String(error),
+                type: "error",
+            });
+            return false;
+        }
 
+        setTemplateData((prevCategories: GetTemplateCategoryItemType[]) =>
+            prevCategories.map((category) => {
+                if (category.categoryId !== currentCategoryId) {
+                    return category;
+                }
 
+                const updatedBlocks = (category.blocks?.items ?? []).map((block) => {
+                    if (block.blockId !== currentBlockId) {
+                        return block;
+                    }
 
+                    const updatedRows = (block.rows?.items ?? []).map((row) => {
+                        if (row.rowId !== targetRowId) {
+                            return row;
+                        }
 
+                        const existingFields = row.fields?.items ?? [];
+                        const updatedFields = [...existingFields, payload];
 
+                        return {
+                            ...row,
+                            fields: {
+                                items: updatedFields,
+                                count: updatedFields.length,
+                            },
+                        };
+                    });
 
+                    return {
+                        ...block,
+                        rows: {
+                            items: updatedRows,
+                            count: updatedRows.length,
+                        },
+                    };
+                });
 
+                return {
+                    ...category,
+                    blocks: {
+                        items: updatedBlocks,
+                        count: updatedBlocks.length,
+                    },
+                };
+            })
+        );
 
-    
+        return true;
+    };
 
+    const handleUpdateValue = (fieldId: string, value: string) => {
+        valuesMapRef.current[fieldId] = value;
 
-
-
-
-
-
-
-
-
-
-
-
-    const handleFieldChange = (fieldId: string, newValue: string) => {
-        valuesMapRef.current[fieldId] = newValue;
-
-        setTemplateData((prev: GetCategoryType[]) =>
+        setTemplateData((prev: GetTemplateCategoryItemType[]) =>
             prev.map((category) => ({
                 ...category,
-                blocks: category.blocks.map((block) => ({
-                    ...block,
-                    rows: block.rows.map((row) => ({
-                        ...row,
-                        fields: row.fields.map((field) => {
-                            if (field.fieldId !== fieldId) return field;
+                blocks: {
+                    ...category.blocks,
+                    items: category.blocks.items.map((block) => ({
+                        ...block,
+                        rows: {
+                            ...block.rows,
+                            items: block.rows.items.map((row) => ({
+                                ...row,
+                                fields: {
+                                    ...row.fields,
+                                    items: row.fields.items.map((field) => {
+                                        if (field.fieldId !== fieldId) return field;
 
-                            return {
-                                ...field,
-                                updatedDate: new Date().toISOString(),
-                                value: {
-                                    author: window.session?.userId ?? "",
-                                    content: newValue,
-                                    date: new Date().toISOString(),
+                                        return {
+                                            ...field,
+                                            value: {
+                                                fieldId,
+                                                authorId: window.session?.userId,
+                                                content: value,
+                                                date: new Date().toISOString(),
+                                            },
+                                        };
+                                    }),
                                 },
-                            };
-                        }),
+                            })),
+                        },
                     })),
-                })),
+                },
             }))
         );
 
@@ -584,333 +873,61 @@ export default function Template() {
             clearTimeout(debounceTimers.current[fieldId]);
         }
 
-        debounceTimers.current[fieldId] = setTimeout(() => {
-            // DEVELOPER NEEDED: Call save API here
+        async function saveValue() {
+            return await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/fields/update/value`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        fieldId,
+                        value
+                    }),
+                }
+            );
+        }
+
+        debounceTimers.current[fieldId] = setTimeout(async () => {
+            const response = await saveValue()
+
+            if (!response.ok) {
+                saveFailedModal.open(
+                    { fieldId, value },
+                    {
+                        onRetry: async () => {
+                            const retryResponse = await saveValue();
+
+                            if (!retryResponse.ok) {
+                                throw new Error("Retry save failed");
+                            }
+
+                            saveFailedModal.close();
+                        }
+                    }
+                );
+            }
         }, 300);
     };
 
-    
-
-    const handleAddBlock = async (newtemplate: NewBlocktemplate): Promise<boolean> => {
-        const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
-
-        if (!targetCategoryId) {
-            toast.show("No active category selected", { type: "error" });
-            return false;
-        }
-
-        let fetchedRows: TemplateRowItemType[] = [];
-
-        if (newtemplateData?.blockId) {
-            try {
-                const res = await fetch(`${apiBaseUrl}/v3/templates/blocks/template/${newtemplateData?.blockId}`, {
-                    credentials: "include",
-                });
-
-                if (res.ok) {
-                    const json = await res.json();
-                    fetchedRows = json.items ?? [];
-                } else {
-                    toast.show("Failed to fetch rows for this block", { type: "error" });
-                }
-            } catch (error) {
-                console.error("Failed to fetch block rows:", error);
-                toast.show("Error fetching block rows", { type: "error" });
-            }
-        }
-
-        const rawRows = fetchedRows.length > 0 ? fetchedRows : (newtemplateData?.rows ?? []);
-
-        const existingFieldIds = new Set<string>();
-        templateData?.forEach((category) => {
-            category.blocks?.forEach((block) => {
-                block.rows?.forEach((row) => {
-                    row.fields?.forEach((field) => {
-                        if (field.fieldId) {
-                            existingFieldIds.add(field.fieldId);
-                        }
-                    });
-                });
-            });
-        });
-
-        const getUniqueFieldId = (id: string): string => {
-            let uniqueId = id;
-            while (existingFieldIds.has(uniqueId)) {
-                const random4Digits = Math.floor(1000 + Math.random() * 9000);
-                uniqueId = `${id}-${random4Digits}`;
-            }
-            existingFieldIds.add(uniqueId);
-            return uniqueId;
-        };
-
-        const uniqueRows = rawRows.map((row) => ({
-            ...row,
-            fields: row.fields?.map((field) => ({
-                ...field,
-                fieldId: getUniqueFieldId(field.fieldId),
-            })) ?? [],
-        }));
-
-        const newBlockId = snowflake.gen();
-
-        const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-        const position = targetCategory?.blocks?.length ?? 0;
-
-        try {
-            const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/blocks`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    blockId: newBlockId,
-                    categoryId: String(BigInt(targetCategory)),
-                    sourceBlockId: newtemplateData?.blockId ?? null,
-                    icon: newtemplateData?.icon ?? null,
-                    label: newtemplateData?.label ?? null,
-                    description: newtemplateData?.description ?? null,
-                    position,
-                }),
-            });
-
-            if (!response.ok) {
-                toast.show("Failed to create block", { type: "error" });
-                return false;
-            }
-        } catch (error) {
-            console.error("Failed to insert block:", error);
-            toast.show("Error creating block", { type: "error" });
-            return false;
-        }
-
-        const newBlock: GetBlockItemType = {
-            blockId: newBlockId,
-            label: newtemplateData?.label,
-            description: newtemplateData?.description,
-            icon: newtemplateData?.icon,
-            position,
-            createdBy: window.session.userId,
-            updatedDate: new Date().toISOString(),
-            createdDate: new Date().toISOString(),
-            rows: uniqueRows,
-        };
-
-        setTemplateData((prev: GetCategoryType[]) =>
-            prev.map((category) => {
-                if (category.categoryId !== targetCategoryId) return category;
-
-                const currentBlocks = category.blocks ?? [];
-                return {
-                    ...category,
-                    blocks: [
-                        ...currentBlocks,
-                        {
-                            ...newBlock,
-                            position: currentBlocks.length,
-                        },
-                    ],
-                };
-            })
-        );
-
-        setCurrentBlockId(newBlockId);
-
-        return true;
-    };
-
-    const handleAddRow = async (): Promise<void> => {
-    if (!currentBlockId) return;
-
-    const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
-    const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
-    
-    if (!targetBlock) return;
-
-    const newRowId = snowflake.gen();
-    const position = targetBlock.rows?.length ?? 0;
-
-    try {
-        const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/rows`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                rowId: newRowId,
-                blockId: currentBlockId,
-                position,
-            }),
-        });
-
-        if (!response.ok) {
-            toast.show("Failed to create row", { type: "error" });
-            return;
-        }
-    } catch (error) {
-        console.error("Failed to insert row:", error);
-        toast.show("Error creating row", { type: "error" });
-        return;
-    }
-
-    const newRow: GetRowType = {
-        rowId: newRowId,
-        position,
-        createdBy: window.session.userId,
-        createdDate: new Date().toISOString(),
-        fields: []
-    };
-
-    setTemplateData((prev: GetCategoryType[]) =>
-        prev.map((category) => {
-            if (category.categoryId !== targetCategoryId) return category;
-
-            return {
-                ...category,
-                blocks: category.blocks.map((block) => {
-                    if (block.blockId !== currentBlockId) return block;
-
-                    const currentRows = block.rows ?? [];
-                    return {
-                        ...block,
-                        rows: [...currentRows, { ...newRow, position: currentRows.length }],
-                    };
-                }),
-            };
-        })
-    );
-};
-
-    const handleAddField = async (rowId: string, newtemplate: NewFieldtemplate): Promise<boolean> => {
-    if (!currentBlockId) return false;
-
-    if (!newtemplateData?.id.trim()) {
-        toast.show("Field ID is required", { type: "error" });
-        return false;
-    }
-
-    const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
-    const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-    const targetBlock = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
-    const targetRow = targetBlock?.rows.find((r) => r.rowId === rowId);
-
-    if (!targetRow) return false;
-
-    const existingFields = targetRow.fields || [];
-
-    if (existingFields.length >= 5) {
-        toast.show("A row cannot contain more than 5 fields", { type: "error" });
-        return false;
-    }
-
-    const isDuplicateId = templateData?.some((category) =>
-        category.blocks.some((block) =>
-            block.rows.some((row) =>
-                (row.fields || []).some((field) => field.fieldId === newtemplateData?.id)
-            )
-        )
-    );
-
-    if (isDuplicateId) {
-        toast.show(`A field with ID "${newtemplateData?.id}" already exists`, { type: "error" });
-        return false;
-    }
-
-    const initialContent = newtemplateData?.value ?? "";
-    const position = existingFields.length;
-
-    try {
-        const response = await fetch(`${apiBaseUrl}/v3/templates/insert/${templateId}/fields`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                fieldId: newtemplateData?.id,
-                rowId,
-                type: newtemplateData?.type,
-                label: newtemplateData?.label,
-                placeholder: newtemplateData?.placeholder ?? "",
-                options: newtemplateData?.options ?? [],
-                guide: newtemplateData?.guide ?? "",
-                value: initialContent,
-                position,
-            }),
-        });
-
-        if (!response.ok) {
-            toast.show("Failed to create field", { type: "error" });
-            return false;
-        }
-    } catch (error) {
-        console.error("Failed to insert field:", error);
-        toast.show("Error creating field", { type: "error" });
-        return false;
-    }
-
-    valuesMapRef.current[newtemplateData?.id] = initialContent;
-
-    const newField: GetFieldType = {
-        fieldId: newtemplateData?.id,
-        type: newtemplateData?.type,
-        label: newtemplateData?.label,
-        placeholder: newtemplateData?.placeholder ?? "",
-        options: newtemplateData?.options ?? [],
-        guide: newtemplateData?.guide ?? "",
-        isLocked: false,
-        position,
-        createdBy: window.session.userId,
-        updatedDate: new Date().toISOString(),
-        createdDate: new Date().toISOString(),
-        value: {
-            author: initialContent ? window.session.userId : "",
-            content: initialContent,
-            date: initialContent ? new Date().toISOString() : "",
-        },
-        notes: []
-    };
-
-    setTemplateData((prev: GetCategoryType[]) =>
-        prev.map((category) => {
-            if (category.categoryId !== targetCategoryId) return category;
-
-            return {
-                ...category,
-                blocks: category.blocks.map((block) => {
-                    if (block.blockId !== currentBlockId) return block;
-
-                    return {
-                        ...block,
-                        rows: block.rows.map((row) => {
-                            if (row.rowId !== rowId) return row;
-
-                            return {
-                                ...row,
-                                fields: [...existingFields, newField],
-                            };
-                        }),
-                    };
-                }),
-            };
-        })
-    );
-
-    return true;
-};
-
     const handleDragStart = (event: DragStartEvent): void => {
         if (isPreviewMode) return;
+        
+        snapshotTemplateDataRef.current = templateData 
+            ? JSON.parse(JSON.stringify(templateData)) 
+            : null;
+
         setActiveDragId(String(event.active.id));
         document.body.style.cursor = "grabbing";
     };
 
     const handleDragOver = (event: DragOverEvent): void => {
         if (isPreviewMode) return;
+
         const { active, over } = event;
+
         if (!over) return;
 
         const activeDragIdStr = String(active.id);
@@ -925,25 +942,25 @@ export default function Template() {
         const targetCategoryId = currentCategoryId ?? currentCategoryData?.categoryId;
 
         setTemplateData((prevtemplate) => {
-            const category = prevtemplateData?.find((c) => c.categoryId === targetCategoryId);
+            const category = prevtemplate?.find((c) => c.categoryId === targetCategoryId);
             if (!category) return prevtemplate;
 
-            const block = category.blocks.find((b) => b.blockId === currentBlockId);
+            const block = category.blocks.items.find((b) => b.blockId === currentBlockId);
             if (!block) return prevtemplate;
 
-            const sourceRow = block.rows.find((r) =>
-                (r.fields || []).some((f) => f.fieldId === activeFieldId)
+            const sourceRow = block.rows.items.find((r) =>
+                (r.fields.items || []).some((f) => f.fieldId === activeFieldId)
             );
             if (!sourceRow) return prevtemplate;
 
             let targetRow: typeof sourceRow | undefined;
 
             if (overType === "field") {
-                targetRow = block.rows.find((r) =>
-                    (r.fields || []).some((f) => f.fieldId === overRawId)
+                targetRow = block.rows.items.find((r) =>
+                    (r.fields.items || []).some((f) => f.fieldId === overRawId)
                 );
             } else if (overType === "row-fields" || overType === "row") {
-                targetRow = block.rows.find((r) => r.rowId === overRawId);
+                targetRow = block.rows.items.find((r) => r.rowId === overRawId);
             }
 
             if (!targetRow) return prevtemplate;
@@ -952,7 +969,7 @@ export default function Template() {
 
             if (sourceRow.rowId === dragtargetRowId) return prevtemplate;
 
-            if ((targetRow.fields || []).length >= 5) {
+            if ((targetRow.fields.items || []).length >= 5) {
                 if (Date.now() - lastToast > 5000) {
                     toast.show("A row cannot contain more than 5 fields", { type: "error" });
                     setLastToast(Date.now());
@@ -961,57 +978,87 @@ export default function Template() {
                 return prevtemplate;
             }
 
-            const movedField = sourceRow.fields.find((f) => f.fieldId === activeFieldId);
+            const movedField = sourceRow.fields.items.find((f) => f.fieldId === activeFieldId);
             if (!movedField) return prevtemplate;
 
-            return prevtemplateData?.map((cat) => {
-                if (cat.categoryId !== targetCategoryId) return cat;
+            return prevtemplate?.map((c) => {
+                if (c.categoryId !== targetCategoryId) return c;
 
                 return {
-                    ...cat,
-                    blocks: cat.blocks.map((b) => {
-                        if (b.blockId !== currentBlockId) return b;
+                    ...c,
+                    blocks: {
+                        ...c.blocks,
+                        items: c.blocks.items.map((b) => {
+                            if (b.blockId !== currentBlockId) return b;
 
-                        return {
-                            ...b,
-                            rows: b.rows.map((row) => {
-                                if (row.rowId === sourceRow.rowId) {
-                                    return {
-                                        ...row,
-                                        fields: row.fields.filter((f) => f.fieldId !== activeFieldId),
-                                    };
-                                }
+                            return {
+                                ...b,
+                                rows: {
+                                    ...b.rows,
+                                    items: b.rows.items.map((row) => {
+                                        if (row.rowId === sourceRow.rowId) {
+                                            return {
+                                                ...row,
+                                                fields: {
+                                                    ...row.fields,
+                                                    items: (row.fields.items || []).filter(
+                                                        (f) => f.fieldId !== activeFieldId
+                                                    ),
+                                                },
+                                            };
+                                        }
 
-                                if (row.rowId === dragtargetRowId) {
-                                    const overIndex = row.fields.findIndex((f) => f.fieldId === overRawId);
-                                    const newIndex = overIndex >= 0 ? overIndex : row.fields.length;
+                                        if (row.rowId === dragtargetRowId) {
+                                            const overIndex = row.fields.items.findIndex(
+                                                (f) => f.fieldId === overRawId
+                                            );
+                                            const newIndex =
+                                                overIndex >= 0 ? overIndex : row.fields.items.length;
 
-                                    const nextFields = [...row.fields];
-                                    nextFields.splice(newIndex, 0, movedField);
+                                            const nextFields = [...row.fields.items];
+                                            nextFields.splice(newIndex, 0, movedField);
 
-                                    return {
-                                        ...row,
-                                        fields: nextFields,
-                                    };
-                                }
+                                            return {
+                                                ...row,
+                                                fields: {
+                                                    ...row.fields,
+                                                    items: nextFields,
+                                                },
+                                            };
+                                        }
 
-                                return row;
-                            }),
-                        };
-                    }),
+                                        return row;
+                                    }),
+                                },
+                            };
+                        }),
+                    },
                 };
             });
         });
     };
 
-    const handleDragEnd = (event: DragEndEvent): void => {
+    const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
         if (isPreviewMode) return;
 
         const { active, over } = event;
+
         setActiveDragId(null);
         document.body.style.cursor = "";
 
-        if (!over || active.id === over.id) return;
+        const templateDataSnapshot = snapshotTemplateDataRef.current;
+
+        const revertToInitial = () => {
+            if (templateDataSnapshot) {
+                setTemplateData(templateDataSnapshot);
+            }
+        };
+
+        if (!over || active.id === over.id) {
+            revertToInitial();
+
+            return;
+        }
 
         const activeDragIdString = String(active.id);
         const overIdString = String(over.id);
@@ -1025,51 +1072,43 @@ export default function Template() {
             : ["field", overIdString];
 
         if (activeType === "category") {
-            const oldIndex = templateData?.findIndex((c) => c.categoryId === activeDragIdValue);
-            const newIndex = templateData?.findIndex((c) => c.categoryId === overIdValue);
+            const oldIndex = templateData?.findIndex((c) => c.categoryId === activeDragIdValue) ?? -1;
+            const newIndex = templateData?.findIndex((c) => c.categoryId === overIdValue) ?? -1;
 
-            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const originaltemplate = template;
-                const reorderedCategories = arrayMove(originaltemplate, oldIndex, newIndex);
-
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex && templateData) {
+                const reorderedCategories = arrayMove(templateData, oldIndex, newIndex);
                 setTemplateData(reorderedCategories);
 
-                queueMicrotask(async () => {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1000);
+                try {
+                    const response = await fetch(`${apiBaseUrl}/v3/templates/${templateId}/categories/update/positions`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            data: reorderedCategories.map((c) => ({ categoryId: c.categoryId })),
+                        }),
+                    });
 
-                    const revertUI = () => setTemplateData(originaltemplate);
+                    const json = await response.json();
 
-                    try {
-                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/categories/positions`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            credentials: "include",
-                            signal: controller.signal,
-                            body: JSON.stringify({
-                                template: reorderedCategories.map((c) => ({ categoryId: c.categoryId })),
-                            }),
+                    if (!response.ok) {
+                        revertToInitial();
+
+                        toast.show("Failed to save positions", {
+                            subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                            type: "error",
                         });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            revertUI();
-                            toast.show("Failed to update category positions", { type: "error" });
-                        }
-                    } catch (error: any) {
-                        clearTimeout(timeoutId);
-                        revertUI();
-
-                        if (error.name === "AbortError") {
-                            toast.show("Request timed out. Reverting positions...", { type: "error" });
-                        } else {
-                            console.error("Failed to update category positions:", error);
-                            toast.show("Error saving category positions", { type: "error" });
-                        }
                     }
-                });
+                } catch (error) {
+                    revertToInitial();
+
+                    console.error("Failed to save positions", error);
+                    toast.show("Failed to save positions", { type: "error" });
+                }
+            } else {
+                revertToInitial();
             }
+
             return;
         }
 
@@ -1077,338 +1116,306 @@ export default function Template() {
 
         if (activeType === "block") {
             const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-            if (!targetCategory) return;
 
-            const oldIndex = targetCategory.blocks.findIndex((b) => b.blockId === activeDragIdValue);
-            const newIndex = targetCategory.blocks.findIndex((b) => b.blockId === overIdValue);
+            if (!targetCategory) {
+                revertToInitial();
+
+                return;
+            }
+
+            const blockItems = targetCategory.blocks.items || [];
+            const oldIndex = blockItems.findIndex((b) => b.blockId === activeDragIdValue);
+            const newIndex = blockItems.findIndex((b) => b.blockId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const originalBlocks = targetCategory.blocks;
-                const reorderedBlocks = arrayMove(originalBlocks, oldIndex, newIndex);
+                const reorderedBlockItems = arrayMove(blockItems, oldIndex, newIndex);
 
-                setTemplateData((prev: GetCategoryType[]) =>
-                    prev.map((category) =>
+                setTemplateData((prev) =>
+                    prev?.map((category) =>
                         category.categoryId === targetCategoryId
-                            ? { ...category, blocks: reorderedBlocks }
+                            ? {
+                                ...category,
+                                blocks: {
+                                    ...category.blocks,
+                                    items: reorderedBlockItems,
+                                },
+                            }
                             : category
                     )
                 );
 
-                queueMicrotask(async () => {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1000);
+                try {
+                    const response = await fetch(`${apiBaseUrl}/v3/templates/${templateId}/blocks/update/positions`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            data: reorderedBlockItems.map((block) => ({ blockId: block.blockId })),
+                        }),
+                    });
 
-                    const revertUI = () => {
-                        setTemplateData((prev: GetCategoryType[]) =>
-                            prev.map((category) =>
-                                category.categoryId === targetCategoryId
-                                    ? { ...category, blocks: originalBlocks }
-                                    : category
-                            )
-                        );
-                    };
+                    const json = await response.json();
 
-                    try {
-                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/blocks/positions`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            credentials: "include",
-                            signal: controller.signal,
-                            body: JSON.stringify({
-                                template: reorderedBlocks.map((block) => ({ blockId: block.blockId })),
-                            }),
+                    if (!response.ok) {
+                        revertToInitial();
+
+                        toast.show("Failed to save positions", {
+                            subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                            type: "error",
                         });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            revertUI();
-                            toast.show("Failed to update block positions", { type: "error" });
-                        }
-                    } catch (error: any) {
-                        clearTimeout(timeoutId);
-                        revertUI();
-
-                        if (error.name === "AbortError") {
-                            toast.show("Request timed out. Reverting positions...", { type: "error" });
-                        } else {
-                            console.error("Failed to update block positions:", error);
-                            toast.show("Error saving block positions", { type: "error" });
-                        }
                     }
-                });
+                } catch (error) {
+                    revertToInitial();
+
+                    console.error("Failed to save positions", error);
+                    toast.show("Failed to save positions", { type: "error" });
+                }
+            } else {
+                revertToInitial();
             }
+
             return;
         }
 
         if (activeType === "row") {
             const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
-            if (!targetBlockItem) return;
+            const targetBlockItem = targetCategory?.blocks.items?.find((b) => b.blockId === currentBlockId);
 
-            const oldIndex = targetBlockItem.rows.findIndex((r) => r.rowId === activeDragIdValue);
-            const newIndex = targetBlockItem.rows.findIndex((r) => r.rowId === overIdValue);
+            if (!targetBlockItem) {
+                revertToInitial();
+
+                return;
+            }
+
+            const rowItems = targetBlockItem.rows.items || [];
+            const oldIndex = rowItems.findIndex((r) => r.rowId === activeDragIdValue);
+            const newIndex = rowItems.findIndex((r) => r.rowId === overIdValue);
 
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const originalRows = targetBlockItem.rows;
-                const reorderedRows = arrayMove(originalRows, oldIndex, newIndex);
+                const reorderedRowItems = arrayMove(rowItems, oldIndex, newIndex);
 
-                setTemplateData((prev: GetCategoryType[]) =>
-                    prev.map((category) => {
+                setTemplateData((prev) =>
+                    prev?.map((category) => {
                         if (category.categoryId !== targetCategoryId) return category;
 
                         return {
                             ...category,
-                            blocks: category.blocks.map((block) => {
-                                if (block.blockId !== currentBlockId) return block;
+                            blocks: {
+                                ...category.blocks,
+                                items: category.blocks.items.map((block) => {
+                                    if (block.blockId !== currentBlockId) return block;
 
-                                return {
-                                    ...block,
-                                    rows: reorderedRows,
-                                };
-                            }),
+                                    return {
+                                        ...block,
+                                        rows: {
+                                            ...block.rows,
+                                            items: reorderedRowItems,
+                                        },
+                                    };
+                                }),
+                            },
                         };
                     })
                 );
 
-                queueMicrotask(async () => {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1000);
+                try {
+                    const response = await fetch(`${apiBaseUrl}/v3/templates/${templateId}/rows/update/positions`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            blockId: currentBlockId,
+                            data: reorderedRowItems.map((row) => ({ rowId: row.rowId })),
+                        }),
+                    });
 
-                    const revertUI = () => {
-                        setTemplateData((prev: GetCategoryType[]) =>
-                            prev.map((category) => {
-                                if (category.categoryId !== targetCategoryId) return category;
+                    const json = await response.json();
 
-                                return {
-                                    ...category,
-                                    blocks: category.blocks.map((block) => {
-                                        if (block.blockId !== currentBlockId) return block;
+                    if (!response.ok) {
+                        revertToInitial();
 
-                                        return {
-                                            ...block,
-                                            rows: originalRows,
-                                        };
-                                    }),
-                                };
-                            })
-                        );
-                    };
-
-                    try {
-                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/rows/positions`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            credentials: "include",
-                            signal: controller.signal,
-                            body: JSON.stringify({
-                                blockId: currentBlockId,
-                                template: reorderedRows.map((row) => ({ rowId: row.rowId })),
-                            }),
+                        toast.show("Failed to save positions", {
+                            subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                            type: "error",
                         });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            revertUI();
-                            toast.show("Failed to update row positions", { type: "error" });
-                        }
-                    } catch (error: any) {
-                        clearTimeout(timeoutId);
-                        revertUI();
-
-                        if (error.name === "AbortError") {
-                            toast.show("Request timed out. Reverting positions...", { type: "error" });
-                        } else {
-                            console.error("Failed to update row positions:", error);
-                            toast.show("Error saving row positions", { type: "error" });
-                        }
                     }
-                });
+                } catch (error) {
+                    revertToInitial();
+
+                    console.error("Failed to save positions", error);
+                    toast.show("Failed to save positions", { type: "error" });
+                }
+            } else {
+                revertToInitial();
             }
+
             return;
         }
 
         if (activeType === "field") {
             const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
-            const targetBlockItem = targetCategory?.blocks.find((b) => b.blockId === currentBlockId);
-            if (!targetBlockItem) return;
+            const targetBlockItem = targetCategory?.blocks.items?.find((b) => b.blockId === currentBlockId);
 
-            const targetRow = targetBlockItem.rows.find((r) =>
-                (r.fields || []).some((f) => f.fieldId === activeDragIdValue)
-            );
+            if (!targetBlockItem) {
+                revertToInitial();
 
-            if (!targetRow) return;
-
-            if ((targetRow.fields || []).length > 5) {
-                toast.show("A row cannot contain more than 5 fields", { type: "error" });
                 return;
             }
 
-            const oldIndex = targetRow.fields.findIndex((f) => f.fieldId === activeDragIdValue);
-            const newIndex = targetRow.fields.findIndex((f) => f.fieldId === overIdValue);
+            const targetRow = targetBlockItem.rows.items?.find((r) =>
+                (r.fields.items || []).some((f) => f.fieldId === activeDragIdValue)
+            );
 
+            if (!targetRow) {
+                revertToInitial();
+
+                return;
+            }
+
+            const fieldItems = targetRow.fields.items || [];
+
+            if (fieldItems.length > 5) {
+                toast.show("A row cannot contain more than 5 fields", { type: "error" });
+
+                revertToInitial();
+                
+                return;
+            }
+
+            const oldIndex = fieldItems.findIndex((f) => f.fieldId === activeDragIdValue);
+            const newIndex = fieldItems.findIndex((f) => f.fieldId === overIdValue);
+
+            let finalFields = fieldItems;
             if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                const originalFields = targetRow.fields;
-                const reorderedFields = arrayMove(originalFields, oldIndex, newIndex);
+                finalFields = arrayMove(fieldItems, oldIndex, newIndex);
 
-                setTemplateData((prev: GetCategoryType[]) =>
-                    prev.map((category) => {
+                setTemplateData((prev) =>
+                    prev?.map((category) => {
                         if (category.categoryId !== targetCategoryId) return category;
 
                         return {
                             ...category,
-                            blocks: category.blocks.map((block) => {
-                                if (block.blockId !== currentBlockId) return block;
+                            blocks: {
+                                ...category.blocks,
+                                items: category.blocks.items.map((block) => {
+                                    if (block.blockId !== currentBlockId) return block;
 
-                                return {
-                                    ...block,
-                                    rows: block.rows.map((row) =>
-                                        row.rowId === targetRow.rowId
-                                            ? { ...row, fields: reorderedFields }
-                                            : row
-                                    ),
-                                };
-                            }),
+                                    return {
+                                        ...block,
+                                        rows: {
+                                            ...block.rows,
+                                            items: block.rows.items.map((row) =>
+                                                row.rowId === targetRow.rowId
+                                                    ? {
+                                                        ...row,
+                                                        fields: {
+                                                            ...row.fields,
+                                                            items: finalFields,
+                                                        },
+                                                    }
+                                                    : row
+                                            ),
+                                        },
+                                    };
+                                }),
+                            },
                         };
                     })
                 );
+            }
 
-                queueMicrotask(async () => {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 1000);
-
-                    const revertUI = () => {
-                        setTemplateData((prev: GetCategoryType[]) =>
-                            prev.map((category) => {
-                                if (category.categoryId !== targetCategoryId) return category;
-
-                                return {
-                                    ...category,
-                                    blocks: category.blocks.map((block) => {
-                                        if (block.blockId !== currentBlockId) return block;
-
-                                        return {
-                                            ...block,
-                                            rows: block.rows.map((row) =>
-                                                row.rowId === targetRow.rowId
-                                                    ? { ...row, fields: originalFields }
-                                                    : row
-                                            ),
-                                        };
-                                    }),
-                                };
-                            })
-                        );
-                    };
-
-                    try {
-                        const response = await fetch(`${apiBaseUrl}/v3/templates/update/${templateId}/fields/positions`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            credentials: "include",
-                            signal: controller.signal,
-                            body: JSON.stringify({
-                                rowId: targetRow.rowId,
-                                template: reorderedFields.map((field) => ({ fieldId: field.fieldId })),
-                            }),
-                        });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            revertUI();
-                            toast.show("Failed to update field positions", { type: "error" });
-                        }
-                    } catch (error: any) {
-                        clearTimeout(timeoutId);
-                        revertUI();
-
-                        if (error.name === "AbortError") {
-                            toast.show("Request timed out. Reverting positions...", { type: "error" });
-                        } else {
-                            console.error("Failed to update field positions:", error);
-                            toast.show("Error saving field positions", { type: "error" });
-                        }
-                    }
+            try {
+                const response = await fetch(`${apiBaseUrl}/v3/templates/${templateId}/fields/update/positions`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        rowId: targetRow.rowId,
+                        data: finalFields.map((field) => ({ fieldId: field.fieldId })),
+                    }),
                 });
+
+                const json = await response.json();
+
+                if (!response.ok) {
+                    revertToInitial();
+
+                    toast.show("Failed to save positions", {
+                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                        type: "error",
+                    });
+                }
+            } catch (error) {
+                revertToInitial();
+
+                console.error("Failed to save positions", error);
+                toast.show("Failed to save positions", { type: "error" });
             }
         }
     };
 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    useEffect(() => {
-        if (!currentCategoryData || !currentBlockId) return;
-
-        const blockExists = currentCategoryData?.blocks.some(
-            (block) => block.blockId === currentBlockId
-        );
-
-        if (!blockExists) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setCurrentBlockId(null);
-        }
-    }, [currentCategoryData, currentBlockId]);
-
-
-
-
-
-
     if (!isTranslationReady) return null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
 
     return (
         <>
             <Metadata 
                 title={`${template?.displayName} Template`}
-                allowIndex={false} 
+                allowIndex={false}
             />
 
-            <NewCategoryModal onAddCategory={handleAddCategory} />
-
-            <NewFieldModal
-                dragtargetRowId={dragTargetRowId as string}
-                onAddField={handleAddField}
+            <NewCategoryModal 
+                onAddCategory={handleAddCategory}
             />
 
             <DndContext
@@ -1443,8 +1450,13 @@ export default function Template() {
                             </label>
                             
                             <div className="px-4 text-center flex-1">
-                                <span className="font-medium">Example Character Here</span>
-                                <div className="text-sub text-xs">Author</div>
+                                <span className="font-medium">
+                                    {template?.displayName || template?.id} Template
+                                </span>
+
+                                <div className="text-sub text-xs">
+                                    {template?.owner.displayName || template?.owner.primaryUsername || template?.owner.id }
+                                </div>
                             </div>
 
                             <button
@@ -1489,7 +1501,7 @@ export default function Template() {
                                                 {(() => {
                                                     const query = searchQuery.trim().toLowerCase();
 
-                                                    const filteredBlocks = (currentCategoryData?.blocks ?? []).filter(block => 
+                                                    const filteredBlocks = (currentCategoryData?.blocks.items ?? []).filter(block => 
                                                         !query || 
                                                         block.blockId?.toLowerCase().includes(query) || 
                                                         block.label?.toLowerCase().includes(query) ||
@@ -1508,7 +1520,7 @@ export default function Template() {
                                                                             <button
                                                                                 {...sortableProps}
                                                                                 className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
-                                                                                onClick={() => setBlock(block.blockId)}
+                                                                                onClick={() => setCurrentBlock(block.blockId)}
                                                                             >
                                                                                 {!isPreviewMode && (
                                                                                     <div
@@ -1538,7 +1550,7 @@ export default function Template() {
                                                                                     src={block?.icon} 
                                                                                     alt={block?.label} 
                                                                                 />
-                                                                                <span className="text-lg font-semibold mt-2">{block.label}</span>
+                                                                                <span className="text-lg font-semibold mt-2">{block.label || block.blockId}</span>
                                                                                 <span className="text-xs text-sub mt-1">{block.description}</span>
                                                                             </button>
                                                                         )}
@@ -1552,7 +1564,7 @@ export default function Template() {
                                                                     />
                                                                 )}
 
-                                                                {!isPreviewMode && (currentCategoryData?.blocks.length ?? 0) <= 32 && (
+                                                                {!isPreviewMode && (currentCategoryData?.blocks?.length ?? 0) <= 32 && (
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
@@ -1573,7 +1585,7 @@ export default function Template() {
                                                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-base-300">
                                                     <button
                                                         className="flex gap-2 text-sm items-center font-normal cursor-pointer"
-                                                        onClick={() => setBlock(null)}
+                                                        onClick={() => setCurrentBlock()}
                                                     >
                                                         <span className="font-nerdfont text-lg leading-none">
                                                             
@@ -1583,17 +1595,17 @@ export default function Template() {
                                                     </button>
                                                     <div className="h-5 w-px bg-base-300" />
                                                     <h2 className="text-xl font-bold">
-                                                        {currentCategoryData?.blocks?.find(t => t.blockId === currentBlockId)?.label ?? currentBlockId}
+                                                        {currentCategoryData?.blocks.items?.find(t => t.blockId === currentBlockId)?.label ?? currentBlockId}
                                                     </h2>
                                                 </div>
 
                                                 <SortableContext
-                                                    items={currentBlock?.rows?.map(row => `row:${row.rowId}`) ?? []}
+                                                    items={currentBlockData?.rows.items?.map(row => `row:${row.rowId}`) ?? []}
                                                     strategy={verticalListSortingStrategy}
                                                 >
                                                     <div className="flex flex-col gap-1">
-                                                        {currentBlock?.rows?.map(row => {
-                                                            const visibleFields = (row.fields || []).filter(field => {
+                                                        {currentBlockData?.rows.items?.map(row => {
+                                                            const visibleFields = (row.fields.items || []).filter(field => {
                                                                 if (!isPreviewMode) return true;
                                                                 const raw = field.value?.content;
                                                                 return Boolean(raw && raw.trim() !== "");
@@ -1621,6 +1633,11 @@ export default function Template() {
                                                                                     </div>
                                                                                 </span>
                                                                             )}
+
+                                                                            <NewFieldModal
+                                                                                targetRowId={row.rowId}
+                                                                                onAddField={handleAddField}
+                                                                            />
 
                                                                             <FieldDropZone
                                                                                 id={`row-fields:${row.rowId}`}
@@ -1659,10 +1676,10 @@ export default function Template() {
                                                                                                                         ...field.value,
                                                                                                                         content: isPreviewMode ? resolvedValue : rawContent,
                                                                                                                     }}
-                                                                                                                    options={field.options}
+                                                                                                                    dataset={field.dataset}
                                                                                                                     notes={field.notes}
                                                                                                                     thoughts={field.thoughts}
-                                                                                                                    onChange={(value) => handleFieldChange(field.fieldId, value)}
+                                                                                                                    onChange={(value) => handleUpdateValue(field.fieldId, value)}
                                                                                                                     dragHandleProps={!isPreviewMode ? {
                                                                                                                         ...dragProps,
                                                                                                                         className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
@@ -1678,11 +1695,11 @@ export default function Template() {
                                                                                 </SortableContext>
                                                                             </FieldDropZone>
 
-                                                                            {!isPreviewMode && (row.fields?.length ?? 0) < 5 && (
+                                                                            {!isPreviewMode && (row.fields?.items.length ?? 0) < 5 && (
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={() => {
-                                                                                        setdragTargetRowId(row.rowId);
+                                                                                        setDragTargetRowId(row.rowId);
                                                                                         (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
                                                                                     }}
                                                                                     className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
