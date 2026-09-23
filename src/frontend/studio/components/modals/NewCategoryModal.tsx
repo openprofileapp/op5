@@ -10,7 +10,7 @@ export interface NewCategoryType {
 }
 
 interface Props {
-    onAddCategory: (data: NewCategoryType) => boolean;
+    onAddCategory: (data: NewCategoryType) => Promise<boolean>;
 }
 
 export default function NewCategoryModal({ onAddCategory }: Props) {
@@ -27,7 +27,7 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
         setTypes([]);
     }
 
-    function handleSave() {
+    async function handleSave() {
         const payload: NewCategoryType = {
             label,
             types
@@ -35,7 +35,7 @@ export default function NewCategoryModal({ onAddCategory }: Props) {
 
         const isSuccess = onAddCategory(payload);
 
-        if (isSuccess) {
+        if (await isSuccess) {
             // Closes modal; native onClose triggers resetForm()
             modalRef.current?.close();
         }
