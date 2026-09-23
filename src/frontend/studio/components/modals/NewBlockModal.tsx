@@ -13,10 +13,10 @@ import { GetBlockItemType } from "../../../../_common/types/blocks/block.type.js
 type Screen = "menu" | "configure";
 
 export type NewBlockType = {
-    assetId?: string;
-    label: string;
-    description: string;
-    icon: string;
+    sourceBlockId?: string;
+    label?: string;
+    description?: string;
+    icon?: string;
 };
 
 interface NewBlockModalProps {
@@ -163,7 +163,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
         if (!selectedItem) return;
 
         const blockData: NewBlockType = {
-            assetId: selectedItem.assetId,
+            blockId: selectedItem.blockId,
             label: label.trim(),
             description: description.trim(),
             icon: previewUrl || null,
@@ -277,7 +277,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
                                 
                                 {blocks.map((item) => (
                                     <button
-                                        key={item.assetId}
+                                        key={item.blockId}
                                         type="button"
                                         className="aspect-square w-full relative flex flex-col justify-between items-center p-4 bg-base-200 hover:bg-[#151515] border border-base-300 rounded cursor-pointer text-center group overflow-hidden"
                                         onClick={() => handleSelect(item)}
