@@ -51,11 +51,7 @@ import setupWebPushNotifications from "../_common/scripts/webPush.js"
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootLayout() {
-    return (
-        <ModalProvider>
-            <Layout />
-        </ModalProvider>
-    );
+    return <Layout />;
 }
 
 async function bootstrap() {
@@ -136,32 +132,34 @@ async function bootstrap() {
         <React.StrictMode>
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
-                    <BrowserRouter>
-                        <ToastContainer />
-                        <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
-                        <Messages />
-                        <Routes>
-                            <Route 
-                                path="/template/:templateId/:categoryId?/:blockId?" 
-                                element={<Template />} 
-                            />
+                    <ModalProvider>
+                        <BrowserRouter>
+                            <ToastContainer />
+                            <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
+                            <Messages />
+                            <Routes>
+                                <Route 
+                                    path="/template/:templateId/:categoryId?/:blockId?" 
+                                    element={<Template />} 
+                                />
 
-                            <Route element={<RootLayout />}>
-                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/analytics" element={<Analytics />} />
-                                <Route path="/content" element={<Content />} />
+                                <Route element={<RootLayout />}>
+                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
+                                    <Route path="/analytics" element={<Analytics />} />
+                                    <Route path="/content" element={<Content />} />
 
-                                <Route path="/templates" element={<Templates />} />
-                                <Route path="/datasets" element={<Datasets />} />
+                                    <Route path="/templates" element={<Templates />} />
+                                    <Route path="/datasets" element={<Datasets />} />
 
-                                <Route path="/trash" element={<Trash />} />
+                                    <Route path="/trash" element={<Trash />} />
 
-                                <Route path="/404" element={<NotFound />} />
-                                <Route path="*" element={<Navigate to="/404" replace />} />
-                            </Route>
-                        </Routes>
-                    </BrowserRouter>
+                                    <Route path="/404" element={<NotFound />} />
+                                    <Route path="*" element={<Navigate to="/404" replace />} />
+                                </Route>
+                            </Routes>
+                        </BrowserRouter>
+                    </ModalProvider>
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
