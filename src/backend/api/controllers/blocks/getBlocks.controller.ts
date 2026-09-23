@@ -76,7 +76,7 @@ export const templateBlockController = async (req: Request, res: Response) => {
                 formattedSortBy = `${primarySourceSort}, uses DESC, createdDate DESC`;
         }
 
-        const result = db.templates.query(
+        const result = db.blocks.query(
             `
                 SELECT *
                 FROM blocks
@@ -96,7 +96,7 @@ export const templateBlockController = async (req: Request, res: Response) => {
 
         assertDbSuccess(result);
 
-        const countResult = db.templates.query<{ total: number }>(
+        const countResult = db.blocks.query(
             `
                 SELECT 1
                 FROM blocks
