@@ -16,7 +16,7 @@ export type GetTemplateCategoryItemType = Omit<
     TemplateCategoryItemType, 
     "templateId"
 > & {
-    blocks: GetTemplateBlockType[];
+    blocks: GetTemplateBlockType;
 };
 
 export type GetTemplateCategoryType = {

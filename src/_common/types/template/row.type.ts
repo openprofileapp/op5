@@ -14,7 +14,7 @@ export type GetTemplateRowItemType = Omit<
     TemplateRowItemType, 
      "templateId" | "blockId"
 > & {
-    fields: GetTemplateFieldType[];
+    fields: GetTemplateFieldType;
 };
 
 export type GetTemplateRowType = {

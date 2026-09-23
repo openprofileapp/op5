@@ -1,4 +1,4 @@
-import { OwnerType } from "../owner.type.js";
+import { WhatIsType } from "../whatIs.type.js";
 
 export type TemplateType = {
     id: string;
@@ -17,7 +17,7 @@ export type GetTemplateItemType = Omit<
     TemplateType, 
     "ownerId"
 > & {
-    owner: OwnerType;
+    owner: WhatIsType;
 };
 
 export type GetTemplateType = {

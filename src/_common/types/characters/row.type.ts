@@ -20,14 +20,14 @@ export type GetPublishedCharacterRowItemType = Omit<
     PublishedCharacterRowItemType, 
      "assetId" | "blockId"
 > & {
-    fields: GetPublishedCharacterFieldType[];
+    fields: GetPublishedCharacterFieldType;
 };
 
 export type GetDraftCharacterRowItemType = Omit<
     DraftCharacterRowItemType, 
      "assetId" | "blockId"
 > & {
-    fields: GetDraftCharacterFieldType[];
+    fields: GetDraftCharacterFieldType;
 };
 
 export type GetPublishedCharacterRowType = {

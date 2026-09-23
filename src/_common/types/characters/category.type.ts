@@ -23,14 +23,14 @@ export type GetPublishedCharacterCategoryItemType = Omit<
     PublishedCharacterCategoryItemType, 
     "assetId"
 > & {
-    blocks: GetPublishedCharacterBlockType[];
+    blocks: GetPublishedCharacterBlockType;
 };
 
 export type GetDraftCharacterCategoryItemType = Omit<
     DraftCharacterCategoryItemType, 
     "assetId"
 > & {
-    blocks: GetDraftCharacterBlockType[];
+    blocks: GetDraftCharacterBlockType;
 };
 
 export type GetPublishedCharacterCategoryType = {

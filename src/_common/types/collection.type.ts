@@ -1,8 +1,8 @@
 import { GetBadgeType } from "./badge.type.js";
 import { GetInteractionCollection } from "./interaction.type.js";
 import { GetLinkType } from "./link.type.js";
-import { OwnerType } from "./owner.type.js";
 import { VisibilityType } from "./visibility.type.js";
+import { WhatIsType } from "./whatIs.type.js";
 
 export type CollectionType = {
     algorithmScore: number;
@@ -33,7 +33,7 @@ export type GetCollectionItemType = Omit<
     CollectionType, 
     "tags"
 > & {
-    owner: OwnerType;
+    owner: WhatIsType;
     tags: string[];
     badges: GetBadgeType[];
     links?: GetLinkType[];

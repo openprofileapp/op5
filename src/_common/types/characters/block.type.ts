@@ -1,4 +1,3 @@
-import { CategoryIdType } from "../../scripts/categories.js";
 import { GetDraftCharacterRowType, GetPublishedCharacterRowType } from "./row.type.js";
 
 export type PublishedCharacterBlockItemType = {
@@ -15,7 +14,6 @@ export type DraftCharacterBlockItemType = {
     assetId: string;
     blockId: string;
     categoryId: string;
-    categoryType: CategoryIdType;
     sourceBlockId: string;
     isSourceBlockConnected: boolean;
     icon?: string;
@@ -31,14 +29,14 @@ export type GetPublishedCharacterBlockItemType = Omit<
     PublishedCharacterBlockItemType, 
     "assetId" | "categoryId"
 > & {
-    rows: GetPublishedCharacterRowType[];
+    rows: GetPublishedCharacterRowType;
 };
 
 export type GetDraftCharacterBlockItemType = Omit<
     DraftCharacterBlockItemType, 
     "assetId" | "categoryId"
 > & {
-    rows: GetDraftCharacterRowType[];
+    rows: GetDraftCharacterRowType;
 };
 
 export type GetPublishedCharacterBlockType = {
