@@ -20,10 +20,7 @@ export type BlockItemType = {
     createdDate: string;
 }
 
-export type GetBlockItemType = Omit<
-    BlockItemType, 
-    "blockId"
-> & {
+export type GetBlockItemType = BlockItemType & {
     rows: GetRowType[];
 };
 
