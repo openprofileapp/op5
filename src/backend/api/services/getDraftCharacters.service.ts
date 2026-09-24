@@ -231,7 +231,7 @@ export default function getDraftCharactersService({
                             'addedDate', m.addedDate
                         )
                     )
-                    FROM media.drafts m
+                    FROM media.draft_overview m
                     WHERE m.assetId = drafts.id
                 ),
                 json('[]')

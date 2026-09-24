@@ -311,7 +311,7 @@ export default function getPublishedCharactersService({
                             'addedDate', m.addedDate
                         )
                     )
-                    FROM media.published m
+                    FROM media.published_overview m
                     WHERE m.assetId = published.id
                 ),
                 json('[]')
