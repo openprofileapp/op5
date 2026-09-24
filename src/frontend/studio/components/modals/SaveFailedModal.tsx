@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef, useEffect, useCallback } from "react";
+import { FieldNameType } from "../../../../_common/types/field.type.js";
 
-export interface SaveFaileddata {
+export interface SaveFailedData {
     fieldId?: string;
+    type?: FieldNameType;
     value?: unknown;
     [key: string]: unknown;
 }
@@ -12,7 +14,7 @@ export interface InteractionOptions {
 }
 
 export interface SaveFailedModalRef {
-    open: (data?: SaveFaileddata | null, options?: InteractionOptions) => void;
+    open: (data?: SaveFailedData | null, options?: InteractionOptions) => void;
     close: () => void;
 }
 
@@ -25,7 +27,7 @@ const SaveFailedModal = forwardRef<SaveFailedModalRef>((_, ref) => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [countdown, setCountdown] = useState(retrySeconds);
-    const [data, setData] = useState<SaveFaileddata | null>(null);
+    const [data, setData] = useState<SaveFailedData | null>(null);
     const [copied, setCopied] = useState(false);
 
     const optionsRef = useRef<InteractionOptions | undefined>(undefined);
