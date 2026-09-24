@@ -1,8 +1,17 @@
-import { useRef, useState } from "react";
+import { 
+    useRef, 
+    useState, 
+    useCallback, 
+    useEffect, 
+    useImperativeHandle, 
+    forwardRef 
+} from "react";
+
 import { useTranslation } from "react-i18next";
 
-import { FieldNameType } from "../../../../_common/types/blocks/field.type.js";
 import { Tooltip } from "../../../_common/components/Tooltip.js";
+import { FieldNameType, FieldOptionsType } from "../../../../_common/types/field.type.js";
+import { SliderInput } from "../../../_common/components/SliderInput.js";
 
 type Screen = "menu" | "configure";
 
@@ -31,7 +40,8 @@ const index: FieldTypeOption[] = [
         type: "slider",
         icon: "",
         title: "Slider",
-        description: "Select a value within a range."
+        description: "Select a value within a range.",
+        comingSoon: true
     },
     {
         type: "rating",
@@ -49,7 +59,7 @@ const index: FieldTypeOption[] = [
         type: "media",
         icon: "󰋩",
         title: "Media",
-        description: "Upload or link a single image or video."
+        description: "Upload or link a single image or video (coming soon)."
     },
     {
         type: "button",
@@ -96,71 +106,102 @@ const index: FieldTypeOption[] = [
 export interface NewFieldType {
     id: string;
     type: FieldNameType;
+    flex: number;
     label: string;
     placeholder?: string;
-    options?: Record<string, string>[];
+    options?: FieldOptionsType;
     guide?: string;
-    value?: string;
 }
 
-// DEVELOEPR NEEDED: ADD FLEX AND DATASET
-
-interface Props {
+export interface NewFieldModalOptions {
     targetRowId: string;
     onAddField: (targetRowId: string, data: NewFieldType) => Promise<boolean>;
 }
 
-export default function NewFieldModal({ targetRowId, onAddField }: Props) {
-    const { t, ready: isTranslationReady } = useTranslation();
-    const modalRef = useRef<HTMLDialogElement>(null);
+export interface NewFieldModalRef {
+    open: (options: NewFieldModalOptions) => void;
+    close: () => void;
+}
 
+const NewFieldModal = forwardRef<NewFieldModalRef>((_, ref) => {
+    const { ready: isTranslationReady } = useTranslation();
+    const modalRef = useRef<HTMLDialogElement | null>(null);
+    const optionsRef = useRef<NewFieldModalOptions | null>(null);
+
+    const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [screen, setScreen] = useState<Screen>("menu");
     const [isSingletype] = useState(index.length === 0);
-   
+
     const [id, setId] = useState<string>("");
     const [type, setType] = useState<FieldNameType>("text");
+    const [flex, setFlex] = useState<number>(1);
     const [label, setLabel] = useState<string>("");
     const [placeholder, setPlaceholder] = useState<string>("");
-    const [options, setOptions] = useState<Record<string, string>[]>([]);
+    const [options, setOptions] = useState<FieldOptionsType | undefined>(undefined);
     const [guide, setGuide] = useState<string>("");
-    const [value, setValue] = useState<string>("");
 
-    function go(type: FieldNameType) {
-        setType(type);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        setScreen(type === "menu" ? "menu" : "configure");
-    }
-
-    function resetForm() {
+    const resetForm = useCallback(() => {
+        optionsRef.current = null;
+        setIsOpen(false);
         setScreen("menu");
         setId("");
         setType("text");
+        setFlex(0);
         setLabel("");
         setPlaceholder("");
-        setOptions([]);
+        setOptions(undefined);
         setGuide("");
-        setValue("");
+    }, []);
+
+    useImperativeHandle(ref, () => ({
+        open: (modalOptions) => {
+            optionsRef.current = modalOptions;
+            setIsOpen(true);
+        },
+        close: () => {
+            modalRef.current?.close();
+        }
+    }), []);
+
+    useEffect(() => {
+        const dialogNode = modalRef.current;
+        if (isOpen && dialogNode && !dialogNode.open) {
+            dialogNode.showModal();
+        }
+    }, [isOpen]);
+
+    function go(fieldType: FieldNameType) {
+        setType(fieldType);
+        setScreen("configure");
     }
 
     async function handleSave() {
-        const payload: NewFieldType = {
-            id,
-            type,
-            label,
-            placeholder,
-            options,
-            guide,
-            value
-        };
+        if (!optionsRef.current) return;
 
-        const isSuccess = await onAddField(targetRowId, payload);
+        setIsLoading(true);
+        try {
+            const payload: NewFieldType = {
+                id,
+                type,
+                flex,
+                label,
+                placeholder,
+                options,
+                guide,
+            };
 
-        if (isSuccess) {
-            // Close modal only on success; onClose event fires naturally and triggers resetForm()
-            modalRef.current?.close();
+            const isSuccess = await optionsRef.current.onAddField(
+                optionsRef.current.targetRowId, 
+                payload
+            );
+
+            if (isSuccess) {
+                modalRef.current?.close();
+            }
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -228,9 +269,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
                                         btn bg-base-100 border border-base-300 gap-4 h-16
                                         ${item.comingSoon ? "tooltip tooltip-accent cursor-default" : ""}
                                     `}
-                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                    // @ts-ignore
-                                    onClick={() => go(!item.comingSoon ? item.type : "menu")}
+                                    onClick={() => !item.comingSoon && go(item.type)}
                                     data-tip={item.comingSoon ? "Coming Soon" : ""}
                                 >
                                     <div className={`
@@ -334,21 +373,8 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
                                 />
                             </div>
 
-                            <div className="flex flex-col gap-1 mt-1">
-                                <label className="label">
-                                    Predefined Value
-                                </label>
-
-                                <textarea
-                                    className="textarea w-full resize-none !h-auto min-h-[2.5rem] [field-sizing:content]"
-                                    placeholder={"Text here should assist with filling in the field"}
-                                    value={value ?? ""}
-                                    onChange={(e) =>
-                                        setValue(e.target.value)
-                                    }
-                                />
-                            </div>
-
+                            {/* Depending of the type of field, either do options or guide */}
+                           
                             <div className="flex flex-col gap-1 mt-1">
                                 <label className="label flex gap-2">
                                     Guide
@@ -374,6 +400,28 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
                                     }
                                 />
                             </div>
+
+                            <div className="flex flex-col gap-1 mt-1">
+                                <label className="label flex gap-2">
+                                    Flex
+
+                                    <Tooltip content={(
+                                        <div className="flex flex-col gap-1 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
+                                            When multiple fields share a row, flex determines how much space each field takes up. For example, if one field is flex 1 and another is flex 2, flex 2 takes up two-thirds of the row. If both fields have the same flex value, they share the space equally.
+                                        </div>
+                                    )}>
+                                        <span className="font-nerdfont text-sm"></span>
+                                    </Tooltip>
+                                </label>
+
+                                <SliderInput
+                                    defaultValue={1}
+                                    min={1}
+                                    max={5}
+                                    marks={5}
+                                    onChange={(value) => setFlex(value)}
+                                />
+                            </div>
                         </fieldset>
                     )}
                 </div>
@@ -393,4 +441,7 @@ export default function NewFieldModal({ targetRowId, onAddField }: Props) {
             </div>
         </dialog>
     );
-}
+});
+
+NewFieldModal.displayName = "NewFieldModal";
+export default NewFieldModal;
