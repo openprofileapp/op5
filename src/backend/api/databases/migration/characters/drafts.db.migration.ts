@@ -11,6 +11,10 @@ db.characters.transaction(async q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
+        if (String(d.avatar).startsWith("/beta")) {
+            d.avatar = null
+        }
+
         if (d.avatar) {
             try {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -33,6 +37,10 @@ db.characters.transaction(async q => {
             } catch {
                 // continue
             }
+        }
+
+        if (String(d.banner).startsWith("/beta")) {
+            d.banner = null
         }
 
         if (d.banner) {
