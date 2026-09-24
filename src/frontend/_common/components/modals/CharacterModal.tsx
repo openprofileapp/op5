@@ -382,7 +382,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                 </div>
                             )}
 
-                            {(!loading && window.session.user?.isDeveloper) && (
+                            {(!loading && Boolean(window.session.user?.isDeveloper)) && (
                                 <div className="flex text-xs flex-col mt-1">
                                     <span className="text-sub font-bold uppercase tracking-wider">
                                         Developer View
