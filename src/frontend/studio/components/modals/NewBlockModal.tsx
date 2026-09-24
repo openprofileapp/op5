@@ -1,4 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { 
+    useState, 
+    useRef, 
+    useEffect, 
+    useCallback, 
+    useImperativeHandle, 
+    forwardRef 
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatNumber } from "kage-library/client";
@@ -8,7 +15,7 @@ import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
 import { toast } from "../../../_common/scripts/toast.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import ImageInput from "../../../_common/components/ImageInput.js";
-import { GetBlockItemType } from "../../../../_common/types/blocks/block.type.js";
+import { GetBlockItemType, GetBlockType } from "../../../../_common/types/blocks/block.type.js";
 
 type Screen = "menu" | "configure";
 
@@ -16,28 +23,35 @@ export type NewBlockType = {
     sourceBlockId?: string;
     label?: string;
     description?: string;
-    icon?: string;
+    icon?: string | null;
+    rows?: unknown[];
 };
 
-interface NewBlockModalProps {
-    onAddBlock: (data: NewBlockType) => boolean;
+export interface NewBlockModalOptions {
     types: CategoryIdType[];
+    onAddBlock: (data: NewBlockType) => boolean | Promise<boolean>;
 }
 
-export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps) {
-    const { t, ready: isTranslationReady } = useTranslation();
-    const modalRef = useRef<HTMLDialogElement>(null);
+export interface NewBlockModalRef {
+    open: (options: NewBlockModalOptions) => void;
+    close: () => void;
+}
 
+const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
+    const { ready: isTranslationReady } = useTranslation();
+    const modalRef = useRef<HTMLDialogElement | null>(null);
+    const optionsRef = useRef<NewBlockModalOptions | null>(null);
+
+    const [isOpen, setIsOpen] = useState<boolean>(false);
     const [screen, setScreen] = useState<Screen>("menu");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSearching, setIsSearching] = useState<boolean>(false);
-    const [isOpen, setIsOpen] = useState<boolean>(false);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("popularDesc");
 
-    const [selectedItem, setSelectedItem] = useState<GetBlockItemType | null>(null);
+    const [selectedBlock, setSelectedBlock] = useState<Partial<GetBlockItemType> | null>(null);
 
     const [icon, setIcon] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -45,25 +59,46 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
     const [label, setLabel] = useState("");
     const [description, setDescription] = useState("");
 
-    const [blocks, setBlocks] = useState<TemplateBlockItemType[]>([]);
+    const [blocks, setBlocks] = useState<GetBlockItemType[]>([]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [count, setCount] = useState<number>(0);
 
-    useEffect(() => {
-        const dialogEl = modalRef.current;
-        if (!dialogEl) return;
-
-        const observer = new MutationObserver(() => {
-            setIsOpen(dialogEl.hasAttribute("open"));
-        });
-
-        observer.observe(dialogEl, { attributes: true, attributeFilter: ["open"] });
-
-        return () => observer.disconnect();
+    const resetForm = useCallback(() => {
+        optionsRef.current = null;
+        setIsOpen(false);
+        setScreen("menu");
+        setSelectedBlock(null);
+        setIcon(null);
+        setPreviewUrl("");
+        setLabel("");
+        setDescription("");
+        setSearchQuery("");
+        setDebouncedSearchQuery("");
+        setSortBy("popularDesc");
+        setBlocks([]);
+        setCount(0);
     }, []);
+
+    useImperativeHandle(ref, () => ({
+        open: (modalOptions) => {
+            optionsRef.current = modalOptions;
+            setIsOpen(true);
+        },
+        close: () => {
+            modalRef.current?.close();
+        }
+    }), []);
+
+    useEffect(() => {
+        const dialogNode = modalRef.current;
+        if (isOpen && dialogNode && !dialogNode.open) {
+            dialogNode.showModal();
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (searchQuery.trim() !== debouncedSearchQuery) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsSearching(true);
         }
 
@@ -75,7 +110,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
     }, [searchQuery, debouncedSearchQuery]);
 
     useEffect(() => {
-        if (!isOpen || screen !== "menu") return;
+        if (!isOpen || screen !== "menu" || !optionsRef.current) return;
 
         const controller = new AbortController();
 
@@ -88,7 +123,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
 
             try {
                 const queryParams = new URLSearchParams({
-                    types: types.join(","),
+                    types: optionsRef.current?.types.join(",") || "",
                     q: debouncedSearchQuery,
                     sortBy: sortBy,
                 });
@@ -103,7 +138,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
                     return;
                 }
 
-                const json: GetTemplateBlockType = await res.json();
+                const json: GetBlockType = await res.json();
 
                 setBlocks(json.items ?? []);
                 setCount(json.count ?? 0);
@@ -122,17 +157,17 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
         return () => {
             controller.abort();
         };
-    }, [isOpen, screen, debouncedSearchQuery, sortBy, types]);
+    }, [isOpen, screen, debouncedSearchQuery, sortBy]);
 
     function handleSelect(item?: GetBlockItemType) {
         setIcon(null);
         if (item) {
-            setSelectedItem(item);
+            setSelectedBlock(item);
             setPreviewUrl(item.icon ? `${cdnBaseUrl}${item.icon}` : "");
             setLabel(item.label || "");
             setDescription(item.description || "");
         } else {
-            setSelectedItem({
+            setSelectedBlock({
                 icon: "",
                 label: "",
                 description: "",
@@ -146,35 +181,20 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
         setScreen("configure");
     }
 
-    function resetForm() {
-        setScreen("menu");
-        setSelectedItem(null);
-        setIcon(null);
-        setPreviewUrl("");
-        setLabel("");
-        setDescription("");
-        setSearchQuery("");
-        setDebouncedSearchQuery("");
-        setSortBy("popularDesc");
-        setIsOpen(false);
-    }
-
-    function handleSave() {
-        if (!selectedItem) return;
+    async function handleSave() {
+        if (!selectedBlock || !optionsRef.current) return;
 
         const blockData: NewBlockType = {
-            blockId: selectedItem.blockId,
+            sourceBlockId: selectedBlock.blockId,
             label: label.trim(),
             description: description.trim(),
-            icon: previewUrl || null,
-            rows: selectedItem?.rows ?? [],
+            icon: previewUrl || null
         };
 
-        const isSuccess = onAddBlock(blockData);
+        const isSuccess = await optionsRef.current.onAddBlock(blockData);
 
         if (isSuccess) {
             modalRef.current?.close();
-            resetForm();
         }
     }
 
@@ -325,8 +345,8 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
                     </>
                 )}
 
-                {screen === "configure" && selectedItem && (
-                    <div className="flex flex-col gap-6 py-4 max-w-md mx-auto w-full">
+                {screen === "configure" && selectedBlock && (
+                    <div className="flex flex-col gap-6 py-4 mx-auto w-full">
                         <div className="flex flex-col gap-4">
                             <fieldset className="fieldset w-full">
                                 <div className="flex flex-col justify-center items-center gap-1 mt-1">
@@ -403,4 +423,7 @@ export default function NewBlockModal({ onAddBlock, types }: NewBlockModalProps)
             </form>
         </dialog>
     );
-}
+});
+
+NewBlockModal.displayName = "NewBlockModal";
+export default NewBlockModal;
