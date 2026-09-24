@@ -14,7 +14,6 @@ import {
     useSensors,
     CollisionDetection,
     DragEndEvent,
-    DragStartEvent,
     DragOverEvent,
     DragOverlay,
     Modifier,
@@ -39,15 +38,16 @@ import { toast } from "../../_common/scripts/toast.js";
 import { GetTemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
 import { snowflake } from "../scripts/main.js";
-import NewBlockModal, { NewBlockType } from "../components/modals/NewBlockModal.js";
+import { NewBlockType } from "../components/modals/NewBlockModal.js";
 import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
 import { GetTemplateRowItemType } from "../../../_common/types/template/row.type.js";
-import NewFieldModal, { NewFieldType } from "../components/modals/NewFieldModal.js";
+import { NewFieldType } from "../components/modals/NewFieldModal.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
 import Metadata from "../../_common/components/Metadata.js";
 import TemplateField from "../components/TemplateField.js";
-import SaveFailedModal from "../components/modals/SaveFailedModalOld.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/template/value.type.js";
+import { ValueOptionsType } from "../../../_common/types/value.type.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -126,26 +126,29 @@ export function SortableItem({ id, children, disabled = false }: SortableItemPro
 export default function Template() {
     const { templateId, categoryId, blockId } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
-    const { saveFailedModal } = useModals()
     const navigate = useNavigate();
 
+    const { 
+        saveFailedModal, 
+        newFieldModal, 
+        newBlockModal
+    } = useModals()
+    
     const [searchQuery, setSearchQuery] = useState("");
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-    const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const [isPreview, setIsPreview] = useState(false);
     const [lastToast, setLastToast] = useState<number>(0);
 
     const debounceTimers = useRef<{ [fieldId: string]: NodeJS.Timeout }>({});
     const valuesMapRef = useRef<{ [fieldId: string]: string }>({});
     const snapshotTemplateDataRef = useRef<GetTemplateCategoryItemType[] | null>(null);
 
-    const [isTemplateLoading, setIsTemplateLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const [template, setTemplate] = useState<GetTemplateItemType>();
     const [templateData, setTemplateData] = useState<GetTemplateCategoryItemType[]>([]);
-
-    const [activeDragId, setActiveDragId] = useState<string | null>();
-    const [dragTargetRowId, setDragTargetRowId] = useState<string>();
 
     const currentCategoryId = 
         categoryId 
@@ -219,7 +222,7 @@ export default function Template() {
             } catch (err) {
                 console.error(err);
             } finally {
-                setIsTemplateLoading(false);
+                setIsLoading(false);
             }
         };
 
@@ -252,7 +255,7 @@ export default function Template() {
     const resolveDynamicValues = useCallback((text: string | undefined): string => {
         if (!text) return "";
 
-        return text.replace(/\{([^}]+)\}/g, (match, fieldId) => {
+        return String(text).replace(/\{([^}]+)\}/g, (match, fieldId) => {
             const trimmedId = fieldId.trim();
 
             if (valuesMapRef.current[trimmedId] !== undefined) {
@@ -264,7 +267,7 @@ export default function Template() {
     }, []);
 
     useEffect(() => {
-        if (isTemplateLoading || !templateData.length || !templateId) return;
+        if (isLoading || !templateData.length || !templateId) return;
 
         const targetCategoryId = categoryId ?? "";
         const targetBlockId = blockId ?? "";
@@ -298,7 +301,7 @@ export default function Template() {
                 );
             }
         }
-    }, [templateData, isTemplateLoading, templateId, categoryId, blockId, navigate]);
+    }, [templateData, isLoading, templateId, categoryId, blockId, navigate]);
 
     const setCurrentCategory = useCallback(
         (newCategoryId: string) => {
@@ -326,18 +329,16 @@ export default function Template() {
         if (!fieldId) return;
 
         setTimeout(() => {
-            const element = document.getElementById(fieldId);
+            const element = document.getElementById(`field-${fieldId}`);
             if (element) {
                 element.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                if ("focus" in element && typeof element.focus === "function") {
-                    element.focus({ preventScroll: true });
-                }
             }
         }, 150);
     }, []);
 
     useEffect(() => {
+        if (isLoading) return;
+
         const handleHashChange = () => {
             const hash = window.location.hash.replace("#", "");
             if (hash) {
@@ -352,7 +353,7 @@ export default function Template() {
         }
 
         return () => window.removeEventListener("hashchange", handleHashChange);
-    }, [scrollToField]);
+    }, [isLoading, scrollToField]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -396,6 +397,8 @@ export default function Template() {
     const handleAddCategory = async (
         incoming: NewCategoryType
     ): Promise<boolean> => {
+        setIsSaving(true);
+
         const payload: GetTemplateCategoryItemType = {
             categoryId: snowflake.gen(),
             types: incoming?.types,
@@ -431,6 +434,8 @@ export default function Template() {
             const json = await response.json();
 
             if (!response.ok) {
+                setIsSaving(false);
+
                 toast.show(
                     "Failed to create category",
                     {
@@ -441,7 +446,11 @@ export default function Template() {
 
                 return false;
             }
+
+            setIsSaving(false);
         } catch (error) {
+            setIsSaving(false);
+
             console.error("Failed to create category:", error);
 
             toast.show(
@@ -474,12 +483,14 @@ export default function Template() {
             return false;
         }
 
+        setIsSaving(true);
+
         let payload: GetTemplateBlockItemType;
 
         if (incoming.sourceBlockId) {
             payload = {
                 blockId: snowflake.gen(),
-                sourceBlockId: incoming.sourceBlockId,
+                sourceBlockId: incoming.sourceBlockId || "",
                 isSourceBlockConnected: true,
                 icon: "",
                 label: "",
@@ -498,7 +509,7 @@ export default function Template() {
                 blockId: snowflake.gen(),
                 sourceBlockId: "",
                 isSourceBlockConnected: false,
-                icon: incoming?.icon,
+                icon: incoming?.icon || "",
                 label: incoming?.label || "Untitled",
                 description: incoming?.description,
                 position: currentCategoryBlocks?.length ?? 0,
@@ -525,9 +536,9 @@ export default function Template() {
                         blockId: payload.blockId,
                         categoryId: currentCategoryId,
                         sourceBlockId: payload.sourceBlockId,
-                        icon: payload.sourceBlockId ? payload.icon : "",
-                        label: payload.sourceBlockId ? payload.label : "",
-                        description: payload.sourceBlockId ? payload.description : "",
+                        icon: payload.sourceBlockId ? "" : payload.icon,
+                        label: payload.sourceBlockId ? "" : payload.label,
+                        description: payload.sourceBlockId ? "" : payload.description,
                         position: payload.position,
                     }),
                 }
@@ -536,6 +547,8 @@ export default function Template() {
             const json = await response.json();
 
             if (!response.ok) {
+                setIsSaving(false);
+
                 toast.show(
                     "Failed to create block",
                     {
@@ -546,7 +559,11 @@ export default function Template() {
 
                 return false;
             }
+
+            setIsSaving(false);
         } catch (error) {
+            setIsSaving(false);
+
             console.error("Failed to create block:", error);
 
             toast.show(
@@ -599,6 +616,8 @@ export default function Template() {
             return false;
         }
 
+        setIsSaving(true);
+
         const activeBlockRows = currentBlockData?.rows?.items ?? [];
 
         const payload: GetTemplateRowItemType = {
@@ -630,18 +649,26 @@ export default function Template() {
             const json = await response.json();
 
             if (!response.ok) {
+                setIsSaving(false);
+
                 toast.show("Failed to create row", {
                     subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
                     type: "error",
                 });
                 return false;
             }
+
+            setIsSaving(false);
         } catch (error) {
+            setIsSaving(false);
+
             console.error("Failed to create row:", error);
+
             toast.show("Failed to create row", {
                 subtext: String(error),
                 type: "error",
             });
+
             return false;
         }
 
@@ -729,19 +756,20 @@ export default function Template() {
             return false;
         }
 
+        setIsSaving(true);
+
         const payload: GetTemplateFieldItemType = {
-            fieldId: snowflake.gen(),
+            fieldId: incoming.id,
             type: incoming.type as FieldNameType,
             flex: incoming.flex ?? 1,
             label: incoming.label || "New Field",
             placeholder: incoming.placeholder || "",
-            dataset: incoming.dataset || "",
+            options: incoming.options,
             isLocked: false,
             position: targetFields.length,
             createdBy: window.session.userId,
             updatedDate: new Date().toISOString(),
-            createdDate: new Date().toISOString(),
-            value: undefined,
+            createdDate: new Date().toISOString()
         };
 
         try {
@@ -758,7 +786,7 @@ export default function Template() {
                         flex: payload.flex,
                         label: payload.label,
                         placeholder: payload.placeholder,
-                        dataset: payload.dataset,
+                        options: payload.options,
                         position: payload.position,
                     }),
                 }
@@ -767,18 +795,27 @@ export default function Template() {
             const json = await response.json();
 
             if (!response.ok) {
+                setIsSaving(false);
+
                 toast.show("Failed to create field", {
                     subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
                     type: "error",
                 });
+
                 return false;
             }
+
+            setIsSaving(false);
         } catch (error) {
+            setIsSaving(false);
+
             console.error("Failed to create field:", error);
+
             toast.show("Failed to create field", {
                 subtext: String(error),
                 type: "error",
             });
+
             return false;
         }
 
@@ -832,7 +869,13 @@ export default function Template() {
         return true;
     };
 
-    const handleUpdateValue = (fieldId: string, value: string) => {
+    const handleUpdateValue = (
+        fieldId: string,
+        type: FieldNameType,
+        value: string,
+        options: TemplateValueType,
+        immediate = false
+    ): Promise<boolean> => {
         valuesMapRef.current[fieldId] = value;
 
         setTemplateData((prev: GetTemplateCategoryItemType[]) =>
@@ -857,6 +900,7 @@ export default function Template() {
                                                 fieldId,
                                                 authorId: window.session?.userId,
                                                 content: value,
+                                                options: options as unknown as ValueOptionsType,
                                                 date: new Date().toISOString(),
                                             },
                                         };
@@ -873,58 +917,78 @@ export default function Template() {
             clearTimeout(debounceTimers.current[fieldId]);
         }
 
-        async function saveValue() {
-            return await fetch(
-                `${apiBaseUrl}/v3/templates/${templateId}/fields/update/value`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        fieldId,
-                        value
-                    }),
-                }
-            );
-        }
-
-        debounceTimers.current[fieldId] = setTimeout(async () => {
-            const response = await saveValue()
-
-            if (!response.ok) {
-                saveFailedModal.open(
-                    { fieldId, value },
+        const executeSave = async (): Promise<boolean> => {
+            setIsSaving(true);
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/templates/${templateId}/fields/update/value`,
                     {
-                        onRetry: async () => {
-                            const retryResponse = await saveValue();
-
-                            if (!retryResponse.ok) {
-                                throw new Error("Retry save failed");
-                            }
-
-                            saveFailedModal.close();
-                        }
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ fieldId, type, value, options }),
                     }
                 );
+
+                if (!response.ok) {
+                    saveFailedModal.open(
+                        { fieldId, type, value, options },
+                        {
+                            onRetry: async () => {
+                                const retryResponse = await fetch(
+                                    `${apiBaseUrl}/v3/templates/${templateId}/fields/update/value`,
+                                    {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        credentials: "include",
+                                        body: JSON.stringify({ fieldId, type, value, options }),
+                                    }
+                                );
+
+                                if (!retryResponse.ok) {
+                                    throw new Error("Retry save failed");
+                                }
+
+                                saveFailedModal.close();
+                            }
+                        }
+                    );
+                    return false;
+                }
+
+                return true;
+            } catch (err) {
+                console.error(err);
+                return false;
+            } finally {
+                setIsSaving(false);
             }
-        }, 300);
+        };
+
+        if (immediate) {
+            return executeSave();
+        }
+
+        return new Promise<boolean>((resolve) => {
+            debounceTimers.current[fieldId] = setTimeout(async () => {
+                const success = await executeSave();
+                resolve(success);
+            }, 300);
+        });
     };
 
-    const handleDragStart = (event: DragStartEvent): void => {
-        if (isPreviewMode) return;
+    const handleDragStart = (): void => {
+        if (isPreview) return;
         
         snapshotTemplateDataRef.current = templateData 
             ? JSON.parse(JSON.stringify(templateData)) 
             : null;
 
-        setActiveDragId(String(event.active.id));
         document.body.style.cursor = "grabbing";
     };
 
     const handleDragOver = (event: DragOverEvent): void => {
-        if (isPreviewMode) return;
+        if (isPreview) return;
 
         const { active, over } = event;
 
@@ -1039,11 +1103,10 @@ export default function Template() {
     };
 
     const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
-        if (isPreviewMode) return;
+        if (isPreview) return;
 
         const { active, over } = event;
 
-        setActiveDragId(null);
         document.body.style.cursor = "";
 
         const templateDataSnapshot = snapshotTemplateDataRef.current;
@@ -1059,6 +1122,8 @@ export default function Template() {
 
             return;
         }
+
+        setIsSaving(true);
 
         const activeDragIdString = String(active.id);
         const overIdString = String(over.id);
@@ -1092,6 +1157,7 @@ export default function Template() {
                     const json = await response.json();
 
                     if (!response.ok) {
+                        setIsSaving(false);
                         revertToInitial();
 
                         toast.show("Failed to save positions", {
@@ -1100,14 +1166,18 @@ export default function Template() {
                         });
                     }
                 } catch (error) {
+                    setIsSaving(false);
                     revertToInitial();
 
                     console.error("Failed to save positions", error);
                     toast.show("Failed to save positions", { type: "error" });
                 }
             } else {
+                setIsSaving(false);
                 revertToInitial();
             }
+
+            setIsSaving(false);
 
             return;
         }
@@ -1118,6 +1188,7 @@ export default function Template() {
             const targetCategory = templateData?.find((c) => c.categoryId === targetCategoryId);
 
             if (!targetCategory) {
+                setIsSaving(false);
                 revertToInitial();
 
                 return;
@@ -1157,6 +1228,7 @@ export default function Template() {
                     const json = await response.json();
 
                     if (!response.ok) {
+                        setIsSaving(false);
                         revertToInitial();
 
                         toast.show("Failed to save positions", {
@@ -1165,14 +1237,18 @@ export default function Template() {
                         });
                     }
                 } catch (error) {
+                    setIsSaving(false);
                     revertToInitial();
 
                     console.error("Failed to save positions", error);
                     toast.show("Failed to save positions", { type: "error" });
                 }
             } else {
+                setIsSaving(false);
                 revertToInitial();
             }
+
+            setIsSaving(false);
 
             return;
         }
@@ -1182,6 +1258,7 @@ export default function Template() {
             const targetBlockItem = targetCategory?.blocks.items?.find((b) => b.blockId === currentBlockId);
 
             if (!targetBlockItem) {
+                setIsSaving(false);
                 revertToInitial();
 
                 return;
@@ -1232,6 +1309,7 @@ export default function Template() {
                     const json = await response.json();
 
                     if (!response.ok) {
+                        setIsSaving(false);
                         revertToInitial();
 
                         toast.show("Failed to save positions", {
@@ -1240,14 +1318,18 @@ export default function Template() {
                         });
                     }
                 } catch (error) {
+                    setIsSaving(false);
                     revertToInitial();
 
                     console.error("Failed to save positions", error);
                     toast.show("Failed to save positions", { type: "error" });
                 }
             } else {
+                setIsSaving(false);
                 revertToInitial();
             }
+
+            setIsSaving(false);
 
             return;
         }
@@ -1257,6 +1339,7 @@ export default function Template() {
             const targetBlockItem = targetCategory?.blocks.items?.find((b) => b.blockId === currentBlockId);
 
             if (!targetBlockItem) {
+                setIsSaving(false);
                 revertToInitial();
 
                 return;
@@ -1267,6 +1350,7 @@ export default function Template() {
             );
 
             if (!targetRow) {
+                setIsSaving(false);
                 revertToInitial();
 
                 return;
@@ -1277,6 +1361,7 @@ export default function Template() {
             if (fieldItems.length > 5) {
                 toast.show("A row cannot contain more than 5 fields", { type: "error" });
 
+                setIsSaving(false);
                 revertToInitial();
                 
                 return;
@@ -1338,6 +1423,7 @@ export default function Template() {
                 const json = await response.json();
 
                 if (!response.ok) {
+                    setIsSaving(false);
                     revertToInitial();
 
                     toast.show("Failed to save positions", {
@@ -1346,66 +1432,18 @@ export default function Template() {
                     });
                 }
             } catch (error) {
+                setIsSaving(false);
                 revertToInitial();
 
                 console.error("Failed to save positions", error);
                 toast.show("Failed to save positions", { type: "error" });
             }
         }
+
+        setIsSaving(false);
     };
 
     if (!isTranslationReady) return null;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-
-
 
     return (
         <>
@@ -1436,7 +1474,7 @@ export default function Template() {
                     />
 
                     <div className="drawer-content border-l border-base-300">
-                        <nav className="navbar w-full bg-base-100 flex items-center justify-between px-4">
+                        <nav className="navbar sticky top-0 z-50 border-b border-base-300 w-full bg-base-100 flex items-center justify-between px-4">
                             <label 
                                 htmlFor="my-drawer" 
                                 aria-label="open sidebar" 
@@ -1459,15 +1497,22 @@ export default function Template() {
                                 </div>
                             </div>
 
+                            {isSaving && !isPreview && (
+                                <div className="absolute right-14 flex items-center text-accent gap-2 mr-3">
+                                    <span className="text-sm">Saving</span>
+                                    <span className="loading h-5 w-5" />
+                                </div>
+                            )}
+
                             <button
                                 type="button"
                                 aria-label="toggle preview mode"
-                                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                                onClick={() => setIsPreview(!isPreview)}
                                 className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
                             >
                                 <span className="flex h-8 w-4 leading-none items-center justify-center">
                                     <span className="font-nerdfont text-xl">
-                                        {isPreviewMode ? "󰈉" : "󰈈"}
+                                        {isPreview ? "󰈉" : "󰈈"}
                                     </span>
                                 </span>
                             </button>
@@ -1485,28 +1530,50 @@ export default function Template() {
                                                     </h2>
                                                 </div>
 
-                                                <fieldset className="fieldset flex-4">
-                                                    <legend className="fieldset-legend">{t("words.Search")}</legend>
-                                                    <label className="input mb-4 w-full">
-                                                        <span className="font-nerdfont text-base mr-1"></span>
-                                                        <input 
-                                                            type="search" 
-                                                            placeholder="Search blocks..."
-                                                            value={searchQuery}
-                                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                                        />
-                                                    </label>
-                                                </fieldset>
+                                                {!isPreview && (
+                                                    <fieldset className="fieldset flex-4">
+                                                        <legend className="fieldset-legend">{t("words.Search")}</legend>
+                                                        <label className="input mb-4 w-full">
+                                                            <span className="font-nerdfont text-base mr-1"></span>
+                                                            <input 
+                                                                type="search" 
+                                                                placeholder="Search blocks..."
+                                                                value={searchQuery}
+                                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                            />
+                                                        </label>
+                                                    </fieldset>
+                                                )}
 
                                                 {(() => {
                                                     const query = searchQuery.trim().toLowerCase();
 
-                                                    const filteredBlocks = (currentCategoryData?.blocks.items ?? []).filter(block => 
-                                                        !query || 
-                                                        block.blockId?.toLowerCase().includes(query) || 
-                                                        block.label?.toLowerCase().includes(query) ||
-                                                        block.description?.toLowerCase().includes(query)
-                                                    );
+                                                    const filteredBlocks = (currentCategoryData?.blocks.items ?? []).filter(block => {
+                                                        const matchesSearch = !query || 
+                                                            block.blockId?.toLowerCase().includes(query) || 
+                                                            block.label?.toLowerCase().includes(query) ||
+                                                            block.description?.toLowerCase().includes(query);
+
+                                                        if (!matchesSearch) return false;
+
+                                                        if (isPreview) {
+                                                            return (block.rows?.items ?? []).some(row => 
+                                                                (row.fields?.items ?? []).some(field => 
+                                                                    Boolean(field.value?.content && field.value.content.trim() !== "")
+                                                                )
+                                                            );
+                                                        }
+
+                                                        return true;
+                                                    });
+
+                                                    if (isPreview && filteredBlocks.length === 0) {
+                                                        return (
+                                                            <div className="text-center py-8 text-sub text-sm">
+                                                                No filled blocks in this category.
+                                                            </div>
+                                                        );
+                                                    }
 
                                                     return (
                                                         <SortableContext
@@ -1515,14 +1582,14 @@ export default function Template() {
                                                         >
                                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                                                 {filteredBlocks.map(block => (
-                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreviewMode}>
+                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview}>
                                                                         {({ sortableProps, dragHandleProps }) => (
                                                                             <button
                                                                                 {...sortableProps}
                                                                                 className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
                                                                                 onClick={() => setCurrentBlock(block.blockId)}
                                                                             >
-                                                                                {!isPreviewMode && (
+                                                                                {!isPreview && (
                                                                                     <div
                                                                                         {...dragHandleProps}
                                                                                         className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
@@ -1534,7 +1601,7 @@ export default function Template() {
                                                                                     </div>
                                                                                 )}
 
-                                                                                {!isPreviewMode && (
+                                                                                {!isPreview && (
                                                                                     <div
                                                                                         className="absolute top-2 right-2 p-1 touch-none"
                                                                                         onClick={(e) => e.stopPropagation()}
@@ -1545,29 +1612,34 @@ export default function Template() {
                                                                                     </div>
                                                                                 )}
                                                                                 
-                                                                                <img 
-                                                                                    className="h-20 rounded" 
-                                                                                    src={block?.icon} 
-                                                                                    alt={block?.label} 
-                                                                                />
-                                                                                <span className="text-lg font-semibold mt-2">{block.label || block.blockId}</span>
-                                                                                <span className="text-xs text-sub mt-1">{block.description}</span>
+                                                                                {block?.icon && (
+                                                                                    <img 
+                                                                                        className="h-20 rounded" 
+                                                                                        src={block?.icon} 
+                                                                                    />
+                                                                                )}
+
+                                                                                <span className="text-lg font-semibold mt-2">
+                                                                                    {block?.label || block.blockId}
+                                                                                </span>
+
+                                                                                <span className="text-xs text-sub mt-1">
+                                                                                    {block?.description}
+                                                                                </span>
                                                                             </button>
                                                                         )}
                                                                     </SortableItem>
                                                                 ))}
 
-                                                                {!isPreviewMode && (
-                                                                    <NewBlockModal 
-                                                                        onAddBlock={handleAddBlock} 
-                                                                        types={currentCategoryData?.types ?? []} 
-                                                                    />
-                                                                )}
-
-                                                                {!isPreviewMode && (currentCategoryData?.blocks?.length ?? 0) <= 32 && (
+                                                                {!isPreview && (currentCategoryData?.blocks?.items.length ?? 0) <= 32 && (
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => (document.getElementById("new-block") as HTMLDialogElement | null)?.showModal()}
+                                                                        onClick={() => {
+                                                                            newBlockModal.open({
+                                                                                types: currentCategoryData.types,
+                                                                                onAddBlock: handleAddBlock
+                                                                            });
+                                                                        }}
                                                                         className="cursor-pointer border-2 aspect-square min-h-[160px] border-dashed border-base-300 rounded flex items-center justify-center py-3 transition-colors text-sm opacity-70 hover:opacity-100"
                                                                     >
                                                                         <span className="font-nerdfont text-3xl">
@@ -1590,134 +1662,144 @@ export default function Template() {
                                                         <span className="font-nerdfont text-lg leading-none">
                                                             
                                                         </span> 
-                                                        
                                                         Back to All
                                                     </button>
                                                     <div className="h-5 w-px bg-base-300" />
                                                     <h2 className="text-xl font-bold">
-                                                        {currentCategoryData?.blocks.items?.find(t => t.blockId === currentBlockId)?.label ?? currentBlockId}
+                                                        {currentBlockData?.label || currentBlockId}
                                                     </h2>
                                                 </div>
 
-                                                <SortableContext
-                                                    items={currentBlockData?.rows.items?.map(row => `row:${row.rowId}`) ?? []}
-                                                    strategy={verticalListSortingStrategy}
-                                                >
-                                                    <div className="flex flex-col gap-1">
-                                                        {currentBlockData?.rows.items?.map(row => {
-                                                            const visibleFields = (row.fields.items || []).filter(field => {
-                                                                if (!isPreviewMode) return true;
-                                                                const raw = field.value?.content;
-                                                                return Boolean(raw && raw.trim() !== "");
-                                                            });
+                                                {(() => {
+                                                    const visibleRows = (currentBlockData?.rows.items ?? []).filter(row => {
+                                                        if (!isPreview) return true;
+                                                        return (row.fields?.items ?? []).some(field => 
+                                                            Boolean(field.value?.content && field.value.content.trim() !== "")
+                                                        );
+                                                    });
 
-                                                            if (isPreviewMode && visibleFields.length === 0) {
-                                                                return null;
-                                                            }
+                                                    return (
+                                                        <SortableContext
+                                                            items={visibleRows.map(row => `row:${row.rowId}`)}
+                                                            strategy={verticalListSortingStrategy}
+                                                        >
+                                                            <div className="flex flex-col gap-1">
+                                                                {visibleRows.map(row => {
+                                                                    const visibleFields = (row.fields.items || []).filter(field => {
+                                                                        if (!isPreview) return true;
 
-                                                            return (
-                                                                <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreviewMode}>
-                                                                    {({ sortableProps, dragHandleProps }) => (
-                                                                        <div {...sortableProps} className={` min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}>
-                                                                            {!isPreviewMode && (
-                                                                                <span
-                                                                                    {...dragHandleProps}
-                                                                                    className="flex items-center cursor-grab active:cursor-grabbing touch-none"
-                                                                                >
-                                                                                    <div className="flex h-full items-center justify-center py-2">
-                                                                                        <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
-                                                                                            <span className="text-2xl leading-none font-nerdfont">
-                                                                                                󰇝
+                                                                        const content = field.value?.content;
+                                                                        if (content == null) return false;
+
+                                                                        return Boolean(String(content).trim() !== "");
+                                                                    });
+
+                                                                    return (
+                                                                        <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreview}>
+                                                                            {({ sortableProps, dragHandleProps }) => (
+                                                                                <div {...sortableProps} className={`min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}>
+                                                                                    {!isPreview && (
+                                                                                        <span
+                                                                                            {...dragHandleProps}
+                                                                                            className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                                                        >
+                                                                                            <div className="flex h-full items-center justify-center py-2">
+                                                                                                <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
+                                                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                                                        󰇝
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </span>
+                                                                                    )}
+
+                                                                                    <FieldDropZone
+                                                                                        id={`row-fields:${row.rowId}`}
+                                                                                        className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                                                    >
+                                                                                        <SortableContext
+                                                                                            items={visibleFields.map((f) => `field:${f.fieldId}`)}
+                                                                                            strategy={rectSortingStrategy}
+                                                                                        >
+                                                                                            <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
+                                                                                                {visibleFields.map(field => {
+                                                                                                    const rawContent = field.value?.content || "";
+
+                                                                                                    const resolvedValue = resolveDynamicValues(rawContent);
+                                                                                                    const resolvedLabel = resolveDynamicValues(field.label);
+                                                                                                    const resolvedPlaceholder = resolveDynamicValues(field.placeholder);
+                                                                                                    const resolvedGuide = resolveDynamicValues(field.guide);
+
+                                                                                                    return (
+                                                                                                        <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreview}>
+                                                                                                            {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
+                                                                                                                const dragProps = fDragProps ?? {};
+                                                                                                                
+                                                                                                                return (
+                                                                                                                    <div 
+                                                                                                                        {...fSortProps} 
+                                                                                                                        className={`flex-${field.flex || 1} min-w-0 ${fSortProps.className ?? ""}`}
+                                                                                                                    >
+                                                                                                                        <TemplateField
+                                                                                                                            id={field.fieldId}
+                                                                                                                            type={field.type}
+                                                                                                                            label={resolvedLabel}
+                                                                                                                            placeholder={resolvedPlaceholder}
+                                                                                                                            guide={resolvedGuide}
+                                                                                                                            value={{
+                                                                                                                                ...field.value as GetTemplateValueType,
+                                                                                                                                content: isPreview ? resolvedValue : rawContent,
+                                                                                                                            }}
+                                                                                                                            options={field.options}
+                                                                                                                            readOnly={isPreview}
+                                                                                                                            onChange={(value, options) => handleUpdateValue(
+                                                                                                                                field.fieldId, 
+                                                                                                                                field.type,
+                                                                                                                                value as string,
+                                                                                                                                options as unknown as TemplateValueType
+                                                                                                                            )}
+                                                                                                                            dragHandleProps={!isPreview ? {
+                                                                                                                                ...dragProps,
+                                                                                                                                className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
+                                                                                                                            } : undefined}
+                                                                                                                        />
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        </SortableItem>
+                                                                                                    );
+                                                                                                })}
+                                                                                            </div>
+                                                                                        </SortableContext>
+                                                                                    </FieldDropZone>
+
+                                                                                    {!isPreview && (row.fields?.items.length ?? 0) < 5 && (
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                newFieldModal.open({
+                                                                                                    targetRowId: row.rowId,
+                                                                                                    onAddField: handleAddField
+                                                                                                });
+                                                                                            }}
+                                                                                            className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
+                                                                                        >
+                                                                                            <span className="font-nerdfont text-lg">
+                                                                                                
                                                                                             </span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </span>
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
                                                                             )}
+                                                                        </SortableItem>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </SortableContext>
+                                                    );
+                                                })()}
 
-                                                                            <NewFieldModal
-                                                                                targetRowId={row.rowId}
-                                                                                onAddField={handleAddField}
-                                                                            />
-
-                                                                            <FieldDropZone
-                                                                                id={`row-fields:${row.rowId}`}
-                                                                                className="flex-1 min-w-0 w-full min-h-[44px]"
-                                                                            >
-                                                                                <SortableContext
-                                                                                    items={visibleFields.map((f) => `field:${f.fieldId}`)}
-                                                                                    strategy={rectSortingStrategy}
-                                                                                >
-                                                                                    <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
-                                                                                        {visibleFields.map(field => {
-                                                                                            const rawContent = field.value?.content || "";
-
-                                                                                            const resolvedValue = resolveDynamicValues(rawContent);
-                                                                                            const resolvedLabel = resolveDynamicValues(field.label);
-                                                                                            const resolvedPlaceholder = resolveDynamicValues(field.placeholder);
-                                                                                            const resolvedGuide = resolveDynamicValues(field.guide);
-
-                                                                                            return (
-                                                                                                <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreviewMode}>
-                                                                                                    {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
-                                                                                                        const dragProps = fDragProps ?? {};
-                                                                                                        
-                                                                                                        return (
-                                                                                                            <div 
-                                                                                                                {...fSortProps} 
-                                                                                                                className={`flex-${field.flex} min-w-0 ${fSortProps.className ?? ""}`}
-                                                                                                            >
-                                                                                                                <TemplateField
-                                                                                                                    id={field.fieldId}
-                                                                                                                    type={field.type}
-                                                                                                                    label={resolvedLabel}
-                                                                                                                    placeholder={resolvedPlaceholder}
-                                                                                                                    guide={resolvedGuide}
-                                                                                                                    value={{
-                                                                                                                        ...field.value,
-                                                                                                                        content: isPreviewMode ? resolvedValue : rawContent,
-                                                                                                                    }}
-                                                                                                                    dataset={field.dataset}
-                                                                                                                    notes={field.notes}
-                                                                                                                    thoughts={field.thoughts}
-                                                                                                                    onChange={(value) => handleUpdateValue(field.fieldId, value)}
-                                                                                                                    dragHandleProps={!isPreviewMode ? {
-                                                                                                                        ...dragProps,
-                                                                                                                        className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
-                                                                                                                    } : undefined}
-                                                                                                                />
-                                                                                                            </div>
-                                                                                                        );
-                                                                                                    }}
-                                                                                                </SortableItem>
-                                                                                            );
-                                                                                        })}
-                                                                                    </div>
-                                                                                </SortableContext>
-                                                                            </FieldDropZone>
-
-                                                                            {!isPreviewMode && (row.fields?.items.length ?? 0) < 5 && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => {
-                                                                                        setDragTargetRowId(row.rowId);
-                                                                                        (document.getElementById("new-field") as HTMLDialogElement | null)?.showModal();
-                                                                                    }}
-                                                                                    className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
-                                                                                >
-                                                                                    <span className="font-nerdfont text-lg">
-                                                                                        
-                                                                                    </span>
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                </SortableItem>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </SortableContext>
-
-                                                {!isPreviewMode && (
+                                                {!isPreview && (
                                                     <button
                                                         type="button"
                                                         onClick={handleAddRow}
@@ -1740,63 +1822,79 @@ export default function Template() {
                         <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                         <div className="flex min-h-full flex-col items-center justify-center bg-base-100 is-drawer-close:w-14 is-drawer-open:w-64">
                             <div className="menu w-full">
-                                <SortableContext items={templateData?.map(category => `category:${category.categoryId}`)}>
-                                    <ul>
-                                        {templateData?.map(category => (
-                                            <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreviewMode}>
-                                                {({ sortableProps, dragHandleProps }) => (
-                                                    <li {...sortableProps} className={sortableProps.className}>
-                                                        <button
-                                                            className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
-                                                            template-tip={category.label}
-                                                            onClick={() => {
-                                                                setCurrentCategory(category.categoryId);
-                                                            }}
-                                                        >
-                                                            {!isPreviewMode && (
-                                                                <span
-                                                                    {...dragHandleProps}
-                                                                    className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                {(() => {
+                                    const visibleCategories = (templateData ?? []).filter(category => {
+                                        if (!isPreview) return true;
+
+                                        return (category.blocks?.items ?? []).some(block => 
+                                            (block.rows?.items ?? []).some(row => 
+                                                (row.fields?.items ?? []).some(field => 
+                                                    Boolean(field.value?.content && field.value.content.trim() !== "")
+                                                )
+                                            )
+                                        );
+                                    });
+
+                                    return (
+                                        <SortableContext items={visibleCategories.map(category => `category:${category.categoryId}`)}>
+                                            <ul>
+                                                {visibleCategories.map(category => (
+                                                    <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview}>
+                                                        {({ sortableProps, dragHandleProps }) => (
+                                                            <li {...sortableProps} className={sortableProps.className}>
+                                                                <button
+                                                                    className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
+                                                                    template-tip={category.label}
+                                                                    onClick={() => {
+                                                                        setCurrentCategory(category.categoryId);
+                                                                    }}
                                                                 >
-                                                                    <div className="flex items-center justify-center py-2">
-                                                                        <div className="flex w-5 items-center justify-center">
-                                                                            <span className="text-2xl leading-none font-nerdfont">
-                                                                                󰇝
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </span>
-                                                            )}
+                                                                    {!isPreview && (
+                                                                        <span
+                                                                            {...dragHandleProps}
+                                                                            className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                                        >
+                                                                            <div className="flex items-center justify-center py-2">
+                                                                                <div className="flex w-5 items-center justify-center">
+                                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                                        󰇝
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </span>
+                                                                    )}
 
-                                                            <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
-                                                                
-                                                            </span>
+                                                                    <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                                                        
+                                                                    </span>
 
-                                                            <span className="is-drawer-close:hidden text-sm">
-                                                                {category.label}
-                                                            </span>
-                                                        </button>
-                                                    </li>
+                                                                    <span className="is-drawer-close:hidden text-sm">
+                                                                        {category.label}
+                                                                    </span>
+                                                                </button>
+                                                            </li>
+                                                        )}
+                                                    </SortableItem>
+                                                ))}
+
+                                                {!isPreview && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const modal = document.getElementById("new-category") as HTMLDialogElement | null;
+                                                            modal?.showModal();
+                                                        }}
+                                                        className="cursor-pointer border-2 w-full mt-2 border-dashed border-base-300 rounded flex items-center justify-center py-2 transition-colors text-sm opacity-70 hover:opacity-100"
+                                                    >
+                                                        <span className="font-nerdfont text-xl">
+                                                            
+                                                        </span>
+                                                    </button>
                                                 )}
-                                            </SortableItem>
-                                        ))}
-
-                                        {!isPreviewMode && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const modal = document.getElementById("new-category") as HTMLDialogElement | null;
-                                                    modal?.showModal();
-                                                }}
-                                                className="cursor-pointer border-2 w-full mt-2 border-dashed border-base-300 rounded flex items-center justify-center py-2 transition-colors text-sm opacity-70 hover:opacity-100"
-                                            >
-                                                <span className="font-nerdfont text-xl">
-                                                    
-                                                </span>
-                                            </button>
-                                        )}
-                                    </ul>
-                                </SortableContext>
+                                            </ul>
+                                        </SortableContext>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>
