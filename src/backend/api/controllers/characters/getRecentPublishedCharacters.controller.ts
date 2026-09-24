@@ -20,7 +20,8 @@ export const getRecentPublishedCharacters = async (req: Request, res: Response) 
             owner, 
             page, 
             limit = config.limits.assetsPerPage,
-            ref
+            ref,
+            includeMedia
         } = req.query;
 
         const offset = 
@@ -35,7 +36,8 @@ export const getRecentPublishedCharacters = async (req: Request, res: Response) 
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId || req.ip,
-            getFrom: ref as GetFromType
+            getFrom: ref as GetFromType,
+            includeMedia: includeMedia === "true" ? true : false
         })
 
         res.status(200).json({

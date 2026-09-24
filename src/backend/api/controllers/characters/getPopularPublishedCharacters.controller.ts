@@ -18,7 +18,8 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
         const { 
             id,
             owner, 
-            ref
+            ref,
+            includeMedia
         } = req.query;
 
         const characters = getPublishedCharactersService({
@@ -27,7 +28,8 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
             sortBy: "popularDesc", 
             limit: config.limits.assetsPerPage, 
             getAs: req.session.userId || req.ip,
-            getFrom: ref as GetFromType
+            getFrom: ref as GetFromType,
+            includeMedia: includeMedia === "true" ? true : false
         })
 
         res.status(200).json(characters);

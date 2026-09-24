@@ -21,6 +21,7 @@ export const getRecommendedTaggedPublishedCharacters = async (req: Request, res:
             owner, 
             page, 
             limit = config.limits.assetsPerPage,
+            includeMedia
         } = req.query;
 
         const { tag } = req.params;
@@ -38,7 +39,8 @@ export const getRecommendedTaggedPublishedCharacters = async (req: Request, res:
             limit: limit as number, 
             tag: tag as string, 
             getAs: req.session.userId || req.ip,
-            getFrom: "home"
+            getFrom: "home",
+            includeMedia: includeMedia === "true" ? true : false
         })
 
         res.status(200).json({

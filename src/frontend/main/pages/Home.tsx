@@ -6,7 +6,6 @@ import { log } from "../scripts/main.js";
 
 import Metadata from "../../_common/components/Metadata.js";
 
-import { characterApiType } from "../../_common/types/characterApi.type.js";
 import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import AssetCarousel from "../components/AssetCarousel.js";
@@ -55,7 +54,7 @@ export default function Home() {
         const fetchTrendingCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters/trending`, 
+                    `${apiBaseUrl}/v3/characters/trending?includeMedia=true`, 
                     { credentials: "include" }
                 );
 
@@ -83,7 +82,7 @@ export default function Home() {
         const fetchPopularCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters/popular`, 
+                    `${apiBaseUrl}/v3/characters/popular?includeMedia=true`, 
                     { credentials: "include" }
                 );
                 
@@ -111,7 +110,7 @@ export default function Home() {
         const fetchRecentCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters/recent`, 
+                    `${apiBaseUrl}/v3/characters/recent?includeMedia=true`, 
                     { credentials: "include" }
                 );
                 
@@ -140,7 +139,7 @@ export default function Home() {
         const fetchRecentlyUpdatedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters/recent/following`, 
+                    `${apiBaseUrl}/v3/characters/recent/following?includeMedia=true`, 
                     { credentials: "include" }
                 );
                 
@@ -168,7 +167,7 @@ export default function Home() {
         const fetchRecommendedCharacters = async () => {
             try {
                 const res = await fetch(
-                    `${apiBaseUrl}/v3/characters/recommended`, 
+                    `${apiBaseUrl}/v3/characters/recommended?includeMedia=true`, 
                     { credentials: "include" }
                 );
                 

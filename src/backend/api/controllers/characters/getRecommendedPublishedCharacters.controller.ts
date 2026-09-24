@@ -20,7 +20,8 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             id,
             owner, 
             page, 
-            limit = config.limits.assetsPerPage
+            limit = config.limits.assetsPerPage,
+            includeMedia
         } = req.query;
 
         const offset = 
@@ -35,7 +36,8 @@ export const getRecommendedPublishedCharacters = async (req: Request, res: Respo
             offset: offset,
             limit: limit as number, 
             getAs: req.session.userId || req.ip,
-            getFrom: "home"
+            getFrom: "home",
+            includeMedia: includeMedia === "true" ? true : false
         })
 
         res.status(200).json({
