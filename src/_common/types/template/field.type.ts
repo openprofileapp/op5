@@ -1,4 +1,4 @@
-import { FieldNameType } from "../field.type.js";
+import { FieldNameType, FieldOptionsType } from "../field.type.js";
 import { GetTemplateValueType } from "./value.type.js";
 
 export type TemplateFieldItemType = {
@@ -9,7 +9,7 @@ export type TemplateFieldItemType = {
     type: FieldNameType;
     label?: string;
     placeholder?: string;
-    dataset?: string;
+    options?: FieldOptionsType;
     guide?: string;
     isLocked: boolean;
     position: number;

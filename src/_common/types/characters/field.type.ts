@@ -1,4 +1,4 @@
-import { FieldNameType } from "../field.type.js";
+import { FieldNameType, FieldOptionsType } from "../field.type.js";
 import { GetDraftCharacterValueType, GetPublishedCharacterValueType } from "./value.type.js";
 
 export type PublishedCharacterFieldItemType = {
@@ -19,7 +19,7 @@ export type DraftCharacterFieldItemType = {
     type: FieldNameType;
     label?: string;
     placeholder?: string;
-    dataset?: string;
+    options?: FieldOptionsType;
     guide?: string;
     isLocked: boolean;
     position: number;
