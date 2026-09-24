@@ -71,16 +71,32 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                                                         'position', f.position,
                                                                                         'createdBy', f.createdBy,
                                                                                         'createdDate', f.createdDate,
-                                                                                        'value', (
-                                                                                            SELECT json_object(
-                                                                                                'authorId', v.authorId,
-                                                                                                'content', v.content,
-                                                                                                'date', v.date
+                                                                                        'value', CASE 
+                                                                                            WHEN f.type = 'media' THEN (
+                                                                                                SELECT json_object(
+                                                                                                    'authorId', m.addedBy,
+                                                                                                    'content', m.url,
+                                                                                                    'date', m.date,
+                                                                                                    'options', json_object(
+                                                                                                        'description', m.description,
+                                                                                                        'credit', m.credit
+                                                                                                    )
+                                                                                                )
+                                                                                                FROM media.draft_content m
+                                                                                                WHERE m.fieldId = f.fieldId AND m.assetId = c.templateId
+                                                                                                LIMIT 1
                                                                                             )
-                                                                                            FROM "values" v
-                                                                                            WHERE v.fieldId = f.fieldId AND v.templateId = c.templateId
-                                                                                            LIMIT 1
-                                                                                        )
+                                                                                            ELSE (
+                                                                                                SELECT json_object(
+                                                                                                    'authorId', v.authorId,
+                                                                                                    'content', v.content,
+                                                                                                    'date', v.date
+                                                                                                )
+                                                                                                FROM "values" v
+                                                                                                WHERE v.fieldId = f.fieldId AND v.templateId = c.templateId
+                                                                                                LIMIT 1
+                                                                                            )
+                                                                                        END
                                                                                     )
                                                                                 )
                                                                                 FROM (

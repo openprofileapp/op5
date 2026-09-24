@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 import { DateTime } from "luxon";
@@ -9,11 +11,23 @@ import { db } from "../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../../_common/instances.js";
 import { log } from "../../../instances.js";
+import { FieldNameType } from "../../../../../_common/types/field.type.js";
+import uploadFile from "../../../../_common/helpers/uploadFile.js";
+import { ValueOptionsType } from "../../../../../_common/types/value.type.js";
 
 export const updateValue = async (req: Request, res: Response) => {
     try {
         const { templateId } = req.params;
-        const { fieldId, value } = req.body;
+
+        const { fieldId, type, options } = req.body as {
+            fieldId: string;
+            type: FieldNameType;
+            options?: ValueOptionsType;
+        };
+
+        let { value } = req.body as {
+            value: string | number;
+        };
 
         await assertBearer(req);
         assertAccount(req.session);
@@ -50,7 +64,140 @@ export const updateValue = async (req: Request, res: Response) => {
         const now = DateTime.now().toUTC().toString();
         const fiveMinutesAgo = DateTime.now().toUTC().minus({ minutes: 5 }).toString();
 
+        if (type === "media") {
+            const stringValue = typeof value === "string" ? value : "";
+            const isBase64 = stringValue.startsWith("data:");
+
+            if (isBase64) {
+                const uploadedMedia = await uploadFile({
+                    folder: `media/${templateId}`,
+                    fileInput: stringValue
+                });
+
+                value = uploadedMedia?.path as string;
+            }
+
+            db.media.transaction((q) => {
+                if (!value) {
+                    const deleteMediaResult = q(
+                        "DELETE FROM draft_content WHERE assetId = ? AND fieldId = ? LIMIT 1",
+                        [templateId, fieldId]
+                    );
+
+                    assertDbSuccess(deleteMediaResult);
+                    return;
+                }
+
+                const currentMediaResult = q(
+                    "SELECT * FROM draft_content WHERE assetId = ? AND fieldId = ?",
+                    [templateId, fieldId]
+                );
+
+                assertDbSuccess(currentMediaResult);
+
+                // @ts-ignore
+                const previousMedia = currentMediaResult.rows?.[0];
+
+                const upsertMediaResult = q(
+                    `INSERT INTO draft_content (
+                        assetId,
+                        fieldId,
+                        url, 
+                        description, 
+                        credit, 
+                        addedBy,
+                        date
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (assetId, fieldId) DO UPDATE SET
+                        url = EXCLUDED.url,
+                        description = EXCLUDED.description,
+                        credit = EXCLUDED.credit,
+                        addedBy = EXCLUDED.addedBy,
+                        date = EXCLUDED.date`,
+                    [
+                        templateId,
+                        fieldId,
+                        value,
+                        options?.description || "",
+                        options?.credit || "",
+                        req.session.userId,
+                        now
+                    ]
+                );
+
+                assertDbSuccess(upsertMediaResult);
+
+                const getMediaHistoryResult = q(
+                    "SELECT * FROM history_content WHERE assetId = ? AND fieldId = ? ORDER BY date DESC LIMIT 1",
+                    [templateId, fieldId]
+                );
+
+                assertDbSuccess(getMediaHistoryResult);
+
+                const latestMediaHistory = getMediaHistoryResult.rows?.[0];
+                // @ts-ignore
+                const isSameAuthor = latestMediaHistory?.addedBy === req.session.userId;
+                // @ts-ignore
+                const isWithinFiveMinutes = latestMediaHistory?.date >= fiveMinutesAgo;
+                const shouldInsert = !latestMediaHistory || !isSameAuthor || !isWithinFiveMinutes;
+
+                if (shouldInsert && previousMedia) {
+                    const insertMediaHistoryResult = q(
+                        `INSERT INTO history_content (
+                            assetId,
+                            fieldId, 
+                            addedBy, 
+                            url,
+                            description,
+                            credit,
+                            date
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            templateId, 
+                            fieldId, 
+                            req.session.userId,
+                            // @ts-ignore
+                            previousMedia.url,
+                            // @ts-ignore
+                            previousMedia.description,
+                            // @ts-ignore
+                            previousMedia.credit,
+                            now
+                        ]
+                    );
+
+                    assertDbSuccess(insertMediaHistoryResult);
+                }
+
+                const cleanupMediaResult = q(
+                    `DELETE FROM history_content 
+                    WHERE assetId = ? AND fieldId = ?
+                    AND date < (
+                        SELECT date FROM history_content 
+                        WHERE assetId = ? AND fieldId = ?
+                        ORDER BY date DESC 
+                        LIMIT 1 OFFSET 9
+                    )`,
+                    [templateId, fieldId, templateId, fieldId]
+                );
+
+                assertDbSuccess(cleanupMediaResult);
+            });
+
+            return res.status(201).json({ ok: true });
+        }
+
         db.templates.transaction((q) => {
+            if (!value) {
+                const deleteValueResult = q(
+                    `DELETE FROM "values" WHERE templateId = ? AND fieldId = ? LIMIT 1`,
+                    [templateId, fieldId]
+                );
+
+                assertDbSuccess(deleteValueResult);
+                return;
+            }
+
             const currentResult = q(
                 `SELECT * FROM "values" WHERE templateId = ? AND fieldId = ?`,
                 [templateId, fieldId]
@@ -58,7 +205,6 @@ export const updateValue = async (req: Request, res: Response) => {
 
             assertDbSuccess(currentResult);
 
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const previousValue = currentResult.rows?.[0]?.content;
 
@@ -85,11 +231,7 @@ export const updateValue = async (req: Request, res: Response) => {
 
             assertDbSuccess(postResult);
 
-            const getHistoryResult = db.templates.query<{
-                rowid: number;
-                authorId: string;
-                date: string;
-            }>(
+            const getHistoryResult = q(
                 "SELECT * FROM history WHERE templateId = ? AND fieldId = ? ORDER BY date DESC LIMIT 1",
                 [templateId, fieldId]
             );
@@ -97,25 +239,28 @@ export const updateValue = async (req: Request, res: Response) => {
             assertDbSuccess(getHistoryResult);
 
             const latestHistory = getHistoryResult.rows?.[0];
+            // @ts-ignore
             const isSameAuthor = latestHistory?.authorId === req.session.userId;
+            // @ts-ignore
             const isWithinFiveMinutes = latestHistory?.date >= fiveMinutesAgo;
             const shouldInsert = !latestHistory || !isSameAuthor || !isWithinFiveMinutes;
 
             if (shouldInsert && previousValue) {
-                const insertResult = db.templates.query(
+                const insertResult = q(
                     `INSERT INTO history (
                         templateId,
                         fieldId, 
                         authorId, 
-                        content
-                    ) VALUES (?, ?, ?, ?)`,
-                    [templateId, fieldId, req.session.userId, previousValue]
+                        content,
+                        date
+                    ) VALUES (?, ?, ?, ?, ?)`,
+                    [templateId, fieldId, req.session.userId, previousValue, now]
                 );
 
                 assertDbSuccess(insertResult);
             }
 
-            const cleanupResult = db.templates.query(
+            const cleanupResult = q(
                 `DELETE FROM history 
                 WHERE templateId = ? AND fieldId = ?
                 AND date < (

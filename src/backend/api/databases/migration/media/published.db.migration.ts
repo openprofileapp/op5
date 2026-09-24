@@ -36,7 +36,7 @@ db.media.transaction(async q => {
         }
 
         const result = q(
-            `INSERT INTO published (
+            `INSERT INTO published_overview (
                 assetId,
                 url, 
                 description, 
@@ -44,7 +44,7 @@ db.media.transaction(async q => {
                 position,
                 visibility,
                 addedBy,
-                addedDate
+                date
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 d.profile,

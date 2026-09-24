@@ -186,13 +186,28 @@ db.characters.transaction(q => {
 });
 
 db.media.transaction(q => {
-    if (!q("SELECT * FROM published LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/media/published.sql`);
+    if (!q("SELECT * FROM published_overview LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/overview/published.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/media/drafts.sql`);
+    if (!q("SELECT * FROM draft_overview LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/overview/drafts.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_content LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/content/published.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM draft_content LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/content/drafts.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM history_content LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/media/content/history.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });
@@ -455,6 +470,8 @@ db.collections.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.collections.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.collections.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.collections.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
+
+db.templates.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 // Migration (old databases)
 export const mdb = {
