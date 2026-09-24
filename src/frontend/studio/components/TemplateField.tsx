@@ -2,17 +2,18 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import colors from "tailwindcss/colors";
-import { GetValueType } from "../../../_common/types/blocks/value.type.js";
-import { GetNoteType } from "../../../_common/types/blocks/note.type.js";
-import { GetThoughtType } from "../../../_common/types/blocks/thought.type.js";
-import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
-import { MediaField } from "./MediaField.js";
 
-interface DropdownOption {
-    label: string;
-    value: string | number;
-}
+import { GetValueType } from "../../../_common/types/blocks/value.type.js";
+import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
+import { SliderInput } from "../../_common/components/SliderInput.js";
+import ColorInput from "../../_common/components/ColorInput.js";
+import { RatingInput } from "../../_common/components/RatingInput.js";
+import { GetTemplateValueType } from "../../../_common/types/template/value.type.js";
+import { FieldOptionsType } from "../../../_common/types/field.type.js";
+import { cdnBaseUrl } from "../../_common/scripts/domains.js";
+import { getTextColor } from "../../_common/scripts/color.js";
+import { ValueOptionsType } from "../../../_common/types/value.type.js";
+import ImageInput from "../../_common/components/ImageInput.js";
 
 export interface MetadataObject {
     author?: string;
@@ -30,11 +31,15 @@ interface Props {
     label?: string;
     placeholder?: string;
     guide?: string;
-    value?: GetValueType | GetValueType[] | string;
-    options?: unknown[];
-    notes?: GetNoteType | GetNoteType[] | string;
-    thoughts?: GetThoughtType | GetThoughtType[] | string;
-    onChange?: (value: unknown) => void;
+    value?: GetTemplateValueType;
+    options?: FieldOptionsType;
+    // notes?: GetNoteType | GetNoteType[] | string;
+    // thoughts?: GetThoughtType | GetThoughtType[] | string;
+    readOnly?: boolean;
+    onChange: (
+        value: string | number, 
+        options?: ValueOptionsType
+    ) => boolean | Promise<boolean>;
     dragHandleProps?: {
         className?: string;
         ref?: (element: HTMLElement | null) => void;
@@ -50,8 +55,9 @@ export default function TemplateField({
     guide,
     value,
     options,
-    notes,
-    thoughts,
+    // notes,
+    // thoughts,
+    readOnly = false,
     onChange,
     dragHandleProps,
 }: Props) {
@@ -59,11 +65,9 @@ export default function TemplateField({
 
     const [isFocused, setIsFocused] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
 
-    // Normalize inputs into array of items for rendering tooltips
-    const normalizeMetadataList = (
+    /*const normalizeMetadataList = (
         target?: string | MetadataObject | (string | MetadataObject)[]
     ): MetadataObject[] => {
         if (!target) return [];
@@ -71,7 +75,7 @@ export default function TemplateField({
         return arr.map((item) =>
             typeof item === "object" && item !== null ? item : { text: String(item) }
         );
-    };
+    };*/
 
     const getValueString = (
         target?: GetValueType | GetValueType[] | string
@@ -86,11 +90,10 @@ export default function TemplateField({
         return String(target);
     };
 
-    const notesList = normalizeMetadataList(notes);
-    const thoughtsList = normalizeMetadataList(thoughts);
+    // const notesList = normalizeMetadataList(notes);
+    // const thoughtsList = normalizeMetadataList(thoughts);
     const displayValue = getValueString(value);
 
-    // Internal state synced to incoming displayValue prop to handle smooth local edits
     const [localValue, setLocalValue] = useState(displayValue);
 
     useEffect(() => {
@@ -112,7 +115,7 @@ export default function TemplateField({
 
     const closeContextMenu = useCallback(() => {
         setIsContextMenuOpen(false);
-        document.getElementById(`field-dropdown-${id}`)?.hidePopover();
+        document.getElementById(`context-field-${id}`)?.hidePopover();
     }, [id]);
 
     const handleContextMenu = (e: React.MouseEvent) => {
@@ -120,7 +123,7 @@ export default function TemplateField({
         setIsContextMenuOpen(true);
 
         const popover = document.getElementById(
-            `field-dropdown-${id}`
+            `context-field-${id}`
         ) as HTMLElement | null;
 
         if (!popover) return;
@@ -142,33 +145,9 @@ export default function TemplateField({
         });
     };
 
-    const getTextColor = (color: string) => {
-        const [name, shade] = color.split("-");
-
-        const colorValue =
-            colors[name as keyof typeof colors]?.[
-                shade as keyof (typeof colors)[keyof typeof colors]
-            ] as string;
-
-        if (!colorValue || typeof colorValue !== "string") {
-            return "#1a1a1a";
-        }
-
-        const match = colorValue.match(/oklch\(([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/);
-
-        if (!match) {
-            return "#1a1a1a";
-        }
-
-        const [, l] = match;
-        const lightness = Number(l);
-
-        return lightness > 60 ? "#1a1a1a" : "#eaeaea";
-    };
-
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`field-dropdown-${id}`);
+            const menu = document.getElementById(`context-field-${id}`);
 
             if (!menu) return;
 
@@ -196,9 +175,60 @@ export default function TemplateField({
 
     const renderInputContent = () => {
         switch (type) {
-            case "media":
-                return <MediaField />;
+            case "media": {
+                const isFullUrlOrBase64 = 
+                    localValue?.startsWith("data:") || 
+                    localValue?.startsWith("http://") || 
+                    localValue?.startsWith("https://") ||
+                    localValue?.startsWith("blob:");
 
+                const mediaUrl = localValue 
+                    ? (isFullUrlOrBase64 ? localValue : `${cdnBaseUrl}${localValue}`)
+                    : "";
+
+                return (
+                    <ImageInput
+                        id={id}
+                        value={null}
+                        defaultUrl={mediaUrl}
+                        options={value?.options as ValueOptionsType}
+                        useModal={true}
+                        readOnly={readOnly}
+                        className={`${mediaUrl ? "min-h-36 h-auto" : "min-h-36"} w-full`}
+                        accept="image/png, image/jpeg, image/jpg"
+                        onChange={async (file, base64Url, staticFile, staticBase64, updatedOptions) => {
+                            setLocalValue(base64Url as string);
+
+                            return await onChange(base64Url as string, updatedOptions);
+                        }}
+                    />
+                );
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
             case "button":
                 return (
                     <a
@@ -208,16 +238,50 @@ export default function TemplateField({
                         className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
                         onContextMenu={handleContextMenu}
                     >
-                        <span>{label || "Click Here"}</span>
-                        <span className="font-nerdfont"></span>
+                        {label || "Click Me"}
+
+                        <span className="font-nerdfont leading-none">
+                            
+                        </span>
                     </a>
                 );
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             case "dropdown":
+                // Call optionss api here
                 return (
                     <TypeableDropdownInput
                         value={localValue}
-                        options={JSON.parse(options) || []}
+                        options={options}
                         placeholder={placeholder || "Select or type..."}
                         largeText={true}
                         onChange={(newValue) => {
@@ -231,71 +295,19 @@ export default function TemplateField({
                 );
 
             case "slider":
-                return (
-                    <div
-                        className="w-full flex items-center h-10"
-                        onContextMenu={handleContextMenu}
-                    >
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={Number(localValue) || 50}
-                            className="range range-accent range-sm w-full"
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onChange={(e) => {
-                                setLocalValue(e.target.value);
-                                onChange?.(e.target.value);
-                            }}
-                        />
-                    </div>
-                );
+                return <SliderInput 
+                    defaultValue={Number(localValue)}
+                />;
 
             case "color":
-                return (
-                    <div
-                        className="flex gap-2 items-center w-full h-10"
-                        onContextMenu={handleContextMenu}
-                    >
-                        <input
-                            type="color"
-                            value={localValue || "#3b82f6"}
-                            className="input input-bordered h-10 w-16 p-1 cursor-pointer bg-base-100 border border-base-300"
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            onChange={(e) => {
-                                setLocalValue(e.target.value);
-                                onChange?.(e.target.value);
-                            }}
-                        />
-                        <span className="font-mono text-sm">{localValue || "#3b82f6"}</span>
-                    </div>
-                );
+                return <ColorInput 
+                    value={localValue}
+                />;
 
             case "rating":
-                return (
-                    <div
-                        className="rating rating-md h-10 items-center"
-                        onContextMenu={handleContextMenu}
-                    >
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <input
-                                key={star}
-                                type="radio"
-                                name={`rating-${id}`}
-                                className="mask mask-star-2 bg-orange-400"
-                                checked={Number(localValue) === star}
-                                onFocus={() => setIsFocused(true)}
-                                onBlur={() => setIsFocused(false)}
-                                onChange={() => {
-                                    setLocalValue(String(star));
-                                    onChange?.(star);
-                                }}
-                            />
-                        ))}
-                    </div>
-                );
+                return <RatingInput
+                    defaultValue={Number(localValue)}
+                />
 
             case "asset":
                 return (
@@ -315,9 +327,7 @@ export default function TemplateField({
 
             case "spacer":
                 return (
-                    <div className="flex items-center justify-center w-full py-4 text-xs text-sub opacity-50">
-                        SPACER - TEXT ONLY VISIBLE DURING EDITING
-                    </div>
+                    <div className="flex items-center justify-center w-full py-4 text-xs text-sub opacity-50" />
                 );
 
             case "text":
@@ -325,13 +335,9 @@ export default function TemplateField({
                 return (
                     <textarea
                         className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
-                        id={`template-field-${id}`}
+                        id={`field-${id}`}
                         value={localValue}
-                        placeholder={
-                            placeholder
-                                ?.replace("{display_name}", "Alice")
-                                ?.replace("{display_name.possessive}", "Alice's")
-                        }
+                        placeholder={placeholder}
                         rows={1}
                         spellCheck={false}
                         autoCorrect="off"
@@ -370,7 +376,7 @@ export default function TemplateField({
                 <ul
                 className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
                 popover="manual"
-                id={`field-dropdown-${id}`}
+                id={`context-field-${id}`}
             >
                 <li>
                     <button 
@@ -422,7 +428,7 @@ export default function TemplateField({
 
                             const response = parts.join(" ");
 
-                            const textarea = document.getElementById(`template-field-${id}`);
+                            const textarea = document.getElementById(`field-${id}`);
 
                             if (textarea) {
                                 textarea.textContent = "";
@@ -911,7 +917,7 @@ export default function TemplateField({
 
                     <span>{label}</span>
 
-                    <span className={`tooltip ${notesList.length > 0 ? "" : "hidden"}`}>
+                    {/*<span className={`tooltip ${notesList.length > 0 ? "" : "hidden"}`}>
                         <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
                             <div className="font-bold text-center">Notes</div>
                             <div className="flex flex-col gap-1 text-xs">
@@ -945,7 +951,7 @@ export default function TemplateField({
                         <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
                             󰟶
                         </span>
-                    </span>
+                    </span>*/}
                 </legend>
 
                 {renderInputContent()}
@@ -1018,9 +1024,7 @@ export default function TemplateField({
                                     ),
                                 }}
                             >
-                                {guide
-                                    ?.replace("{DISPLAY_NAME}", "Alice")
-                                    ?.replace("{DISPLAY_NAME_POSSESSIVE}", "Alice's")}
+                                {guide}
                             </ReactMarkdown>
                         </div>
                     </div>
