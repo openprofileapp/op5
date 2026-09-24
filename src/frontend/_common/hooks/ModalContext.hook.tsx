@@ -12,6 +12,9 @@ import EditUserProfileModal, { EditUserProfileModalRef } from "../components/mod
 import DeleteModal, { DeleteModalRef } from "../components/modals/DeleteModal.js";
 import DatasetEditorModal, { DataEditorModalRef } from "../components/modals/DataEditorModal.js";
 import SaveFailedModal, { SaveFailedModalRef } from "../../studio/components/modals/SaveFailedModal.js";
+import NewFieldModal, { NewFieldModalRef } from "../../studio/components/modals/NewFieldModal.js";
+import NewBlockModal, { NewBlockModalRef } from "../../studio/components/modals/NewBlockModal.js";
+import UploadMediaModal, { UploadMediaModalRef } from "../../studio/components/modals/UploadMediaModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -62,6 +65,18 @@ interface ModalContextType {
         open: (...args: Parameters<SaveFailedModalRef["open"]>) => ReturnType<SaveFailedModalRef["open"]> | undefined;
         close: () => void;
     };
+    newFieldModal: {
+        open: (...args: Parameters<NewFieldModalRef["open"]>) => ReturnType<NewFieldModalRef["open"]> | undefined;
+        close: () => void;
+    };
+    newBlockModal: {
+        open: (...args: Parameters<NewBlockModalRef["open"]>) => ReturnType<NewBlockModalRef["open"]> | undefined;
+        close: () => void;
+    };
+    uploadMediaModal: {
+        open: (...args: Parameters<UploadMediaModalRef["open"]>) => ReturnType<UploadMediaModalRef["open"]> | undefined;
+        close: () => void;
+    };
 }
 
 const ModalContext = createContext<ModalContextType | null>(null);
@@ -79,6 +94,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const editUserProfileModalRef = useRef<EditUserProfileModalRef>(null);
     const dataEditorModalRef = useRef<DataEditorModalRef>(null);
     const saveFailedModalRef = useRef<SaveFailedModalRef>(null);
+    const newFieldModalRef = useRef<NewFieldModalRef>(null);
+    const newBlockModalRef = useRef<NewBlockModalRef>(null);
+    const uploadMediaModalRef = useRef<UploadMediaModalRef>(null);
 
     const value = useMemo(
         () => ({
@@ -177,6 +195,30 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 close: () => {
                     saveFailedModalRef.current?.close();
                 },
+            },
+            newFieldModal: {
+                open: (...args: Parameters<NewFieldModalRef["open"]>) => {
+                    return newFieldModalRef.current?.open(...args);
+                },
+                close: () => {
+                    newFieldModalRef.current?.close();
+                },
+            },
+            newBlockModal: {
+                open: (...args: Parameters<NewBlockModalRef["open"]>) => {
+                    return newBlockModalRef.current?.open(...args);
+                },
+                close: () => {
+                    newBlockModalRef.current?.close();
+                },
+            },
+            uploadMediaModal: {
+                open: (...args: Parameters<UploadMediaModalRef["open"]>) => {
+                    return uploadMediaModalRef.current?.open(...args);
+                },
+                close: () => {
+                    uploadMediaModalRef.current?.close();
+                },
             }
         }),
         []
@@ -196,6 +238,9 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <EditUserProfileModal ref={editUserProfileModalRef} />
             <DatasetEditorModal ref={dataEditorModalRef} />
             <SaveFailedModal ref={saveFailedModalRef} />
+            <NewFieldModal ref={newFieldModalRef} />
+            <NewBlockModal ref={newBlockModalRef} />
+            <UploadMediaModal ref={uploadMediaModalRef} />
 
             {children}
         </ModalContext.Provider>
