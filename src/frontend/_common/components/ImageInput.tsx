@@ -1,19 +1,28 @@
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { parseGIF, decompressFrames } from "gifuct-js";
 
 import { useObjectURL } from "../hooks/useObjectURL.hook.js";
-import CropModal from "../../main/components/modals/CropImageModal.js";
+import CropModal from "../components/modals/CropImageModal.js";
+import ZoomableMedia from "./ZoomableMedia.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { ValueOptionsType } from "../../../_common/types/value.type.js";
 
 type Props = {
+    id?: string;
+    options?: ValueOptionsType;
+    useModal?: boolean;
     value: File | null;
     defaultUrl?: string | null;
     animatedDefaultUrl?: string | null;
+    readOnly?: boolean;
     onChange: (
         file: File | null,
         base64Url: string | null,
         staticPreviewFile?: File | null,
-        staticPreviewBase64?: string | null
-    ) => void;
+        staticPreviewBase64?: string | null,
+        options?: ValueOptionsType
+    ) => boolean | Promise<boolean>;
     accept: string;
     aspectRatio?: number;
     height?: string;
@@ -45,19 +54,25 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export default function ImageInput({
+    id = "",
+    options,
+    useModal = false,
     value,
     defaultUrl,
     animatedDefaultUrl,
+    readOnly = false,
     onChange,
     accept,
     aspectRatio,
     height,
     width,
-    label,
     className = "",
     skipCrop = false,
 }: Props) {
+    const { uploadMediaModal } = useModals();
     const inputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [portalContainer, setPortalContainer] = useState<Element | null>(null);
 
     const [rawFile, setRawFile] = useState<File | null>(null);
     const [rawImage, setRawImage] = useState<string | null>(null);
@@ -70,6 +85,15 @@ export default function ImageInput({
 
     const fileUrl = useObjectURL(value);
 
+    useEffect(() => {
+        if (inputRef.current) {
+            const closestDialog = inputRef.current.closest("dialog");
+            setPortalContainer(closestDialog || document.body);
+        } else {
+            setPortalContainer(document.body);
+        }
+    }, []);
+
     const previewUrl = isCleared
         ? null
         : fileUrl || (value === null && defaultUrl ? defaultUrl : null);
@@ -81,24 +105,33 @@ export default function ImageInput({
           fileUrl ||
           defaultUrl;
 
+    const isVideo =
+        value?.type.startsWith("video/") ||
+        rawFile?.type.startsWith("video/") ||
+        (previewUrl ? /^data:video\//i.test(previewUrl) : false) ||
+        (previewUrl ? /\.(mp4|webm|ogg|mov|m4v)($|\?)/i.test(previewUrl) : false) ||
+        (defaultUrl ? /\.(mp4|webm|ogg|mov|m4v)($|\?)/i.test(defaultUrl) : false);
+
     const isGif =
-        value?.type === "image/gif" ||
-        rawFile?.type === "image/gif" ||
-        (previewUrl ? /^data:image\/gif/i.test(previewUrl) : false) ||
-        (previewUrl ? /\.gif($|\?)/i.test(previewUrl) : false) ||
-        (animatedDefaultUrl ? /\.gif($|\?)/i.test(animatedDefaultUrl) : false);
+        !isVideo &&
+        (value?.type === "image/gif" ||
+            rawFile?.type === "image/gif" ||
+            (previewUrl ? /^data:image\/gif/i.test(previewUrl) : false) ||
+            (previewUrl ? /\.gif($|\?)/i.test(previewUrl) : false) ||
+            (animatedDefaultUrl ? /\.gif($|\?)/i.test(animatedDefaultUrl) : false));
 
     const isSvg =
-        value?.type === "image/svg+xml" ||
-        rawFile?.type === "image/svg+xml" ||
-        (previewUrl ? /^data:image\/svg\+xml/i.test(previewUrl) : false) ||
-        (previewUrl ? /\.svg($|\?)/i.test(previewUrl) : false) ||
-        (defaultUrl ? /\.svg($|\?)/i.test(defaultUrl) : false);
+        !isVideo &&
+        (value?.type === "image/svg+xml" ||
+            rawFile?.type === "image/svg+xml" ||
+            (previewUrl ? /^data:image\/svg\+xml/i.test(previewUrl) : false) ||
+            (previewUrl ? /\.svg($|\?)/i.test(previewUrl) : false) ||
+            (defaultUrl ? /\.svg($|\?)/i.test(defaultUrl) : false));
 
     useEffect(() => {
         const sourceForStaticFrame = animatedUrl || previewUrl;
 
-        if (!sourceForStaticFrame || isSvg) {
+        if (!sourceForStaticFrame || isSvg || isVideo) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setStaticFrameUrl(null);
             return;
@@ -173,7 +206,7 @@ export default function ImageInput({
         return () => {
             isMounted = false;
         };
-    }, [previewUrl, animatedUrl, isGif, isSvg]);
+    }, [previewUrl, animatedUrl, isGif, isSvg, isVideo]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -181,14 +214,47 @@ export default function ImageInput({
         setHasError(false);
     }, [defaultUrl]);
 
+    useEffect(() => {
+        if (!videoRef.current || !isVideo) return;
+
+        if (isHovered) {
+            videoRef.current.play().catch(() => {});
+        } else {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+        }
+    }, [isHovered, isVideo]);
+
     const resetInput = () => {
         if (inputRef.current) {
             inputRef.current.value = "";
         }
     };
 
-    const openFilePicker = () => {
-        inputRef.current?.click();
+    const openFilePicker = (e: React.MouseEvent) => {
+        if (readOnly) return;
+
+        if (useModal) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            uploadMediaModal.open({
+                type: "content",
+                fieldId: id,
+                url: previewUrl ?? "",
+                description: (options?.description as string) ?? "",
+                credit: (options?.credit as unknown as string) ?? "",
+                onChange: async (fieldId, type, newValue, updatedOptions) => {
+                    setIsCleared(false);
+                    setHasError(false);
+
+                    const result = await onChange(null, newValue, null, null, updatedOptions);
+                    return result !== false;
+                }
+            });
+        } else {
+            inputRef.current?.click();
+        }
     };
 
     const cleanupRawImage = () => {
@@ -202,6 +268,8 @@ export default function ImageInput({
     const handleClear = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        if (readOnly) return;
+
         setIsCleared(true);
         setStaticFrameUrl(null);
 
@@ -255,12 +323,19 @@ export default function ImageInput({
 
         const mainBase64Url = await fileToBase64(croppedFile);
 
-        onChange(croppedFile, mainBase64Url, staticFile, staticBase64Url);
+        onChange(croppedFile, mainBase64Url, staticFile, staticBase64Url, options);
 
         setShowCrop(false);
         cleanupRawImage();
     };
 
+    const hasMedia = Boolean(previewUrl && !hasError);
+
+    const borderStyleClasses = hasMedia
+        ? "border border-solid"
+        : "border-2 border-dashed";
+
+    const cursorClass = readOnly ? "cursor-default" : "cursor-pointer";
     const sizeClasses = `${height ? `h-${height}` : ""} ${width ? `w-${width}` : ""}`.trim();
 
     const displayImageSrc = isHovered || isSvg
@@ -270,29 +345,51 @@ export default function ImageInput({
     return (
         <>
             <div
-                className={`relative group cursor-pointer border-2 border-base-300 border-dashed rounded flex items-center justify-center overflow-hidden ${sizeClasses} ${className}`.trim()}
+                className={`relative group border-base-300 rounded flex items-center justify-center overflow-hidden ${borderStyleClasses} ${cursorClass} ${sizeClasses} ${className}`.trim()}
                 onClick={openFilePicker}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onMouseEnter={() => !readOnly && setIsHovered(true)}
+                onMouseLeave={() => !readOnly && setIsHovered(false)}
             >
-                {previewUrl && !hasError ? (
+                {hasMedia ? (
                     <>
-                        <img
-                            src={displayImageSrc ?? undefined}
-                            alt={label ?? "image"}
-                            className={`h-full w-full rounded ${
-                                isSvg ? "object-contain" : "object-cover"
-                            }`}
-                            onError={() => setHasError(true)}
-                        />
+                        {isVideo ? (
+                            <video
+                                ref={videoRef}
+                                src={previewUrl || undefined}
+                                className="h-full w-full rounded object-cover"
+                                muted
+                                loop
+                                playsInline
+                                onError={() => setHasError(true)}
+                            />
+                        ) : readOnly ? (
+                            <ZoomableMedia
+                                src={animatedUrl || previewUrl || ""}
+                                description={options?.description}
+                                credit={options?.credit}
+                                className={`h-full w-full rounded ${
+                                    isSvg ? "object-contain" : "object-cover"
+                                }`}
+                            />
+                        ) : (
+                            <img
+                                src={displayImageSrc ?? undefined}
+                                className={`h-full w-full rounded ${
+                                    isSvg ? "object-contain" : "object-cover"
+                                }`}
+                                onError={() => setHasError(true)}
+                            />
+                        )}
 
-                        <button
-                            type="button"
-                            className="absolute top-0 right-1 p-1 opacity-0 group-hover:opacity-100 transition cursor-pointer z-10"
-                            onClick={handleClear}
-                        >
-                            <span className="font-nerdfont text-base"></span>
-                        </button>
+                        {!readOnly && (
+                            <button
+                                type="button"
+                                className="absolute top-0 right-1 p-1 opacity-0 group-hover:opacity-100 transition cursor-pointer z-10"
+                                onClick={handleClear}
+                            >
+                                <span className="font-nerdfont text-base"></span>
+                            </button>
+                        )}
                     </>
                 ) : (
                     <span className="flex items-center justify-center opacity-60 hover:opacity-100 transition h-full w-full">
@@ -305,13 +402,18 @@ export default function ImageInput({
                     type="file"
                     accept={accept}
                     className="hidden"
+                    disabled={readOnly}
+                    readOnly={readOnly}
                     onChange={(e) => {
+                        if (readOnly) return;
                         const file = e.target.files?.[0];
                         if (!file) return;
 
                         resetInput();
 
-                        if (skipCrop || file.type === "image/svg+xml") {
+                        const isVideoFile = file.type.startsWith("video/");
+
+                        if (skipCrop || isVideoFile || file.type === "image/svg+xml") {
                             handleCropComplete(file);
                         } else {
                             const cropPreviewUrl = URL.createObjectURL(file);
@@ -323,7 +425,7 @@ export default function ImageInput({
                 />
             </div>
 
-            {showCrop && rawImage && (
+            {showCrop && rawImage && !readOnly && portalContainer && createPortal(
                 <CropModal
                     image={rawImage}
                     fileType={rawFile?.type}
@@ -333,7 +435,8 @@ export default function ImageInput({
                     }}
                     onComplete={handleCropComplete}
                     aspectRatio={aspectRatio || 0}
-                />
+                />,
+                portalContainer
             )}
         </>
     );
