@@ -12,3 +12,12 @@ export type FieldNameType =
     | "table"
     | "spacer"
 ;
+
+export type FieldOptionsType = {
+    dataset: string;
+    min: number;
+    max: number;
+    marks: number;
+    icon: "star" | "heart";
+    spacer: "blank" | "line";
+}
