@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS fields (
     type TEXT NOT NULL,
     label TEXT,
     placeholder TEXT,
-    dataset TEXT,
+    options TEXT,
     guide TEXT,
     isLocked INTEGER NOT NULL DEFAULT 0,
     position INTEGER NOT NULL DEFAULT 0,
