@@ -26,6 +26,8 @@ interface TypeableDropdownInputProps {
     multiple?: boolean;
     title?: string;
     defaultOpenAbove?: boolean;
+    readonly?: boolean;
+    isLoading?: boolean;
     onChange?: (value: unknown) => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -41,6 +43,8 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     multiple = false,
     title,
     defaultOpenAbove = false,
+    readonly = false,
+    isLoading = false,
     onChange,
     onFocus,
     onBlur,
@@ -285,8 +289,8 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
 
     if (!isTranslationReady) return null;
 
-    const resolvedTitle = title ?? t("components.dropdown.selectOption", "Select Option");
-    const resolvedPlaceholder = placeholder ?? t("components.dropdown.selectOrType", "Select or type...");
+    const resolvedTitle = title ?? t("components.dropdown.selectOption");
+    const resolvedPlaceholder = isLoading ? t("components.dropdown.loadingDataset") : placeholder ?? t("components.dropdown.selectOrType");
 
     const handleClose = () => {
         setIsOpen(false);
@@ -425,9 +429,20 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 }
             >
                 {groupedFilteredOptions.length === 0 ? (
-                    <li className={`flex items-center px-4 h-10 min-h-10 ${largeText ? "text-base" : "text-sm"} text-sub w-full text-left`}>
-                        No matching options
-                    </li>
+                    <li
+                    className={`
+                        flex items-center px-4 h-10 w-full
+                        ${isLoading ? "min-h-24 justify-center" : "min-h-10"}
+                        ${largeText ? "text-base" : "text-sm"}
+                        text-sub text-left
+                    `}
+                >
+                    {isLoading ? (
+                        <span className="loading" />
+                    ) : (
+                        t("components.dropdown.noMatchingOptions")
+                    )}
+                </li>
                 ) : (
                     groupedFilteredOptions.map((group, groupIdx) => (
                         <React.Fragment key={group.category || `group-${groupIdx}`}>
@@ -488,124 +503,145 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     const portalTargetNode = getPortalTarget();
 
     return (
-        <div
-            ref={containerRef}
-            className="flex flex-col w-full relative"
-            onContextMenu={onContextMenu}
-        >
-            <div className="relative w-full flex flex-col">
+        <>
+            {!readonly ? (
                 <div
-                    className={`input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-auto py-1.5 pl-3 pr-10 ${largeText ? "text-base" : "text-sm"} flex flex-wrap items-center gap-1.5 focus-within:outline-none ${
-                        !typeable ? "cursor-pointer select-none" : ""
-                    }`}
-                    onClick={() => {
-                        if (!typeable) {
-                            handleToggleMenu();
-                        } else {
-                            setIsOpen(true);
-                            inputRef.current?.focus();
-                        }
-                    }}
+                    ref={containerRef}
+                    className="flex flex-col w-full relative"
+                    onContextMenu={onContextMenu}
                 >
-                    {multiple &&
-                        selectedValues.map((val) => (
-                            <span
-                                key={val}
-                                className="flex gap-1.5 px-2 py-1 bg-base-200 text-xs text-left border border-base-300 rounded items-center"
-                            >
-                                {getDisplayName(val)}
+                    <div className="relative w-full flex flex-col">
+                        <div
+                            className={`input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-auto py-1.5 pl-3 pr-10 ${largeText ? "text-base" : "text-sm"} flex flex-wrap items-center gap-1.5 focus-within:outline-none ${
+                                !typeable ? "cursor-pointer select-none" : ""
+                            }`}
+                            onClick={() => {
+                                if (!typeable) {
+                                    handleToggleMenu();
+                                } else {
+                                    setIsOpen(true);
+                                    inputRef.current?.focus();
+                                }
+                            }}
+                        >
+                            {multiple &&
+                                selectedValues.map((val) => (
+                                    <span
+                                        key={val}
+                                        className="flex gap-1.5 px-2 py-1 bg-base-200 text-xs text-left border border-base-300 rounded items-center"
+                                    >
+                                        {getDisplayName(val)}
 
+                                        <button
+                                            type="button"
+                                            className="cursor-pointer text-error text-xs font-nerdfont leading-none"
+                                            onClick={(e) => handleRemoveBadge(val, e)}
+                                        >
+                                            
+                                        </button>
+                                    </span>
+                                ))}
+
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                readOnly={!typeable}
+                                value={inputValue}
+                                placeholder={selectedValues.length > 0 ? "" : resolvedPlaceholder}
+                                className={`bg-transparent outline-none flex-1 min-w-[60px] ${largeText ? "text-base" : "text-sm"} ${
+                                    !typeable ? "cursor-pointer select-none caret-transparent" : ""
+                                }`}
+                                onChange={handleInputChange}
+                                onFocus={onFocus}
+                                onKeyDown={handleKeyDown}
+                            />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleToggleMenu}
+                            className="absolute right-0 top-0 h-10 flex items-center justify-center px-3 text-sub transition-colors cursor-pointer"
+                        >
+                            <span
+                                className={`${isLoading ? "loading" : ""} font-nerdfont flex items-center justify-center ${largeText ? "text-base" : "text-sm"} leading-none h-4 w-4 transition-transform duration-200 ${
+                                    isOpen ? "rotate-180" : ""
+                                }`}
+                            >
+                                
+                            </span>
+                        </button>
+                    </div>
+
+                    {isOpen && !isMobile && portalTargetNode && createPortal(renderOptionList(), portalTargetNode)}
+
+                    {isOpen && isMobile && portalTargetNode && createPortal(
+                        <div className="modal modal-open modal-bottom sm:modal-middle z-[2147483647] fixed inset-0">
+                            <div className="modal-box bg-base-100 p-5 relative flex flex-col w-full max-w-md h-[90vh] max-h-[90vh] z-[2147483647]">
                                 <button
                                     type="button"
-                                    className="cursor-pointer text-error text-xs font-nerdfont leading-none"
-                                    onClick={(e) => handleRemoveBadge(val, e)}
+                                    className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont z-30"
+                                    onClick={handleClose}
                                 >
                                     
                                 </button>
-                            </span>
-                        ))}
 
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                        readOnly={!typeable}
-                        value={inputValue}
-                        placeholder={selectedValues.length > 0 ? "" : resolvedPlaceholder}
-                        className={`bg-transparent outline-none flex-1 min-w-[60px] ${largeText ? "text-base" : "text-sm"} ${
-                            !typeable ? "cursor-pointer select-none caret-transparent" : ""
-                        }`}
-                        onChange={handleInputChange}
-                        onFocus={onFocus}
-                        onKeyDown={handleKeyDown}
-                    />
-                </div>
+                                <div className="flex flex-col w-full h-full min-h-0 space-y-4">
+                                    <h3 className="font-bold text-2xl text-center w-full pt-1 shrink-0 mb-6">
+                                        {resolvedTitle}
+                                    </h3>
 
-                <button
-                    type="button"
-                    onClick={handleToggleMenu}
-                    className="absolute right-0 top-0 h-10 flex items-center justify-center px-3 text-sub transition-colors cursor-pointer"
-                >
-                    <span
-                        className={`font-nerdfont flex items-center justify-center ${largeText ? "text-base" : "text-sm"} leading-none h-4 w-4 transition-transform duration-200 ${
-                            isOpen ? "rotate-180" : ""
-                        }`}
-                    >
-                        
-                    </span>
-                </button>
-            </div>
+                                    {typeable && (
+                                        <input
+                                            type="text"
+                                            autoComplete="off"
+                                            autoCorrect="off"
+                                            autoCapitalize="off"
+                                            spellCheck={false}
+                                            className={`input input-bordered w-full ${largeText ? "text-base" : "text-sm"} text-left focus:outline-none shrink-0`}
+                                            placeholder="Search..."
+                                            value={inputValue}
+                                            onChange={handleInputChange}
+                                        />
+                                    )}
 
-            {isOpen && !isMobile && portalTargetNode && createPortal(renderOptionList(), portalTargetNode)}
-
-            {isOpen && isMobile && portalTargetNode && createPortal(
-                <div className="modal modal-open modal-bottom sm:modal-middle z-[2147483647] fixed inset-0">
-                    <div className="modal-box bg-base-100 p-5 relative flex flex-col w-full max-w-md h-[90vh] max-h-[90vh] z-[2147483647]">
-                        <button
-                            type="button"
-                            className="cursor-pointer absolute right-0 top-0 m-5 text-2xl font-nerdfont z-30"
-                            onClick={handleClose}
-                        >
-                            
-                        </button>
-
-                        <div className="flex flex-col w-full h-full min-h-0 space-y-4">
-                            <h3 className="font-bold text-2xl text-center w-full pt-1 shrink-0 mb-6">
-                                {resolvedTitle}
-                            </h3>
-
-                            {typeable && (
-                                <input
-                                    type="text"
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                    autoCapitalize="off"
-                                    spellCheck={false}
-                                    className={`input input-bordered w-full ${largeText ? "text-base" : "text-sm"} text-left focus:outline-none shrink-0`}
-                                    placeholder="Search..."
-                                    value={inputValue}
-                                    onChange={handleInputChange}
-                                />
-                            )}
-
-                            <div className="flex-1 min-h-0 w-full overflow-hidden">
-                                {renderOptionList()}
+                                    <div className="flex-1 min-h-0 w-full overflow-hidden">
+                                        {renderOptionList()}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <form
-                        method="dialog"
-                        className="modal-backdrop z-[2147483646] fixed inset-0 bg-black/50"
-                        onClick={handleClose}
-                    >
-                        <button type="button">close</button>
-                    </form>
-                </div>,
-                portalTargetNode
+                            <form
+                                method="dialog"
+                                className="modal-backdrop z-[2147483646] fixed inset-0 bg-black/50"
+                                onClick={handleClose}
+                            >
+                                <button type="button">close</button>
+                            </form>
+                        </div>,
+                        portalTargetNode
+                    )}
+                </div>
+            ) : (
+                <textarea
+                    className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
+                    value={inputValue}
+                    readOnly={readonly}
+                    rows={1}
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    onContextMenu={onContextMenu}
+                    ref={(el) => {
+                        if (el) {
+                            el.style.height = "auto";
+                            el.style.height = `${el.scrollHeight}px`;
+                        }
+                    }}
+                />
             )}
-        </div>
+        </>
     );
 };
