@@ -10,9 +10,11 @@ interface Props {
     onChange?: (value: number) => void;
     unit?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     className?: string;
     showValueText?: boolean;
     valueFormat?: ((val: number) => string) | Record<number, string>;
+    onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export const SliderInput = ({
@@ -25,9 +27,11 @@ export const SliderInput = ({
     onChange,
     unit = "",
     disabled = false,
+    readOnly = false,
     className = "",
     showValueText = true,
     valueFormat,
+    onContextMenu
 }: Props) => {
     const markValues = useMemo(() => {
         if (!marks) return null;
@@ -89,9 +93,15 @@ export const SliderInput = ({
                     step={markValues ? "any" : step}
                     value={val}
                     disabled={disabled}
-                    onChange={(e) => handleValueChange(Number(e.target.value))}
+                    readOnly={readOnly}
+                    onChange={(e) => {
+                        if (readOnly) return;
+
+                        handleValueChange(Number(e.target.value));
+                    }}
+                    onContextMenu={onContextMenu}
                     className={`
-                        w-full h-8 appearance-none bg-transparent cursor-pointer z-20 focus:outline-none
+                        w-full h-8 appearance-none bg-transparent z-20 focus:outline-none
                         [&::-webkit-slider-thumb]:appearance-none
                         [&::-webkit-slider-thumb]:w-5
                         [&::-webkit-slider-thumb]:h-5
@@ -108,6 +118,7 @@ export const SliderInput = ({
                         [&::-moz-range-thumb]:border-none
                         [&::-moz-range-thumb]:shadow-md
                         ${disabled ? "cursor-not-allowed [&::-webkit-slider-thumb]:cursor-not-allowed" : ""}
+                        ${readOnly ? "cursor-default [&::-webkit-slider-thumb]:cursor-default" : "cursor-pointer"}
                     `}
                 />
             </div>
