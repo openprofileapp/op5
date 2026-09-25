@@ -16,8 +16,9 @@ export const getDatasetController = async (req: Request, res: Response) => {
         assertAccount(req.session);
 
         const q = req.query.q as string | undefined;
+        const id = req.query.id as string | undefined;
         const sortBy = req.query.sortBy as string;
-        
+
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
@@ -29,8 +30,8 @@ export const getDatasetController = async (req: Request, res: Response) => {
 
         const queryClause = trimmedQuery
             ? `AND (
-                label LIKE ? 
-                OR description LIKE ? 
+                label LIKE ?
+                OR description LIKE ?
                 OR data LIKE ?
             )`
             : "";
@@ -39,31 +40,47 @@ export const getDatasetController = async (req: Request, res: Response) => {
             ? [queryTerm, queryTerm, queryTerm]
             : [];
 
+        const idClause = id
+            ? "AND id = ?"
+            : "";
+
+        const idParams = id
+            ? [id]
+            : [];
+
         let formattedSortBy: string;
 
-        const primarySourceSort = "CASE WHEN source = 'official' THEN 0 ELSE 1 END ASC";
+        const primarySourceSort =
+            "CASE WHEN source = 'official' THEN 0 ELSE 1 END ASC";
 
         switch (sortBy) {
             case "recent":
                 formattedSortBy = `${primarySourceSort}, updatedDate DESC`;
                 break;
+
             case "newest":
                 formattedSortBy = `${primarySourceSort}, createdDate DESC`;
                 break;
+
             case "oldest":
                 formattedSortBy = `${primarySourceSort}, createdDate ASC`;
                 break;
+
             case "nameAsc":
                 formattedSortBy = `${primarySourceSort}, label ASC`;
                 break;
+
             case "nameDesc":
                 formattedSortBy = `${primarySourceSort}, label DESC`;
                 break;
+
             case "popularAsc":
                 formattedSortBy = `${primarySourceSort}, uses ASC`;
                 break;
+
             default:
-                formattedSortBy = `${primarySourceSort}, uses DESC, createdDate DESC`;
+                formattedSortBy =
+                    `${primarySourceSort}, uses DESC, createdDate DESC`;
         }
 
         const result = db.templates.query(
@@ -71,12 +88,14 @@ export const getDatasetController = async (req: Request, res: Response) => {
                 SELECT *
                 FROM datasets
                 ${accessClause}
+                ${idClause}
                 ${queryClause}
                 ORDER BY ${formattedSortBy}
                 LIMIT ? OFFSET ?
             `,
             [
                 ...accessParams,
+                ...idParams,
                 ...queryParams,
                 limit,
                 offset
@@ -90,10 +109,12 @@ export const getDatasetController = async (req: Request, res: Response) => {
                 SELECT 1
                 FROM datasets
                 ${accessClause}
+                ${idClause}
                 ${queryClause}
             `,
             [
                 ...accessParams,
+                ...idParams,
                 ...queryParams
             ]
         );
@@ -115,12 +136,14 @@ export const getDatasetController = async (req: Request, res: Response) => {
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
+
             return res.status(error.code).json({
                 id: error.id,
                 message: error.message
             });
         } else {
             log.unknown.error(error).save();
+
             return res.status(500).json({
                 message: i18n.t("responses.unknown"),
             });
