@@ -3,29 +3,31 @@ import React, { useState, useEffect, useCallback } from "react";
 interface Props {
     value?: number;
     defaultValue?: number;
-    maxStars?: number;
-    allowHalf?: boolean;
+    maxRating?: number;
     onChange?: (value: number) => void;
     unit?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     className?: string;
     showValueText?: boolean;
     valueFormat?: ((val: number) => string) | Record<number, string>;
     icon?: "star" | "heart";
+    onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export const RatingInput = ({
     value,
     defaultValue = 0,
-    maxStars = 5,
-    allowHalf = false,
+    maxRating = 5,
     onChange,
     unit = "",
     disabled = false,
+    readOnly = false,
     className = "",
     showValueText = true,
     valueFormat,
     icon = "star",
+    onContextMenu
 }: Props) => {
     const [val, setVal] = useState<number>(value ?? defaultValue);
     const [hoverRating, setHoverRating] = useState<number | null>(null);
@@ -42,22 +44,12 @@ export const RatingInput = ({
     const activeRating = hoverRating !== null ? hoverRating : val;
 
     const handleSelect = (selectedVal: number) => {
-        if (disabled) return;
+        if (disabled || readOnly) return;
+
         const nextValue = val === selectedVal ? 0 : selectedVal;
+
         setVal(nextValue);
         onChange?.(nextValue);
-    };
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLSpanElement>, starIndex: number) => {
-        if (disabled) return;
-        if (!allowHalf) {
-            setHoverRating(starIndex);
-            return;
-        }
-
-        const rect = e.currentTarget.getBoundingClientRect();
-        const isLeftHalf = e.clientX - rect.left < rect.width / 2;
-        setHoverRating(isLeftHalf ? starIndex - 0.5 : starIndex);
     };
 
     const getFormattedText = useCallback(
@@ -65,33 +57,58 @@ export const RatingInput = ({
             if (typeof valueFormat === "function") {
                 return valueFormat(targetVal);
             }
+
             if (valueFormat && typeof valueFormat === "object") {
-                return targetVal in valueFormat ? valueFormat[targetVal] : `${targetVal}${unit}`;
+                return targetVal in valueFormat
+                    ? valueFormat[targetVal]
+                    : `${targetVal}${unit}`;
             }
-            return `${targetVal.toFixed(allowHalf ? 1 : 0)} / ${maxStars}${unit}`;
+
+            return `${targetVal} / ${maxRating}${unit}`;
         },
-        [valueFormat, unit, allowHalf, maxStars]
+        [valueFormat, unit, maxRating]
     );
 
+    const isInactive = disabled || readOnly;
+
     return (
-        <div className={`flex flex-col gap-1 w-full ${className}`}>
-            <div className={`relative flex items-center gap-3 w-full h-9 ${disabled ? "opacity-60" : ""}`}>
+        <div 
+            className={`flex flex-col gap-1 w-full ${className}`}
+            onContextMenu={onContextMenu}
+        >
+            <div
+                className={`relative flex items-center gap-3 w-full h-9 ${
+                    disabled ? "opacity-60" : ""
+                }`}
+            >
                 <div
                     className="flex items-center gap-1.5"
-                    onMouseLeave={() => !disabled && setHoverRating(null)}
+                    onMouseLeave={() => {
+                        if (!isInactive) {
+                            setHoverRating(null);
+                        }
+                    }}
                 >
-                    {Array.from({ length: maxStars }, (_, i) => {
+                    {Array.from({ length: maxRating }, (_, i) => {
                         const starIndex = i + 1;
                         const isFull = activeRating >= starIndex;
 
                         return (
                             <span
                                 key={starIndex}
-                                onMouseMove={(e) => handleMouseMove(e, starIndex)}
-                                onClick={() => handleSelect(hoverRating ?? starIndex)}
+                                onMouseEnter={() => {
+                                    if (!isInactive) {
+                                        setHoverRating(starIndex);
+                                    }
+                                }}
+                                onClick={() => handleSelect(starIndex)}
                                 className={`
                                     relative text-xl select-none
-                                    ${disabled ? "cursor-not-allowed" : "cursor-pointer"}
+                                    ${
+                                        isInactive
+                                            ? "cursor-default"
+                                            : "cursor-pointer"
+                                    }
                                 `}
                             >
                                 <span className="font-nerdfont leading-none text-base-300">
@@ -100,9 +117,14 @@ export const RatingInput = ({
 
                                 <span
                                     className={`
-                                        absolute left-0 top-0 overflow-hidden transition-all duration-50
+                                        absolute left-0 top-0 overflow-hidden
+                                        transition-all duration-50
                                         ${isFull ? "w-full" : "w-0"}
-                                        ${icon === "heart" ? "text-primary" : "text-premium"}
+                                        ${
+                                            icon === "heart"
+                                                ? "text-primary"
+                                                : "text-premium"
+                                        }
                                     `}
                                 >
                                     <span className="font-nerdfont leading-none">
@@ -115,7 +137,7 @@ export const RatingInput = ({
                 </div>
 
                 {showValueText && (
-                    <span className="text-xs text-sub text-center w-8">
+                    <span className="text-xs text-sub text-left">
                         {getFormattedText(activeRating)}
                     </span>
                 )}
