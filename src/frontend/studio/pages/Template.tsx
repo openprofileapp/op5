@@ -33,9 +33,9 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
 import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
-import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
-import { GetTemplateFieldItemType } from "../../../_common/types/template/field.type.js";
+import { GetTemplateFieldItemType, TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
 import { snowflake } from "../scripts/main.js";
 import { NewBlockType } from "../components/modals/NewBlockModal.js";
@@ -244,7 +244,7 @@ export default function Template() {
                             field.fieldId &&
                             field.value?.content !== undefined
                         ) {
-                            valuesMapRef.current[field.fieldId] = field.value.content;
+                            valuesMapRef.current[field.fieldId] = String(field.value.content);
                         }
                     });
                 });
@@ -252,18 +252,99 @@ export default function Template() {
         });
     }, [templateData]);
 
+    const pluralize = (value: string): string => {
+        const trimmed = value.trim();
+
+        if (!trimmed) return value;
+
+        if (/(s|x|z|ch|sh)$/i.test(trimmed)) {
+            if (/ss$/i.test(trimmed)) {
+                return `${trimmed}es`;
+            }
+
+            return trimmed.endsWith("s") ? trimmed : `${trimmed}es`;
+        }
+
+        if (/[^aeiou]y$/i.test(trimmed)) {
+            return `${trimmed.slice(0, -1)}ies`;
+        }
+
+        if (/(?:f|fe)$/i.test(trimmed)) {
+            if (/(?:roof|chief|belief|chef)$/i.test(trimmed)) {
+                return `${trimmed}s`;
+            }
+
+            return trimmed.replace(/fe?$/i, "ves");
+        }
+
+        return `${trimmed}s`;
+    };
+
     const resolveDynamicValues = useCallback((text: string | undefined): string => {
         if (!text) return "";
 
-        return String(text).replace(/\{([^}]+)\}/g, (match, fieldId) => {
-            const trimmedId = fieldId.trim();
+        return String(text).replace(
+            /\{([^}]+)\}/g,
+            (match, expression) => {
+                const parts = expression
+                    .split(".")
+                    .map((part: string) => part.trim())
+                    .filter(Boolean);
 
-            if (valuesMapRef.current[trimmedId] !== undefined) {
-                return valuesMapRef.current[trimmedId] || match;
+                const fieldId = parts.shift();
+
+                if (!fieldId) return match;
+
+                const value = valuesMapRef.current[fieldId];
+
+                if (value === undefined) {
+                    return match;
+                }
+
+                let result = String(value);
+
+                for (const operation of parts) {
+                    switch (operation.toLowerCase()) {
+                        case "possessive":
+                            if (result.endsWith("s") || result.endsWith("S")) {
+                                result += "'";
+                            } else {
+                                result += "'s";
+                            }
+                            break;
+
+                        case "pluralize":
+                            result = pluralize(result);
+                            break;
+
+                        case "lowercase":
+                            result = result.toLowerCase();
+                            break;
+
+                        case "uppercase":
+                            result = result.toUpperCase();
+                            break;
+
+                        case "titlecase":
+                            result = result
+                                .toLowerCase()
+                                .replace(/\b\w/g, char => char.toUpperCase());
+                            break;
+
+                        case "capitalize":
+                            result =
+                                result.charAt(0).toUpperCase() +
+                                result.slice(1);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                return result;
             }
-
-            return match;
-        });
+        );
     }, []);
 
     useEffect(() => {
@@ -764,6 +845,7 @@ export default function Template() {
             flex: incoming.flex ?? 1,
             label: incoming.label || "New Field",
             placeholder: incoming.placeholder || "",
+            guide: incoming.guide || "",
             options: incoming.options,
             isLocked: false,
             position: targetFields.length,
@@ -786,6 +868,7 @@ export default function Template() {
                         flex: payload.flex,
                         label: payload.label,
                         placeholder: payload.placeholder,
+                        guide: payload.guide,
                         options: payload.options,
                         position: payload.position,
                     }),
@@ -864,6 +947,154 @@ export default function Template() {
                     },
                 };
             })
+        );
+
+        return true;
+    };
+
+    const handleUpdateField = async (
+        targetRowId: string,
+        originalFieldId: string,
+        incoming: Partial<TemplateFieldItemType>
+    ): Promise<boolean> => {
+        if (originalFieldId !== incoming.fieldId) {
+            const isDuplicateId = Boolean(
+                incoming?.fieldId &&
+                templateData?.some((category) =>
+                    category.blocks?.items?.some((block) =>
+                        block.rows?.items?.some((row) =>
+                            row.fields?.items?.some((field) => field.fieldId === incoming.fieldId)
+                        )
+                    )
+                )
+            );
+
+            if (isDuplicateId) {
+                toast.show(`A field with ID "${incoming?.fieldId}" already exists`, { type: "error" });
+                return false;
+            }
+        }
+
+        setIsSaving(true);
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const payload: GetTemplateFieldItemType = {
+            fieldId: incoming.fieldId as string,
+            flex: incoming.flex ?? 1,
+            label: incoming.label || "New Field",
+            placeholder: incoming.placeholder || "",
+            options: incoming.options,
+            guide: incoming.guide,
+            isLocked: incoming.isLocked as boolean
+        };
+
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/fields/update`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        originalFieldId,
+                        data: payload
+                    })
+                }
+            );
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                setIsSaving(false);
+
+                toast.show("Failed to update field", {
+                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                    type: "error",
+                });
+
+                return false;
+            }
+
+            setIsSaving(false);
+        } catch (error) {
+            setIsSaving(false);
+
+            console.error("Failed to update field:", error);
+
+            toast.show("Failed to update field", {
+                subtext: String(error),
+                type: "error",
+            });
+
+            return false;
+        }
+
+        setTemplateData(
+            (prevCategories: GetTemplateCategoryItemType[]) =>
+                prevCategories.map((category) => {
+                    if (category.categoryId !== currentCategoryId) {
+                        return category;
+                    }
+
+                    const updatedBlocks = (
+                        category.blocks?.items ?? []
+                    ).map((block) => {
+                        if (block.blockId !== currentBlockId) {
+                            return block;
+                        }
+
+                        const updatedRows = (
+                            block.rows?.items ?? []
+                        ).map((row) => {
+                            if (row.rowId !== targetRowId) {
+                                return row;
+                            }
+
+                            const existingFields =
+                                row.fields?.items ?? [];
+
+                            const updatedFields = existingFields.map(
+                                (field) => {
+                                    if (
+                                        field.fieldId !== originalFieldId
+                                    ) {
+                                        return field;
+                                    }
+
+                                    return {
+                                        ...field,
+                                        ...incoming,
+                                    };
+                                }
+                            );
+
+                            return {
+                                ...row,
+                                fields: {
+                                    items: updatedFields,
+                                    count: updatedFields.length,
+                                },
+                            };
+                        });
+
+                        return {
+                            ...block,
+                            rows: {
+                                items: updatedRows,
+                                count: updatedRows.length,
+                            },
+                        };
+                    });
+
+                    return {
+                        ...category,
+                        blocks: {
+                            items: updatedBlocks,
+                            count: updatedBlocks.length,
+                        },
+                    };
+                })
         );
 
         return true;
@@ -1474,7 +1705,7 @@ export default function Template() {
                     />
 
                     <div className="drawer-content border-l border-base-300">
-                        <nav className="navbar sticky top-0 z-50 border-b border-base-300 w-full bg-base-100 flex items-center justify-between px-4">
+                        <nav className="navbar sticky top-0 z-10 border-b border-base-300 w-full bg-base-100 flex items-center justify-between px-4">
                             <label 
                                 htmlFor="my-drawer" 
                                 aria-label="open sidebar" 
@@ -1557,9 +1788,13 @@ export default function Template() {
                                                         if (!matchesSearch) return false;
 
                                                         if (isPreview) {
-                                                            return (block.rows?.items ?? []).some(row => 
-                                                                (row.fields?.items ?? []).some(field => 
-                                                                    Boolean(field.value?.content && field.value.content.trim() !== "")
+                                                            return (block.rows?.items ?? []).some(row =>
+                                                                (row.fields?.items ?? []).some(field =>
+                                                                    field.type === "separator" ||
+                                                                    Boolean(
+                                                                        field.value?.content &&
+                                                                        String(field.value.content).trim() !== ""
+                                                                    )
                                                                 )
                                                             );
                                                         }
@@ -1673,8 +1908,10 @@ export default function Template() {
                                                 {(() => {
                                                     const visibleRows = (currentBlockData?.rows.items ?? []).filter(row => {
                                                         if (!isPreview) return true;
-                                                        return (row.fields?.items ?? []).some(field => 
-                                                            Boolean(field.value?.content && field.value.content.trim() !== "")
+
+                                                        return (row.fields?.items ?? []).some(field =>
+                                                            field.type === "separator" ||
+                                                            Boolean(field.value?.content && String(field.value.content).trim() !== "")
                                                         );
                                                     });
 
@@ -1688,10 +1925,10 @@ export default function Template() {
                                                                     const visibleFields = (row.fields.items || []).filter(field => {
                                                                         if (!isPreview) return true;
 
-                                                                        const content = field.value?.content;
-                                                                        if (content == null) return false;
-
-                                                                        return Boolean(String(content).trim() !== "");
+                                                                        return (
+                                                                            field.type === "separator" ||
+                                                                            Boolean(String(field.value?.content ?? "").trim())
+                                                                        );
                                                                     });
 
                                                                     return (
@@ -1751,6 +1988,9 @@ export default function Template() {
                                                                                                                                 content: isPreview ? resolvedValue : rawContent,
                                                                                                                             }}
                                                                                                                             options={field.options}
+                                                                                                                            isLocked={field.isLocked}
+                                                                                                                            url={`${studioBaseUrl}/template/${templateId}/${categoryId}/${blockId}`}
+                                                                                                                            rowId={row.rowId}
                                                                                                                             readOnly={isPreview}
                                                                                                                             onChange={(value, options) => handleUpdateValue(
                                                                                                                                 field.fieldId, 
@@ -1758,10 +1998,11 @@ export default function Template() {
                                                                                                                                 value as string,
                                                                                                                                 options as unknown as TemplateValueType
                                                                                                                             )}
-                                                                                                                            dragHandleProps={!isPreview ? {
+                                                                                                                            dragHandleProps={!isPreview && !field.isLocked ? {
                                                                                                                                 ...dragProps,
                                                                                                                                 className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
                                                                                                                             } : undefined}
+                                                                                                                            onFieldChange={handleUpdateField}
                                                                                                                         />
                                                                                                                     </div>
                                                                                                                 );
@@ -1829,7 +2070,7 @@ export default function Template() {
                                         return (category.blocks?.items ?? []).some(block => 
                                             (block.rows?.items ?? []).some(row => 
                                                 (row.fields?.items ?? []).some(field => 
-                                                    Boolean(field.value?.content && field.value.content.trim() !== "")
+                                                    Boolean(field.value?.content && String(field.value.content).trim() !== "")
                                                 )
                                             )
                                         );
