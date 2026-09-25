@@ -354,7 +354,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                                         Icon
                                     </label>
 
-                                    <div className="flex justify-center items-center w-full my-2">
+                                    <div className="flex justify-center items-center w-full">
                                         <ImageInput
                                             className="aspect-square h-24 w-24"
                                             value={icon}
