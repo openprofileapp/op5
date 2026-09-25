@@ -21,6 +21,7 @@ import { insertFields } from "../controllers/templates/updates/fields/insertFiel
 import { positionFields } from "../controllers/templates/updates/fields/positionField.controller.js";
 import { deleteRows } from "../controllers/templates/updates/rows/deleteRow.controller.js";
 import { updateValue } from "../controllers/templates/updates/updateValue.controller.js";
+import { updateFields } from "../controllers/templates/updates/fields/updateField.controller.js";
 
 const templateRoutes = Router();
 
@@ -51,6 +52,7 @@ templateRoutes.post("/:templateId/rows/update/positions", positionRows);
 templateRoutes.post("/:templateId/rows/delete/:rowId", deleteRows);
 
 templateRoutes.post("/:templateId/fields/insert", insertFields);
+templateRoutes.post("/:templateId/fields/update", updateFields);
 templateRoutes.post("/:templateId/fields/update/positions", positionFields);
 templateRoutes.post("/:templateId/fields/update/value", updateValue);
 templateRoutes.post("/:templateId/fields/delete/:fieldId", deleteFields);
