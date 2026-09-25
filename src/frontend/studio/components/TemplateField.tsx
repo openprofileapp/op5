@@ -9,11 +9,14 @@ import { SliderInput } from "../../_common/components/SliderInput.js";
 import ColorInput from "../../_common/components/ColorInput.js";
 import { RatingInput } from "../../_common/components/RatingInput.js";
 import { GetTemplateValueType } from "../../../_common/types/template/value.type.js";
-import { FieldOptionsType } from "../../../_common/types/field.type.js";
-import { cdnBaseUrl } from "../../_common/scripts/domains.js";
-import { getTextColor } from "../../_common/scripts/color.js";
+import { FieldNameType, FieldOptionsType } from "../../../_common/types/field.type.js";
+import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
 import ImageInput from "../../_common/components/ImageInput.js";
+import { Link } from "react-router-dom";
+import { toast } from "../../_common/scripts/toast.js";
+import { DropdownOptionsType } from "../../../_common/types/dropdown.type.js";
+import { TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 
 export interface MetadataObject {
     author?: string;
@@ -27,7 +30,7 @@ export interface MetadataObject {
 
 interface Props {
     id: string;
-    type: string;
+    type: FieldNameType;
     label?: string;
     placeholder?: string;
     guide?: string;
@@ -35,7 +38,10 @@ interface Props {
     options?: FieldOptionsType;
     // notes?: GetNoteType | GetNoteType[] | string;
     // thoughts?: GetThoughtType | GetThoughtType[] | string;
+    url: string;
+    rowId: string;
     readOnly?: boolean;
+    isLocked?: boolean;
     onChange: (
         value: string | number, 
         options?: ValueOptionsType
@@ -45,6 +51,11 @@ interface Props {
         ref?: (element: HTMLElement | null) => void;
         [key: string]: unknown;
     };
+    onFieldChange: (
+        targetRowId: string,
+        originalFieldId: string,
+        incoming: Partial<TemplateFieldItemType>
+    ) => boolean | Promise<boolean>;
 }
 
 export default function TemplateField({
@@ -57,15 +68,23 @@ export default function TemplateField({
     options,
     // notes,
     // thoughts,
+    url,
+    rowId,
     readOnly = false,
+    isLocked = false,
     onChange,
     dragHandleProps,
+    onFieldChange
 }: Props) {
-    const { ready: isTranslationReady } = useTranslation();
+    const { t, ready: isTranslationReady } = useTranslation();
 
-    const [isFocused, setIsFocused] = useState(false);
-    const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
-    const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+    const [isFocused, setIsFocused] = useState<boolean>(false);
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
+
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [dataset, setDataset] = useState<DropdownOptionsType>([]);
+
+    const [isLocking, setIsLocking] = useState<boolean>(false);
 
     /*const normalizeMetadataList = (
         target?: string | MetadataObject | (string | MetadataObject)[]
@@ -165,13 +184,49 @@ export default function TemplateField({
         };
     }, [id, closeContextMenu]);
 
-    const checkCollectionMenuPosition = (e: React.MouseEvent<HTMLLIElement>) => {
-        const button = e.currentTarget.getBoundingClientRect();
-        const submenuWidth = 208;
-        const spaceRight = window.innerWidth - button.right;
+    useEffect(() => {
+       if (type !== "dropdown" || !options?.dataset) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsLoading(false);
+            
+            return;
+        };
 
-        setIsContextMenuFlipped(spaceRight < submenuWidth);
-    };
+        async function fetchDataset() {
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/templates/datasets?id=${options?.dataset}`,
+                    { credentials: "include" }
+                );
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    toast.show(
+                        `Failed to fetch dataset`, 
+                        { 
+                            subtext: `${responseData?.id || ""}${responseData?.id ? ": " : ""}${responseData?.message}`,
+                            type: "error" 
+                        }
+                    );
+                } else {
+                    setDataset(JSON.parse(responseData.items?.[0].data) || []);
+                }
+            } catch (error) {
+                toast.show(
+                        `Failed to fetch dataset`, 
+                        { 
+                            subtext: error as string,
+                            type: "error" 
+                        }
+                    );
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchDataset();
+    }, [type, options?.dataset]);
 
     const renderInputContent = () => {
         switch (type) {
@@ -193,9 +248,10 @@ export default function TemplateField({
                         defaultUrl={mediaUrl}
                         options={value?.options as ValueOptionsType}
                         useModal={true}
-                        readOnly={readOnly}
+                        readOnly={readOnly || isLocked}
                         className={`${mediaUrl ? "min-h-36 h-auto" : "min-h-36"} w-full`}
                         accept="image/png, image/jpeg, image/jpg"
+                        onContextMenu={handleContextMenu}
                         onChange={async (file, base64Url, staticFile, staticBase64, updatedOptions) => {
                             setLocalValue(base64Url as string);
 
@@ -205,130 +261,165 @@ export default function TemplateField({
                 );
             }
 
+            case "button": {
+                const url = localValue || `#${id}`;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-            case "button":
                 return (
-                    <a
-                        href={localValue || "#"}
-                        target="_blank"
-                        rel="noreferrer"
+                    <Link
+                        to={url}
+                        target={
+                            (
+                                url.includes(studioBaseUrl) ||
+                                url.startsWith("#")
+                            ) 
+                                ? "" 
+                                : "_blank"
+                        }
                         className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
                         onContextMenu={handleContextMenu}
                     >
-                        {label || "Click Me"}
+                        {url || value?.options?.title}
 
                         <span className="font-nerdfont leading-none">
                             
                         </span>
-                    </a>
+                    </Link>
                 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            }
 
             case "dropdown":
-                // Call optionss api here
                 return (
                     <TypeableDropdownInput
                         value={localValue}
-                        options={options}
+                        options={dataset}
                         placeholder={placeholder || "Select or type..."}
                         largeText={true}
-                        onChange={(newValue) => {
-                            setLocalValue(String(newValue));
-                            onChange?.(newValue);
+                        onChange={(value) => {
+                            setLocalValue(value as string);
+                            onChange?.(value as string);
                         }}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onContextMenu={handleContextMenu}
+                        typeable={options?.typeable}
+                        multiple={options?.multiselect}
+                        readonly={readOnly || isLocked}
+                        isLoading={isLoading}
                     />
                 );
 
-            case "slider":
-                return <SliderInput 
-                    defaultValue={Number(localValue)}
-                />;
+            case "slider": {
+                const valueRecord = options?.valueFormat;
+
+                const markValues = valueRecord
+                    ? Object.keys(valueRecord)
+                        .map(Number)
+                        .filter(Number.isFinite)
+                        .sort((a, b) => a - b)
+                    : [];
+
+                const min = markValues.length > 0 ? markValues[0] : 0;
+                const max = markValues.length > 0 ? markValues[markValues.length - 1] : 0;
+
+                return (
+                    <SliderInput
+                        value={Number(localValue)}
+                        min={min || 0}
+                        max={max || 100}
+                        marks={markValues}
+                        valueFormat={valueRecord}
+                        readOnly={readOnly || isLocked}
+                        onContextMenu={handleContextMenu}
+                        onChange={(value) => {
+                            setLocalValue(value as unknown as string)
+                            onChange?.(value as unknown as string);
+                        }}
+                    />
+                );
+            }
 
             case "color":
-                return <ColorInput 
-                    value={localValue}
-                />;
-
-            case "rating":
-                return <RatingInput
-                    defaultValue={Number(localValue)}
-                />
-
-            case "asset":
                 return (
-                    <div
-                        className="input input-bordered bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base flex items-center justify-between cursor-pointer"
+                    <ColorInput 
+                        value={localValue}
+                        readOnly={readOnly || isLocked}
                         onContextMenu={handleContextMenu}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        tabIndex={0}
-                    >
-                        <span className="truncate text-sub">
-                            {localValue || "Select Asset..."}
-                        </span>
-                        <span className="font-nerdfont text-lg"></span>
-                    </div>
+                        onChange={(value) => {
+                            setLocalValue(value)
+                            onChange?.(value);
+                        }}
+                    />
                 );
 
-            case "spacer":
+            case "rating": {
+                const valueRecord = options?.valueFormat;    
+
+                const markValues = valueRecord
+                    ? Object.keys(valueRecord)
+                        .map(Number)
+                        .filter(Number.isFinite)
+                        .sort((a, b) => a - b)
+                    : [];
+
+                const max = markValues.length > 0 ? markValues[markValues.length - 1] : 0;
+
                 return (
-                    <div className="flex items-center justify-center w-full py-4 text-xs text-sub opacity-50" />
+                    <RatingInput
+                        value={Number(localValue)}
+                        icon={options?.icon}
+                        maxRating={max || 5}
+                        valueFormat={valueRecord}
+                        readOnly={readOnly || isLocked}
+                        onContextMenu={handleContextMenu}
+                        onChange={(value) => {
+                            setLocalValue(value as unknown as string)
+                            onChange?.(value as unknown as string);
+                        }}
+                    />
                 );
+            }
+
+            case "separator": {
+                let element;
+
+                switch (options?.separator) {
+                    case "divider":
+                        element = (
+                            <div 
+                                className="flex items-center justify-center w-full my-4 text-xs text-sub opacity-50"
+                                onContextMenu={handleContextMenu}
+                            >
+                                {!readOnly && "This text is only visible during editing to display where the spacer is located"}
+                            </div>
+                        )
+                        break;
+
+                    case "header":
+                        element = (
+                            <div 
+                                className="text-3xl my-4 w-full text-center font-semibold"
+                                onContextMenu={handleContextMenu}
+                            >
+                                {localValue}
+                            </div>
+                        )
+                        break;
+                
+                    case "spacer":
+                    default:
+                        element = (
+                            <div 
+                                className="flex items-center justify-center w-full my-4 text-xs text-sub opacity-50"
+                                onContextMenu={handleContextMenu}
+                            >
+                                {!readOnly && "This text is only visible during editing to display where the spacer is located"}
+                            </div>
+                        )
+                        break;
+                }
+                
+                return element
+            }
 
             case "text":
             default:
@@ -342,6 +433,7 @@ export default function TemplateField({
                         spellCheck={false}
                         autoCorrect="off"
                         autoCapitalize="off"
+                        readOnly={readOnly || isLocked}
                         onChange={(e) => {
                             setLocalValue(e.target.value);
                             onChange?.(e.target.value);
@@ -373,351 +465,50 @@ export default function TemplateField({
 
     return (
         <div className="flex gap-3 w-full">
-                <ul
-                className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
+            <ul
+                className={`${readOnly ? "hidden" : ""} dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50`}
                 popover="manual"
                 id={`context-field-${id}`}
             >
+                {!isLocked && (
+                    <li>
+                        <button 
+                            className="flex items-center justify-between gap-4"
+                            onClick={() => {
+                                // Open the edit modal here
+                            }}
+                        >
+                            Edit Field
+                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                
+                            </span>
+                        </button>
+                    </li>
+                )}
+
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            const titles = ["Dr.", "Sir"];
-
-                            const firstNames = [
-                                "Liam", "Noah", "Oliver", "James", "Emma", "Olivia",
-                                "Sophia", "Charlotte", "Amelia", "Lucas", "Nathaniel",
-                                "Evelyn", "Theodore", "Julian", "Isla", "Rowan",
-                                "Ezra", "Arthur", "Vivian", "Adrian", "Felix"
-                            ];
-
-                            const middleNames = [
-                                "Alexander", "Grace", "Marie", "Rose", "James",
-                                "Anne", "Elizabeth", "Michael", "Joseph", "Lee",
-                                "Kai", "Jean", "Orion", "August", "Skye"
-                            ];
-
-                            const lastNames = [
-                                "Smith", "Johnson", "Williams", "Brown", "Jones",
-                                "Garcia", "Miller", "Davis", "Wilson", "Taylor",
-                                "Blackwood", "Ashcroft", "Montgomery", "Fairchild"
-                            ];
-
-                            const suffixes = ["Jr."];
-
-                            const random = <T,>(arr: T[]) =>
-                                arr[Math.floor(Math.random() * arr.length)];
-
-                            const parts: string[] = [];
-
-                            if (Math.random() < 0.2) {
-                                parts.push(random(titles));
-                            }
-
-                            parts.push(random(firstNames));
-
-                            if (Math.random() < 0.7) {
-                                parts.push(random(middleNames));
-                            }
-
-                            parts.push(random(lastNames));
-
-                            if (Math.random() < 0.15) {
-                                parts.push(random(suffixes));
-                            }
-
-                            const response = parts.join(" ");
-
-                            const textarea = document.getElementById(`field-${id}`);
-
-                            if (textarea) {
-                                textarea.textContent = "";
-                            }
-
-                            let index = 0;
-
-                            const interval = setInterval(() => {
-                                index++;
-
-                                if (textarea) {
-                                    textarea.textContent = response.slice(0, index);
-                                }
-
-                                if (index >= response.length) {
-                                    clearInterval(interval);
-                                }
-                            }, 20);
-
+                        onClick={async () => {
                             closeContextMenu();
+
+                            setIsLocking(true);
+
+                            await onFieldChange(
+                                rowId,
+                                id,
+                                {
+                                    fieldId: id,
+                                    isLocked: !isLocked
+                                }
+                            )
+
+                            setIsLocking(false);
                         }}
                     >
-                        Generate
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
-
-                <hr />
-
-                {isFocused && (
-                    <li 
-                        className="relative group"
-                        onMouseEnter={checkCollectionMenuPosition}
-                    >
-                        <button className="flex items-center justify-between gap-4 w-full">
-                            Format
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                
-                            </span>
-                        </button>
-
-                        <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
-
-                        <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Bold
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 rounded-full leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Italic
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 rounded-full leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Underline
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 rounded-full leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Strikethrough
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 rounded-full leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-                            </li>
-                        </ul>
-                    
-                    </li>
-                )}
-
-                {isFocused && (
-                    <li 
-                        className="relative group"
-                        onMouseEnter={checkCollectionMenuPosition}
-                    >
-                        <button className="flex items-center justify-between gap-4 w-full">
-                            Highlight
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                
-                            </span>
-                        </button>
-
-                        <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
-
-                        <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Yellow
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-yellow-400"
-                                        style={{ color: getTextColor("yellow-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Orange
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-orange-400"
-                                        style={{ color: getTextColor("orange-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Red
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-red-400"
-                                        style={{ color: getTextColor("red-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Pink
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-pink-400"
-                                        style={{ color: getTextColor("pink-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Purple
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-purple-400"
-                                        style={{ color: getTextColor("purple-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Blue
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-blue-400"
-                                        style={{ color: getTextColor("blue-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Green
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-green-400"
-                                        style={{ color: getTextColor("green-400") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <hr />
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    My Custom Purple
-                                    <span 
-                                        className="font-nerdfont text-lg flex h-6 w-12 rounded-full leading-none items-center justify-center bg-purple-800"
-                                        style={{ color: getTextColor("purple-800") }}
-                                    >
-                                        󰙒
-                                    </span>
-                                </button>
-                            </li>
-                            <hr />
-                            <li>
-                                <button 
-                                    className="flex items-center justify-between gap-4"
-                                    onClick={() => {
-                                        // exampleTrigger();
-                                        // closeContextMenu(id);
-                                    }}
-                                >
-                                    Add Custom Color
-                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                        
-                                    </span>
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
-                )}
-                
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Notes
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
+                        {isLocked ? "Unlock" : "Lock"} Field
+                        <span className={`${isLocking ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}>
+                            {isLocked ? "" : ""}
                         </span>
                     </button>
                 </li>
@@ -727,127 +518,29 @@ export default function TemplateField({
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
+                        onClick={async () => {
+                            closeContextMenu();
+
+                            try {
+                                await navigator.clipboard.writeText(
+                                    `${url}#${id}`
+                                );
+
+                                toast.show(
+                                    t("components.toasts.copiedLink"), 
+                                    { type: "success" }
+                                );
+                            } catch {
+                                toast.show(
+                                    t("components.toasts.failedCopiedLink"), 
+                                    { type: "error" }
+                                );
+                            }
                         }}
                     >
-                        Cut
-                        <span className="text-sm text-sub pr-5 flex h-6 w-4 leading-none items-center justify-center">
-                            Ctrl+X
-                        </span>
-                    </button>
-                </li>
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Copy
-                        <span className="text-sm text-sub pr-5 flex h-6 w-4 leading-none items-center justify-center">
-                            Ctrl+C
-                        </span>
-                    </button>
-                </li>
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Paste
-                        <span className="text-sm text-sub pr-5 flex h-6 w-4 leading-none items-center justify-center">
-                            Ctrl+P
-                        </span>
-                    </button>
-                </li>
-                
-                <hr />
-
-                <li 
-                    className="relative group"
-                    onMouseEnter={checkCollectionMenuPosition}
-                >
-                    <button className="flex items-center justify-between gap-4 w-full">
-                        Assign to
+                        Copy Link
                         <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-
-                    <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
-
-                    <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
-                        <li>
-                            <button 
-                                className="flex items-center justify-between gap-4"
-                                onClick={() => {
-                                    // exampleTrigger();
-                                    // closeContextMenu(id);
-                                }}
-                            >
-                                J9 Studios
-                                <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                    <img 
-                                        className="rounded-full translate-x-[2px]"
-                                        src="https://cdn.openprofile.app//uploads/users/5019646586243236/5019646586243236.png"
-                                    />
-                                </span>
-                            </button>
-                        </li>
-                        <li>
-                            <button 
-                                className="flex items-center justify-between gap-4"
-                                onClick={() => {
-                                    // exampleTrigger();
-                                    // closeContextMenu(id);
-                                }}
-                            >
-                                OpenProfile
-                                <span className="font-nerdfont text-lg flex h-6 w-5 leading-none items-center justify-center">
-                                    <img 
-                                        className="rounded-full translate-x-[2px]"
-                                        src="https://cdn.openprofile.app/uploads/users/9534968913312158/9534968913312158.png"
-                                    />
-                                </span>
-                            </button>
-                        </li>
-                        <hr />
-                        <li>
-                            <button 
-                                className="flex items-center justify-between gap-4"
-                                onClick={() => {
-                                    // exampleTrigger();
-                                    // closeContextMenu(id);
-                                }}
-                            >
-                                Invite User
-                                <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                    
-                                </span>
-                            </button>
-                        </li>
-                    </ul>
-                </li>
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Edit Field
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
+                            
                         </span>
                     </button>
                 </li>
@@ -855,53 +548,66 @@ export default function TemplateField({
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Lock Field
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
+                        onClick={async () => {
+                            closeContextMenu();
 
-                <hr />
+                            try {
+                                await navigator.clipboard.writeText(id);
 
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
-                        }}
-                    >
-                        Share
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰒗
-                        </span>
-                    </button>
-                </li>
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            // exampleTrigger();
-                            // closeContextMenu(id);
+                                toast.show(
+                                    t("components.toasts.copiedId"), 
+                                    { type: "success" }
+                                );
+                            } catch {
+                                toast.show(
+                                    t("components.toasts.failedCopiedId"), 
+                                    { type: "error" }
+                                );
+                            }
                         }}
                     >
                         Copy ID
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            󰅇
+                        <span className="font-nerdfont text-3xl flex h-6 w-4 leading-none items-center justify-center">
+                            󰻾
                         </span>
                     </button>
                 </li>
             </ul>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend text-sm font-normal flex items-center gap-1">
+                <legend className="fieldset-legend text-sm font-normal flex items-center gap-2">
                     {dragHandleProps && (
                         <span {...dragHandleProps}>
                             <button
@@ -915,43 +621,23 @@ export default function TemplateField({
                         </span>
                     )}
 
-                    <span>{label}</span>
+                    {
+                        type !== "button" 
+                        && type !== "separator" 
+                    && (
+                        <span>{label}</span>
+                    )}
 
-                    {/*<span className={`tooltip ${notesList.length > 0 ? "" : "hidden"}`}>
-                        <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
-                            <div className="font-bold text-center">Notes</div>
-                            <div className="flex flex-col gap-1 text-xs">
-                                {notesList.map((item, idx) => (
-                                    <div key={idx} className="border-b border-base-300 last:border-none pb-1 last:pb-0">
-                                        {item.author && <span className="font-semibold block text-[10px] opacity-75">{item.author}</span>}
-                                        <span>{item.text}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                            
+                    {Boolean(isLocked) && !readOnly && (
+                        <span 
+                            className="tooltip tooltip-accent"
+                            data-tip="Locked"
+                        >
+                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                
+                            </span>
                         </span>
-                    </span>
-
-                    <span className={`tooltip ${thoughtsList.length > 0 ? "" : "hidden"}`}>
-                        <div className="flex flex-col gap-2 tooltip-content text-left max-w-xs">
-                            <div className="font-bold text-center">
-                                Thoughts
-                            </div>
-                            <div className="flex flex-col gap-1 text-xs">
-                                {thoughtsList.map((item, idx) => (
-                                    <div key={idx} className="border-b border-base-300 last:border-none pb-1 last:pb-0">
-                                        {item.author && <span className="font-semibold block text-[10px] opacity-75">{item.author}</span>}
-                                        <span>{item.text}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                            󰟶
-                        </span>
-                    </span>*/}
+                    )}
                 </legend>
 
                 {renderInputContent()}
