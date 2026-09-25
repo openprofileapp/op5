@@ -22,6 +22,8 @@ type Props = {
     placeholder?: string;
     disabled?: boolean;
     wheelSize?: number;
+    onContextMenu?: (e: React.MouseEvent) => void;
+    readOnly: boolean;
 };
 
 const parseToHsva = (colorStr: string): HsvaColor => {
@@ -81,6 +83,8 @@ export default function ColorInput({
     placeholder = "#000000",
     disabled = false,
     wheelSize = 160,
+    onContextMenu,
+    readOnly
 }: Props) {
     const [color, setColor] = useState<string>(value ?? defaultValue);
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -113,7 +117,11 @@ export default function ColorInput({
     };
 
     return (
-        <div ref={containerRef} className={`flex flex-col gap-1 relative ${className}`}>
+        <div 
+            ref={containerRef} 
+            className={`flex flex-col gap-1 relative ${className}`}
+            onContextMenu={onContextMenu}
+        >
             {label && (
                 <label className="label text-sm font-medium p-0 mb-1">
                     {label}
@@ -146,9 +154,9 @@ export default function ColorInput({
             <div className="relative flex items-center w-full border border-base-300 rounded bg-base-100">
                 <button
                     type="button"
-                    disabled={disabled}
+                    disabled={disabled || readOnly}
                     onClick={() => setIsOpen((prev) => !prev)}
-                    className="absolute left-0 top-0 bottom-0 z-1 w-16 cursor-pointer shrink-0 rounded overflow-hidden focus:outline-none disabled:cursor-not-allowed"
+                    className="absolute left-0 top-0 bottom-0 z-1 w-16 cursor-pointer shrink-0 rounded overflow-hidden focus:outline-none disabled:cursor-default"
                     style={{
                         backgroundImage: `linear-gradient(to right, ${hexColor} 0%, transparent 100%)`,
                     }}
@@ -158,6 +166,7 @@ export default function ColorInput({
                     type="text"
                     value={color}
                     disabled={disabled}
+                    readOnly={readOnly}
                     placeholder={placeholder}
                     onChange={(e) => handleColorChange(e.target.value)}
                     className="input w-full pl-18 text-sm border-none bg-transparent outline-none focus:outline-none focus:border-none focus:ring-0 rounded-none"
