@@ -205,10 +205,6 @@ const UploadMediaModal = forwardRef<UploadMediaModalRef, object>((_, ref) => {
                     </button>
                 </div>
             </div>
-
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" />
-            </form>
         </dialog>
     );
 });
