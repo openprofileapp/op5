@@ -10,14 +10,15 @@ export type FieldNameType =
     | "timeline"
     | "calendar"
     | "table"
-    | "spacer"
+    | "separator"
 ;
 
 export type FieldOptionsType = {
-    dataset: string;
-    min: number;
-    max: number;
-    marks: number;
-    icon: "star" | "heart";
-    spacer: "blank" | "line";
+    dataset?: string;
+    valueFormat?: Record<number, string>;
+    icon?: "star" | "heart";
+    maxRating?: number;
+    separator?: "spacer" | "divider" | "header";
+    typeable?: boolean;
+    multiselect?: boolean;
 }
