@@ -12,7 +12,7 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 export const insertFields = async (req: Request, res: Response) => {
     try {
         const { templateId } = req.params;
-        const { fieldId, rowId, type, label, placeholder, dataset, guide, position } = req.body;
+        const { fieldId, rowId, type, label, placeholder, options, guide, position } = req.body;
 
         await assertBearer(req);
         assertAccount(req.session);
@@ -46,7 +46,21 @@ export const insertFields = async (req: Request, res: Response) => {
             });
         }
 
-        const countResult = db.templates.query<{ count: number }>(
+        const getFieldIdResult = db.templates.query(
+            "SELECT * FROM fields WHERE fieldId = ?",
+            [fieldId]
+        );
+
+        assertDbSuccess(getFieldIdResult);
+
+        if (getFieldIdResult.rowCount !== 0) {
+            throw new AdvancedError({
+                code: 404,
+                message: `A field with ID "${fieldId}" already exists`
+            });
+        }
+
+        const countResult = db.templates.query(
             "SELECT 1 FROM fields WHERE rowId = ?",
             [rowId]
         );
@@ -70,7 +84,7 @@ export const insertFields = async (req: Request, res: Response) => {
                 type, 
                 label, 
                 placeholder, 
-                dataset, 
+                options, 
                 guide, 
                 position, 
                 createdBy
@@ -82,7 +96,7 @@ export const insertFields = async (req: Request, res: Response) => {
                 type ?? "text",
                 label ?? "",
                 placeholder ?? "",
-                dataset ?? "",
+                options ?? "",
                 guide ?? "",
                 targetPosition,
                 req.session.userId
