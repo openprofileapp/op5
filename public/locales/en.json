@@ -69,6 +69,7 @@
     "invalidTagsFormat": "Tags can only contain a-z and dashes, and be between 3-24 characters",
     "invalidDateFormat": "Invalid date format",
     "invalidVisibility": "Invalid visibility",
+    "invalidFieldId": "Invalid field id",
     "invalidType": "Invalid account type",
     "underage": "You must be at least 13 years old to use OpenProfile",
     "cannotChangeHiddenState": "Some parts of your profile have been set hidden by a moderator. It cannot be updated at this time.",
@@ -245,7 +246,9 @@
       "notInterested" : "You will no longer see",
       "interested" : "You will see",
       "copiedId": "ID copied to clipboard",
-      "failedCopiedId": "Failed to copy ID to clipboard"
+      "failedCopiedId": "Failed to copy ID to clipboard",
+      "copiedLink": "Link copied to clipboard",
+      "failedCopiedLink": "Failed to copy link to clipboard"
     },
     "badges": {
       "verifiedComment": "This profile is managed by its intellectual property owners or authorized individuals.",
@@ -273,7 +276,9 @@
     },
     "dropdown": {
       "selectOption": "Select Option",
-      "selectOrType": "Select or type..."
+      "selectOrType": "Select or type...",
+      "loadingDataset": "Loading dataset...",
+      "noMatchingOptions": "No matching options"
     },
     "modals": {
       "close": "Close",
