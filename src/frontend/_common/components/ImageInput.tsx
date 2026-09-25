@@ -16,6 +16,7 @@ type Props = {
     defaultUrl?: string | null;
     animatedDefaultUrl?: string | null;
     readOnly?: boolean;
+    onContextMenu?: (e: React.MouseEvent) => void;
     onChange: (
         file: File | null,
         base64Url: string | null,
@@ -61,6 +62,7 @@ export default function ImageInput({
     defaultUrl,
     animatedDefaultUrl,
     readOnly = false,
+    onContextMenu,
     onChange,
     accept,
     aspectRatio,
@@ -346,6 +348,7 @@ export default function ImageInput({
         <>
             <div
                 className={`relative group border-base-300 rounded flex items-center justify-center overflow-hidden ${borderStyleClasses} ${cursorClass} ${sizeClasses} ${className}`.trim()}
+                onContextMenu={onContextMenu}
                 onClick={openFilePicker}
                 onMouseEnter={() => !readOnly && setIsHovered(true)}
                 onMouseLeave={() => !readOnly && setIsHovered(false)}
