@@ -40,8 +40,7 @@ const index: FieldTypeOption[] = [
         type: "slider",
         icon: "",
         title: "Slider",
-        description: "Select a value within a range.",
-        comingSoon: true
+        description: "Select a value within a range."
     },
     {
         type: "rating",
@@ -68,10 +67,10 @@ const index: FieldTypeOption[] = [
         description: "Trigger an action or open a link."
     },
     {
-        type: "spacer",
+        type: "separator",
         icon: "󰡏",
-        title: "Spacer",
-        description: "Insert vertical blank space with optional horizontal line."
+        title: "Separator",
+        description: "Insert vertical spacing, horizontal line, or text headers."
     },
     {
         type: "asset",
