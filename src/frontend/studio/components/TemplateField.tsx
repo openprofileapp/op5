@@ -1,7 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 import { GetValueType } from "../../../_common/types/blocks/value.type.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
@@ -17,6 +15,8 @@ import { Link } from "react-router-dom";
 import { toast } from "../../_common/scripts/toast.js";
 import { DropdownOptionsType } from "../../../_common/types/dropdown.type.js";
 import { TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
+import TemplateContextMenu from "./TemplateContextMenu.js";
+import MarkdownRenderer from "../../_common/components/markdown/Renderer.js";
 
 export interface MetadataObject {
     author?: string;
@@ -39,8 +39,10 @@ interface Props {
     // notes?: GetNoteType | GetNoteType[] | string;
     // thoughts?: GetThoughtType | GetThoughtType[] | string;
     url: string;
+    templateId: string;
     rowId: string;
     readOnly?: boolean;
+    data?: TemplateFieldItemType;
     isLocked?: boolean;
     onChange: (
         value: string | number, 
@@ -56,6 +58,10 @@ interface Props {
         originalFieldId: string,
         incoming: Partial<TemplateFieldItemType>
     ) => boolean | Promise<boolean>;
+    onDelete: (
+        id: string,
+        type: "field" | "row" | "block" | "category"
+    ) => void;
 }
 
 export default function TemplateField({
@@ -69,22 +75,22 @@ export default function TemplateField({
     // notes,
     // thoughts,
     url,
+    templateId,
     rowId,
     readOnly = false,
     isLocked = false,
+    data,
     onChange,
     dragHandleProps,
-    onFieldChange
+    onFieldChange,
+    onDelete
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const [isFocused, setIsFocused] = useState<boolean>(false);
-    const [isContextMenuOpen, setIsContextMenuOpen] = useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [dataset, setDataset] = useState<DropdownOptionsType>([]);
-
-    const [isLocking, setIsLocking] = useState<boolean>(false);
 
     /*const normalizeMetadataList = (
         target?: string | MetadataObject | (string | MetadataObject)[]
@@ -120,29 +126,11 @@ export default function TemplateField({
         setLocalValue(displayValue);
     }, [displayValue]);
 
-    useEffect(() => {
-        if (isContextMenuOpen) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [isContextMenuOpen]);
-
-    const closeContextMenu = useCallback(() => {
-        setIsContextMenuOpen(false);
-        document.getElementById(`context-field-${id}`)?.hidePopover();
-    }, [id]);
-
     const handleContextMenu = (e: React.MouseEvent) => {
         e.preventDefault();
-        setIsContextMenuOpen(true);
 
         const popover = document.getElementById(
-            `context-field-${id}`
+            `context-${id}`
         ) as HTMLElement | null;
 
         if (!popover) return;
@@ -163,26 +151,6 @@ export default function TemplateField({
             )}px`;
         });
     };
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            const menu = document.getElementById(`context-field-${id}`);
-
-            if (!menu) return;
-
-            if (menu.contains(e.target as Node)) {
-                return;
-            }
-
-            closeContextMenu();
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [id, closeContextMenu]);
 
     useEffect(() => {
        if (type !== "dropdown" || !options?.dataset) {
@@ -243,7 +211,7 @@ export default function TemplateField({
 
                 return (
                     <ImageInput
-                        id={id}
+                        id={`field-${id}`}
                         value={null}
                         defaultUrl={mediaUrl}
                         options={value?.options as ValueOptionsType}
@@ -266,6 +234,7 @@ export default function TemplateField({
 
                 return (
                     <Link
+                        id={`field-${id}`}
                         to={url}
                         target={
                             (
@@ -290,6 +259,7 @@ export default function TemplateField({
             case "dropdown":
                 return (
                     <TypeableDropdownInput
+                        id={`field-${id}`}
                         value={localValue}
                         options={dataset}
                         placeholder={placeholder || "Select or type..."}
@@ -323,6 +293,7 @@ export default function TemplateField({
 
                 return (
                     <SliderInput
+                        id={`field-${id}`}
                         value={Number(localValue)}
                         min={min || 0}
                         max={max || 100}
@@ -341,6 +312,7 @@ export default function TemplateField({
             case "color":
                 return (
                     <ColorInput 
+                        id={`field-${id}`}
                         value={localValue}
                         readOnly={readOnly || isLocked}
                         onContextMenu={handleContextMenu}
@@ -365,6 +337,7 @@ export default function TemplateField({
 
                 return (
                     <RatingInput
+                        id={`field-${id}`}
                         value={Number(localValue)}
                         icon={options?.icon}
                         maxRating={max || 5}
@@ -387,6 +360,7 @@ export default function TemplateField({
                         element = (
                             <div 
                                 className="flex items-center justify-center w-full my-4 text-xs text-sub opacity-50"
+                                id={`field-${id}`}
                                 onContextMenu={handleContextMenu}
                             >
                                 {!readOnly && "This text is only visible during editing to display where the spacer is located"}
@@ -398,6 +372,7 @@ export default function TemplateField({
                         element = (
                             <div 
                                 className="text-3xl my-4 w-full text-center font-semibold"
+                                id={`field-${id}`}
                                 onContextMenu={handleContextMenu}
                             >
                                 {localValue}
@@ -410,6 +385,7 @@ export default function TemplateField({
                         element = (
                             <div 
                                 className="flex items-center justify-center w-full my-4 text-xs text-sub opacity-50"
+                                id={`field-${id}`}
                                 onContextMenu={handleContextMenu}
                             >
                                 {!readOnly && "This text is only visible during editing to display where the spacer is located"}
@@ -465,146 +441,20 @@ export default function TemplateField({
 
     return (
         <div className="flex gap-3 w-full">
-            <ul
-                className={`${readOnly ? "hidden" : ""} dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50`}
-                popover="manual"
-                id={`context-field-${id}`}
-            >
-                {!isLocked && (
-                    <li>
-                        <button 
-                            className="flex items-center justify-between gap-4"
-                            onClick={() => {
-                                // Open the edit modal here
-                            }}
-                        >
-                            Edit Field
-                            <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                                
-                            </span>
-                        </button>
-                    </li>
-                )}
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={async () => {
-                            closeContextMenu();
-
-                            setIsLocking(true);
-
-                            await onFieldChange(
-                                rowId,
-                                id,
-                                {
-                                    fieldId: id,
-                                    isLocked: !isLocked
-                                }
-                            )
-
-                            setIsLocking(false);
-                        }}
-                    >
-                        {isLocked ? "Unlock" : "Lock"} Field
-                        <span className={`${isLocking ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}>
-                            {isLocked ? "" : ""}
-                        </span>
-                    </button>
-                </li>
-
-                <hr />
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={async () => {
-                            closeContextMenu();
-
-                            try {
-                                await navigator.clipboard.writeText(
-                                    `${url}#${id}`
-                                );
-
-                                toast.show(
-                                    t("components.toasts.copiedLink"), 
-                                    { type: "success" }
-                                );
-                            } catch {
-                                toast.show(
-                                    t("components.toasts.failedCopiedLink"), 
-                                    { type: "error" }
-                                );
-                            }
-                        }}
-                    >
-                        Copy Link
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
-
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={async () => {
-                            closeContextMenu();
-
-                            try {
-                                await navigator.clipboard.writeText(id);
-
-                                toast.show(
-                                    t("components.toasts.copiedId"), 
-                                    { type: "success" }
-                                );
-                            } catch {
-                                toast.show(
-                                    t("components.toasts.failedCopiedId"), 
-                                    { type: "error" }
-                                );
-                            }
-                        }}
-                    >
-                        Copy ID
-                        <span className="font-nerdfont text-3xl flex h-6 w-4 leading-none items-center justify-center">
-                            󰻾
-                        </span>
-                    </button>
-                </li>
-            </ul>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            
+            <TemplateContextMenu 
+                id={id}
+                type="field"
+                label={label}
+                url={url}
+                templateId={templateId}
+                rowId={rowId}
+                readOnly={readOnly}
+                data={{ field: data }}
+                isLocked={isLocked}
+                onChange={onFieldChange}
+                onDelete={onDelete}
+            />
 
             <fieldset className="fieldset w-full">
                 <legend className="fieldset-legend text-sm font-normal flex items-center gap-2">
@@ -642,7 +492,7 @@ export default function TemplateField({
 
                 {renderInputContent()}
 
-                {Boolean(guide) && (
+                {(Boolean(guide) && !readOnly) && (
                     <div
                         className={`overflow-hidden transition-all duration-300 ease-out ${
                             isFocused
@@ -654,64 +504,9 @@ export default function TemplateField({
                         }}
                     >
                         <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
-                            <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                    p: ({ children, node }) => {
-                                        const isFirstParagraph =
-                                            node?.position?.start.line === 1;
-                                        return (
-                                            <p className={isFirstParagraph ? "" : "mt-2"}>
-                                                {isFirstParagraph && (
-                                                    <span className="font-nerdfont inline-block mr-2 text-base align-middle">
-                                                        󰋼
-                                                    </span>
-                                                )}
-                                                {children}
-                                            </p>
-                                        );
-                                    },
-
-                                    ul: ({ children, node }) => {
-                                        const isFirstList =
-                                            node?.position?.start.line === 1;
-                                        return (
-                                            <div className="my-1">
-                                                {isFirstList && (
-                                                    <span className="font-nerdfont inline-block mr-2 text-base align-middle">
-                                                        󰋼
-                                                    </span>
-                                                )}
-                                                <ul className="inline-block list-disc pl-5 my-0">
-                                                    {children}
-                                                </ul>
-                                            </div>
-                                        );
-                                    },
-
-                                    li: ({ children }) => (
-                                        <li className="my-0">{children}</li>
-                                    ),
-
-                                    a: ({ children, ...props }) => (
-                                        <span>
-                                            <span className="font-nerdfont inline-block mx-1 text-sm align-middle">
-                                                
-                                            </span>
-                                            <a
-                                                {...props}
-                                                className="font-bold hover:underline inline-block"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {children}
-                                            </a>
-                                        </span>
-                                    ),
-                                }}
-                            >
-                                {guide}
-                            </ReactMarkdown>
+                            <MarkdownRenderer
+                                content={guide}
+                            />
                         </div>
                     </div>
                 )}
