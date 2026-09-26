@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 interface Props {
+    id?: string;
     value?: number;
     defaultValue?: number;
     maxRating?: number;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const RatingInput = ({
+    id,
     value,
     defaultValue = 0,
     maxRating = 5,
@@ -74,6 +76,7 @@ export const RatingInput = ({
     return (
         <div 
             className={`flex flex-col gap-1 w-full ${className}`}
+            id={id}
             onContextMenu={onContextMenu}
         >
             <div

@@ -55,7 +55,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export default function ImageInput({
-    id = "",
+    id,
     options,
     useModal = false,
     value,
@@ -242,7 +242,7 @@ export default function ImageInput({
 
             uploadMediaModal.open({
                 type: "content",
-                fieldId: id,
+                fieldId: id ?? "",
                 url: previewUrl ?? "",
                 description: (options?.description as string) ?? "",
                 credit: (options?.credit as unknown as string) ?? "",
@@ -348,6 +348,7 @@ export default function ImageInput({
         <>
             <div
                 className={`relative group border-base-300 rounded flex items-center justify-center overflow-hidden ${borderStyleClasses} ${cursorClass} ${sizeClasses} ${className}`.trim()}
+                id={id}
                 onContextMenu={onContextMenu}
                 onClick={openFilePicker}
                 onMouseEnter={() => !readOnly && setIsHovered(true)}
@@ -357,6 +358,7 @@ export default function ImageInput({
                     <>
                         {isVideo ? (
                             <video
+                                id={id}
                                 ref={videoRef}
                                 src={previewUrl || undefined}
                                 className="h-full w-full rounded object-cover"
@@ -367,6 +369,7 @@ export default function ImageInput({
                             />
                         ) : readOnly ? (
                             <ZoomableMedia
+                                id={id}
                                 src={animatedUrl || previewUrl || ""}
                                 description={options?.description}
                                 credit={options?.credit}
@@ -376,6 +379,7 @@ export default function ImageInput({
                             />
                         ) : (
                             <img
+                                id={id}
                                 src={displayImageSrc ?? undefined}
                                 className={`h-full w-full rounded ${
                                     isSvg ? "object-contain" : "object-cover"
@@ -401,6 +405,7 @@ export default function ImageInput({
                 )}
 
                 <input
+                    id={id}
                     ref={inputRef}
                     type="file"
                     accept={accept}

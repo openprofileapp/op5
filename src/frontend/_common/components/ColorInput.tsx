@@ -14,6 +14,7 @@ import {
 type ColorFormat = "hex" | "rgb" | "hsl";
 
 type Props = {
+    id?: string;
     value?: string;
     defaultValue?: string;
     onChange?: (color: string) => void;
@@ -75,6 +76,7 @@ const formatHsva = (hsvaObj: HsvaColor, format: ColorFormat): string => {
 };
 
 export default function ColorInput({
+    id,
     value,
     defaultValue = "#000000",
     onChange,
@@ -118,7 +120,8 @@ export default function ColorInput({
 
     return (
         <div 
-            ref={containerRef} 
+            ref={containerRef}
+            id={id}
             className={`flex flex-col gap-1 relative ${className}`}
             onContextMenu={onContextMenu}
         >
@@ -163,6 +166,7 @@ export default function ColorInput({
                 />
 
                 <input
+                    id={id}
                     type="text"
                     value={color}
                     disabled={disabled}

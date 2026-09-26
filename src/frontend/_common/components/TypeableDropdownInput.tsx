@@ -18,6 +18,7 @@ interface NormalizedOption {
 }
 
 interface TypeableDropdownInputProps {
+    id?: string;
     value?: DropdownOptionValue | DropdownOptionValue[];
     options?: DropdownOptionsType;
     placeholder?: string;
@@ -35,6 +36,7 @@ interface TypeableDropdownInputProps {
 }
 
 export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
+    id,
     value = "",
     options = [],
     placeholder,
@@ -507,6 +509,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
             {!readonly ? (
                 <div
                     ref={containerRef}
+                    id={id}
                     className="flex flex-col w-full relative"
                     onContextMenu={onContextMenu}
                 >
@@ -543,6 +546,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                 ))}
 
                             <input
+                                id={id}
                                 ref={inputRef}
                                 type="text"
                                 autoComplete="off"
@@ -626,6 +630,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 </div>
             ) : (
                 <textarea
+                    id={id}
                     className="textarea resize-none bg-base-100 border border-base-300 w-full min-h-10 h-10 text-base overflow-hidden z-2"
                     value={inputValue}
                     readOnly={readonly}

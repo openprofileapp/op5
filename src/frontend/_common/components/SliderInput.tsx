@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 interface Props {
+    id?: string;
     value?: number;
     defaultValue?: number;
     min?: number;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export const SliderInput = ({
+    id,
     value,
     defaultValue = 0,
     min = 0,
@@ -77,7 +79,10 @@ export const SliderInput = ({
     }, [valueFormat, unit, markValues]);
 
     return (
-        <div className={`flex flex-col gap-1 w-full ${className}`}>
+        <div 
+            className={`flex flex-col gap-1 w-full ${className}`}
+            id={id}
+        >
             <div className={`relative flex flex-col justify-center w-full h-8 ${disabled ? "opacity-60" : ""}`}>
                 <div className="absolute left-0 right-0 h-1.5 bg-base-300 rounded-full pointer-events-none overflow-hidden">
                     <div 
@@ -87,6 +92,7 @@ export const SliderInput = ({
                 </div>
 
                 <input
+                    id={id}
                     type="range"
                     min={min}
                     max={max}
