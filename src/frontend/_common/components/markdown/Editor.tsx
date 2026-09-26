@@ -425,20 +425,22 @@ export default function MarkdownEditor({
                         </label>
                     </div>
 
-                    <button
-                        className={`btn flex items-center justify-center border w-24 h-8 rounded font-normal gap-2 transition-colors ${
-                            !savedValueChanged 
-                                ? "bg-base-200 border-base-300 cursor-not-allowed" 
-                                : "bg-success border-success cursor-pointer"
-                        }`}
-                        onClick={handleSave}
-                        disabled={isSaving || !savedValueChanged}
-                    >
-                        <span className={`${buttonTextClassList} ${isSaving ? "loading w-5 h-5" : ""}`}>
-                            {!savedValueChanged && !isSaving ? "" : "󰆓"}
-                        </span>
-                        {!isSaving && (savedValueChanged ? t("words.Save") : t("words.Saved"))}
-                    </button>
+                    {onSave && (
+                        <button
+                            className={`btn flex items-center justify-center border w-24 h-8 rounded font-normal gap-2 transition-colors ${
+                                !savedValueChanged 
+                                    ? "bg-base-200 border-base-300 cursor-not-allowed" 
+                                    : "bg-success border-success cursor-pointer"
+                            }`}
+                            onClick={handleSave}
+                            disabled={isSaving || !savedValueChanged}
+                        >
+                            <span className={`${buttonTextClassList} ${isSaving ? "loading w-5 h-5" : ""}`}>
+                                {!savedValueChanged && !isSaving ? "" : "󰆓"}
+                            </span>
+                            {!isSaving && (savedValueChanged ? t("words.Save") : t("words.Saved"))}
+                        </button>
+                    )}
                 </div>
             </div>
 
