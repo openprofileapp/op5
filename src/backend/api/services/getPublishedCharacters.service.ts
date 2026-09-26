@@ -308,7 +308,7 @@ export default function getPublishedCharactersService({
                             'position', m.position,
                             'visibility', m.visibility,
                             'addedBy', m.addedBy,
-                            'addedDate', m.addedDate
+                            'date', m.date
                         )
                     )
                     FROM media.published_overview m

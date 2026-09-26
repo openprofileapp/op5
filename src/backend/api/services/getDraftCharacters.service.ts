@@ -228,7 +228,7 @@ export default function getDraftCharactersService({
                             'position', m.position,
                             'visibility', m.visibility,
                             'addedBy', m.addedBy,
-                            'addedDate', m.addedDate
+                            'date', m.date
                         )
                     )
                     FROM media.draft_overview m
