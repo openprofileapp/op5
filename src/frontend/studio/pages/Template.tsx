@@ -40,7 +40,7 @@ import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCateg
 import { snowflake } from "../scripts/main.js";
 import { NewBlockType } from "../components/modals/NewBlockModal.js";
 import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
-import { GetTemplateRowItemType } from "../../../_common/types/template/row.type.js";
+import { GetTemplateRowItemType, TemplateRowItemType } from "../../../_common/types/template/row.type.js";
 import { NewFieldType } from "../components/modals/NewFieldModal.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
 import Metadata from "../../_common/components/Metadata.js";
@@ -48,6 +48,7 @@ import TemplateField from "../components/TemplateField.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/template/value.type.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
+import TemplateContextMenu from "../components/TemplateContextMenu.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -1208,6 +1209,92 @@ export default function Template() {
         });
     };
 
+    const onDelete = (
+        id: string,
+        type: "field" | "row" | "block" | "category"
+    ) => {
+        setTemplateData((prev) => {
+            if (!Array.isArray(prev)) return prev;
+
+            switch (type) {
+                case "category":
+                    return prev.filter(
+                        (category) => category.categoryId !== id
+                    );
+
+                case "block":
+                    return prev.map((category) => ({
+                        ...category,
+                        blocks: category.blocks
+                            ? {
+                                ...category.blocks,
+                                items: category.blocks.items?.filter(
+                                    (block) => block.blockId !== id
+                                ),
+                            }
+                            : category.blocks,
+                    }));
+
+                case "row":
+                    return prev.map((category) => ({
+                        ...category,
+                        blocks: category.blocks
+                            ? {
+                                ...category.blocks,
+                                items: category.blocks.items?.map((block) => ({
+                                    ...block,
+                                    rows: block.rows
+                                        ? {
+                                                ...block.rows,
+                                                items: block.rows.items?.filter(
+                                                    (row) => row.rowId !== id
+                                                ),
+                                            }
+                                        : block.rows,
+                                })),
+                            }
+                            : category.blocks,
+                    }));
+
+                case "field":
+                    return prev.map((category) => ({
+                        ...category,
+                        blocks: category.blocks
+                            ? {
+                                ...category.blocks,
+                                items: category.blocks.items?.map((block) => ({
+                                    ...block,
+                                    rows: block.rows
+                                        ? {
+                                                ...block.rows,
+                                                items: block.rows.items?.map(
+                                                    (row) => ({
+                                                        ...row,
+                                                        fields: row.fields
+                                                            ? {
+                                                                ...row.fields,
+                                                                items: row.fields.items?.filter(
+                                                                    (field) =>
+                                                                        field.fieldId !==
+                                                                        id
+                                                                ),
+                                                            }
+                                                            : row.fields,
+                                                    })
+                                                ),
+                                            }
+                                        : block.rows,
+                                })),
+                            }
+                            : category.blocks,
+                    }));
+
+                default:
+                    return prev;
+            }
+        });
+    };
+
     const handleDragStart = (): void => {
         if (isPreview) return;
         
@@ -1931,108 +2018,160 @@ export default function Template() {
                                                                         );
                                                                     });
 
+                                                                    const handleContextMenu = (e: React.MouseEvent) => {
+                                                                        const target = e.target as HTMLElement;
+
+                                                                        if (target.closest("[id^='field-']")) {
+                                                                            return;
+                                                                        }
+
+                                                                        e.preventDefault();
+
+                                                                        const popover = document.getElementById(
+                                                                            `context-${row.rowId}`
+                                                                        ) as HTMLElement | null;
+
+                                                                        if (!popover) return;
+
+                                                                        popover.showPopover();
+
+                                                                        requestAnimationFrame(() => {
+                                                                            const rect = popover.getBoundingClientRect();
+
+                                                                            popover.style.left = `${Math.min(
+                                                                                e.clientX,
+                                                                                window.innerWidth - rect.width - 8
+                                                                            )}px`;
+
+                                                                            popover.style.top = `${Math.min(
+                                                                                e.clientY,
+                                                                                window.innerHeight - rect.height - 8
+                                                                            )}px`;
+                                                                        });
+                                                                    };
+
                                                                     return (
-                                                                        <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreview}>
-                                                                            {({ sortableProps, dragHandleProps }) => (
-                                                                                <div {...sortableProps} className={`min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}>
-                                                                                    {!isPreview && (
-                                                                                        <span
-                                                                                            {...dragHandleProps}
-                                                                                            className="flex items-center cursor-grab active:cursor-grabbing touch-none"
-                                                                                        >
-                                                                                            <div className="flex h-full items-center justify-center py-2">
-                                                                                                <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
-                                                                                                    <span className="text-2xl leading-none font-nerdfont">
-                                                                                                        󰇝
-                                                                                                    </span>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </span>
-                                                                                    )}
+                                                                        <>
+                                                                            <TemplateContextMenu 
+                                                                                id={row.rowId}
+                                                                                type="row"
+                                                                                label="Row"
+                                                                                templateId={templateId as string}
+                                                                                readOnly={isPreview}
+                                                                                data={{ row: row as unknown as TemplateRowItemType }}
+                                                                                // onChange={handleUpdateRow}
+                                                                                onDelete={onDelete}
+                                                                            />
 
-                                                                                    <FieldDropZone
-                                                                                        id={`row-fields:${row.rowId}`}
-                                                                                        className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                                            <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreview}>
+                                                                                {({ sortableProps, dragHandleProps }) => (
+                                                                                    <div 
+                                                                                        {...sortableProps} 
+                                                                                        className={`min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}
+                                                                                        onContextMenu={handleContextMenu}
                                                                                     >
-                                                                                        <SortableContext
-                                                                                            items={visibleFields.map((f) => `field:${f.fieldId}`)}
-                                                                                            strategy={rectSortingStrategy}
-                                                                                        >
-                                                                                            <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
-                                                                                                {visibleFields.map(field => {
-                                                                                                    const rawContent = field.value?.content || "";
-
-                                                                                                    const resolvedValue = resolveDynamicValues(rawContent);
-                                                                                                    const resolvedLabel = resolveDynamicValues(field.label);
-                                                                                                    const resolvedPlaceholder = resolveDynamicValues(field.placeholder);
-                                                                                                    const resolvedGuide = resolveDynamicValues(field.guide);
-
-                                                                                                    return (
-                                                                                                        <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreview}>
-                                                                                                            {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
-                                                                                                                const dragProps = fDragProps ?? {};
-                                                                                                                
-                                                                                                                return (
-                                                                                                                    <div 
-                                                                                                                        {...fSortProps} 
-                                                                                                                        className={`flex-${field.flex || 1} min-w-0 ${fSortProps.className ?? ""}`}
-                                                                                                                    >
-                                                                                                                        <TemplateField
-                                                                                                                            id={field.fieldId}
-                                                                                                                            type={field.type}
-                                                                                                                            label={resolvedLabel}
-                                                                                                                            placeholder={resolvedPlaceholder}
-                                                                                                                            guide={resolvedGuide}
-                                                                                                                            value={{
-                                                                                                                                ...field.value as GetTemplateValueType,
-                                                                                                                                content: isPreview ? resolvedValue : rawContent,
-                                                                                                                            }}
-                                                                                                                            options={field.options}
-                                                                                                                            isLocked={field.isLocked}
-                                                                                                                            url={`${studioBaseUrl}/template/${templateId}/${categoryId}/${blockId}`}
-                                                                                                                            rowId={row.rowId}
-                                                                                                                            readOnly={isPreview}
-                                                                                                                            onChange={(value, options) => handleUpdateValue(
-                                                                                                                                field.fieldId, 
-                                                                                                                                field.type,
-                                                                                                                                value as string,
-                                                                                                                                options as unknown as TemplateValueType
-                                                                                                                            )}
-                                                                                                                            dragHandleProps={!isPreview && !field.isLocked ? {
-                                                                                                                                ...dragProps,
-                                                                                                                                className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
-                                                                                                                            } : undefined}
-                                                                                                                            onFieldChange={handleUpdateField}
-                                                                                                                        />
-                                                                                                                    </div>
-                                                                                                                );
-                                                                                                            }}
-                                                                                                        </SortableItem>
-                                                                                                    );
-                                                                                                })}
-                                                                                            </div>
-                                                                                        </SortableContext>
-                                                                                    </FieldDropZone>
-
-                                                                                    {!isPreview && (row.fields?.items.length ?? 0) < 5 && (
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                newFieldModal.open({
-                                                                                                    targetRowId: row.rowId,
-                                                                                                    onAddField: handleAddField
-                                                                                                });
-                                                                                            }}
-                                                                                            className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
-                                                                                        >
-                                                                                            <span className="font-nerdfont text-lg">
-                                                                                                
+                                                                                        {!isPreview && (
+                                                                                            <span
+                                                                                                {...dragHandleProps}
+                                                                                                className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                                                            >
+                                                                                                <div className="flex h-full items-center justify-center py-2">
+                                                                                                    <div className="flex h-full w-5 items-center justify-center rounded bg-base-300">
+                                                                                                        <span className="text-2xl leading-none font-nerdfont">
+                                                                                                            󰇝
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                </div>
                                                                                             </span>
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-                                                                            )}
-                                                                        </SortableItem>
+                                                                                        )}
+
+                                                                                        <FieldDropZone
+                                                                                            id={`row-fields:${row.rowId}`}
+                                                                                            className="flex-1 min-w-0 w-full min-h-[44px]"
+                                                                                        >
+                                                                                            <SortableContext
+                                                                                                items={visibleFields.map((f) => `field:${f.fieldId}`)}
+                                                                                                strategy={rectSortingStrategy}
+                                                                                            >
+                                                                                                <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
+                                                                                                    {visibleFields.map(field => {
+                                                                                                        const rawContent = field.value?.content || "";
+
+                                                                                                        const resolvedValue = resolveDynamicValues(rawContent);
+                                                                                                        const resolvedLabel = resolveDynamicValues(field.label);
+                                                                                                        const resolvedPlaceholder = resolveDynamicValues(field.placeholder);
+                                                                                                        const resolvedGuide = resolveDynamicValues(field.guide);
+
+                                                                                                        return (
+                                                                                                            <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreview}>
+                                                                                                                {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
+                                                                                                                    const dragProps = fDragProps ?? {};
+                                                                                                                    
+                                                                                                                    return (
+                                                                                                                        <div 
+                                                                                                                            {...fSortProps} 
+                                                                                                                            className={`flex-${field.flex || 1} min-w-0 ${fSortProps.className ?? ""}`}
+                                                                                                                        >
+                                                                                                                            <TemplateField
+                                                                                                                                id={field.fieldId}
+                                                                                                                                type={field.type}
+                                                                                                                                label={resolvedLabel}
+                                                                                                                                placeholder={resolvedPlaceholder}
+                                                                                                                                guide={resolvedGuide}
+                                                                                                                                value={{
+                                                                                                                                    ...field.value as GetTemplateValueType,
+                                                                                                                                    content: isPreview ? resolvedValue : rawContent,
+                                                                                                                                }}
+                                                                                                                                options={field.options}
+                                                                                                                                isLocked={field.isLocked}
+                                                                                                                                url={`${studioBaseUrl}/template/${templateId}/${categoryId}/${blockId}`}
+                                                                                                                                templateId={templateId as string}
+                                                                                                                                rowId={row.rowId}
+                                                                                                                                readOnly={isPreview}
+                                                                                                                                data={field as TemplateFieldItemType}
+                                                                                                                                onChange={(value, options) => handleUpdateValue(
+                                                                                                                                    field.fieldId, 
+                                                                                                                                    field.type,
+                                                                                                                                    value as string,
+                                                                                                                                    options as unknown as TemplateValueType
+                                                                                                                                )}
+                                                                                                                                dragHandleProps={!isPreview && !field.isLocked ? {
+                                                                                                                                    ...dragProps,
+                                                                                                                                    className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
+                                                                                                                                } : undefined}
+                                                                                                                                onFieldChange={handleUpdateField}
+                                                                                                                                onDelete={onDelete}
+                                                                                                                            />
+                                                                                                                        </div>
+                                                                                                                    );
+                                                                                                                }}
+                                                                                                            </SortableItem>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </div>
+                                                                                            </SortableContext>
+                                                                                        </FieldDropZone>
+
+                                                                                        {!isPreview && (row.fields?.items.length ?? 0) < 5 && (
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => {
+                                                                                                    newFieldModal.open({
+                                                                                                        targetRowId: row.rowId,
+                                                                                                        onAddField: handleAddField
+                                                                                                    });
+                                                                                                }}
+                                                                                                className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
+                                                                                            >
+                                                                                                <span className="font-nerdfont text-lg">
+                                                                                                    
+                                                                                                </span>
+                                                                                            </button>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+                                                                            </SortableItem>
+                                                                        </>
                                                                     );
                                                                 })}
                                                             </div>
