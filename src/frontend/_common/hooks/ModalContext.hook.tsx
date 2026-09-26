@@ -15,6 +15,7 @@ import SaveFailedModal, { SaveFailedModalRef } from "../../studio/components/mod
 import NewFieldModal, { NewFieldModalRef } from "../../studio/components/modals/NewFieldModal.js";
 import NewBlockModal, { NewBlockModalRef } from "../../studio/components/modals/NewBlockModal.js";
 import UploadMediaModal, { UploadMediaModalRef } from "../../studio/components/modals/UploadMediaModal.js";
+import EditFieldModal, { EditFieldModalRef } from "../../studio/components/modals/EditFieldModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -77,6 +78,10 @@ interface ModalContextType {
         open: (...args: Parameters<UploadMediaModalRef["open"]>) => ReturnType<UploadMediaModalRef["open"]> | undefined;
         close: () => void;
     };
+    editFieldModal: {
+        open: (...args: Parameters<EditFieldModalRef["open"]>) => ReturnType<EditFieldModalRef["open"]> | undefined;
+        close: () => void;
+    };
 }
 
 const ModalContext = createContext<ModalContextType | null>(null);
@@ -97,6 +102,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const newFieldModalRef = useRef<NewFieldModalRef>(null);
     const newBlockModalRef = useRef<NewBlockModalRef>(null);
     const uploadMediaModalRef = useRef<UploadMediaModalRef>(null);
+    const editFieldModalRef = useRef<EditFieldModalRef>(null);
 
     const value = useMemo(
         () => ({
@@ -219,6 +225,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 close: () => {
                     uploadMediaModalRef.current?.close();
                 },
+            },
+            editFieldModal: {
+                open: (...args: Parameters<EditFieldModalRef["open"]>) => {
+                    return editFieldModalRef.current?.open(...args);
+                },
+                close: () => {
+                    editFieldModalRef.current?.close();
+                },
             }
         }),
         []
@@ -241,6 +255,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <NewFieldModal ref={newFieldModalRef} />
             <NewBlockModal ref={newBlockModalRef} />
             <UploadMediaModal ref={uploadMediaModalRef} />
+            <EditFieldModal ref={editFieldModalRef} />
 
             {children}
         </ModalContext.Provider>
