@@ -88,6 +88,20 @@ export const updateFields = async (req: Request, res: Response) => {
                             message: `A field with ID "${value}" already exists`
                         });
                     }
+
+                    const updateValueResult = db.templates.query(
+                        `UPDATE "values" SET fieldId = ? WHERE fieldId = ?`,
+                        [value, originalFieldId]
+                    );
+
+                    assertDbSuccess(updateValueResult);
+
+                    const updateValueHistoryResult = db.templates.query(
+                        "UPDATE history SET fieldId = ? WHERE fieldId = ?",
+                        [value, originalFieldId]
+                    );
+
+                    assertDbSuccess(updateValueHistoryResult);
                 }
             }
 
