@@ -41,20 +41,20 @@ templateRoutes.delete("/datasets/delete/:id", deleteDatasetController);
 
 templateRoutes.post("/:templateId/categories/insert", insertCategories);
 templateRoutes.post("/:templateId/categories/update/positions", positionCategories);
-templateRoutes.post("/:templateId/categories/delete/:categoryId", deleteCategories);
+templateRoutes.delete("/:templateId/categories/delete/:categoryId", deleteCategories);
 
 templateRoutes.post("/:templateId/blocks/insert", insertBlock);
 templateRoutes.post("/:templateId/blocks/update/positions", positionBlocks);
-templateRoutes.post("/:templateId/blocks/delete/:blockId", deleteBlock);
+templateRoutes.delete("/:templateId/blocks/delete/:blockId", deleteBlock);
 
 templateRoutes.post("/:templateId/rows/insert", insertRows);
 templateRoutes.post("/:templateId/rows/update/positions", positionRows);
-templateRoutes.post("/:templateId/rows/delete/:rowId", deleteRows);
+templateRoutes.delete("/:templateId/rows/delete/:rowId", deleteRows);
 
 templateRoutes.post("/:templateId/fields/insert", insertFields);
 templateRoutes.post("/:templateId/fields/update", updateFields);
 templateRoutes.post("/:templateId/fields/update/positions", positionFields);
 templateRoutes.post("/:templateId/fields/update/value", updateValue);
-templateRoutes.post("/:templateId/fields/delete/:fieldId", deleteFields);
+templateRoutes.delete("/:templateId/fields/delete/:fieldId", deleteFields);
 
 export default templateRoutes;
