@@ -65,7 +65,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                                                         'type', f.type,
                                                                                         'label', f.label,
                                                                                         'placeholder', f.placeholder,
-                                                                                        'dataset', f.dataset,
+                                                                                        'options', f.options,
                                                                                         'guide', f.guide,
                                                                                         'isLocked', f.isLocked,
                                                                                         'position', f.position,
