@@ -21,4 +21,5 @@ export type FieldOptionsType = {
     separator?: "spacer" | "divider" | "header";
     typeable?: boolean;
     multiselect?: boolean;
+    text?: string;
 }
