@@ -8,7 +8,7 @@ import { db } from "../../databases/db.js";
 import { log } from "../../instances.js";
 import { i18n } from "../../../_common/instances.js";
 import { config } from "../../../../../app.config.js";
-import whatIs from "../../helpers/whatIs.js";
+import whatIs from "../../services/whatIs.service.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
 
 export const getPublishedTemplatesController = async (req: Request, res: Response) => {
