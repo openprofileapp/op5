@@ -5,6 +5,7 @@ export type TemplateType = {
     ownerId: string;
     displayName?: string;
     about?: string;
+    tags?: string[];
     source?: "official" | "community";
     uses?: number;
     updatedDate: string;

@@ -9,6 +9,7 @@ import { log } from "../../instances.js";
 import { i18n } from "../../../_common/instances.js";
 import { config } from "../../../../../app.config.js";
 import whatIs from "../../helpers/whatIs.js";
+import { parseJson } from "../../../_common/helpers/parseJson.js";
 
 export const getDraftTemplatesController = async (req: Request, res: Response) => {
     try {
@@ -113,7 +114,8 @@ export const getDraftTemplatesController = async (req: Request, res: Response) =
 
         const parsedRows = result.rows.map(({ ownerId, ...row }) => ({
             ...row,
-            owner: whatIs(ownerId as string)
+            owner: whatIs(ownerId as string),
+            tags: parseJson(row.tags)
         }));
 
         return res.status(200).json({
