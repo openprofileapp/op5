@@ -134,7 +134,7 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
             id="upload-media"
             onClose={resetForm}
         >
-            <div className="modal-box flex flex-row relative max-w-300 overflow-hidden p-0">
+            <div className="modal-box flex flex-row relative max-w-293 overflow-hidden p-0">
                 <div className="flex flex-col p-6">
                     <button
                         type="button"
@@ -154,7 +154,7 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                         </h3>
                     </div>
 
-                    <div className="flex flex-col gap-6 py-2 mx-auto w-120">
+                    <div className="flex flex-col gap-6 py-2 mx-auto w-116">
                         <fieldset className="fieldset w-full">
                             <div className="flex flex-col gap-1 mt-1">
                                 <label className="label">
@@ -267,7 +267,7 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                     </div>
                 </div>
 
-                <aside className="w-168 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black">
+                <aside className="w-165 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black">
                     <div className="shrink-0 mb-4">
                         <h3 className="text-2xl font-bold capitalize">
                             Guide
