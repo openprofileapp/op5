@@ -29,6 +29,9 @@ interface Props {
         id: string,
         type: "field" | "row" | "block" | "category"
     ) => void;
+    resolveDynamicValues: (
+        text: string
+    ) => string;
 }
 
 export default function TemplateContextMenu({
@@ -42,7 +45,8 @@ export default function TemplateContextMenu({
     isLocked = false,
     data,
     onChange,
-    onDelete
+    onDelete,
+    resolveDynamicValues
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
     const { deleteModal, editFieldModal } = useModals();
@@ -111,20 +115,22 @@ export default function TemplateContextMenu({
                         onClick={() => {
                             closeContextMenu();
 
-                            // ONLY IF FIELD
-                            editFieldModal.open({
-                                type: type as FieldNameType,
-                                id,
-                                flex: data?.field?.flex,
-                                label,
-                                placeholder: data?.field?.placeholder,
-                                options: data?.field?.options,
-                                guide: data?.field?.guide,
-                                onChange: async (options) => {
-                                    const result = await onChange(rowId, id, options);
-                                    return result !== false;
-                                }
-                            });
+                            if (type === "field") {
+                                editFieldModal.open({
+                                    type: data.field?.type as FieldNameType,
+                                    id,
+                                    flex: data?.field?.flex,
+                                    label,
+                                    placeholder: data?.field?.placeholder,
+                                    options: data?.field?.options,
+                                    guide: data?.field?.guide,
+                                    onChange: async (options) => {
+                                        const result = await onChange(rowId, id, options);
+                                        return result !== false;
+                                    },
+                                    resolveDynamicValues
+                                });
+                            }
                         }}
                     >
                         Edit
