@@ -6,7 +6,7 @@ import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
 import { Pagination } from "../../main/components/Pagination.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
-import { DatasetItemType } from "../../../_common/types/template/dataset.type.js";
+import { DatasetItemType, GetDatasetItemType } from "../../../_common/types/template/dataset.type.js";
 import { DropdownOptionsType } from "../../../_common/types/dropdown.type.js";
 import { toast } from "../../_common/scripts/toast.js";
 
@@ -63,7 +63,7 @@ export default function Datasets() {
 
     const [searchQuery, setSearchQuery] = useState(query);
 
-    const [data, setData] = useState<DatasetItemType[]>([]);
+    const [data, setData] = useState<GetDatasetItemType[]>([]);
     const [areDatasetsLoading, setAreDatasetsLoading] = useState(true);
     const [refetch, setRefetch] = useState(false);
 
@@ -260,10 +260,10 @@ export default function Datasets() {
                                         <div className="flex items-center justify-between mb-2 gap-2">
                                             <div className="flex gap-2 items-center truncate">
                                                 <span className="font-bold text-lg truncate">{d.label || d.id}</span>
-                                                {d.source === "official" && (
+                                                {d.isPublished && (
                                                     <span className="font-bold text-xs text-sub bg-base-200 border border-base-300 rounded px-2 py-1">
-                                                        <span className="font-nerdfont leading-none mr-1"></span>
-                                                        PUBLIC
+                                                        <span className="font-nerdfont leading-none mr-1.5"></span>
+                                                        PUBLISHED
                                                     </span>
                                                 )}
                                             </div>

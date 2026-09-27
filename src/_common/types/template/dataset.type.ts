@@ -6,6 +6,7 @@ export type DatasetItemType = {
     ownerId: string;
     label?: string;
     description?: string;
+    tags?: string[];
     data: DropdownOptionsType;
     source: "official" | "community";
     uses: number;
@@ -14,7 +15,11 @@ export type DatasetItemType = {
     createdDate: string;
 }
 
+export type GetDatasetItemType = DatasetItemType & {
+    isPublished?: boolean;
+};
+
 export type GetDatasetsType = {
-    items: DatasetItemType[],
+    items: GetDatasetItemType[],
     count: number
 }
