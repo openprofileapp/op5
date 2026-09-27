@@ -187,10 +187,6 @@ export const updateValue = async (req: Request, res: Response) => {
             return res.status(201).json({ ok: true });
         }
 
-        if (type === "dropdown") {
-            value = JSON.stringify(value);
-        }
-
         db.templates.transaction((q) => {
             if (!value) {
                 const deleteValueResult = q(
