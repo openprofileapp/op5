@@ -264,8 +264,8 @@ export default function MarkdownEditor({
             onKeyDown={handleGlobalKeyDown}
             className={`outline-none ${className}`}
         >
-            <div className="flex flex-wrap items-center justify-between border-y border-base-300 px-4 py-3 gap-4">
-                <div className="flex items-center gap-2 text-xs text-sub">
+            <div className="flex flex-wrap items-center justify-between border-y border-base-300 py-3 gap-4">
+                <div className="flex items-center flex-wrap gap-2 text-xs text-sub">
                     <button
                         className={buttonClassList}
                         data-tip={t("words.Bold")}
