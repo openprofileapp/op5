@@ -96,7 +96,7 @@ export const insertFields = async (req: Request, res: Response) => {
                 type ?? "text",
                 label ?? "",
                 placeholder ?? "",
-                options ?? "",
+                JSON.stringify(options ?? []),
                 guide ?? "",
                 targetPosition,
                 req.session.userId

@@ -105,6 +105,10 @@ export const updateFields = async (req: Request, res: Response) => {
                 }
             }
 
+            if (key === "options") {
+                value = JSON.stringify(value ?? [])
+            }
+
             if (["isLocked"].includes(key)) {
                 if (typeof value !== "boolean" && typeof value !== "number") {
                     throw new AdvancedError({
