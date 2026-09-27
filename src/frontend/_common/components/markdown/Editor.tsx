@@ -6,16 +6,20 @@ import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
 interface MarkdownEditorProps {
     initialContent?: string;
     isEditing?: boolean;
+    isStudioMode?: boolean;
     onChange?: (val: string) => void;
     onSave?: (val: string) => Promise<void> | void;
+    resolveDynamicValues?: (text: string) => string;
     className?: string;
 }
 
 export default function MarkdownEditor({
     initialContent = "",
     isEditing = false,
+    isStudioMode = false,
     onChange,
     onSave,
+    resolveDynamicValues,
     className = "",
 }: MarkdownEditorProps) {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -316,7 +320,7 @@ export default function MarkdownEditor({
                         </span>
                     </button>
 
-                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2"></div>
+                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2" />
 
                     <button
                         className={buttonClassList}
@@ -338,7 +342,7 @@ export default function MarkdownEditor({
                         </span>
                     </button>
 
-                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2"></div>
+                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2" />
 
                     <button
                         className={buttonClassList}
@@ -390,40 +394,67 @@ export default function MarkdownEditor({
                         </span>
                     </button>
 
-                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2"></div>
+                    <div className="relative block bg-base-300 w-[1px] h-8 rounded-full mx-2" />
 
-                    <button
-                        className={buttonClassList}
-                        data-tip={t("words.Mention")}
-                        onMouseDown={(e) => handleToolClick(e, "<@", ">")}
-                    >
-                        <span className={buttonTextClassList}>
-                            
-                        </span>
-                    </button>
+                    {!isStudioMode && (
+                        <button
+                            className={buttonClassList}
+                            data-tip={t("words.Mention")}
+                            onMouseDown={(e) => handleToolClick(e, "<@", ">")}
+                        >
+                            <span className={buttonTextClassList}>
+                                
+                            </span>
+                        </button>
+                    )}
+
+                    {isStudioMode && (
+                        <div 
+                            className="tooltip"
+                            data-tip={t("words.TogglePreview")}
+                        >
+                            <label className="toggle border-base-300 bg-base-200">
+                                <input 
+                                    className="bg-base-content rounded-full"
+                                    type="checkbox"
+                                    onChange={(e) => setIsPreview(e.target.checked)}
+                                />
+
+                                <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                    
+                                </span>
+
+                                <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                    󰈈
+                                </span>
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-sub">
-                    <div 
-                        className="tooltip"
-                        data-tip={t("words.TogglePreview")}
-                    >
-                        <label className="toggle border-base-300 bg-base-200">
-                            <input 
-                                className="bg-base-content rounded-full"
-                                type="checkbox"
-                                onChange={(e) => setIsPreview(e.target.checked)}
-                            />
+                    {!isStudioMode && (
+                        <div 
+                            className="tooltip"
+                            data-tip={t("words.TogglePreview")}
+                        >
+                            <label className="toggle border-base-300 bg-base-200">
+                                <input 
+                                    className="bg-base-content rounded-full"
+                                    type="checkbox"
+                                    onChange={(e) => setIsPreview(e.target.checked)}
+                                />
 
-                            <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
-                                
-                            </span>
+                                <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                    
+                                </span>
 
-                            <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
-                                󰈈
-                            </span>
-                        </label>
-                    </div>
+                                <span className="flex font-nerdfont leading-none items-center justify-center text-[10px] w-4 h-4">
+                                    󰈈
+                                </span>
+                            </label>
+                        </div>
+                    )}
 
                     {onSave && (
                         <button
@@ -458,7 +489,13 @@ export default function MarkdownEditor({
                 ) : (
                     <div className="min-h-[280px]">
                         {value?.trim() ? (
-                            <MarkdownRenderer content={value?.trim()} />
+                            <MarkdownRenderer 
+                                content={
+                                    resolveDynamicValues
+                                        ? resolveDynamicValues(value.trim())
+                                        : value.trim()
+                                }
+                            />
                         ) : (
                             <span className="text-sub italic text-sm">
                                 Sometimes, nothing says everything...
