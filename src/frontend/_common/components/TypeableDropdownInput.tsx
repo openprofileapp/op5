@@ -29,6 +29,7 @@ interface TypeableDropdownInputProps {
     defaultOpenAbove?: boolean;
     readonly?: boolean;
     isLoading?: boolean;
+    isServerSideFiltering?: boolean;
     onChange?: (value: unknown) => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -47,6 +48,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     defaultOpenAbove = false,
     readonly = false,
     isLoading = false,
+    isServerSideFiltering = false,
     onChange,
     onFocus,
     onBlur,
@@ -113,7 +115,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         return [];
     }, [value, multiple]);
 
-    const getDisplayName = useCallback(
+    const getLabel = useCallback(
         (val: DropdownOptionValue) => {
             const matched = normalizedOptions.find((opt) => opt.id === val || opt.name === val);
             return matched ? matched.name : String(val || "");
@@ -126,8 +128,23 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     const [isMobile, setIsMobile] = useState<boolean>(false);
     
     const [inputValue, setInputValue] = useState<string>(() =>
-        multiple ? "" : getDisplayName(value as DropdownOptionValue)
+        multiple ? "" : getLabel(value as DropdownOptionValue)
     );
+
+    useEffect(() => {
+        if (multiple) return;
+
+        const valueString = String(value ?? "");
+
+        const matched = normalizedOptions.find(
+            (opt) => String(opt.id) === valueString
+        );
+
+        if (matched) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setInputValue(matched.name);
+        }
+    }, [value, normalizedOptions, multiple, setInputValue]);
 
     const [prevValue, setPrevValue] = useState<DropdownOptionValue | DropdownOptionValue[]>(value);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
@@ -145,7 +162,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     if (value !== prevValue) {
         setPrevValue(value);
         if (!multiple) {
-            setInputValue(getDisplayName(value as DropdownOptionValue));
+            setInputValue(getLabel(value as DropdownOptionValue));
         }
     }
 
@@ -230,8 +247,14 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     }, [isOpen, isMobile, onBlur]);
 
     const filteredOptions = useMemo(() => {
+        if (isServerSideFiltering) {
+            return normalizedOptions;
+        }
+
         if (!typeable) return normalizedOptions;
+
         const term = inputValue.trim().toLowerCase();
+
         if (!term) return normalizedOptions;
 
         return normalizedOptions.filter(
@@ -240,7 +263,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                 String(opt?.id).toLowerCase().includes(term) ||
                 opt?.category?.toLowerCase().includes(term)
         );
-    }, [normalizedOptions, typeable, inputValue]);
+    }, [isServerSideFiltering, typeable, normalizedOptions, inputValue]);
 
     const groupedFilteredOptions = useMemo(() => {
         const uncategorized: NormalizedOption[] = [];
@@ -533,7 +556,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                                         key={val}
                                         className="flex gap-1.5 px-2 py-1 bg-base-200 text-xs text-left border border-base-300 rounded items-center"
                                     >
-                                        {getDisplayName(val)}
+                                        {getLabel(val)}
 
                                         <button
                                             type="button"
