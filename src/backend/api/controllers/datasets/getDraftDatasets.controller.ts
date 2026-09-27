@@ -9,6 +9,7 @@ import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js
 import { db } from "../../databases/db.js";
 import { config } from "../../../../../app.config.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
+import { DatasetItemType } from "../../../../_common/types/template/dataset.type.js";
 
 export const getDraftDatasetController = async (req: Request, res: Response) => {
     try {
@@ -22,7 +23,7 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
-        const accessClause = "WHERE ownerId = ?";
+        const accessClause = "WHERE d.ownerId = ?";
         const accessParams = [req.session.userId];
 
         const trimmedQuery = q?.trim();
@@ -30,10 +31,10 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
 
         const queryClause = trimmedQuery
             ? `AND (
-                label LIKE ?
-                OR description LIKE ?
-                OR data LIKE ?
-                OR tags LIKE ?
+                d.label LIKE ?
+                OR d.description LIKE ?
+                OR d.data LIKE ?
+                OR d.tags LIKE ?
             )`
             : "";
 
@@ -42,7 +43,7 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
             : [];
 
         const idClause = id
-            ? "AND id = ?"
+            ? "AND d.id = ?"
             : "";
 
         const idParams = id
@@ -53,37 +54,40 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
 
         switch (sortBy) {
             case "recent":
-                formattedSortBy = "updatedDate DESC";
+                formattedSortBy = "d.updatedDate DESC";
                 break;
 
             case "newest":
-                formattedSortBy = "createdDate DESC";
+                formattedSortBy = "d.createdDate DESC";
                 break;
 
             case "oldest":
-                formattedSortBy = "createdDate ASC";
+                formattedSortBy = "d.createdDate ASC";
                 break;
 
             case "nameAsc":
-                formattedSortBy = "label ASC";
+                formattedSortBy = "d.label ASC";
                 break;
 
             case "nameDesc":
-                formattedSortBy = "label DESC";
+                formattedSortBy = "d.label DESC";
                 break;
 
             case "popularAsc":
-                formattedSortBy = "uses ASC";
+                formattedSortBy = "d.uses ASC";
                 break;
 
             default:
-                formattedSortBy = "uses DESC, createdDate DESC";
+                formattedSortBy = "d.uses DESC, d.createdDate DESC";
         }
 
-        const result = db.templates.query(
+        const result = db.templates.query<DatasetItemType>(
             `
-                SELECT *
-                FROM draft_datasets
+                SELECT 
+                    d.*,
+                    CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END AS isPublished
+                FROM draft_datasets d
+                LEFT JOIN published_datasets p ON d.id = p.id
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -104,7 +108,7 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
         const countResult = db.templates.query<{ total: number }>(
             `
                 SELECT 1
-                FROM draft_datasets
+                FROM draft_datasets d
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -121,9 +125,9 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
         const parsedRows = result.rows.map(row => ({
             ...row,
             tags: parseJson(row.tags),
-            isRecommended: Boolean(row.isRecommended),
-            isSensitive: Boolean(row.isSensitive),
-            isMature: Boolean(row.isMature),
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            isPublished: Boolean(row.isPublished)
         }));
 
         return res.status(200).json({
