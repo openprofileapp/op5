@@ -2141,6 +2141,7 @@ export default function Template() {
                                                                                                                                 } : undefined}
                                                                                                                                 onFieldChange={handleUpdateField}
                                                                                                                                 onDelete={onDelete}
+                                                                                                                                resolveDynamicValues={resolveDynamicValues}
                                                                                                                             />
                                                                                                                         </div>
                                                                                                                     );
