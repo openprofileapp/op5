@@ -62,6 +62,9 @@ interface Props {
         id: string,
         type: "field" | "row" | "block" | "category"
     ) => void;
+    resolveDynamicValues: (
+        text: string
+    ) => string;
 }
 
 export default function TemplateField({
@@ -83,7 +86,8 @@ export default function TemplateField({
     onChange,
     dragHandleProps,
     onFieldChange,
-    onDelete
+    onDelete,
+    resolveDynamicValues
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -163,7 +167,7 @@ export default function TemplateField({
         async function fetchDataset() {
             try {
                 const response = await fetch(
-                    `${apiBaseUrl}/v3/templates/datasets?id=${options?.dataset}`,
+                    `${apiBaseUrl}/v3/templates/datasets/drafts?id=${options?.dataset}`,
                     { credentials: "include" }
                 );
 
@@ -178,7 +182,9 @@ export default function TemplateField({
                         }
                     );
                 } else {
-                    setDataset(JSON.parse(responseData.items?.[0].data) || []);
+                    if (responseData.items.length !== 0) {
+                        setDataset(JSON.parse(responseData.items?.[0].data) || []);
+                    }
                 }
             } catch (error) {
                 toast.show(
@@ -194,7 +200,7 @@ export default function TemplateField({
         }
 
         fetchDataset();
-    }, [type, options?.dataset]);
+    }, [type, options?.dataset, options]);
 
     const renderInputContent = () => {
         switch (type) {
@@ -324,7 +330,7 @@ export default function TemplateField({
                 );
 
             case "rating": {
-                const valueRecord = options?.valueFormat;    
+                const valueRecord = options?.valueFormat;
 
                 const markValues = valueRecord
                     ? Object.keys(valueRecord)
@@ -341,7 +347,9 @@ export default function TemplateField({
                         value={Number(localValue)}
                         icon={options?.icon}
                         maxRating={max || 5}
-                        valueFormat={valueRecord}
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        valueFormat={Object.keys(valueRecord).length ? valueRecord : null}
                         readOnly={readOnly || isLocked}
                         onContextMenu={handleContextMenu}
                         onChange={(value) => {
@@ -359,11 +367,11 @@ export default function TemplateField({
                     case "divider":
                         element = (
                             <div 
-                                className="flex items-center justify-center w-full my-4 text-xs text-sub opacity-50"
+                                className="divider text-base w-full"
                                 id={`field-${id}`}
                                 onContextMenu={handleContextMenu}
                             >
-                                {!readOnly && "This text is only visible during editing to display where the spacer is located"}
+                                {options.text}
                             </div>
                         )
                         break;
@@ -375,7 +383,7 @@ export default function TemplateField({
                                 id={`field-${id}`}
                                 onContextMenu={handleContextMenu}
                             >
-                                {localValue}
+                                {options.text}
                             </div>
                         )
                         break;
@@ -454,6 +462,7 @@ export default function TemplateField({
                 isLocked={isLocked}
                 onChange={onFieldChange}
                 onDelete={onDelete}
+                resolveDynamicValues={resolveDynamicValues}
             />
 
             <fieldset className="fieldset w-full">
@@ -475,7 +484,9 @@ export default function TemplateField({
                         type !== "button" 
                         && type !== "separator" 
                     && (
-                        <span>{label}</span>
+                        <span className="text-sub">
+                            {label}
+                        </span>
                     )}
 
                     {Boolean(isLocked) && !readOnly && (
