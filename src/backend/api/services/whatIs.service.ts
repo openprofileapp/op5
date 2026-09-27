@@ -5,11 +5,11 @@ import { GetUserItemType, UserType } from "../../../_common/types/user.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import getUsersService from "../services/getUsers.service.js";
+import getUsersService from "./getUsers.service.js";
 import { GetPublishedCharacterItemType, PublishedCharacterType } from "../../../_common/types/characters/character.type.js";
-import getPublishedCharactersService from "../services/getPublishedCharacters.service.js";
+import getPublishedCharactersService from "./getPublishedCharacters.service.js";
 import { CollectionType } from "../../../_common/types/collection.type.js";
-import getCollectionsService from "../services/getCollections.service.js";
+import getCollectionsService from "./getCollections.service.js";
 import { AssetNameType, GetAssetType } from "../../../_common/types/asset.type.js";
 import { WhatIsType } from "../../../_common/types/whatIs.type.js";
 
@@ -23,6 +23,8 @@ function formatReturnData(
 ): WhatIsType {
     const badges = type === "USER" 
         ? (data as GetUserItemType).badges 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         : (data as GetPublishedCharacterItemType).owner?.badges ?? [];
 
     return {

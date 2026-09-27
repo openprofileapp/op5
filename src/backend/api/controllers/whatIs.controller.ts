@@ -6,7 +6,7 @@ import { assertBearer } from "../../_common/asserts/bearer.assert.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { log } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "../services/whatIs.service.js";
 
 export const whatIsController = async (req: Request, res: Response) => {
     try {

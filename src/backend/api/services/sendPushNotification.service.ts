@@ -11,7 +11,7 @@ import { i18n } from "../../_common/instances.js";
 import { log } from "../instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import createNotificationBody from "../../../_common/helpers/createNotificationBody.js";
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "./whatIs.service.js";
 
 webPush.setVapidDetails(
     `https://${config.domains.main}`,

@@ -6,7 +6,7 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 import { AdvancedError } from "kage-library";
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "./whatIs.service.js";
 import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 import { GetUserType } from "../../../_common/types/user.type.js";
 import getPublishedCharactersService from "./getPublishedCharacters.service.js";

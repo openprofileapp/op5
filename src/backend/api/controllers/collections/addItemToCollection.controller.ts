@@ -10,7 +10,7 @@ import { i18n } from "../../../_common/instances.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { db } from "../../databases/db.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
-import whatIs from "../../helpers/whatIs.js";
+import whatIs from "../../services/whatIs.service.js";
 import sendNotificationService from "../../services/sendNotification.service.js";
 
 export const addItemToCollectionController = async (req: Request, res: Response) => {

@@ -10,7 +10,7 @@ import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../_common/instances.js";
-import whatIs from "../../helpers/whatIs.js";
+import whatIs from "../../services/whatIs.service.js";
 
 export const deletePins = async (req: Request, res: Response) => {
     try {

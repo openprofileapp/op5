@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 
 import { DurationType, parseDuration } from "kage-library";
 
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "./whatIs.service.js";
 import { db } from "../databases/db.js";
 import { AlgorithmEventNameType } from "../../../_common/types/algorithm.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";

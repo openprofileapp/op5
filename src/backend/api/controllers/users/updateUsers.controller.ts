@@ -9,7 +9,7 @@ import { i18n } from "../../../_common/instances.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { db } from "../../databases/db.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
-import whatIs from "../../helpers/whatIs.js";
+import whatIs from "../../services/whatIs.service.js";
 import uploadFile from "../../../_common/helpers/uploadFile.js";
 import { LinkType } from "../../../../_common/types/link.type.js";
 import { UsernameType } from "../../../../_common/types/username.type.js";

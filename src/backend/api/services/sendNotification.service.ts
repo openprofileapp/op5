@@ -7,7 +7,7 @@ import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../databases/db.js";
 import sendPushNotificationService from "./sendPushNotification.service.js";
 import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "./whatIs.service.js";
 import { config } from "../../../../app.config.js";
 import { SubscriptionsType } from "../../../frontend/_common/components/modals/NotificationsModal.js";
 

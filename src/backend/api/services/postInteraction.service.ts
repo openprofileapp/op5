@@ -14,7 +14,7 @@ import AlgorithmService, { index } from "./algorithm.service.js";
 import getInteractionsService from "./getInteractions.service.js";
 import sendNotificationService, { notificationMilestones } from "./sendNotification.service.js";
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
-import whatIs from "../helpers/whatIs.js";
+import whatIs from "./whatIs.service.js";
 import { i18n } from "../../_common/instances.js";
 
 type InteractionEventResult = {
