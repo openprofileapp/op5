@@ -567,7 +567,6 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                             />
                                         </div>
 
-
                                         <div className="flex flex-col gap-1 mt-1">
                                             <label className="label flex gap-2">
                                                 Text
