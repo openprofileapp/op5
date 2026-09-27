@@ -20,7 +20,7 @@ export const updateFields = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -76,7 +76,7 @@ export const updateFields = async (req: Request, res: Response) => {
 
                 if (originalFieldId !== value) {
                     const getFieldIdResult = db.templates.query(
-                        "SELECT * FROM fields WHERE fieldId = ?",
+                        "SELECT * FROM draft_fields WHERE fieldId = ?",
                         [value]
                     );
 
@@ -90,7 +90,7 @@ export const updateFields = async (req: Request, res: Response) => {
                     }
 
                     const updateValueResult = db.templates.query(
-                        `UPDATE "values" SET fieldId = ? WHERE fieldId = ?`,
+                        `UPDATE draft_values SET fieldId = ? WHERE fieldId = ?`,
                         [value, originalFieldId]
                     );
 
@@ -147,7 +147,7 @@ export const updateFields = async (req: Request, res: Response) => {
         values.push(originalFieldId);
 
         const result = db.templates.query(
-            `UPDATE fields SET ${updates.join(", ")} WHERE templateId = ? AND fieldId = ?`,
+            `UPDATE draft_fields SET ${updates.join(", ")} WHERE templateId = ? AND fieldId = ?`,
             values
         );
 

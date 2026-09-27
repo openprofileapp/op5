@@ -64,7 +64,7 @@ export const insertDatasetController = async (req: Request, res: Response) => {
         }
 
         const insertResult = db.templates.query(
-            `INSERT INTO datasets (
+            `INSERT INTO draft_datasets (
                 id,
                 ownerId, 
                 label, 

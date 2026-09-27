@@ -121,7 +121,7 @@ export default function Datasets() {
 
             try {
                 const response = await fetch(
-                    `${apiBaseUrl}/v3/templates/datasets?q=${encodeURIComponent(query)}&page=${currentPage}`,
+                    `${apiBaseUrl}/v3/templates/datasets/drafts?q=${encodeURIComponent(query)}&page=${currentPage}`,
                     { credentials: "include" }
                 );
 

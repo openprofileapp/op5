@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "values" (
+CREATE TABLE IF NOT EXISTS published_values (
     templateId TEXT NOT NULL,
     fieldId TEXT NOT NULL,
     authorId TEXT NOT NULL,

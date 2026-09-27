@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS blocks (
+CREATE TABLE IF NOT EXISTS published_blocks (
     templateId TEXT NOT NULL,
     blockId TEXT PRIMARY KEY NOT NULL,
     categoryId TEXT NOT NULL,

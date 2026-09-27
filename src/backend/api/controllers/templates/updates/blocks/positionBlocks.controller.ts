@@ -20,7 +20,7 @@ export const positionBlocks = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -60,7 +60,7 @@ export const positionBlocks = async (req: Request, res: Response) => {
 
         validBlocks.forEach((block, position) => {            
             const updateResult = db.templates.query(
-                "UPDATE blocks SET position = ? WHERE templateId = ? AND blockId = ?",
+                "UPDATE draft_blocks SET position = ? WHERE templateId = ? AND blockId = ?",
                 [
                     position,
                     templateId,

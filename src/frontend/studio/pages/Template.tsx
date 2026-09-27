@@ -175,7 +175,7 @@ export default function Template() {
         const fetchTemplate = async () => {
             try {
                 const response = await fetch(
-                    `${apiBaseUrl}/v3/templates?id=${templateId}`,
+                    `${apiBaseUrl}/v3/templates/drafts?id=${templateId}`,
                     { credentials: "include" }
                 );
 
@@ -201,7 +201,7 @@ export default function Template() {
         const fetchTemplateData = async () => {
             try {
                 const response = await fetch(
-                    `${apiBaseUrl}/v3/templates/${templateId}/data`,
+                    `${apiBaseUrl}/v3/templates/drafts/${templateId}/data`,
                     { credentials: "include" }
                 );
 

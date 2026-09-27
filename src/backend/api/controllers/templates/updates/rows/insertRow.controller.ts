@@ -19,7 +19,7 @@ export const insertRows = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -47,7 +47,7 @@ export const insertRows = async (req: Request, res: Response) => {
         }
 
         const countResult = db.templates.query<{ count: number }>(
-            "SELECT 1 FROM rows WHERE blockId = ?",
+            "SELECT 1 FROM draft_rows WHERE blockId = ?",
             [blockId]
         );
 
@@ -56,7 +56,7 @@ export const insertRows = async (req: Request, res: Response) => {
         const targetPosition = typeof position === "number" ? position : countResult.rowCount;
 
         const insertResult = db.templates.query(
-            `INSERT INTO rows (
+            `INSERT INTO draft_rows (
                 templateId,
                 rowId, 
                 blockId, 

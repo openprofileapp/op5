@@ -9,7 +9,7 @@ import { i18n } from '../../../_common/instances.js';
 import { assertAccount } from '../../../_common/asserts/account.assert.js';
 import { GetTemplateCategoryItemType } from '../../../../_common/types/template/category.type.js';
 
-export const getTemplateDataController = async (req: Request, res: Response) => {
+export const getPublishedTemplateDataController = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -92,7 +92,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                                                                     'content', v.content,
                                                                                                     'date', v.date
                                                                                                 )
-                                                                                                FROM "values" v
+                                                                                                FROM published_values v
                                                                                                 WHERE v.fieldId = f.fieldId AND v.templateId = c.templateId
                                                                                                 LIMIT 1
                                                                                             )
@@ -100,7 +100,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                                                     )
                                                                                 )
                                                                                 FROM (
-                                                                                    SELECT * FROM fields
+                                                                                    SELECT * FROM published_fields
                                                                                     WHERE rowId = r.rowId AND templateId = c.templateId
                                                                                     ORDER BY position ASC
                                                                                 ) f
@@ -109,7 +109,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                                         ),
                                                                         'count', (
                                                                             SELECT COUNT(*) 
-                                                                            FROM fields f 
+                                                                            FROM published_fields f 
                                                                             WHERE f.rowId = r.rowId AND f.templateId = c.templateId
                                                                         )
                                                                     )
@@ -117,7 +117,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                             )
                                                         )
                                                         FROM (
-                                                            SELECT * FROM rows
+                                                            SELECT * FROM published_rows
                                                             WHERE blockId = b.blockId AND templateId = c.templateId
                                                             ORDER BY position ASC
                                                         ) r
@@ -126,7 +126,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                                 ),
                                                 'count', (
                                                     SELECT COUNT(*) 
-                                                    FROM rows r 
+                                                    FROM published_rows r 
                                                     WHERE r.blockId = b.blockId AND r.templateId = c.templateId
                                                 )
                                             )
@@ -134,7 +134,7 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                                     )
                                 )
                                 FROM (
-                                    SELECT * FROM blocks
+                                    SELECT * FROM published_blocks
                                     WHERE categoryId = c.categoryId AND templateId = c.templateId
                                     ORDER BY position ASC
                                 ) b
@@ -143,12 +143,12 @@ export const getTemplateDataController = async (req: Request, res: Response) => 
                         ),
                         'count', (
                             SELECT COUNT(*) 
-                            FROM blocks b 
+                            FROM published_blocks b 
                             WHERE b.categoryId = c.categoryId AND b.templateId = c.templateId
                         )
                     )
                 ) AS blocks
-            FROM categories c
+            FROM published_categories c
             WHERE c.templateId = ?
             ORDER BY c.position ASC`,
             [id]

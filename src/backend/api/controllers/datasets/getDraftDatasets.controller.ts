@@ -10,7 +10,7 @@ import { db } from "../../databases/db.js";
 import { config } from "../../../../../app.config.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
 
-export const getDatasetController = async (req: Request, res: Response) => {
+export const getDraftDatasetController = async (req: Request, res: Response) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
@@ -33,11 +33,12 @@ export const getDatasetController = async (req: Request, res: Response) => {
                 label LIKE ?
                 OR description LIKE ?
                 OR data LIKE ?
+                OR tags LIKE ?
             )`
             : "";
 
         const queryParams = trimmedQuery
-            ? [queryTerm, queryTerm, queryTerm]
+            ? [queryTerm, queryTerm, queryTerm, queryTerm]
             : [];
 
         const idClause = id
@@ -50,43 +51,39 @@ export const getDatasetController = async (req: Request, res: Response) => {
 
         let formattedSortBy: string;
 
-        const primarySourceSort =
-            "CASE WHEN source = 'official' THEN 0 ELSE 1 END ASC";
-
         switch (sortBy) {
             case "recent":
-                formattedSortBy = `${primarySourceSort}, updatedDate DESC`;
+                formattedSortBy = "updatedDate DESC";
                 break;
 
             case "newest":
-                formattedSortBy = `${primarySourceSort}, createdDate DESC`;
+                formattedSortBy = "createdDate DESC";
                 break;
 
             case "oldest":
-                formattedSortBy = `${primarySourceSort}, createdDate ASC`;
+                formattedSortBy = "createdDate ASC";
                 break;
 
             case "nameAsc":
-                formattedSortBy = `${primarySourceSort}, label ASC`;
+                formattedSortBy = "label ASC";
                 break;
 
             case "nameDesc":
-                formattedSortBy = `${primarySourceSort}, label DESC`;
+                formattedSortBy = "label DESC";
                 break;
 
             case "popularAsc":
-                formattedSortBy = `${primarySourceSort}, uses ASC`;
+                formattedSortBy = "uses ASC";
                 break;
 
             default:
-                formattedSortBy =
-                    `${primarySourceSort}, uses DESC, createdDate DESC`;
+                formattedSortBy = "uses DESC, createdDate DESC";
         }
 
         const result = db.templates.query(
             `
                 SELECT *
-                FROM datasets
+                FROM draft_datasets
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -107,7 +104,7 @@ export const getDatasetController = async (req: Request, res: Response) => {
         const countResult = db.templates.query<{ total: number }>(
             `
                 SELECT 1
-                FROM datasets
+                FROM draft_datasets
                 ${accessClause}
                 ${idClause}
                 ${queryClause}

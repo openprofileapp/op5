@@ -1,8 +1,12 @@
-CREATE TABLE IF NOT EXISTS categories (
+CREATE TABLE IF NOT EXISTS draft_blocks (
     templateId TEXT NOT NULL,
-    categoryId TEXT PRIMARY KEY NOT NULL,
-    types TEXT NOT NULL DEFAULT '[]',
+    blockId TEXT PRIMARY KEY NOT NULL,
+    categoryId TEXT NOT NULL,
+    sourceBlockId TEXT,
+    isSourceBlockConnected INTEGER NOT NULL DEFAULT 0,
+    icon TEXT,
     label TEXT,
+    description TEXT,
     position INTEGER NOT NULL DEFAULT 0,
     createdBy TEXT NOT NULL,
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),

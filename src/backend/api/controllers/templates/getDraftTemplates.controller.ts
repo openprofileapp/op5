@@ -10,7 +10,7 @@ import { i18n } from "../../../_common/instances.js";
 import { config } from "../../../../../app.config.js";
 import whatIs from "../../helpers/whatIs.js";
 
-export const getTemplatesController = async (req: Request, res: Response) => {
+export const getDraftTemplatesController = async (req: Request, res: Response) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
@@ -40,44 +40,43 @@ export const getTemplatesController = async (req: Request, res: Response) => {
             ? `AND (
                 displayName LIKE ? 
                 OR about LIKE ?
+                OR tags LIKE ?
             )`
             : "";
 
         const queryParams = trimmedQuery
-            ? [queryTerm, queryTerm]
+            ? [queryTerm, queryTerm, queryTerm]
             : [];
 
         let formattedSortBy: string;
 
-        const primarySourceSort = "CASE WHEN source = 'official' THEN 0 ELSE 1 END ASC";
-
         switch (sortBy) {
             case "recent":
-                formattedSortBy = `${primarySourceSort}, updatedDate DESC`;
+                formattedSortBy = "updatedDate DESC";
                 break;
             case "newest":
-                formattedSortBy = `${primarySourceSort}, createdDate DESC`;
+                formattedSortBy = "createdDate DESC";
                 break;
             case "oldest":
-                formattedSortBy = `${primarySourceSort}, createdDate ASC`;
+                formattedSortBy = "createdDate ASC";
                 break;
             case "nameAsc":
-                formattedSortBy = `${primarySourceSort}, label ASC`;
+                formattedSortBy = "label ASC";
                 break;
             case "nameDesc":
-                formattedSortBy = `${primarySourceSort}, label DESC`;
+                formattedSortBy = "label DESC";
                 break;
             case "popularAsc":
-                formattedSortBy = `${primarySourceSort}, uses ASC`;
+                formattedSortBy = "uses ASC";
                 break;
             default:
-                formattedSortBy = `${primarySourceSort}, uses DESC, createdDate DESC`;
+                formattedSortBy = "uses DESC, createdDate DESC";
         }
 
         const result = db.templates.query(
             `
                 SELECT *
-                FROM templates
+                FROM drafts
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -98,7 +97,7 @@ export const getTemplatesController = async (req: Request, res: Response) => {
         const countResult = db.templates.query<{ total: number }>(
             `
                 SELECT 1
-                FROM templates
+                FROM drafts
                 ${accessClause}
                 ${idClause}
                 ${queryClause}

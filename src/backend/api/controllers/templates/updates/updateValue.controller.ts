@@ -34,7 +34,7 @@ export const updateValue = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -194,7 +194,7 @@ export const updateValue = async (req: Request, res: Response) => {
         db.templates.transaction((q) => {
             if (!value) {
                 const deleteValueResult = q(
-                    `DELETE FROM "values" WHERE templateId = ? AND fieldId = ? LIMIT 1`,
+                    `DELETE FROM draft_values WHERE templateId = ? AND fieldId = ? LIMIT 1`,
                     [templateId, fieldId]
                 );
 
@@ -203,7 +203,7 @@ export const updateValue = async (req: Request, res: Response) => {
             }
 
             const currentResult = q(
-                `SELECT * FROM "values" WHERE templateId = ? AND fieldId = ?`,
+                `SELECT * FROM draft_values WHERE templateId = ? AND fieldId = ?`,
                 [templateId, fieldId]
             );
 
@@ -213,7 +213,7 @@ export const updateValue = async (req: Request, res: Response) => {
             const previousValue = currentResult.rows?.[0]?.content;
 
             const postResult = q(
-                `INSERT INTO "values" (
+                `INSERT INTO draft_values (
                     templateId,
                     fieldId, 
                     authorId, 

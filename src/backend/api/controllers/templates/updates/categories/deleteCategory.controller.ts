@@ -18,7 +18,7 @@ export const deleteCategories = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -46,22 +46,22 @@ export const deleteCategories = async (req: Request, res: Response) => {
         }
 
         db.templates.query(
-            "DELETE FROM fields WHERE templateId = ? AND categoryId = ?",
+            "DELETE FROM draft_fields WHERE templateId = ? AND categoryId = ?",
             [templateId, categoryId]
         );
 
         db.templates.query(
-            "DELETE FROM rows WHERE templateId = ? AND categoryId = ?",
+            "DELETE FROM draft_rows WHERE templateId = ? AND categoryId = ?",
             [templateId, categoryId]
         );
 
         db.templates.query(
-            "DELETE FROM blocks WHERE templateId = ? AND categoryId = ?",
+            "DELETE FROM draft_blocks WHERE templateId = ? AND categoryId = ?",
             [templateId, categoryId]
         );
 
         const deleteResult = db.templates.query(
-            "DELETE FROM categories WHERE templateId = ? AND categoryId = ?",
+            "DELETE FROM draft_categories WHERE templateId = ? AND categoryId = ?",
             [templateId, categoryId]
         );
 

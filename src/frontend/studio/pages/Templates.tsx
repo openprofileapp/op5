@@ -57,7 +57,7 @@ export default function Templates() {
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/templates?owner=${window.session.userId}&q=${encodeURIComponent(query)}&page=${currentPage}`,
+                `${apiBaseUrl}/v3/templates/drafts?q=${encodeURIComponent(query)}&page=${currentPage}`,
                 { credentials: "include" }
             );
 

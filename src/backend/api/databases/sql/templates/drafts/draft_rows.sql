@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS rows (
+CREATE TABLE IF NOT EXISTS draft_rows (
     templateId TEXT NOT NULL,
     blockId TEXT NOT NULL,
     rowId TEXT PRIMARY KEY NOT NULL,

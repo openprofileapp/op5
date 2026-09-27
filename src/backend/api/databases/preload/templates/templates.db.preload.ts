@@ -18,7 +18,7 @@ const index: Partial<TemplateType>[] = [
 db.templates.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO templates (
+            `INSERT INTO drafts (
                 id,
                 ownerId,
                 displayName,

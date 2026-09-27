@@ -18,7 +18,7 @@ export const deleteFields = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -45,7 +45,7 @@ export const deleteFields = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteResult = db.templates.query(`DELETE FROM fields WHERE fieldId = ?`, [fieldId]);
+        const deleteResult = db.templates.query(`DELETE FROM draft_fields WHERE fieldId = ?`, [fieldId]);
 
         assertDbSuccess(deleteResult);
 

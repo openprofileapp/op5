@@ -144,7 +144,7 @@ const index: Partial<DatasetItemType>[] = [
 db.templates.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO datasets (
+            `INSERT INTO draft_datasets (
                 id,
                 ownerId,
                 label,

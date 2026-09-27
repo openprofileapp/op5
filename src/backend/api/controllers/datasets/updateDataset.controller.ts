@@ -20,7 +20,7 @@ export const updateDatasetController = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query<DatasetItemType>(
-            "SELECT * FROM datasets WHERE id = ?",
+            "SELECT * FROM draft_datasets WHERE id = ?",
             [id]
         );
 
@@ -88,7 +88,7 @@ export const updateDatasetController = async (req: Request, res: Response) => {
 
         const postResult = db.templates.query(
             `
-                UPDATE datasets
+                UPDATE draft_datasets
                 SET
                     label = COALESCE(?, label),
                     description = COALESCE(?, description),

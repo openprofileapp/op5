@@ -19,7 +19,7 @@ export const deleteDatasetController = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query<DatasetItemType>(
-            "SELECT * FROM datasets WHERE id = ?",
+            "SELECT * FROM draft_datasets WHERE id = ?",
             [id]
         );
 
@@ -40,7 +40,7 @@ export const deleteDatasetController = async (req: Request, res: Response) => {
         }
 
         const deleteResult = db.templates.query(
-            "DELETE FROM datasets WHERE id = ? LIMIT 1", 
+            "DELETE FROM draft_datasets WHERE id = ? LIMIT 1", 
             [id]
         );
 

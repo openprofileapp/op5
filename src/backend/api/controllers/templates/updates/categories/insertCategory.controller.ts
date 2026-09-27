@@ -19,7 +19,7 @@ export const insertCategories = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -47,7 +47,7 @@ export const insertCategories = async (req: Request, res: Response) => {
         }
 
         const countResult = db.templates.query<{ count: number }>(
-            "SELECT COUNT(*) as count FROM categories WHERE templateId = ?",
+            "SELECT COUNT(*) as count FROM draft_categories WHERE templateId = ?",
             [templateId]
         );
 
@@ -58,7 +58,7 @@ export const insertCategories = async (req: Request, res: Response) => {
         const targetPosition = typeof position === "number" ? position : currentCount;
 
         const insertResult = db.templates.query(
-            `INSERT INTO categories (
+            `INSERT INTO draft_categories (
                 templateId, 
                 categoryId, 
                 label, 

@@ -125,62 +125,62 @@ db.audits.transaction(q => {
 
 db.characters.transaction(q => {
     if (!q("SELECT * FROM published LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM drafts LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/drafts.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM published_categories LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/categories/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published_categories.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM draft_categories LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/categories/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/draft_categories.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM published_blocks LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/blocks/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published_blocks.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM draft_blocks LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/blocks/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/draft_blocks.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM published_rows LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/rows/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published_rows.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM draft_rows LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/rows/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/draft_rows.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM published_fields LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/fields/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published_fields.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM draft_fields LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/fields/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/draft_fields.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM published_values LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/values/published.sql`);
+        const result = q(`${config.folders.sql.api}/characters/published/published_values.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q("SELECT * FROM draft_values LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/characters/values/drafts.sql`);
+        const result = q(`${config.folders.sql.api}/characters/drafts/draft_values.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });
@@ -410,43 +410,78 @@ db.blocks.transaction(q => {
 });
 
 db.templates.transaction(q => {
-    if (!q(`SELECT * FROM templates LIMIT 1`).success) { 
-        const result = q(`${config.folders.sql.api}/templates/templates.sql`);
+    if (!q("SELECT * FROM published LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM categories LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/templates/categories.sql`);
+    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/drafts.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM blocks LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/templates/blocks.sql`);
+    if (!q("SELECT * FROM published_categories LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_categories.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM rows LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/templates/rows.sql`);
+    if (!q("SELECT * FROM draft_categories LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_categories.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM fields LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/templates/fields.sql`);
+    if (!q("SELECT * FROM published_blocks LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_blocks.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q(`SELECT * FROM "values" LIMIT 1`).success) { 
-        const result = q(`${config.folders.sql.api}/templates/values.sql`);
+    if (!q("SELECT * FROM draft_blocks LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_blocks.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_rows LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_rows.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM draft_rows LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_rows.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_fields LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_fields.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM draft_fields LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_fields.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_values LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_values.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM draft_values LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_values.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
     if (!q(`SELECT * FROM history LIMIT 1`).success) { 
-        const result = q(`${config.folders.sql.api}/templates/history.sql`);
+        const result = q(`${config.folders.sql.api}/templates/drafts/history.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM datasets LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/templates/datasets.sql`);
+    if (!q("SELECT * FROM published_datasets LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/published/published_datasets.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM draft_datasets LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/templates/drafts/draft_datasets.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });

@@ -19,7 +19,7 @@ export const positionCategories = async (req: Request, res: Response) => {
         assertPlatformPermissions(req.session, "WRITE");
 
         const getResult = db.templates.query(
-            "SELECT * FROM templates WHERE id = ?",
+            "SELECT * FROM drafts WHERE id = ?",
             [templateId]
         );
 
@@ -49,7 +49,7 @@ export const positionCategories = async (req: Request, res: Response) => {
         data.forEach((item, position) => {
             if (item && typeof item.categoryId === "string") {
                 const updateResult = db.templates.query(
-                    "UPDATE categories SET position = ? WHERE templateId = ? AND categoryId = ?",
+                    "UPDATE draft_categories SET position = ? WHERE templateId = ? AND categoryId = ?",
                     [position, templateId, item.categoryId]
                 );
                 assertDbSuccess(updateResult);
