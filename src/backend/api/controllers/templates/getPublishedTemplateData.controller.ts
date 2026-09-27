@@ -169,25 +169,44 @@ export const getPublishedTemplateDataController = async (req: Request, res: Resp
 
         const parseJSONRecursively = (obj: unknown): unknown => {
             if (typeof obj === "string") {
-                try {
-                    return parseJSONRecursively(JSON.parse(obj, idPreservingReviver));
-                } catch {
-                    return obj;
+                const trimmed = obj.trim();
+
+                if (
+                    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                    (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                ) {
+                    try {
+                        return parseJSONRecursively(
+                            JSON.parse(trimmed, idPreservingReviver)
+                        );
+                    } catch {
+                        return obj;
+                    }
                 }
+
+                return obj;
             }
+
             if (Array.isArray(obj)) {
                 return obj.map(parseJSONRecursively);
             }
+
             if (obj !== null && typeof obj === "object") {
                 return Object.entries(obj).reduce((acc, [key, value]) => {
-                    if (key.endsWith("Id") || key === "createdBy" || key === "authorId") {
+                    if (
+                        key.endsWith("Id") ||
+                        key === "createdBy" ||
+                        key === "authorId"
+                    ) {
                         acc[key] = String(value);
                     } else {
                         acc[key] = parseJSONRecursively(value);
                     }
+
                     return acc;
                 }, {} as Record<string, unknown>);
             }
+
             return obj;
         };
 
