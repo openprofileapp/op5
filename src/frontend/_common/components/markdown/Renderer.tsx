@@ -16,7 +16,7 @@ import ExternalLink from "../ExternalLink.js";
 const RenderMention: React.FC<{ id: string }> = ({ id }) => {
     const [data, setData] = useState<WhatIsType>();
     const [loading, setLoading] = useState<boolean>(true);
-
+    
     useEffect(() => {
         async function fetchMentionData() {
             try {
@@ -38,12 +38,28 @@ const RenderMention: React.FC<{ id: string }> = ({ id }) => {
         fetchMentionData();
     }, [id]);
 
+    if (window.location.hostname.startsWith(window.config.domains.studio)) {
+        return (
+            <span className="text-sub font-mono text-xs border border-base-300 py-1 px-3 rounded-full">
+                Mentions Not Supported In Studio
+            </span>
+        );
+    }
+
     if (loading) {
-        return <span className="opacity-65 font-mono text-xs">@...</span>;
+        return (
+            <span className="text-sub font-mono text-xs border border-base-300 py-1 px-3 rounded-full">
+                Loading...
+            </span>
+        );
     }
 
     if (!data?.id) {
-        return <span className="opacity-65 font-mono text-xs">Invalid Mention</span>;
+        return (
+            <span className="text-sub font-mono text-xs border border-base-300 py-1 px-3 rounded-full">
+                Id Not Found
+            </span>
+        );
     }
 
     return (
