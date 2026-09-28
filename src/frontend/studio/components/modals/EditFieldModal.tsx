@@ -588,6 +588,27 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                     </>
                                 )}
 
+                                {optionsRef.current?.type === "button" && (
+                                    <div className="flex flex-col gap-1 mt-1">
+                                        <label className="label flex gap-2">
+                                            Link
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            className="input w-full"
+                                            placeholder="What placeholder should this field have?"
+                                            value={options?.text}
+                                            onChange={(e) => {
+                                                setOptions((prev) => ({
+                                                    ...prev,
+                                                    text: e.target.value
+                                                }));
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col gap-1 mt-1">
                                     <label className="label flex gap-2">
                                         Flex
