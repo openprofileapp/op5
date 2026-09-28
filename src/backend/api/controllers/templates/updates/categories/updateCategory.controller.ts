@@ -68,8 +68,6 @@ export const updateCategories = async (req: Request, res: Response) => {
                 continue;
             }
 
-            console.log(value)
-
             if (key === "types") {
                 value = JSON.stringify(value ?? []);
             }
