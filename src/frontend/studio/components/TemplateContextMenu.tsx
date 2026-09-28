@@ -6,6 +6,7 @@ import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { TemplateRowItemType } from "../../../_common/types/template/row.type.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
+import { TemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
 
 interface Props {
     id: string;
@@ -20,6 +21,7 @@ interface Props {
     data: {
         field?: TemplateFieldItemType
         row?: TemplateRowItemType
+        category?: TemplateCategoryItemType
     }
     onChange: (
         targetRowId: string,
@@ -51,7 +53,12 @@ export default function TemplateContextMenu({
     resolveDynamicValues
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
-    const { deleteModal, editFieldModal } = useModals();
+
+    const { 
+        deleteModal, 
+        editFieldModal, 
+        editCategoryModal 
+    } = useModals();
 
     const [isLocking, setIsLocking] = useState<boolean>(false);
 
@@ -133,6 +140,21 @@ export default function TemplateContextMenu({
                                     resolveDynamicValues
                                 });
                             }
+
+                            if (type === "category") {
+                                editCategoryModal.open({
+                                    id,
+                                    label: data?.category?.label,
+                                    types: data?.category?.types,
+                                    onChange: async (options) => {
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        const result = await onChange(id, options);
+                                        return result !== false;
+                                    },
+                                    resolveDynamicValues
+                                });
+                            }
                         }}
                     >
                         Edit
@@ -172,7 +194,7 @@ export default function TemplateContextMenu({
                 </li>
             )}
 
-            {type !== "row" && (
+            {type !== "row" && (type !== "category" || isEditing) && (
                 <hr />
             )}
 
@@ -193,7 +215,7 @@ export default function TemplateContextMenu({
                                 { 
                                     templateId,
                                     type: type,
-                                    skipCountdown: true,
+                                    skipCountdown: (type !== "field" && type !== "row" ? false : true),
                                     onDelete
                                 }
                             )
@@ -219,9 +241,14 @@ export default function TemplateContextMenu({
                             onClick={async () => {
                                 closeContextMenu();
 
+                                const finalUrl = type === "field" 
+                                    ? `${url}#${id}`
+                                    : url
+                                ;
+
                                 try {
                                     await navigator.clipboard.writeText(
-                                        `${url}#${id}`
+                                        finalUrl as string
                                     );
 
                                     toast.show(
