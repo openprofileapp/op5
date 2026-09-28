@@ -65,8 +65,9 @@ export default async function downloadOp5(
     const payload = JSON.stringify({ 
         metadata: {
             type,
-            version: `${window.config.metadata.version.semver}-${window.config.metadata.version.stage}`,
+            appVersion: `${window.config.metadata.version.semver}-${window.config.metadata.version.stage}`,
             schemaVersion: 3,
+            exportedFrom: "webapp",
             exportedBy: window.session?.userId,
             exportDate: new Date().toISOString()
         },
