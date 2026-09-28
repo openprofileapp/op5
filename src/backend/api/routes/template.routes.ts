@@ -25,6 +25,7 @@ import { getPublishedTemplatesController } from "../controllers/templates/getPub
 import { getDraftTemplatesController } from "../controllers/templates/getDraftTemplates.controller.js";
 import { getDraftTemplateDataController } from "../controllers/templates/getDraftTemplateData.controller.js";
 import { getPublishedDatasetController } from "../controllers/datasets/getPublishedDatasets.controller.js";
+import { updateCategories } from "../controllers/templates/updates/categories/updateCategory.controller.js";
 
 const templateRoutes = Router();
 
@@ -49,6 +50,7 @@ templateRoutes.delete("/datasets/delete/:id", deleteDatasetController);
 //templateRoutes.delete("/delete/:id", deleteCharacter);
 
 templateRoutes.post("/:templateId/categories/insert", insertCategories);
+templateRoutes.post("/:templateId/categories/update", updateCategories);
 templateRoutes.post("/:templateId/categories/update/positions", positionCategories);
 templateRoutes.delete("/:templateId/categories/delete/:categoryId", deleteCategories);
 
