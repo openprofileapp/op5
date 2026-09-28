@@ -653,7 +653,18 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                     </button>
                 </div>
 
-                <aside className="w-170 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black min-h-0">
+                <aside 
+                    className={`
+                        w-170 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black min-h-0
+                        ${(
+                            optionsRef.current?.type === "button" 
+                            || optionsRef.current?.type === "separator"
+                        ) 
+                            ? "hidden" 
+                            : ""
+                        }
+                    `}
+                >
                     <div className="shrink-0 mb-4">
                         <h3 className="text-2xl font-bold capitalize">
                             Guide
