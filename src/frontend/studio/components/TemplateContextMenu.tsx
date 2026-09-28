@@ -16,6 +16,7 @@ interface Props {
     rowId: string;
     readOnly?: boolean;
     isLocked?: boolean;
+    isEditing?: boolean;
     data: {
         field?: TemplateFieldItemType
         row?: TemplateRowItemType
@@ -44,6 +45,7 @@ export default function TemplateContextMenu({
     readOnly = false,
     isLocked = false,
     data,
+    isEditing = false,
     onChange,
     onDelete,
     resolveDynamicValues
@@ -53,7 +55,7 @@ export default function TemplateContextMenu({
 
     const [isLocking, setIsLocking] = useState<boolean>(false);
 
-   useEffect(() => {
+    useEffect(() => {
         const menu = document.getElementById(`context-${id}`);
 
         if (!menu) return;
@@ -108,7 +110,7 @@ export default function TemplateContextMenu({
             popover="manual"
             id={`context-${id}`}
         >
-            {!isLocked && (
+            {!isLocked && isEditing && type !== "row" && (
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4"
@@ -170,9 +172,11 @@ export default function TemplateContextMenu({
                 </li>
             )}
 
-            <hr />
+            {type !== "row" && (
+                <hr />
+            )}
 
-            {!isLocked && (
+            {!isLocked && isEditing && (
                 <li>
                     <button 
                         className="flex items-center justify-between gap-4 text-accent"
@@ -203,7 +207,7 @@ export default function TemplateContextMenu({
                 </li>
             )}
 
-            {type !== "row" && !isLocked && (
+            {type !== "row" && isEditing && !isLocked && (
                 <hr />
             )}
 
