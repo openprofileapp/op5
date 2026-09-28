@@ -7,6 +7,7 @@ import CropModal from "../components/modals/CropImageModal.js";
 import ZoomableMedia from "./ZoomableMedia.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
+import { fileToBase64 } from "../scripts/base64.js";
 
 type Props = {
     id?: string;
@@ -43,15 +44,6 @@ function dataURLtoFile(dataUrl: string, filename: string): File {
         u8arr[n] = bstr.charCodeAt(n);
     }
     return new File([u8arr], filename, { type: mime });
-}
-
-function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-    });
 }
 
 export default function ImageInput({
