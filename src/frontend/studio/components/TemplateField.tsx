@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { URL } from "kage-library/client";
+
 import { GetValueType } from "../../../_common/types/blocks/value.type.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import { SliderInput } from "../../_common/components/SliderInput.js";
@@ -236,7 +238,14 @@ export default function TemplateField({
             }
 
             case "button": {
-                const url = localValue || `#${id}`;
+                const url = options?.text || `#${id}`;
+                let urlData
+                let urlText = url;
+
+                if (options?.text) {
+                    urlData = new URL(options?.text);
+                    urlText = `${urlData?.subdomain}${urlData?.subdomain ? "." : ""}${urlData?.domain}`;
+                }
 
                 return (
                     <Link
@@ -253,7 +262,7 @@ export default function TemplateField({
                         className="btn btn-accent w-full min-h-10 h-10 flex items-center justify-center gap-2"
                         onContextMenu={handleContextMenu}
                     >
-                        {url || value?.options?.title}
+                        {label || urlText}
 
                         <span className="font-nerdfont leading-none">
                             
@@ -448,80 +457,83 @@ export default function TemplateField({
     if (!isTranslationReady) return null;
 
     return (
-        <div className="flex gap-3 w-full">
-            
-            <TemplateContextMenu 
-                id={id}
-                type="field"
-                label={label}
-                url={url}
-                templateId={templateId}
-                rowId={rowId}
-                readOnly={readOnly}
-                data={{ field: data }}
-                isLocked={isLocked}
-                onChange={onFieldChange}
-                onDelete={onDelete}
-                resolveDynamicValues={resolveDynamicValues}
-            />
+        <>
+            <div className="flex gap-3 w-full">
+                <TemplateContextMenu 
+                    id={id}
+                    type="field"
+                    label={label}
+                    url={url}
+                    templateId={templateId}
+                    rowId={rowId}
+                    readOnly={readOnly}
+                    data={{ field: data }}
+                    isLocked={isLocked}
+                    onChange={onFieldChange}
+                    onDelete={onDelete}
+                    resolveDynamicValues={resolveDynamicValues}
+                    isEditing={dragHandleProps ? true : false}
+                />
 
-            <fieldset className="fieldset w-full">
-                <legend className="fieldset-legend text-sm font-normal flex items-center gap-2">
-                    {dragHandleProps && (
-                        <span {...dragHandleProps}>
-                            <button
-                                type="button"
-                                className="flex items-center justify-center w-4 rounded-full overflow-hidden cursor-grab active:cursor-grabbing"
-                            >
-                                <span className="font-nerdfont leading-none text-2xl">
-                                    󰇛
-                                </span>
-                            </button>
-                        </span>
-                    )}
-
-                    {
-                        type !== "button" 
-                        && type !== "separator" 
-                    && (
-                        <span className="text-sub">
-                            {label}
-                        </span>
-                    )}
-
-                    {Boolean(isLocked) && !readOnly && (
-                        <span 
-                            className="tooltip tooltip-accent"
-                            data-tip="Locked"
-                        >
-                            <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
-                                
+                <fieldset className="fieldset w-full">
+                    <legend className="fieldset-legend text-sm font-normal flex items-center gap-2">
+                        {dragHandleProps && (
+                            <span {...dragHandleProps}>
+                                <button
+                                    type="button"
+                                    className="flex items-center justify-center w-4 rounded-full overflow-hidden cursor-grab active:cursor-grabbing"
+                                >
+                                    <span className="font-nerdfont leading-none text-2xl">
+                                        󰇛
+                                    </span>
+                                </button>
                             </span>
-                        </span>
-                    )}
-                </legend>
+                        )}
 
-                {renderInputContent()}
+                        {
+                            type !== "button" 
+                            && type !== "separator" 
+                        && (
+                            <span className="text-sub">
+                                {label}
+                            </span>
+                        )}
 
-                {(Boolean(guide) && !readOnly) && (
-                    <div
-                        className={`overflow-hidden transition-all duration-300 ease-out ${
-                            isFocused
-                                ? "max-h-[500px] opacity-100 mt-2"
-                                : "max-h-0 opacity-0 mt-0 pointer-events-none"
-                        }`}
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                        }}
-                    >
-                        <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
-                            <MarkdownRenderer
-                                content={guide}
-                            />
-                        </div>
+                        {Boolean(isLocked) && !readOnly && (
+                            <span 
+                                className="tooltip tooltip-accent"
+                                data-tip="Locked"
+                            >
+                                <span className="font-nerdfont text-lg text-sub flex w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </span>
+                        )}
+                    </legend>
+
+                    {renderInputContent()}
+                </fieldset>
+            </div>
+
+            {(Boolean(guide) && !readOnly) && (
+                <div
+                    className={`fixed left-0 top-0 overflow-hidden transition-all duration-300 ease-out 
+                        ${isFocused
+                            ? "max-h-[500px] opacity-100 mt-2"
+                            : "max-h-0 opacity-0 mt-0 pointer-events-none"
+                        }
+                    `}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                    }}
+                >
+                    <div className="bg-accent text-accent-content rounded px-3 py-2 text-sm leading-relaxed">
+                        <MarkdownRenderer
+                            content={guide}
+                        />
                     </div>
-                )}
-            </fieldset>
-        </div>
+                </div>
+            )}
+        </>
     );
 }
