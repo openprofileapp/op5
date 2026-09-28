@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet } from "react-router-dom";
 
-import { GetUserItemType } from "../../_common/types/user.type.js";
-import { apiBaseUrl, authBaseUrl, cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../_common/scripts/domains.js";
+import { apiBaseUrl, authBaseUrl, cdnBaseUrl, mainBaseUrl } from "../_common/scripts/domains.js";
 import React from "react";
 import LoginModal from "../_common/components/modals/LoginModal.js";
 import MfaModal from "../_common/components/modals/MfaModal.js";
@@ -420,6 +419,21 @@ export default function Layout() {
                                         </span>
                                         <span className="is-drawer-close:hidden text-sm">
                                             Templates
+                                        </span>
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link 
+                                        className="flex items-center gap-4 tooltip tooltip-accent tooltip-right"
+                                        data-tip="Blocks"
+                                        to={"/blocks"}
+                                    >
+                                        <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                            
+                                        </span>
+                                        <span className="is-drawer-close:hidden text-sm">
+                                            Blocks
                                         </span>
                                     </Link>
                                 </li>
