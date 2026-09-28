@@ -49,6 +49,7 @@ import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/template/value.type.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
 import TemplateContextMenu from "../components/TemplateContextMenu.js";
+import downloadOp5 from "../../_common/scripts/download.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -139,6 +140,7 @@ export default function Template() {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(true);
     const [isPreview, setIsPreview] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [lastToast, setLastToast] = useState<number>(0);
 
     const debounceTimers = useRef<{ [fieldId: string]: NodeJS.Timeout }>({});
@@ -281,10 +283,50 @@ export default function Template() {
         return `${trimmed}s`;
     };
 
-    const resolveDynamicValues = useCallback((text: string | undefined): string => {
-        if (!text) return "";
+    const resolveDynamicValues = useCallback((fieldIdOrExpression: string | undefined): string => {
+        if (!fieldIdOrExpression) return "";
 
-        return String(text).replace(
+        const getFieldValue = (id: string): { field: GetTemplateFieldItemType; text: string } | undefined => {
+            for (const category of templateData || []) {
+                for (const block of category.blocks?.items || []) {
+                    for (const row of block.rows?.items || []) {
+                        for (const field of row.fields?.items || []) {
+                            if (field.fieldId === id) {
+                                if (field.type?.toLowerCase() === "button") {
+                                    let options = field.options;
+
+                                    if (typeof options === "string") {
+                                        try {
+                                            options = JSON.parse(options);
+                                        } catch {
+                                            options = {};
+                                        }
+                                    }
+
+                                    return {
+                                        field,
+                                        text: options?.text || ""
+                                    };
+                                }
+
+                                return {
+                                    field,
+                                    text: field.value?.content ?? ""
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            return undefined;
+        };
+
+        const target = getFieldValue(fieldIdOrExpression);
+        const textToResolve = target ? target.text : fieldIdOrExpression;
+
+        if (!textToResolve) return "";
+
+        return String(textToResolve).replace(
             /\{([^}]+)\}/g,
             (match, expression) => {
                 const parts = expression
@@ -292,17 +334,17 @@ export default function Template() {
                     .map((part: string) => part.trim())
                     .filter(Boolean);
 
-                const fieldId = parts.shift();
+                const refFieldId = parts.shift();
 
-                if (!fieldId) return match;
+                if (!refFieldId) return match;
 
-                const value = valuesMapRef.current[fieldId];
+                const refTarget = getFieldValue(refFieldId);
 
-                if (value === undefined) {
+                if (!refTarget) {
                     return match;
                 }
 
-                let result = String(value);
+                let result = String(refTarget.text);
 
                 for (const operation of parts) {
                     switch (operation.toLowerCase()) {
@@ -329,7 +371,7 @@ export default function Template() {
                         case "titlecase":
                             result = result
                                 .toLowerCase()
-                                .replace(/\b\w/g, char => char.toUpperCase());
+                                .replace(/\b\w/g, (char) => char.toUpperCase());
                             break;
 
                         case "capitalize":
@@ -346,7 +388,7 @@ export default function Template() {
                 return result;
             }
         );
-    }, []);
+    }, [templateData]);
 
     useEffect(() => {
         if (isLoading || !templateData.length || !templateId) return;
@@ -1296,7 +1338,7 @@ export default function Template() {
     };
 
     const handleDragStart = (): void => {
-        if (isPreview) return;
+        if (isPreview || !isEditing) return;
         
         snapshotTemplateDataRef.current = templateData 
             ? JSON.parse(JSON.stringify(templateData)) 
@@ -1306,7 +1348,7 @@ export default function Template() {
     };
 
     const handleDragOver = (event: DragOverEvent): void => {
-        if (isPreview) return;
+        if (isPreview || !isEditing) return;
 
         const { active, over } = event;
 
@@ -1421,7 +1463,7 @@ export default function Template() {
     };
 
     const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
-        if (isPreview) return;
+        if (isPreview || !isEditing) return;
 
         const { active, over } = event;
 
@@ -1816,24 +1858,58 @@ export default function Template() {
                             </div>
 
                             {isSaving && !isPreview && (
-                                <div className="absolute right-14 flex items-center text-accent gap-2 mr-3">
+                                <div className="absolute right-38 flex items-center text-accent gap-2 mr-3">
                                     <span className="text-sm">Saving</span>
                                     <span className="loading h-5 w-5" />
                                 </div>
                             )}
 
-                            <button
-                                type="button"
-                                aria-label="toggle preview mode"
-                                onClick={() => setIsPreview(!isPreview)}
-                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
-                            >
-                                <span className="flex h-8 w-4 leading-none items-center justify-center">
-                                    <span className="font-nerdfont text-xl">
-                                        {isPreview ? "󰈉" : "󰈈"}
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    aria-label="toggle preview mode"
+                                    onClick={() => downloadOp5(template, templateData, "template", template?.displayName || template?.id)}
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span 
+                                        className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-bottom"
+                                        data-tip="Download"
+                                    >
+                                        <span className="font-nerdfont leading-none text-xl text-center">
+                                            
+                                        </span>
                                     </span>
-                                </span>
-                            </button>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    aria-label="toggle preview mode"
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span 
+                                        className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-bottom"
+                                        data-tip={isEditing ? "Disable Editing" : "Enable Editing"}
+                                    >
+                                        <span className={`${isEditing ? "text-accent" : ""} font-nerdfont leading-none text-xl text-center`}>
+                                            
+                                        </span>
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    aria-label="toggle preview mode"
+                                    onClick={() => setIsPreview(!isPreview)}
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span className="flex h-8 w-4 items-center justify-center">
+                                        <span className="font-nerdfont leading-none text-xl">
+                                            {isPreview ? "󰈉" : "󰈈"}
+                                        </span>
+                                    </span>
+                                </button>
+                            </div>
                         </nav>
 
                         <div className="flex flex-col items-center p-4 w-full">
@@ -1904,36 +1980,36 @@ export default function Template() {
                                                         >
                                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                                                 {filteredBlocks.map(block => (
-                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview}>
+                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview || !isEditing}>
                                                                         {({ sortableProps, dragHandleProps }) => (
                                                                             <button
                                                                                 {...sortableProps}
                                                                                 className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
                                                                                 onClick={() => setCurrentBlock(block.blockId)}
                                                                             >
-                                                                                {!isPreview && (
-                                                                                    <div
-                                                                                        {...dragHandleProps}
-                                                                                        className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
-                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                    >
-                                                                                        <span className="text-2xl leading-none font-nerdfont">
-                                                                                            󰇛
-                                                                                        </span>
-                                                                                    </div>
+                                                                                {(!isPreview && isEditing) && (
+                                                                                    <>
+                                                                                        <div
+                                                                                            {...dragHandleProps}
+                                                                                            className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                        >
+                                                                                            <span className="text-2xl leading-none font-nerdfont">
+                                                                                                󰇛
+                                                                                            </span>
+                                                                                        </div>
+
+                                                                                        <div
+                                                                                            className="absolute top-2 right-2 p-1 touch-none"
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                        >
+                                                                                            <span className="text-lg leading-none font-nerdfont">
+                                                                                                󰇘
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </>
                                                                                 )}
 
-                                                                                {!isPreview && (
-                                                                                    <div
-                                                                                        className="absolute top-2 right-2 p-1 touch-none"
-                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                    >
-                                                                                        <span className="text-lg leading-none font-nerdfont">
-                                                                                            󰇘
-                                                                                        </span>
-                                                                                    </div>
-                                                                                )}
-                                                                                
                                                                                 {block?.icon && (
                                                                                     <img 
                                                                                         className="h-20 rounded" 
@@ -1953,7 +2029,7 @@ export default function Template() {
                                                                     </SortableItem>
                                                                 ))}
 
-                                                                {!isPreview && (currentCategoryData?.blocks?.items.length ?? 0) <= 32 && (
+                                                                {(!isPreview && isEditing) && (currentCategoryData?.blocks?.items.length ?? 0) <= 32 && (
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
@@ -2009,13 +2085,17 @@ export default function Template() {
                                                         >
                                                             <div className="flex flex-col gap-1">
                                                                 {visibleRows.map(row => {
-                                                                    const visibleFields = (row.fields.items || []).filter(field => {
+                                                                    const visibleFields = (row.fields.items || []).filter((field) => {
                                                                         if (!isPreview) return true;
 
-                                                                        return (
-                                                                            field.type === "separator" ||
-                                                                            Boolean(String(field.value?.content ?? "").trim())
-                                                                        );
+                                                                        if (field.type === "separator") return true;
+
+                                                                        if (field.type === "button") {
+                                                                            const text = field.options?.text || field.options?.url || "";
+                                                                            return String(text).trim().length > 0;
+                                                                        }
+
+                                                                        return Boolean(String(field.value?.content ?? "").trim());
                                                                     });
 
                                                                     const handleContextMenu = (e: React.MouseEvent) => {
@@ -2052,25 +2132,30 @@ export default function Template() {
 
                                                                     return (
                                                                         <>
-                                                                            <TemplateContextMenu 
-                                                                                id={row.rowId}
-                                                                                type="row"
-                                                                                label="Row"
-                                                                                templateId={templateId as string}
-                                                                                readOnly={isPreview}
-                                                                                data={{ row: row as unknown as TemplateRowItemType }}
-                                                                                // onChange={handleUpdateRow}
-                                                                                onDelete={onDelete}
-                                                                            />
+                                                                            {isEditing && (
+                                                                                <TemplateContextMenu 
+                                                                                    id={row.rowId}
+                                                                                    type="row"
+                                                                                    label="Row"
+                                                                                    templateId={templateId as string}
+                                                                                    readOnly={isPreview}
+                                                                                    data={{ row: row as unknown as TemplateRowItemType }}
+                                                                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                                    // @ts-ignore
+                                                                                    onChange={() => {}}
+                                                                                    onDelete={onDelete}
+                                                                                    isEditing={isEditing}
+                                                                                />
+                                                                            )}
 
-                                                                            <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreview}>
+                                                                            <SortableItem key={row.rowId} id={`row:${row.rowId}`} disabled={isPreview || !isEditing}>
                                                                                 {({ sortableProps, dragHandleProps }) => (
                                                                                     <div 
                                                                                         {...sortableProps} 
                                                                                         className={`min-h-16 flex gap-3 ${sortableProps.className ?? ""}`}
                                                                                         onContextMenu={handleContextMenu}
                                                                                     >
-                                                                                        {!isPreview && (
+                                                                                        {(!isPreview && isEditing) && (
                                                                                             <span
                                                                                                 {...dragHandleProps}
                                                                                                 className="flex items-center cursor-grab active:cursor-grabbing touch-none"
@@ -2103,7 +2188,7 @@ export default function Template() {
                                                                                                         const resolvedGuide = resolveDynamicValues(field.guide);
 
                                                                                                         return (
-                                                                                                            <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreview}>
+                                                                                                            <SortableItem key={field.fieldId} id={`field:${field.fieldId}`} disabled={isPreview || !isEditing}>
                                                                                                                 {({ sortableProps: fSortProps, dragHandleProps: fDragProps }) => {
                                                                                                                     const dragProps = fDragProps ?? {};
                                                                                                                     
@@ -2135,7 +2220,7 @@ export default function Template() {
                                                                                                                                     value as string,
                                                                                                                                     options as unknown as TemplateValueType
                                                                                                                                 )}
-                                                                                                                                dragHandleProps={!isPreview && !field.isLocked ? {
+                                                                                                                                dragHandleProps={(!isPreview && isEditing) && !field.isLocked ? {
                                                                                                                                     ...dragProps,
                                                                                                                                     className: `${dragProps.className ?? ""} touch-none cursor-grab active:cursor-grabbing`.trim(),
                                                                                                                                 } : undefined}
@@ -2153,7 +2238,7 @@ export default function Template() {
                                                                                             </SortableContext>
                                                                                         </FieldDropZone>
 
-                                                                                        {!isPreview && (row.fields?.items.length ?? 0) < 5 && (
+                                                                                        {(!isPreview && isEditing) && (row.fields?.items.length ?? 0) < 5 && (
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => {
@@ -2180,7 +2265,7 @@ export default function Template() {
                                                     );
                                                 })()}
 
-                                                {!isPreview && (
+                                                {(!isPreview && isEditing) && (
                                                     <button
                                                         type="button"
                                                         onClick={handleAddRow}
@@ -2220,7 +2305,7 @@ export default function Template() {
                                         <SortableContext items={visibleCategories.map(category => `category:${category.categoryId}`)}>
                                             <ul>
                                                 {visibleCategories.map(category => (
-                                                    <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview}>
+                                                    <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview || !isEditing}>
                                                         {({ sortableProps, dragHandleProps }) => (
                                                             <li {...sortableProps} className={sortableProps.className}>
                                                                 <button
@@ -2230,7 +2315,7 @@ export default function Template() {
                                                                         setCurrentCategory(category.categoryId);
                                                                     }}
                                                                 >
-                                                                    {!isPreview && (
+                                                                    {(!isPreview && isEditing) && (
                                                                         <span
                                                                             {...dragHandleProps}
                                                                             className="flex items-center cursor-grab active:cursor-grabbing touch-none"
@@ -2258,7 +2343,7 @@ export default function Template() {
                                                     </SortableItem>
                                                 ))}
 
-                                                {!isPreview && (
+                                                {(!isPreview && isEditing) && (
                                                     <button
                                                         type="button"
                                                         onClick={() => {
