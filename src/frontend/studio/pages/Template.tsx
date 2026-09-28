@@ -32,7 +32,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
-import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
+import { GetTemplateCategoryItemType, TemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
 import { apiBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetTemplateFieldItemType, TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
@@ -50,6 +50,7 @@ import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
 import TemplateContextMenu from "../components/TemplateContextMenu.js";
 import downloadOp5 from "../../_common/scripts/download.js";
+import { CategoryIdType } from "../../../_common/scripts/categories.js";
 
 export interface FieldDropZoneProps {
     id: string;
@@ -995,6 +996,89 @@ export default function Template() {
         return true;
     };
 
+    const handleUpdateCategory = async (
+        targetCategoryId: string,
+        incoming: Partial<TemplateCategoryItemType>
+    ): Promise<boolean> => {
+        if (incoming.categoryId && incoming.categoryId !== targetCategoryId) {
+            const isDuplicateId = templateData?.some(
+                (category) => category.categoryId === incoming.categoryId
+            );
+
+            if (isDuplicateId) {
+                toast.show(`A category with ID "${incoming.categoryId}" already exists`, {
+                    type: "error"
+                });
+                return false;
+            }
+        }
+
+        setIsSaving(true);
+
+        const payload = {
+            label: incoming.label || "New Category",
+            position: incoming.position ?? 0,
+            types: incoming.types ?? []
+        };
+
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/categories/update`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        categoryId: targetCategoryId,
+                        data: payload
+                    })
+                }
+            );
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                setIsSaving(false);
+
+                toast.show("Failed to update category", {
+                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                    type: "error"
+                });
+
+                return false;
+            }
+
+            setIsSaving(false);
+        } catch (error) {
+            setIsSaving(false);
+
+            console.error("Failed to update category:", error);
+
+            toast.show("Failed to update category", {
+                subtext: String(error),
+                type: "error"
+            });
+
+            return false;
+        }
+
+        setTemplateData(
+            (prevCategories: GetTemplateCategoryItemType[]) =>
+                prevCategories.map((category) => {
+                    if (category.categoryId !== targetCategoryId) {
+                        return category;
+                    }
+
+                    return {
+                        ...category,
+                        ...incoming
+                    };
+                })
+        );
+
+        return true;
+    };
+
     const handleUpdateField = async (
         targetRowId: string,
         originalFieldId: string,
@@ -1891,7 +1975,7 @@ export default function Template() {
                                         className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-bottom"
                                         data-tip={isEditing ? "Disable Editing" : "Enable Editing"}
                                     >
-                                        <span className={`${isEditing ? "text-accent" : ""} font-nerdfont leading-none text-xl text-center`}>
+                                        <span className={`${isEditing ? "text-accent" : ""} font-nerdfont leading-none text-xl`}>
                                             
                                         </span>
                                     </span>
@@ -1903,9 +1987,12 @@ export default function Template() {
                                     onClick={() => setIsPreview(!isPreview)}
                                     className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
                                 >
-                                    <span className="flex h-8 w-4 items-center justify-center">
-                                        <span className="font-nerdfont leading-none text-xl">
-                                            {isPreview ? "󰈉" : "󰈈"}
+                                    <span 
+                                        className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-left"
+                                        data-tip={isPreview ? "View as Draft" :"View as Published"}
+                                    >
+                                        <span className={`${isPreview ? "text-accent" : ""} font-nerdfont leading-none text-xl`}>
+                                            󰈈
                                         </span>
                                     </span>
                                 </button>
@@ -2091,7 +2178,7 @@ export default function Template() {
                                                                         if (field.type === "separator") return true;
 
                                                                         if (field.type === "button") {
-                                                                            const text = field.options?.text || field.options?.url || "";
+                                                                            const text = field.options?.text || "";
                                                                             return String(text).trim().length > 0;
                                                                         }
 
@@ -2304,45 +2391,153 @@ export default function Template() {
                                     return (
                                         <SortableContext items={visibleCategories.map(category => `category:${category.categoryId}`)}>
                                             <ul>
-                                                {visibleCategories.map(category => (
-                                                    <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview || !isEditing}>
-                                                        {({ sortableProps, dragHandleProps }) => (
-                                                            <li {...sortableProps} className={sortableProps.className}>
-                                                                <button
-                                                                    className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
-                                                                    template-tip={category.label}
-                                                                    onClick={() => {
-                                                                        setCurrentCategory(category.categoryId);
-                                                                    }}
-                                                                >
-                                                                    {(!isPreview && isEditing) && (
-                                                                        <span
-                                                                            {...dragHandleProps}
-                                                                            className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                {visibleCategories.map(category => {
+                                                    const handleContextMenu = (e: React.MouseEvent) => {
+                                                        e.preventDefault();
+
+                                                        const popover = document.getElementById(
+                                                            `context-${category.categoryId}`
+                                                        ) as HTMLElement | null;
+
+                                                        if (!popover) return;
+
+                                                        popover.showPopover();
+
+                                                        requestAnimationFrame(() => {
+                                                            const rect = popover.getBoundingClientRect();
+
+                                                            popover.style.left = `${Math.min(
+                                                                e.clientX,
+                                                                window.innerWidth - rect.width - 8
+                                                            )}px`;
+
+                                                            popover.style.top = `${Math.min(
+                                                                e.clientY,
+                                                                window.innerHeight - rect.height - 8
+                                                            )}px`;
+                                                        });
+                                                    };
+
+                                                    const PRIORITY_ORDER: CategoryIdType[] = [
+                                                        "identity",
+                                                        "astrology",
+                                                        "abilities",
+                                                        "physical",
+                                                        "personality",
+                                                        "choices",
+                                                        "preferences",
+                                                        "beliefs",
+                                                        "interactions",
+                                                        "emotional",
+                                                        "health",
+                                                        "relationships",
+                                                    ];
+
+                                                    const highestCategory = PRIORITY_ORDER.find((cat) => 
+                                                        category.types?.includes(cat)
+                                                    );
+
+                                                    let icon = "";
+
+                                                    switch (highestCategory) {
+                                                        case "identity":
+                                                            icon = "";
+                                                            break;
+                                                        case "astrology":
+                                                            icon = "";
+                                                            break;
+                                                        case "abilities":
+                                                            icon = "";
+                                                            break;
+                                                        case "physical":
+                                                            icon = "󰿗";
+                                                            break;
+                                                        case "personality":
+                                                            icon = "";
+                                                            break;
+                                                        case "choices":
+                                                            icon = "󰐾";
+                                                            break;
+                                                        case "preferences":
+                                                            icon = "";
+                                                            break;
+                                                        case "beliefs":
+                                                            icon = "󰛨";
+                                                            break;
+                                                        case "interactions":
+                                                            icon = "󰭹";
+                                                            break;
+                                                        case "emotional":
+                                                            icon = "󰱱";
+                                                            break;
+                                                        case "health":
+                                                            icon = "";
+                                                            break;
+                                                        case "relationships":
+                                                            icon = "";
+                                                            break;
+                                                    }
+
+                                                    return (
+                                                        <>
+                                                            <TemplateContextMenu 
+                                                                id={category.categoryId}
+                                                                type="category"
+                                                                label={category.label || category.categoryId}
+                                                                templateId={templateId as string}
+                                                                readOnly={isPreview}
+                                                                url={`${studioBaseUrl}/template/${templateId}/${categoryId}`}
+                                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                // @ts-ignore
+                                                                data={{ category: category as unknown as TemplateCategoryItemType }}
+                                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                // @ts-ignore
+                                                                onChange={handleUpdateCategory}
+                                                                onDelete={onDelete}
+                                                                isEditing={isEditing}
+                                                            />
+                                                            
+                                                            <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview || !isEditing}>
+                                                                {({ sortableProps, dragHandleProps }) => (
+                                                                    <li {...sortableProps} className={sortableProps.className}>
+                                                                        <button
+                                                                            className="flex items-center h-12 gap-4 tooltip tooltip-accent tooltip-right"
+                                                                            template-tip={category.label}
+                                                                            onContextMenu={handleContextMenu}
+                                                                            onClick={() => {
+                                                                                setCurrentCategory(category.categoryId);
+                                                                            }}
                                                                         >
-                                                                            <div className="flex items-center justify-center py-2">
-                                                                                <div className="flex w-5 items-center justify-center">
-                                                                                    <span className="text-2xl leading-none font-nerdfont">
-                                                                                        󰇝
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </span>
-                                                                    )}
+                                                                            {(!isPreview && isEditing) && (
+                                                                                <span
+                                                                                    {...dragHandleProps}
+                                                                                    className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+                                                                                >
+                                                                                    <div className="flex items-center justify-center py-2">
+                                                                                        <div className="flex w-5 items-center justify-center">
+                                                                                            <span className="text-2xl leading-none font-nerdfont">
+                                                                                                󰇝
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </span>
+                                                                            )}
 
-                                                                    <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
-                                                                        
-                                                                    </span>
+                                                                            <span className="font-nerdfont text-xl flex h-8 w-4 leading-none items-center justify-center">
+                                                                                {icon}
+                                                                            </span>
 
-                                                                    <span className="is-drawer-close:hidden text-sm">
-                                                                        {category.label}
-                                                                    </span>
-                                                                </button>
-                                                            </li>
-                                                        )}
-                                                    </SortableItem>
-                                                ))}
-
+                                                                            <span className="is-drawer-close:hidden text-sm">
+                                                                                {category.label}
+                                                                            </span>
+                                                                        </button>
+                                                                    </li>
+                                                                )}
+                                                            </SortableItem>
+                                                        </>
+                                                    )})
+                                                }
+                                                    
                                                 {(!isPreview && isEditing) && (
                                                     <button
                                                         type="button"
