@@ -48,6 +48,7 @@ import Template from "./pages/Template.js"
 
 import NotFound from "../_common/pages/NotFound.js"
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
+import Blocks from "./pages/Blocks.js"
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootLayout() {
@@ -150,6 +151,7 @@ async function bootstrap() {
                                     <Route path="/content" element={<Content />} />
 
                                     <Route path="/templates" element={<Templates />} />
+                                    <Route path="/blocks" element={<Blocks />} />
                                     <Route path="/datasets" element={<Datasets />} />
 
                                     <Route path="/trash" element={<Trash />} />

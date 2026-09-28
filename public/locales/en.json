@@ -415,6 +415,9 @@
     },
     "templates": {
       "notFound": "No templates found."
+    },
+    "blocks": {
+      "notFound": "No blocks found."
     }
   }
 }

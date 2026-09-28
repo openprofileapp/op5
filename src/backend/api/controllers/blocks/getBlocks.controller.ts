@@ -18,21 +18,16 @@ export const templateBlockController = async (req: Request, res: Response) => {
         const typesParam = req.query.types as string | undefined;
         const types = typesParam ? typesParam.split(",").map(t => t.trim()).filter(Boolean) : [];
 
-        if (types.length === 0) {
-            return res.status(200).json({
-                items: [],
-                count: 0
-            });
-        }
-
         const q = req.query.q as string | undefined;
         const sortBy = req.query.sortBy as string;
         
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
-        const typesClause = `AND categoryType IN (${types.map(() => "?").join(",")})`;
-        const typesParams = types;
+        const typesClause = types.length > 0
+            ? `AND categoryType IN (${types.map(() => "?").join(",")})`
+            : "";
+        const typesParams = types.length > 0 ? types : [];
 
         const trimmedQuery = q?.trim();
         const queryTerm = `%${trimmedQuery}%`;
