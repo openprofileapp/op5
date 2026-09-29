@@ -12,6 +12,7 @@ import { updateFields } from "../controllers/blocks/updates/fields/updateField.c
 import { positionFields } from "../controllers/blocks/updates/fields/positionField.controller.js";
 import { updateValue } from "../controllers/blocks/updates/updateValue.controller.js";
 import { deleteFields } from "../controllers/blocks/updates/fields/deleteField.controller.js";
+import { insertBlock } from "../controllers/blocks/insertBlock.controller.js";
 
 const blockRoutes = Router();
 
@@ -20,6 +21,8 @@ blockRoutes.get("/drafts", getDraftBlocksController);
 
 blockRoutes.get("/:id/data", getPublishedBlockDataController);
 blockRoutes.get("/drafts/:id/data", getDraftBlockDataController);
+
+blockRoutes.post("/insert", insertBlock);
 
 blockRoutes.post("/:blockId/rows/insert", insertRows);
 blockRoutes.post("/:blockId/rows/update/positions", positionRows);
