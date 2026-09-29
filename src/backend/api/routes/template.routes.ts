@@ -1,7 +1,5 @@
 import { Router } from "express";
 
-import { templateBlockController } from "../controllers/blocks/getBlocks.controller.js";
-import { templateBlockDataController } from "../controllers/blocks/getBlockData.controller.js";
 import { getPublishedTemplateDataController } from "../controllers/templates/getPublishedTemplateData.controller.js";
 import { getDraftDatasetController } from "../controllers/datasets/getDraftDatasets.controller.js";
 import { updateDatasetController } from "../controllers/datasets/updateDataset.controller.js";
@@ -34,9 +32,6 @@ templateRoutes.get("/drafts", getDraftTemplatesController);
 
 templateRoutes.get("/:id/data", getPublishedTemplateDataController);
 templateRoutes.get("/drafts/:id/data", getDraftTemplateDataController);
-
-templateRoutes.get("/blocks", templateBlockController);
-templateRoutes.get("/blocks/data/:blockId", templateBlockDataController);
 
 templateRoutes.get("/datasets", getPublishedDatasetController);
 templateRoutes.get("/datasets/drafts", getDraftDatasetController);

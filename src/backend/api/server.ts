@@ -29,6 +29,7 @@ import whatIsRoute from "./routes/whatIs.route.js";
 import metadataRoute from "./routes/metadata.route.js";
 import presenceRoute from "./routes/presence.route.js";
 import templateRoutes from "./routes/template.routes.js";
+import blockRoutes from "./routes/block.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -144,6 +145,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     templateRoutes
+);
+
+v3.use(
+    "/blocks", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    blockRoutes
 );
 
 v3.use(
