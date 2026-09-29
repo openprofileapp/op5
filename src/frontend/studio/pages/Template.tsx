@@ -2106,12 +2106,12 @@ export default function Template() {
 
                                                                                 {block?.icon && (
                                                                                     <img 
-                                                                                        className="h-20 rounded" 
+                                                                                        className="h-16 w-16 object-contain rounded"
                                                                                         src={block?.icon} 
                                                                                     />
                                                                                 )}
 
-                                                                                <span className="text-lg font-semibold mt-2">
+                                                                                <span className="text-lg font-semibold mt-3">
                                                                                     {block?.label || block.blockId}
                                                                                 </span>
 
