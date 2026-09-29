@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS blocks (
+CREATE TABLE IF NOT EXISTS drafts (
     blockId TEXT PRIMARY KEY NOT NULL,
     ownerId TEXT NOT NULL,
     categoryType TEXT NOT NULL,
     icon TEXT,
-    label TEXT,
-    description TEXT,
+    displayName TEXT,
+    about TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
     source TEXT NOT NULL DEFAULT 'community',
     isRecommended INTEGER NOT NULL DEFAULT 0,
@@ -13,5 +13,8 @@ CREATE TABLE IF NOT EXISTS blocks (
     uses INTEGER NOT NULL DEFAULT 0,
     visibility TEXT NOT NULL DEFAULT 'public',
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    isDeleted INTEGER NOT NULL DEFAULT 0,
+    deletedDate TEXT
 );
+

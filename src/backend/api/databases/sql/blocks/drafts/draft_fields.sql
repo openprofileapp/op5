@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS draft_fields (
+    blockId TEXT NOT NULL,
+    rowId TEXT NOT NULL,
+    fieldId TEXT PRIMARY KEY NOT NULL,
+    flex INTEGER NOT NULL DEFAULT 1,
+    type TEXT,
+    label TEXT,
+    placeholder TEXT,
+    options TEXT,
+    guide TEXT,
+    isLocked INTEGER NOT NULL DEFAULT 0,
+    position INTEGER NOT NULL DEFAULT 0,
+    createdBy TEXT NOT NULL,
+    updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);

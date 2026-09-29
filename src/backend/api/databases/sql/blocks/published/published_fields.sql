@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS fields (
+CREATE TABLE IF NOT EXISTS published_fields (
     blockId TEXT NOT NULL,
     rowId TEXT NOT NULL,
     fieldId TEXT PRIMARY KEY NOT NULL,

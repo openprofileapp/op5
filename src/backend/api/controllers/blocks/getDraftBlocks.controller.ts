@@ -8,81 +8,86 @@ import { db } from "../../databases/db.js";
 import { log } from "../../instances.js";
 import { i18n } from "../../../_common/instances.js";
 import { config } from "../../../../../app.config.js";
+import whatIs from "../../services/whatIs.service.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
 
-export const templateBlockController = async (req: Request, res: Response) => {
+export const getDraftBlocksController = async (req: Request, res: Response) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
 
-        const typesParam = req.query.types as string | undefined;
-        const types = typesParam ? typesParam.split(",").map(t => t.trim()).filter(Boolean) : [];
-
+        const id = req.query.id as string | undefined;
         const q = req.query.q as string | undefined;
         const sortBy = req.query.sortBy as string;
         
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
-        const typesClause = types.length > 0
-            ? `AND categoryType IN (${types.map(() => "?").join(",")})`
-            : "";
-        const typesParams = types.length > 0 ? types : [];
+        const accessClause = "WHERE ownerId = ?";
+        const accessParams: (string | number)[] = [req.session.userId];
+
+        let idClause = "";
+        const idParams: string[] = [];
+
+        if (id) {
+            idClause = "AND blockId = ?";
+            idParams.push(id);
+        }
 
         const trimmedQuery = q?.trim();
         const queryTerm = `%${trimmedQuery}%`;
 
         const queryClause = trimmedQuery
             ? `AND (
-                label LIKE ? 
-                OR description LIKE ? 
+                displayName LIKE ? 
+                OR about LIKE ?
                 OR tags LIKE ?
+                OR categoryType LIKE ?
             )`
             : "";
 
         const queryParams = trimmedQuery
-            ? [queryTerm, queryTerm, queryTerm]
+            ? [queryTerm, queryTerm, queryTerm, queryTerm]
             : [];
 
         let formattedSortBy: string;
 
-        const primarySourceSort = "CASE WHEN source = 'official' THEN 0 ELSE 1 END ASC";
-
         switch (sortBy) {
             case "recent":
-                formattedSortBy = `${primarySourceSort}, updatedDate DESC`;
+                formattedSortBy = "updatedDate DESC";
                 break;
             case "newest":
-                formattedSortBy = `${primarySourceSort}, createdDate DESC`;
+                formattedSortBy = "createdDate DESC";
                 break;
             case "oldest":
-                formattedSortBy = `${primarySourceSort}, createdDate ASC`;
+                formattedSortBy = "createdDate ASC";
                 break;
             case "nameAsc":
-                formattedSortBy = `${primarySourceSort}, label ASC`;
+                formattedSortBy = "label ASC";
                 break;
             case "nameDesc":
-                formattedSortBy = `${primarySourceSort}, label DESC`;
+                formattedSortBy = "label DESC";
                 break;
             case "popularAsc":
-                formattedSortBy = `${primarySourceSort}, uses ASC`;
+                formattedSortBy = "uses ASC";
                 break;
             default:
-                formattedSortBy = `${primarySourceSort}, uses DESC, createdDate DESC`;
+                formattedSortBy = "uses DESC, createdDate DESC";
         }
 
         const result = db.blocks.query(
             `
                 SELECT *
-                FROM blocks
-                WHERE visibility = 'public'
-                    ${typesClause}
-                    ${queryClause}
+                FROM drafts
+                ${accessClause}
+                ${idClause}
+                ${queryClause}
                 ORDER BY ${formattedSortBy}
                 LIMIT ? OFFSET ?
             `,
             [
-                ...typesParams,
+                ...accessParams,
+                ...idParams,
                 ...queryParams,
                 limit,
                 offset
@@ -91,28 +96,27 @@ export const templateBlockController = async (req: Request, res: Response) => {
 
         assertDbSuccess(result);
 
-        const countResult = db.blocks.query(
+        const countResult = db.blocks.query<{ total: number }>(
             `
                 SELECT 1
-                FROM blocks
-                WHERE visibility = 'public'
-                    ${typesClause}
-                    ${queryClause}
+                FROM drafts
+                ${accessClause}
+                ${idClause}
+                ${queryClause}
             `,
             [
-                ...typesParams,
+                ...accessParams,
+                ...idParams,
                 ...queryParams
             ]
         );
 
         assertDbSuccess(countResult);
 
-        const parsedRows = result.rows.map(row => ({
+        const parsedRows = result.rows.map(({ ownerId, ...row }) => ({
             ...row,
-            tags: parseJson(row.tags),
-            isRecommended: Boolean(row.isRecommended),
-            isSensitive: Boolean(row.isSensitive),
-            isMature: Boolean(row.isMature),
+            owner: whatIs(ownerId as string),
+            tags: parseJson(row.tags)
         }));
 
         return res.status(200).json({
