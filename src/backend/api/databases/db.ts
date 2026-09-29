@@ -388,23 +388,43 @@ db.advertisements.transaction(q => {
 });
 
 db.blocks.transaction(q => {
-    if (!q("SELECT * FROM blocks LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/blocks/blocks.sql`);
+    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/drafts/drafts.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM rows LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/blocks/rows.sql`);
+    if (!q("SELECT * FROM draft_rows LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/drafts/draft_rows.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q("SELECT * FROM fields LIMIT 1").success) { 
-        const result = q(`${config.folders.sql.api}/blocks/fields.sql`);
+    if (!q("SELECT * FROM draft_fields LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/drafts/draft_fields.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 
-    if (!q(`SELECT * FROM "values" LIMIT 1`).success) { 
-        const result = q(`${config.folders.sql.api}/blocks/values.sql`);
+    if (!q(`SELECT * FROM draft_values LIMIT 1`).success) { 
+        const result = q(`${config.folders.sql.api}/blocks/drafts/draft_values.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/published/published.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_rows LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/published/published_rows.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published_fields LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/blocks/published/published_fields.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q(`SELECT * FROM published_values LIMIT 1`).success) { 
+        const result = q(`${config.folders.sql.api}/blocks/published/published_values.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });
@@ -507,6 +527,7 @@ db.collections.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
 db.collections.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 
 db.templates.query(`ATTACH DATABASE '${paths.media}' AS media`);
+db.blocks.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 // Migration (old databases)
 export const mdb = {
