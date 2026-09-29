@@ -20,6 +20,7 @@ import { toast } from "../../scripts/toast.js";
 import { DateInput } from "../DateInput.js";
 import { CheckboxInput } from "../CheckboxInput.js";
 import { recommendedTags } from "../../scripts/tags.js";
+import TagInput from "../TagInput.js";
 
 export interface EditUserProfileModalRef {
     open: (
@@ -412,66 +413,6 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
     const handleDeleteLink = (index: number) => {
         const updated = linksList.filter((_, i) => i !== index);
         handleFieldChange("links", updated);
-    };
-
-    const currentTags: string[] = Array.isArray(data?.tags)
-        ? data?.tags
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        : typeof data?.tags === "string" && data?.tags?.trim().length > 0
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        ? data.tags?.split(",").map((t: string) => t.trim()).filter(Boolean)
-        : [];
-
-    const [tagInput, setTagInput] = useState("");
-    const tagRegex = /^[a-z-]+$/;
-
-    const handleAddTag = () => {
-        const trimmed = tagInput.trim().toLowerCase();
-        if (!trimmed) return;
-
-        if (trimmed.length < 3 || trimmed.length > 24) {
-            toast.show(
-                "Tags must be between 3 and 24 characters", 
-                { type: "error" }
-            );
-            return;
-        }
-
-        if (!tagRegex.test(trimmed)) {
-            toast.show(
-                "Tags can only contain a-z and dashes", 
-                { type: "error" }
-            );
-            return;
-        }
-
-        if (currentTags.includes(trimmed)) {
-            toast.show(
-                "Tag already added", 
-                { type: "error" }
-            );
-            return;
-        }
-
-        if (currentTags.length >= 10) {
-            toast.show(
-                "You have reached the maximum amount (10) of tags.", 
-                { type: "error" }
-            );
-            return;
-        }
-
-        handleFieldChange("tags", [...currentTags, trimmed]);
-
-        setTagInput("");
-    };
-
-    const handleDeleteTag = (indexToDelete: number) => {
-        const updated = currentTags.filter((_, i) => i !== indexToDelete);
-
-        handleFieldChange("tags", updated);
     };
 
     function omitId<T>(obj: T): T {
@@ -1081,82 +1022,22 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
 
                                     <div className="divider text-xs my-0 mt-3">
                                         <span className="flex gap-2">
-                                            Tags ({`${currentTags.length}/10`})
+                                            Tags
                                         </span>
                                     </div>
 
-                                    <div className="flex flex-col gap-1 mt-1">
-                                        <div className={`flex flex-wrap gap-1 ${currentTags.length > 0 ? "mb-1" : ""}`}>
-                                            {currentTags.map((tag, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex gap-2 items-center justify-center rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300"
-                                                >
-                                                    <span className="font-nerdfont leading-none"></span>
-
-                                                    <span className="mb-0.5">{tag}</span>
-
-                                                    <button
-                                                        type="button"
-                                                        className="cursor-pointer text-error text-xs font-nerdfont leading-none"
-                                                        onClick={() => handleDeleteTag(index)}
-                                                    >
-                                                        
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {!recommendedTags.some(item => currentTags.includes(item.tag)) && (
-                                            <div className="flex gap-1 items-center">
-                                                <span>Missing an optional, but recommended category tag</span>
-
-                                                <Tooltip 
-                                                    content={(
-                                                        <div className="flex flex-col gap-1 p-2 bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
-                                                            {recommendedTags.map(item => (
-                                                                <div key={item.tag}><strong className="mr-1">#</strong>{item.tag}</div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                >
-                                                    <span className="font-nerdfont text-sm"></span>
-                                                </Tooltip>
-                                            </div>
-                                        )}
-
-                                        {currentTags.length < 10 && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="relative flex-1">
-                                                    <span className="absolute z-1 font-nerdfont leading-none left-3 top-1/2 -translate-y-1/2 text-sub select-none">
-                                                        
-                                                    </span>
-                                                    <input
-                                                        type="text"
-                                                        className="input w-full pl-7 text-sm"
-                                                        placeholder="your-tag-here"
-                                                        value={tagInput}
-                                                        maxLength={24}
-                                                        onChange={(e) => setTagInput(e.target.value.toLowerCase().replace(/\s+/g, "-"))}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === "Enter") {
-                                                                e.preventDefault();
-                                                                handleAddTag();
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-square btn-secondary text-base font-nerdfont cursor-pointer"
-                                                    onClick={handleAddTag}
-                                                >
-                                                    
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <TagInput
+                                        id="tags"
+                                        value={data?.tags}
+                                        onChange={(tags) => handleFieldChange("tags", tags)}
+                                        recommendedTags={recommendedTags}
+                                        maxTags={10}
+                                        minLength={3}
+                                        maxLength={24}
+                                        onInvalid={(message) =>
+                                            toast.show(message, { type: "error" })
+                                        }
+                                    />
                                 </fieldset>
                             )}
 
