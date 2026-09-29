@@ -24,6 +24,9 @@ import { getDraftTemplatesController } from "../controllers/templates/getDraftTe
 import { getDraftTemplateDataController } from "../controllers/templates/getDraftTemplateData.controller.js";
 import { getPublishedDatasetController } from "../controllers/datasets/getPublishedDatasets.controller.js";
 import { updateCategories } from "../controllers/templates/updates/categories/updateCategory.controller.js";
+import { restoreTemplate } from "../controllers/templates/restore.controller.js";
+import { trashTemplete } from "../controllers/templates/trash.controller.js";
+import { deleteTemplete } from "../controllers/templates/delete.controller.js";
 
 const templateRoutes = Router();
 
@@ -40,9 +43,9 @@ templateRoutes.post("/datasets/update/:id", updateDatasetController);
 templateRoutes.post("/datasets/insert", insertDatasetController);
 templateRoutes.delete("/datasets/delete/:id", deleteDatasetController);
 
-//templateRoutes.get("/restore/:id", restoreCharacter);
-//templateRoutes.get("/trash/:id", trashCharacter);
-//templateRoutes.delete("/delete/:id", deleteCharacter);
+templateRoutes.get("/restore/:id", restoreTemplate);
+templateRoutes.get("/trash/:id", trashTemplete);
+templateRoutes.delete("/delete/:id", deleteTemplete);
 
 templateRoutes.post("/:templateId/categories/insert", insertCategories);
 templateRoutes.post("/:templateId/categories/update", updateCategories);
