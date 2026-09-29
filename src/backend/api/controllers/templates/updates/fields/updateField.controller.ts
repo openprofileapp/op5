@@ -74,6 +74,13 @@ export const updateFields = async (req: Request, res: Response) => {
                     });
                 }
 
+                if (value === "display-name") {
+                    throw new AdvancedError({
+                        code: 400,
+                        message: `The ID "${value}" is reserved`
+                    });
+                }
+
                 if (originalFieldId !== value) {
                     const getFieldIdResult = db.templates.query(
                         "SELECT * FROM draft_fields WHERE fieldId = ?",

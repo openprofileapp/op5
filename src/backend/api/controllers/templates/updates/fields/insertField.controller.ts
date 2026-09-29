@@ -46,6 +46,13 @@ export const insertFields = async (req: Request, res: Response) => {
             });
         }
 
+        if (fieldId === "display-name") {
+            throw new AdvancedError({
+                code: 400,
+                message: `The ID "${fieldId}" is reserved`
+            });
+        }
+
         const getFieldIdResult = db.templates.query(
             "SELECT * FROM draft_fields WHERE fieldId = ?",
             [fieldId]
