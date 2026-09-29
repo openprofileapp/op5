@@ -360,7 +360,8 @@ export default function CharacterCard({
                     contextMenuBuilder.restore(),
                     contextMenuBuilder.separator(),
                     contextMenuBuilder.delete(),
-                    contextMenuBuilder.separator(),
+                    Boolean(window.session.user?.isDeveloper) && 
+                        contextMenuBuilder.separator(),
                     contextMenuBuilder.copyId()
                 ].filter(Boolean))
             }
