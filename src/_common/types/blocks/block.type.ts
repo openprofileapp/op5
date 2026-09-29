@@ -7,8 +7,8 @@ export type BlockItemType = {
     ownerId?: string;
     categoryType: CategoryIdType;
     icon?: string;
-    label?: string;
-    description?: string;
+    displayName?: string;
+    about?: string;
     tags?: string;
     source: "official" | "community";
     isRecommended: boolean;
@@ -18,6 +18,8 @@ export type BlockItemType = {
     visibility: VisibilityType;
     updatedDate: string;
     createdDate: string;
+    isDeleted: boolean;
+    deletedDate: string;
 }
 
 export type GetBlockItemType = BlockItemType & {
