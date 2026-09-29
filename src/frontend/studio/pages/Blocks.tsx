@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { formatNumber } from "kage-library/client";
@@ -59,7 +59,7 @@ export default function Blocks() {
         try {
             // ADD DRAFT API AND SEPERATE TABLES
             const res = await fetch(
-                `${apiBaseUrl}/v3/templates/blocks?q=${encodeURIComponent(query)}&page=${currentPage}`,
+                `${apiBaseUrl}/v3/blocks/drafts?q=${encodeURIComponent(query)}&page=${currentPage}`,
                 { credentials: "include" }
             );
 
@@ -120,43 +120,44 @@ export default function Blocks() {
                 ) : (
                     <>
                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                            {blocks.map((item) => (
-                                <button
-                                    key={item.blockId}
+                            {blocks.map((data) => (
+                                <Link
+                                    key={data.blockId}
+                                    to={`/block/${data.blockId}`}
                                     type="button"
                                     className="aspect-square w-full relative flex flex-col justify-between items-center p-4 bg-base-200 hover:bg-[#151515] border border-base-300 rounded cursor-pointer text-center group overflow-hidden"
                                 >
-                                    {item.source === "official" && (
+                                    {data.source === "official" && (
                                         <div className="absolute top-1 left-1">
                                             <span className="flex gap-2 text-xs font-medium rounded-br items-center px-3 py-1.5">
                                                 <span className="font-nerdfont leading-none text-sm">
                                                     󰏔
                                                 </span>
 
-                                                {formatNumber(item.uses || 0).short}
+                                                {formatNumber(data.uses || 0).short}
                                             </span>
                                         </div>
                                     )}
 
                                     <div className="flex flex-col items-center justify-center my-auto w-full">
-                                        {item.icon && (
+                                        {data.icon && (
                                             <img
                                                 className="h-18 w-18 object-contain"
-                                                src={`${cdnBaseUrl}${item.icon}`}
+                                                src={`${cdnBaseUrl}${data.icon}`}
                                                 alt="icon"
                                             />
                                         )}
 
                                         <span className="text-base font-semibold mt-1">
-                                            {item.label}
+                                            {data.displayName}
                                         </span>
-                                        {item.description && (
+                                        {data.about && (
                                             <span className="text-xs text-sub mt-1 line-clamp-4">
-                                                {item.description}
+                                                {data.about}
                                             </span>
                                         )}
                                     </div>
-                                </button>
+                                </Link>
                             ))}
                         </div>
 
