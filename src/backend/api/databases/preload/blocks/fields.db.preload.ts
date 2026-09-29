@@ -94,7 +94,7 @@ const index: Partial<FieldItemType>[] = [
 db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO fields (
+            `INSERT INTO draft_fields (
                 blockId,
                 fieldId,
                 rowId,

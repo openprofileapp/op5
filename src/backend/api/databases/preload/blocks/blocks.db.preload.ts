@@ -11,8 +11,8 @@ const index: Partial<BlockItemType>[] = [
         ownerId,
         categoryType: "identity",
         icon: "/graphics/openmoji/1F9D1.svg",
-        label: "General",
-        description: "Legal name, living status, citizenship, and identifiers.",
+        displayName: "General",
+        about: "Legal name, living status, citizenship, and identifiers.",
         tags: JSON.stringify([]),
         source: "official",
     }
@@ -21,13 +21,13 @@ const index: Partial<BlockItemType>[] = [
 db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO blocks (
+            `INSERT INTO drafts (
                 blockId,
                 ownerId,
                 categoryType,
                 icon,
-                label,
-                description,
+                displayName,
+                about,
                 tags,
                 source
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -36,8 +36,8 @@ db.blocks.transaction(q => {
                 d.ownerId,
                 d.categoryType,
                 d.icon,
-                d.label,
-                d.description,
+                d.displayName,
+                d.about,
                 d.tags,
                 d.source
             ]

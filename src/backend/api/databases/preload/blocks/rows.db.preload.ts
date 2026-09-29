@@ -53,7 +53,7 @@ const index: Partial<RowItemType>[] = [
 db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO rows (
+            `INSERT INTO draft_rows (
                 rowId,
                 blockId,
                 position,

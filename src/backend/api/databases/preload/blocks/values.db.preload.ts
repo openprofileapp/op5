@@ -17,7 +17,7 @@ const index: Partial<ValueType>[] = [
 db.blocks.transaction(q => {
     for (const d of index) {
         const result = q(
-            `INSERT INTO "values" (
+            `INSERT INTO draft_values (
                 blockId,
                 fieldId,
                 author,
