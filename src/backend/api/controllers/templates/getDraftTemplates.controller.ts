@@ -19,12 +19,15 @@ export const getDraftTemplatesController = async (req: Request, res: Response) =
         const id = req.query.id as string | undefined;
         const q = req.query.q as string | undefined;
         const sortBy = req.query.sortBy as string;
+        const isTrash = req.query.isTrash as string | undefined;
         
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
         const accessClause = "WHERE ownerId = ?";
         const accessParams: (string | number)[] = [req.session.userId];
+
+        const trashClause = isTrash === "true" ? "AND isDeleted = 1" : "AND (isDeleted = 0 OR isDeleted IS NULL)";
 
         let idClause = "";
         const idParams: string[] = [];
@@ -79,6 +82,7 @@ export const getDraftTemplatesController = async (req: Request, res: Response) =
                 SELECT *
                 FROM drafts
                 ${accessClause}
+                ${trashClause}
                 ${idClause}
                 ${queryClause}
                 ORDER BY ${formattedSortBy}
@@ -100,6 +104,7 @@ export const getDraftTemplatesController = async (req: Request, res: Response) =
                 SELECT 1
                 FROM drafts
                 ${accessClause}
+                ${trashClause}
                 ${idClause}
                 ${queryClause}
             `,
