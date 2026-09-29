@@ -98,7 +98,7 @@ export const updateValue = async (req: Request, res: Response) => {
                 // @ts-ignore
                 const previousMedia = currentMediaResult.rows?.[0];
 
-                const upsertMediaResult = q(
+                const insertMediaResult = q(
                     `INSERT INTO draft_content (
                         assetId,
                         fieldId,
@@ -125,7 +125,7 @@ export const updateValue = async (req: Request, res: Response) => {
                     ]
                 );
 
-                assertDbSuccess(upsertMediaResult);
+                assertDbSuccess(insertMediaResult);
 
                 const getMediaHistoryResult = q(
                     "SELECT * FROM history_content WHERE assetId = ? AND fieldId = ? ORDER BY date DESC LIMIT 1",
