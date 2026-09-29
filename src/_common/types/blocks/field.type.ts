@@ -20,7 +20,7 @@ export type FieldItemType = {
 
 export type GetFieldItemType = Omit<
     FieldItemType, 
-    "blockId" | "rowId" | "fieldId"
+    "blockId" | "rowId"
 > & {
     value?: GetValueType;
 };
