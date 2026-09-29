@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { formatNumber } from "kage-library/client";
@@ -9,10 +9,15 @@ import Metadata from "../../_common/components/Metadata.js";
 import { Pagination } from "../../main/components/Pagination.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { BlockItemType } from "../../../_common/types/blocks/block.type.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { NewBlockType } from "../components/modals/NewBlockModal.js";
+import { toast } from "../../_common/scripts/toast.js";
 
 export default function Blocks() {
     const { t, ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const { newBlockModal } = useModals();
 
     const query = searchParams.get("q") || "";
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -83,6 +88,64 @@ export default function Blocks() {
         fetchBlocks();
     }, [fetchBlocks]);
 
+    const handleAddBlock = async (
+        incoming: NewBlockType
+    ): Promise<boolean> => {
+        let json;
+
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/blocks/insert`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        type: incoming?.type,
+                        icon: incoming?.icon,
+                        label: incoming?.label,
+                        description: incoming?.description,
+                        tags: incoming?.tags
+                    }),
+                }
+            );
+
+            json = await response.json();
+
+            if (!response.ok) {
+                toast.show(
+                    "Failed to create block",
+                    {
+                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                        type: "error",
+                    }
+                );
+
+                return false;
+            }
+        } catch (error) {
+            console.error("Failed to create block:", error);
+
+            toast.show(
+                "Failed to create block",
+                {
+                    subtext: String(error),
+                    type: "error",
+                }
+            );
+
+            return false;
+        }
+
+        navigate(`/block/${json.id}`);
+
+        return true;
+    };
+
     if (!isTranslationReady) return null;
 
     return (
@@ -120,6 +183,23 @@ export default function Blocks() {
                 ) : (
                     <>
                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
+                                    newBlockModal.open({
+                                        onAddBlock: handleAddBlock,
+                                        skipSelect: true
+                                    });
+                                }}
+                                className="cursor-pointer border-2 aspect-square min-h-[160px] border-dashed border-base-300 rounded flex items-center justify-center py-3 transition-colors text-sm opacity-70 hover:opacity-100"
+                            >
+                                <span className="font-nerdfont text-3xl">
+                                    
+                                </span>
+                            </button>
+
                             {blocks.map((data) => (
                                 <Link
                                     key={data.blockId}
@@ -142,14 +222,14 @@ export default function Blocks() {
                                     <div className="flex flex-col items-center justify-center my-auto w-full">
                                         {data.icon && (
                                             <img
-                                                className="h-18 w-18 object-contain"
+                                                className="h-16 w-16 object-contain rounded"
                                                 src={`${cdnBaseUrl}${data.icon}`}
                                                 alt="icon"
                                             />
                                         )}
 
-                                        <span className="text-base font-semibold mt-1">
-                                            {data.displayName}
+                                        <span className="text-base font-semibold mt-3">
+                                            {data.displayName || data.blockId}
                                         </span>
                                         {data.about && (
                                             <span className="text-xs text-sub mt-1 line-clamp-4">
