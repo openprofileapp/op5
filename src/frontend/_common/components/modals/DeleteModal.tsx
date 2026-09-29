@@ -17,6 +17,7 @@ import { DatasetItemType } from "../../../../_common/types/template/dataset.type
 export interface InteractionOptions {
     setIsDismissed?: Dispatch<SetStateAction<boolean>>;
     type?:
+        | "blockAsset"
         | "character"
         | "template"
         | "dataset"
@@ -24,13 +25,14 @@ export interface InteractionOptions {
         | "row"
         | "block"
         | "category";
-    templateId?: string;
+    assetId?: string;
     skipCountdown?: boolean;
     onConfirm?: () => void;
     onDelete?: (
         id: string,
         type: InteractionOptions["type"]
     ) => void;
+    isBlockAsset: boolean;
 }
 
 export interface DeleteModalRef {
@@ -122,22 +124,22 @@ const DeleteModal = forwardRef<DeleteModalRef>((_, ref) => {
 
         switch (options.type) {
             case "template":
-                return `${apiBaseUrl}/v3/templates/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/delete/${id}`;
 
             case "dataset":
-                return `${apiBaseUrl}/v3/templates/datasets/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/datasets/delete/${id}`;
 
             case "category":
-                return `${apiBaseUrl}/v3/templates/${options.templateId}/categories/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/categories/delete/${id}`;
 
             case "block":
-                return `${apiBaseUrl}/v3/templates/${options.templateId}/blocks/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/blocks/delete/${id}`;
 
             case "row":
-                return `${apiBaseUrl}/v3/templates/${options.templateId}/rows/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/rows/delete/${id}`;
 
             case "field":
-                return `${apiBaseUrl}/v3/templates/${options.templateId}/fields/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/fields/delete/${id}`;
 
             case "character":
             default:
@@ -178,12 +180,12 @@ const DeleteModal = forwardRef<DeleteModalRef>((_, ref) => {
             ["field", "row", "block", "category"].includes(
                 options.type || ""
             ) &&
-            !options.templateId
+            !options.assetId
         ) {
             toast.show(
                 `${t("words.FailedTo")} ${t("words.delete")} ${getDisplayName()}`,
                 {
-                    subtext: "Missing template ID",
+                    subtext: "Missing asset ID",
                     type: "error",
                 }
             );

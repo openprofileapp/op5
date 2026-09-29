@@ -13,7 +13,7 @@ interface Props {
     type: "field" | "row" | "block" | "category"
     label?: string;
     url?: string;
-    templateId: string;
+    assetId: string;
     rowId: string;
     readOnly?: boolean;
     isLocked?: boolean;
@@ -35,6 +35,7 @@ interface Props {
     resolveDynamicValues: (
         text: string
     ) => string;
+    isBlockAsset: boolean;
 }
 
 export default function TemplateContextMenu({
@@ -42,7 +43,7 @@ export default function TemplateContextMenu({
     type,
     label,
     url,
-    templateId,
+    assetId,
     rowId,
     readOnly = false,
     isLocked = false,
@@ -50,7 +51,8 @@ export default function TemplateContextMenu({
     isEditing = false,
     onChange,
     onDelete,
-    resolveDynamicValues
+    resolveDynamicValues,
+    isBlockAsset = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -210,13 +212,14 @@ export default function TemplateContextMenu({
                                 // @ts-ignore
                                 {
                                     id, 
-                                    displayName: label 
+                                    displayName: label
                                 },
                                 { 
-                                    templateId,
+                                    assetId,
                                     type: type,
                                     skipCountdown: (type !== "field" && type !== "row" ? false : true),
-                                    onDelete
+                                    onDelete,
+                                    isBlockAsset
                                 }
                             )
                         }}

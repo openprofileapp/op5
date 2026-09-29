@@ -128,7 +128,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                     sortBy: sortBy,
                 });
 
-                const res = await fetch(`${apiBaseUrl}/v3/templates/blocks?${queryParams.toString()}`, {
+                const res = await fetch(`${apiBaseUrl}/v3/blocks?${queryParams.toString()}`, {
                     credentials: "include",
                     signal: controller.signal,
                 });

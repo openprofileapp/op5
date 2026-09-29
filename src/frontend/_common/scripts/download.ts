@@ -46,7 +46,7 @@ async function processPayload(obj: unknown) {
 export default async function downloadOp5(
     overview: unknown, 
     data: unknown[],
-    type: "template" | "character",
+    type: "template" | "character" | "block",
     filename = "export"
 ) {
     const cleanExtension = filename.replace(/\.op5$/i, "");

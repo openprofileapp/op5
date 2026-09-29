@@ -339,13 +339,20 @@ export default function Template() {
 
                 if (!refFieldId) return match;
 
-                const refTarget = getFieldValue(refFieldId);
+                const normalizedKey = refFieldId.toLowerCase().replace(/[-_]/g, "");
+                let result: string;
 
-                if (!refTarget) {
-                    return match;
+                if (normalizedKey === "displayname") {
+                    result = template?.displayName || "";
+                } else {
+                    const refTarget = getFieldValue(refFieldId);
+
+                    if (!refTarget) {
+                        return match;
+                    }
+
+                    result = String(refTarget.text);
                 }
-
-                let result = String(refTarget.text);
 
                 for (const operation of parts) {
                     switch (operation.toLowerCase()) {
@@ -389,7 +396,7 @@ export default function Template() {
                 return result;
             }
         );
-    }, [templateData]);
+    }, [templateData, template?.displayName]);
 
     useEffect(() => {
         if (isLoading || !templateData.length || !templateId) return;
@@ -2224,7 +2231,7 @@ export default function Template() {
                                                                                     id={row.rowId}
                                                                                     type="row"
                                                                                     label="Row"
-                                                                                    templateId={templateId as string}
+                                                                                    assetId={templateId as string}
                                                                                     readOnly={isPreview}
                                                                                     data={{ row: row as unknown as TemplateRowItemType }}
                                                                                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -2297,12 +2304,12 @@ export default function Template() {
                                                                                                                                 options={field.options}
                                                                                                                                 isLocked={field.isLocked}
                                                                                                                                 url={`${studioBaseUrl}/template/${templateId}/${categoryId}/${blockId}`}
-                                                                                                                                templateId={templateId as string}
+                                                                                                                                assetId={templateId as string}
                                                                                                                                 rowId={row.rowId}
                                                                                                                                 readOnly={isPreview}
                                                                                                                                 data={field as TemplateFieldItemType}
                                                                                                                                 onChange={(value, options) => handleUpdateValue(
-                                                                                                                                    field.fieldId, 
+                                                                                                                                    field.fieldId,
                                                                                                                                     field.type,
                                                                                                                                     value as string,
                                                                                                                                     options as unknown as TemplateValueType
@@ -2313,8 +2320,8 @@ export default function Template() {
                                                                                                                                 } : undefined}
                                                                                                                                 onFieldChange={handleUpdateField}
                                                                                                                                 onDelete={onDelete}
-                                                                                                                                resolveDynamicValues={resolveDynamicValues}
-                                                                                                                            />
+                                                                                                                                resolveDynamicValues={resolveDynamicValues} 
+                                                                                                                                isBlockAsset={false}                                                                                                                            />
                                                                                                                         </div>
                                                                                                                     );
                                                                                                                 }}

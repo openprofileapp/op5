@@ -45,6 +45,7 @@ import Datasets from "./pages/Datasets.js"
 import Trash from "./pages/Trash.js"
 
 import Template from "./pages/Template.js"
+import Block from "./pages/Block.js"
 
 import NotFound from "../_common/pages/NotFound.js"
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
@@ -153,6 +154,8 @@ async function bootstrap() {
                                     <Route path="/templates" element={<Templates />} />
                                     <Route path="/blocks" element={<Blocks />} />
                                     <Route path="/datasets" element={<Datasets />} />
+
+                                    <Route path="/block/:blockId" element={<Block />} />
 
                                     <Route path="/trash" element={<Trash />} />
 

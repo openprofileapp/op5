@@ -41,7 +41,7 @@ interface Props {
     // notes?: GetNoteType | GetNoteType[] | string;
     // thoughts?: GetThoughtType | GetThoughtType[] | string;
     url: string;
-    templateId: string;
+    assetId: string;
     rowId: string;
     readOnly?: boolean;
     data?: TemplateFieldItemType;
@@ -67,6 +67,7 @@ interface Props {
     resolveDynamicValues: (
         text: string
     ) => string;
+    isBlockAsset: boolean;
 }
 
 export default function TemplateField({
@@ -80,7 +81,7 @@ export default function TemplateField({
     // notes,
     // thoughts,
     url,
-    templateId,
+    assetId,
     rowId,
     readOnly = false,
     isLocked = false,
@@ -89,7 +90,8 @@ export default function TemplateField({
     dragHandleProps,
     onFieldChange,
     onDelete,
-    resolveDynamicValues
+    resolveDynamicValues,
+    isBlockAsset = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -464,7 +466,7 @@ export default function TemplateField({
                     type="field"
                     label={label}
                     url={url}
-                    templateId={templateId}
+                    assetId={assetId}
                     rowId={rowId}
                     readOnly={readOnly}
                     data={{ field: data }}
@@ -473,6 +475,7 @@ export default function TemplateField({
                     onDelete={onDelete}
                     resolveDynamicValues={resolveDynamicValues}
                     isEditing={dragHandleProps ? true : false}
+                    isBlockAsset={isBlockAsset}
                 />
 
                 <fieldset className="fieldset w-full">

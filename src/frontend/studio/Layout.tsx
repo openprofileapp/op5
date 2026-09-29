@@ -144,7 +144,7 @@ export default function Layout() {
                             <div className="px-2"><span className="font-light">studio</span>.<span className="font-black">OpenProfile</span> <span className="text-xs text-sub">({window.config.metadata.version.semver}-alpha)</span></div>
                         </div>
 
-                        <div className={`mr-3 tooltip tooltip-bottom tooltip-accent ${isLoading ? "loading" : ""}`}>
+                        <div className={`mr-3 tooltip tooltip-left tooltip-accent ${isLoading ? "loading" : ""}`}>
                             {window.session.user ? (
                                 <>
                                     <button 
@@ -167,7 +167,7 @@ export default function Layout() {
                                 </>
                             ) : (
                                 <button 
-                                    className="cursor-pointer tooltip tooltip-bottom tooltip-accent" 
+                                    className="cursor-pointer tooltip tooltip-left tooltip-accent" 
                                     data-tip="Login"
                                     data-guide="login"
                                     onClick={() => {
