@@ -7,6 +7,7 @@ import { toast } from "../../scripts/toast.js";
 
 export interface InteractionOptions {
     setIsDismissed?: Dispatch<SetStateAction<boolean>>;
+    isTemplate?: boolean;
 }
 
 export interface TrashModalRef {
@@ -56,7 +57,7 @@ const TrashModal = forwardRef<TrashModalRef>((_, ref) => {
             setIsLoading(true);
 
             const response = await fetch(
-                `${apiBaseUrl}/v3/characters/trash/${data?.id}`, 
+                `${apiBaseUrl}/v3/${options.isTemplate ? "templates" : "characters"}/trash/${data?.id}`, 
                 { credentials: "include" }
             );
 

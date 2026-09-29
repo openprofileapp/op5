@@ -16,6 +16,7 @@ import { DatasetItemType } from "../../../../_common/types/template/dataset.type
 
 export interface InteractionOptions {
     setIsDismissed?: Dispatch<SetStateAction<boolean>>;
+    isTemplate?: boolean;
     type?:
         | "blockAsset"
         | "character"
@@ -143,7 +144,7 @@ const DeleteModal = forwardRef<DeleteModalRef>((_, ref) => {
 
             case "character":
             default:
-                return `${apiBaseUrl}/v3/characters/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isTemplate ? "templates" : "characters"}/delete/${id}`;
         }
     };
 

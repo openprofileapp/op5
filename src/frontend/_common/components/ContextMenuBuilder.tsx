@@ -19,6 +19,7 @@ import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../
 
 type Props = {
     isQuickAction?: boolean
+    isTemplate?: boolean
 }
 
 export type ContextMenuBuilderOptions = {
@@ -1355,7 +1356,8 @@ export function ContextMenuBuilder({
                     closeContextMenu(data.id);
 
                     trashModal.open(data as GetDraftCharacterItemType, {
-                        setIsDismissed
+                        setIsDismissed,
+                        isTemplate: props.isTemplate
                     });
                 }}
             >
@@ -1382,7 +1384,7 @@ export function ContextMenuBuilder({
                 data-tip={t("words.Restore")}
                 onClick={async () => {
                     const response = await fetch(
-                        `${apiBaseUrl}/v3/characters/restore/${data.id}`, 
+                        `${apiBaseUrl}/v3/${props.isTemplate ? "templates" : "characters"}/restore/${data.id}`, 
                         { credentials: "include" }
                     );
 
@@ -1433,7 +1435,8 @@ export function ContextMenuBuilder({
                     closeContextMenu(data.id);
 
                     deleteModal.open(data as GetDraftCharacterItemType, {
-                        setIsDismissed
+                        setIsDismissed,
+                        isTemplate: props.isTemplate
                     });
                 }}
             >
