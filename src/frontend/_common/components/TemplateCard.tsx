@@ -77,21 +77,22 @@ export default function TemplateCard({
                 });
             }}
         >
-            {contextMenuBuilder.items([
-                contextMenuBuilder.view(),
-                contextMenuBuilder.separator(),
-                contextMenuBuilder.trash(),
-                (Boolean(window.session.user?.isDeveloper) || !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR")) && 
-                    contextMenuBuilder.separator(),
-                contextMenuBuilder.copyId()
-            ].filter(Boolean))}
-
-            {(!isTrash) && 
+            {!isTrash && 
                 contextMenuBuilder.items([
-                    contextMenuBuilder.restore(),
+                    contextMenuBuilder.trash({ isTemplate: true }),
+                    Boolean(window.session.user?.isDeveloper) && 
+                        contextMenuBuilder.separator(),
+                    contextMenuBuilder.copyId()
+                ].filter(Boolean))
+            }
+
+            {isTrash && 
+                contextMenuBuilder.items([
+                    contextMenuBuilder.restore({ isTemplate: true }),
                     contextMenuBuilder.separator(),
-                    contextMenuBuilder.delete(),
-                    contextMenuBuilder.separator(),
+                    contextMenuBuilder.delete({ isTemplate: true }),
+                    Boolean(window.session.user?.isDeveloper) && 
+                        contextMenuBuilder.separator(),
                     contextMenuBuilder.copyId()
                 ].filter(Boolean))
             }
