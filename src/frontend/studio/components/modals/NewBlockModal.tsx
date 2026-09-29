@@ -10,12 +10,13 @@ import { useTranslation } from "react-i18next";
 
 import { formatNumber } from "kage-library/client";
 
-import { CategoryIdType } from "../../../../_common/scripts/categories.js";
+import { CategoryIdType, categories } from "../../../../_common/scripts/categories.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../../_common/scripts/domains.js";
 import { toast } from "../../../_common/scripts/toast.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import ImageInput from "../../../_common/components/ImageInput.js";
 import { GetBlockItemType, GetBlockType } from "../../../../_common/types/blocks/block.type.js";
+import TagInput from "../../../_common/components/TagInput.js";
 
 type Screen = "menu" | "configure";
 
@@ -25,11 +26,13 @@ export type NewBlockType = {
     description?: string;
     icon?: string | null;
     rows?: unknown[];
+    type?: string;
 };
 
 export interface NewBlockModalOptions {
     types: CategoryIdType[];
     onAddBlock: (data: NewBlockType) => boolean | Promise<boolean>;
+    skipSelect: boolean;
 }
 
 export interface NewBlockModalRef {
@@ -46,6 +49,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
     const [screen, setScreen] = useState<Screen>("menu");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -58,6 +62,8 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
 
     const [label, setLabel] = useState("");
     const [description, setDescription] = useState("");
+    const [type, setType] = useState<CategoryIdType>();
+    const [tags, setTags] = useState<string[]>([]);
 
     const [blocks, setBlocks] = useState<GetBlockItemType[]>([]);
 
@@ -67,6 +73,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
     const resetForm = useCallback(() => {
         optionsRef.current = null;
         setIsOpen(false);
+        setIsSaving(false);
         setScreen("menu");
         setSelectedBlock(null);
         setIcon(null);
@@ -78,12 +85,18 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
         setSortBy("popularDesc");
         setBlocks([]);
         setCount(0);
+        setType();
+        setTags([]);
     }, []);
 
     useImperativeHandle(ref, () => ({
         open: (modalOptions) => {
             optionsRef.current = modalOptions;
             setIsOpen(true);
+
+            if (modalOptions.skipSelect) {
+                setScreen("configure")
+            }
         },
         close: () => {
             modalRef.current?.close();
@@ -110,7 +123,12 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
     }, [searchQuery, debouncedSearchQuery]);
 
     useEffect(() => {
-        if (!isOpen || screen !== "menu" || !optionsRef.current) return;
+        if (
+            !isOpen 
+            || screen !== "menu" 
+            || !optionsRef.current 
+            || optionsRef.current.skipSelect
+        ) return;
 
         const controller = new AbortController();
 
@@ -182,19 +200,27 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
     }
 
     async function handleSave() {
-        if (!selectedBlock || !optionsRef.current) return;
+        if ((!selectedBlock && !optionsRef.current?.skipSelect) || !optionsRef.current) return;
+
+        setIsSaving(true);
 
         const blockData: NewBlockType = {
-            sourceBlockId: selectedBlock.blockId,
+            sourceBlockId: selectedBlock?.blockId,
             label: label.trim(),
             description: description.trim(),
-            icon: previewUrl || null
+            icon: previewUrl || null,
+            type,
+            tags
         };
+
+        console.log(blockData)
 
         const isSuccess = await optionsRef.current.onAddBlock(blockData);
 
         if (isSuccess) {
             modalRef.current?.close();
+        } else {
+            setIsSaving(false);
         }
     }
 
@@ -218,7 +244,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                     </button>
                 </form>
 
-                {screen === "configure" && (
+                {screen === "configure" && !optionsRef.current?.skipSelect && (
                     <button
                         type="button"
                         className="absolute left-0 top-0 m-5 flex items-center gap-2 cursor-pointer z-10"
@@ -230,13 +256,23 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                 )}
 
                 <div className="absolute top-12 left-6 right-6 md:relative md:top-0 md:right-0 md:left-0 pointer-events-none mb-6">
-                    <h3 className="font-nerdfont text-6xl text-center mb-4">
-                        {screen === "menu" ? "" : ""}
-                    </h3>
+                    {!optionsRef.current?.skipSelect &&(
+                        <>
+                            <h3 className="font-nerdfont text-6xl text-center mb-4">
+                                {screen === "menu" ? "" : ""}
+                            </h3>
 
-                    <h3 className="text-center text-2xl font-bold">
-                        {screen === "menu" ? "Add New Block" : "Configure Block"}
-                    </h3>
+                            <h3 className="text-center text-2xl font-bold">
+                                {screen === "menu" ? "Add New Block" : "Configure Block"}
+                            </h3>
+                        </>
+                    )}
+
+                    {optionsRef.current?.skipSelect &&(
+                        <h3 className="text-center text-2xl font-bold">
+                            New Block
+                        </h3>
+                    )}
                 </div>
 
                 {screen === "menu" && (
@@ -345,7 +381,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                     </>
                 )}
 
-                {screen === "configure" && selectedBlock && (
+                {screen === "configure" && (selectedBlock || optionsRef.current?.skipSelect) && (
                     <div className="flex flex-col gap-6 py-4 mx-auto w-full">
                         <div className="flex flex-col gap-4">
                             <fieldset className="fieldset w-full">
@@ -383,7 +419,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                                     <input
                                         type="text"
                                         className="input w-full"
-                                        placeholder="What does this block cover?"
+                                        placeholder="What is the name of your block?"
                                         value={label}
                                         maxLength={64}
                                         onChange={(e) => setLabel(e.target.value)}
@@ -398,12 +434,50 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                                     <input
                                         type="text"
                                         className="input w-full"
-                                        placeholder="Add a short description..."
+                                        placeholder="What does this block cover?"
                                         value={description}
                                         maxLength={64}
                                         onChange={(e) => setDescription(e.target.value)}
                                     />
                                 </div>
+
+                                {optionsRef.current?.skipSelect && (
+                                    <>
+                                        <div className="flex flex-col gap-1 mt-1">
+                                            <label className="label">
+                                                Type
+                                            </label>
+
+                                            <TypeableDropdownInput
+                                                value={type}
+                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                // @ts-ignore
+                                                options={categories}
+                                                typeable={false}
+                                                onChange={(values) => setType(values as CategoryIdType[])}
+                                                placeholder="What type of block is this?"
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-1 mt-1">
+                                            <label className="label">
+                                                Tags
+                                            </label>
+
+                                            <TagInput
+                                                id="tags"
+                                                value={tags}
+                                                onChange={(tags) => setTags(tags)}
+                                                maxTags={10}
+                                                minLength={3}
+                                                maxLength={24}
+                                                onInvalid={(message) =>
+                                                    toast.show(message, { type: "error" })
+                                                }
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </fieldset>
                         </div>
                         
@@ -412,15 +486,15 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                             onClick={handleSave}
                             className="btn btn-accent w-full mt-2"
                         >
-                            Add Block
+                            <span
+                                className={`${isSaving ? "loading" : ""} `}
+                            >
+                                {optionsRef.current?.skipSelect ? "Create" : "Add Block"}
+                            </span>
                         </button>
                     </div>
                 )}
             </div>
-
-            <form method="dialog" className="modal-backdrop">
-                <button type="submit" />
-            </form>
         </dialog>
     );
 });
