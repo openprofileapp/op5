@@ -16,7 +16,7 @@ export const insertBlock = async (req: Request, res: Response) => {
 
         await assertBearer(req); 
         assertAccount(req.session);
-        assertPlatformPermissions(req.session, "WRITE");
+        assertPlatformPermissions(req.session, "CREATE_ASSETS");
 
         if (!type) {
             throw new AdvancedError({

@@ -15,7 +15,7 @@ export const insertDatasetController = async (req: Request, res: Response) => {
 
         await assertBearer(req);
         assertAccount(req.session);
-        assertPlatformPermissions(req.session, "WRITE");
+        assertPlatformPermissions(req.session, "CREATE_ASSETS");
 
         if (!label && !description && !data) {
             throw new AdvancedError({
