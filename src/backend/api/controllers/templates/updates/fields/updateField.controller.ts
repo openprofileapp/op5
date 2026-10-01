@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import type { Request, Response } from "express";
 
 import { AdvancedError } from "kage-library";
@@ -113,6 +115,38 @@ export const updateFields = async (req: Request, res: Response) => {
             }
 
             if (key === "options") {
+                const getResult = db.templates.query(
+                    "SELECT * FROM draft_fields WHERE fieldId = ?",
+                    [originalFieldId]
+                );
+
+                assertDbSuccess(getResult);
+
+                // @ts-ignore
+                if (JSON.parse(getResult.rows?.[0]?.options)?.dataset !== value?.dataset) {
+                    db.templates.transaction((q) => {
+                        const resultOne = q(
+                            `UPDATE draft_datasets
+                            SET uses = MAX(uses - 1, 0)
+                            WHERE id = ?`,
+                            // @ts-ignore
+                            [JSON.parse(getResult.rows?.[0]?.options)?.dataset]
+                        );
+
+                        assertDbSuccess(resultOne);
+
+                        const resultTwo = q(
+                            `UPDATE draft_datasets
+                            SET uses = uses + 1
+                            WHERE id = ?`,
+                            // @ts-ignore
+                            [value?.dataset]
+                        );
+
+                        assertDbSuccess(resultTwo);
+                    })
+                }
+
                 value = JSON.stringify(value ?? [])
             }
 

@@ -112,6 +112,17 @@ export const insertFields = async (req: Request, res: Response) => {
 
         assertDbSuccess(insertResult);
 
+        if (options?.dataset) {
+            const updateResult = db.templates.query(
+                `UPDATE draft_datasets
+                SET uses = uses + 1
+                WHERE id = ?`,
+                [options?.dataset]
+            );
+
+            assertDbSuccess(updateResult);
+        }
+
         return res.status(201).json({ ok: true });
     } catch (error) {
         if (error instanceof AdvancedError) {
