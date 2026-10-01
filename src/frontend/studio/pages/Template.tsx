@@ -33,13 +33,13 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
 import { GetTemplateCategoryItemType, TemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
-import { apiBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetTemplateFieldItemType, TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 import NewCategoryModal, { NewCategoryType } from "../components/modals/NewCategoryModal.js";
 import { snowflake } from "../scripts/main.js";
 import { NewBlockType } from "../components/modals/NewBlockModal.js";
-import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
+import { GetTemplateBlockItemType, TemplateBlockItemType } from "../../../_common/types/template/block.type.js";
 import { GetTemplateRowItemType, TemplateRowItemType } from "../../../_common/types/template/row.type.js";
 import { NewFieldType } from "../components/modals/NewFieldModal.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
@@ -1086,6 +1086,101 @@ export default function Template() {
         return true;
     };
 
+    const handleUpdateBlock = async (
+        targetBlockId: string,
+        incoming: Partial<TemplateBlockItemType>
+    ): Promise<boolean> => {
+        if (!currentCategoryId) {
+            toast.show("No category selected", {
+                type: "error",
+            });
+
+            return false;
+        }
+
+        setIsSaving(true);
+
+        const payload = {
+            sourceBlockId: incoming.sourceBlockId ?? "",
+            icon: incoming.icon ?? "",
+            label: incoming.label || "Untitled",
+            description: incoming.description ?? "",
+            position: incoming.position ?? 0,
+        };
+
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/templates/${templateId}/blocks/update`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        blockId: targetBlockId,
+                        categoryId: currentCategoryId,
+                        data: payload,
+                    }),
+                }
+            );
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                toast.show("Failed to update block", {
+                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                    type: "error",
+                });
+
+                return false;
+            }
+        } catch (error) {
+            console.error("Failed to update block:", error);
+
+            toast.show("Failed to update block", {
+                subtext: String(error),
+                type: "error",
+            });
+
+            return false;
+        } finally {
+            setIsSaving(false);
+        }
+
+        setTemplateData((prevCategories) =>
+            prevCategories.map((category) => {
+                if (category.categoryId !== currentCategoryId) {
+                    return category;
+                }
+
+                const currentBlocks = category.blocks?.items ?? [];
+
+                const updatedBlocks = currentBlocks.map((block) => {
+                    if (block.blockId !== targetBlockId) {
+                        return block;
+                    }
+
+                    return {
+                        ...block,
+                        ...incoming,
+                    };
+                });
+
+                return {
+                    ...category,
+                    blocks: {
+                        ...category.blocks,
+                        items: updatedBlocks,
+                        count: updatedBlocks.length,
+                    },
+                };
+            })
+        );
+
+        return true;
+    };
+
     const handleUpdateField = async (
         targetRowId: string,
         originalFieldId: string,
@@ -2073,60 +2168,121 @@ export default function Template() {
                                                             strategy={rectSortingStrategy}
                                                         >
                                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                                                {filteredBlocks.map(block => (
-                                                                    <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview || !isEditing}>
-                                                                        {({ sortableProps, dragHandleProps }) => (
-                                                                            <button
-                                                                                {...sortableProps}
-                                                                                className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
-                                                                                onClick={() => setCurrentBlock(block.blockId)}
-                                                                            >
-                                                                                {(!isPreview && isEditing) && (
-                                                                                    <>
-                                                                                        <div
-                                                                                            {...dragHandleProps}
-                                                                                            className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
-                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                        >
-                                                                                            <span className="text-2xl leading-none font-nerdfont">
-                                                                                                󰇛
-                                                                                            </span>
-                                                                                        </div>
+                                                                {filteredBlocks.map(block => {
+                                                                    const handleContextMenu = (e: React.MouseEvent) => {
+                                                                        const target = e.target as HTMLElement;
 
-                                                                                        <div
-                                                                                            className="absolute top-2 right-2 p-1 touch-none"
-                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                        >
-                                                                                            <span className="text-lg leading-none font-nerdfont">
-                                                                                                󰇘
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </>
+                                                                        if (target.closest("[id^='field-']")) {
+                                                                            return;
+                                                                        }
+
+                                                                        e.preventDefault();
+
+                                                                        const popover = document.getElementById(
+                                                                            `context-${block.blockId}`
+                                                                        ) as HTMLElement | null;
+
+                                                                        if (!popover) return;
+
+                                                                        popover.showPopover();
+
+                                                                        requestAnimationFrame(() => {
+                                                                            const rect = popover.getBoundingClientRect();
+
+                                                                            popover.style.left = `${Math.min(
+                                                                                e.clientX,
+                                                                                window.innerWidth - rect.width - 8
+                                                                            )}px`;
+
+                                                                            popover.style.top = `${Math.min(
+                                                                                e.clientY,
+                                                                                window.innerHeight - rect.height - 8
+                                                                            )}px`;
+                                                                        });
+                                                                    };
+                                                                    
+                                                                    return (
+                                                                        <>
+                                                                            <TemplateContextMenu 
+                                                                                id={block.blockId}
+                                                                                type="block"
+                                                                                label={block.label || block.blockId}
+                                                                                assetId={templateId as string}
+                                                                                readOnly={isPreview}
+                                                                                url={`${studioBaseUrl}/template/${templateId}/${categoryId}/${block.blockId}`}
+                                                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                                // @ts-ignore
+                                                                                data={{ block: block as unknown as TemplateBlockItemType }}
+                                                                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                                // @ts-ignore
+                                                                                onChange={handleUpdateBlock}
+                                                                                onDelete={onDelete}
+                                                                                isEditing={isEditing}
+                                                                            />
+                                                                            
+                                                                            <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview || !isEditing}>
+                                                                                {({ sortableProps, dragHandleProps }) => (
+                                                                                    <button
+                                                                                        {...sortableProps}
+                                                                                        className={`aspect-square relative flex flex-col items-center justify-center p-2 bg-base-200 hover:bg-base-300 border border-base-300 rounded transition-all shadow-xs cursor-pointer ${sortableProps.className ?? ""}`}
+                                                                                        onClick={() => setCurrentBlock(block.blockId)}
+                                                                                        onContextMenu={handleContextMenu}
+                                                                                    >
+                                                                                        {(!isPreview && isEditing) && (
+                                                                                            <>
+                                                                                                <div
+                                                                                                    {...dragHandleProps}
+                                                                                                    className="absolute top-2 left-2 p-1 cursor-grab active:cursor-grabbing touch-none"
+                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                >
+                                                                                                    <span className="text-2xl leading-none font-nerdfont">
+                                                                                                        󰇛
+                                                                                                    </span>
+                                                                                                </div>
+
+                                                                                                <div
+                                                                                                    className="hidden absolute top-2 right-2 p-1 touch-none"
+                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                >
+                                                                                                    <span className="text-lg leading-none font-nerdfont">
+                                                                                                        󰇘
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </>
+                                                                                        )}
+
+                                                                                        {block?.icon && (
+                                                                                            <img
+                                                                                                className="h-16 w-16 object-contain rounded"
+                                                                                                src={
+                                                                                                    block.icon.startsWith("data:")
+                                                                                                        ? block.icon
+                                                                                                        : `${cdnBaseUrl}${block.icon}`
+                                                                                                }
+                                                                                                alt={block.label || "Block icon"}
+                                                                                            />
+                                                                                        )}
+
+                                                                                        <span className="text-lg font-semibold mt-3">
+                                                                                            {block?.label || block.blockId}
+                                                                                        </span>
+
+                                                                                        <span className="text-xs text-sub mt-1">
+                                                                                            {block?.description}
+                                                                                        </span>
+                                                                                    </button>
                                                                                 )}
-
-                                                                                {block?.icon && (
-                                                                                    <img 
-                                                                                        className="h-16 w-16 object-contain rounded"
-                                                                                        src={block?.icon} 
-                                                                                    />
-                                                                                )}
-
-                                                                                <span className="text-lg font-semibold mt-3">
-                                                                                    {block?.label || block.blockId}
-                                                                                </span>
-
-                                                                                <span className="text-xs text-sub mt-1">
-                                                                                    {block?.description}
-                                                                                </span>
-                                                                            </button>
-                                                                        )}
-                                                                    </SortableItem>
-                                                                ))}
+                                                                            </SortableItem>
+                                                                        </>
+                                                                    )
+                                                                })}
 
                                                                 {(!isPreview && isEditing) && (currentCategoryData?.blocks?.items.length ?? 0) <= 32 && (
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
+                                                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                                            // @ts-ignore
                                                                             newBlockModal.open({
                                                                                 types: currentCategoryData.types,
                                                                                 onAddBlock: handleAddBlock
@@ -2491,7 +2647,7 @@ export default function Template() {
                                                                 id={category.categoryId}
                                                                 type="category"
                                                                 label={category.label || category.categoryId}
-                                                                templateId={templateId as string}
+                                                                assetId={templateId as string}
                                                                 readOnly={isPreview}
                                                                 url={`${studioBaseUrl}/template/${templateId}/${categoryId}`}
                                                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
