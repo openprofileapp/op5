@@ -123,7 +123,10 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
 
     useEffect(() => {
         const loadDatasets = async () => {
-            if (optionsRef?.current?.type !== "dropdown") return
+            if (
+                optionsRef?.current?.type !== "dropdown" &&
+                optionsRef?.current?.type !== "text"
+            ) return
 
             setIsLoadingDatasets(true);
 
@@ -379,7 +382,10 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                     />
                                 </div>
                                 
-                                {optionsRef.current?.type === "dropdown" && (
+                                {(
+                                    optionsRef.current?.type === "text" ||
+                                    optionsRef.current?.type === "dropdown"
+                                ) && (
                                     <div className="flex flex-col gap-1 mt-1">
                                         <label className="label">
                                             Dataset
