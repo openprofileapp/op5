@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import uploadFile from "../../../../../_common/helpers/uploadFile.js";
 
 export const insertBlock = async (req: Request, res: Response) => {
     try {
@@ -65,6 +66,15 @@ export const insertBlock = async (req: Request, res: Response) => {
                 ? position 
                 : countResult.rowCount;
 
+        let uploadedIcon;
+
+        if (icon) {
+            uploadedIcon = await uploadFile({
+                folder: `media/${templateId}`,
+                fileInput: icon
+            });
+        }
+
         const insertResult = db.templates.query(
             `INSERT INTO draft_blocks (
                 templateId, 
@@ -82,7 +92,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                 blockId,
                 categoryId,
                 sourceBlockId ?? null,
-                icon ?? null,
+                uploadedIcon?.path ?? null,
                 label ?? null,
                 description ?? null,
                 targetPosition,
