@@ -45,7 +45,25 @@ export const deleteFields = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteResult = db.templates.query(`DELETE FROM draft_fields WHERE fieldId = ?`, [fieldId]);
+        const updateDatasetResult = db.templates.query(
+            `
+            UPDATE draft_datasets
+            SET uses = MAX(uses - 1, 0)
+            WHERE id = (
+                SELECT json_extract(options, '$.dataset')
+                FROM draft_fields
+                WHERE fieldId = ?
+            )
+            `,
+            [fieldId]
+        );
+
+        assertDbSuccess(updateDatasetResult);
+
+        const deleteResult = db.templates.query(
+            `DELETE FROM draft_fields WHERE fieldId = ?`,
+            [fieldId]
+        );
 
         assertDbSuccess(deleteResult);
 

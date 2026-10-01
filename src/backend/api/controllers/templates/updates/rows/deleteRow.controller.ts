@@ -45,19 +45,45 @@ export const deleteRows = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteFieldResult = db.templates.query(
-            "DELETE FROM draft_fields WHERE rowId = ?", 
-            [rowId]
-        );
+       db.templates.transaction(q => {
+            const updateDatasetsResult = q(
+                `
+                UPDATE draft_datasets
+                SET uses = MAX(
+                    uses - (
+                        SELECT COUNT(*)
+                        FROM draft_fields f
+                        WHERE f.rowId = ?
+                            AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                    ),
+                    0
+                )
+                WHERE id IN (
+                    SELECT json_extract(f.options, '$.dataset')
+                    FROM draft_fields f
+                    WHERE f.rowId = ?
+                        AND json_extract(f.options, '$.dataset') IS NOT NULL
+                )
+                `,
+                [rowId, rowId]
+            );
 
-        assertDbSuccess(deleteFieldResult);
+            assertDbSuccess(updateDatasetsResult);
 
-        const deleteRowResult = db.templates.query(
-            "DELETE FROM draft_rows WHERE rowId = ?", 
-            [rowId]
-        );
+            const deleteFieldResult = q(
+                "DELETE FROM draft_fields WHERE rowId = ?",
+                [rowId]
+            );
 
-        assertDbSuccess(deleteRowResult);
+            assertDbSuccess(deleteFieldResult);
+
+            const deleteRowResult = q(
+                "DELETE FROM draft_rows WHERE rowId = ?",
+                [rowId]
+            );
+
+            assertDbSuccess(deleteRowResult);
+        });
 
         return res.status(200).json({ ok: true });
     } catch (error) {

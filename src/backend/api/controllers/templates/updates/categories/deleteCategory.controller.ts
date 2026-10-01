@@ -45,27 +45,104 @@ export const deleteCategories = async (req: Request, res: Response) => {
             });
         }
 
-        db.templates.query(
-            "DELETE FROM draft_fields WHERE templateId = ? AND categoryId = ?",
-            [templateId, categoryId]
-        );
+        db.templates.transaction(q => {
+            const updateDatasetsResult = q(
+                `
+                UPDATE draft_datasets
+                SET uses = MAX(
+                    uses - (
+                        SELECT COUNT(*)
+                        FROM draft_fields f
+                        WHERE f.rowId IN (
+                            SELECT r.rowId
+                            FROM draft_rows r
+                            WHERE r.blockId IN (
+                                SELECT b.blockId
+                                FROM draft_blocks b
+                                WHERE b.templateId = ?
+                                    AND b.categoryId = ?
+                            )
+                        )
+                        AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                    ),
+                    0
+                )
+                WHERE id IN (
+                    SELECT json_extract(f.options, '$.dataset')
+                    FROM draft_fields f
+                    WHERE f.rowId IN (
+                        SELECT r.rowId
+                        FROM draft_rows r
+                        WHERE r.blockId IN (
+                            SELECT b.blockId
+                            FROM draft_blocks b
+                            WHERE b.templateId = ?
+                                AND b.categoryId = ?
+                        )
+                    )
+                    AND json_extract(f.options, '$.dataset') IS NOT NULL
+                )
+                `,
+                [
+                    templateId,
+                    categoryId,
+                    templateId,
+                    categoryId
+                ]
+            );
 
-        db.templates.query(
-            "DELETE FROM draft_rows WHERE templateId = ? AND categoryId = ?",
-            [templateId, categoryId]
-        );
+            assertDbSuccess(updateDatasetsResult);
 
-        db.templates.query(
-            "DELETE FROM draft_blocks WHERE templateId = ? AND categoryId = ?",
-            [templateId, categoryId]
-        );
+            const deleteFieldsResult = q(
+                `
+                DELETE FROM draft_fields
+                WHERE rowId IN (
+                    SELECT rowId
+                    FROM draft_rows
+                    WHERE blockId IN (
+                        SELECT blockId
+                        FROM draft_blocks
+                        WHERE templateId = ?
+                            AND categoryId = ?
+                    )
+                )
+                `,
+                [templateId, categoryId]
+            );
 
-        const deleteResult = db.templates.query(
-            "DELETE FROM draft_categories WHERE templateId = ? AND categoryId = ?",
-            [templateId, categoryId]
-        );
+            assertDbSuccess(deleteFieldsResult);
 
-        assertDbSuccess(deleteResult);
+            const deleteRowsResult = q(
+                `DELETE FROM draft_rows
+                WHERE blockId IN (
+                    SELECT blockId
+                    FROM draft_blocks
+                    WHERE templateId = ?
+                    AND categoryId = ?
+                )`,
+                [templateId, categoryId]
+            );
+
+            assertDbSuccess(deleteRowsResult);
+
+            const deleteBlocksResult = q(
+                `DELETE FROM draft_blocks
+                WHERE templateId = ?
+                AND categoryId = ?`,
+                [templateId, categoryId]
+            );
+
+            assertDbSuccess(deleteBlocksResult);
+
+            const deleteCategoriesResult = q(
+                `DELETE FROM draft_categories
+                WHERE templateId = ?
+                AND categoryId = ?`,
+                [templateId, categoryId]
+            );
+
+            assertDbSuccess(deleteCategoriesResult);
+        });
 
         return res.status(200).json({ ok: true });
     } catch (error) {

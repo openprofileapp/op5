@@ -45,26 +45,80 @@ export const deleteBlock = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteResult = db.templates.query(
-            "DELETE FROM draft_fields WHERE templateId = ? AND blockId = ?",
-            [templateId, blockId]
-        );
+        db.templates.transaction(q => {
+            const updateDatasetsResult = q(
+                `
+                UPDATE draft_datasets
+                SET uses = MAX(
+                    uses - (
+                        SELECT COUNT(*)
+                        FROM draft_fields f
+                        WHERE f.rowId IN (
+                            SELECT r.rowId
+                            FROM draft_rows r
+                            WHERE r.blockId = ?
+                        )
+                        AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                    ),
+                    0
+                )
+                WHERE id IN (
+                    SELECT json_extract(f.options, '$.dataset')
+                    FROM draft_fields f
+                    WHERE f.rowId IN (
+                        SELECT r.rowId
+                        FROM draft_rows r
+                        WHERE r.blockId = ?
+                    )
+                    AND json_extract(f.options, '$.dataset') IS NOT NULL
+                )
+                `,
+                [blockId, blockId]
+            );
 
-        assertDbSuccess(deleteResult);
+            assertDbSuccess(updateDatasetsResult);
 
-        const deleteRowsResult = db.templates.query(
-            "DELETE FROM draft_rows WHERE templateId = ? AND blockId = ?",
-            [templateId, blockId]
-        );
+            const deleteFieldsResult = q(
+                `
+                DELETE FROM draft_fields
+                WHERE rowId IN (
+                    SELECT rowId
+                    FROM draft_rows
+                    WHERE blockId IN (
+                        SELECT blockId
+                        FROM draft_blocks
+                        WHERE templateId = ?
+                            AND blockId = ?
+                    )
+                )
+                `,
+                [templateId, blockId]
+            );
 
-        assertDbSuccess(deleteRowsResult);
+            assertDbSuccess(deleteFieldsResult);
 
-        const deleteBlockResult = db.templates.query(
-            "DELETE FROM draft_blocks WHERE templateId = ? AND blockId = ?",
-            [templateId, blockId]
-        );
+            const deleteRowsResult = q(
+                `DELETE FROM draft_rows
+                WHERE blockId IN (
+                    SELECT blockId
+                    FROM draft_blocks
+                    WHERE templateId = ?
+                    AND blockId = ?
+                )`,
+                [templateId, blockId]
+            );
 
-        assertDbSuccess(deleteBlockResult);
+            assertDbSuccess(deleteRowsResult);
+
+            const deleteBlocksResult = q(
+                `DELETE FROM draft_blocks
+                WHERE templateId = ?
+                AND blockId = ?`,
+                [templateId, blockId]
+            );
+
+            assertDbSuccess(deleteBlocksResult);
+        });
 
         return res.status(200).json({
             ok: true,
