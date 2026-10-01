@@ -23,7 +23,7 @@ import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifi
 
 import { CSS } from "@dnd-kit/utilities";
 
-import { DatasetItemType, GetDatasetsType } from "../../../../_common/types/template/dataset.type.js";
+import { DatasetItemType, GetDatasetItemType, GetDatasetsType } from "../../../../_common/types/template/dataset.type.js";
 import { DropdownOptionsType } from "../../../../_common/types/dropdown.type.js";
 import { toast } from "../../scripts/toast.js";
 import { apiBaseUrl } from "../../scripts/domains.js";
@@ -241,7 +241,11 @@ function SortableRow({
 
 const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
-    const { deleteModal } = useModals();
+    const { 
+        deleteModal,
+        publishModal,
+        unpublishModal
+    } = useModals();
 
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const resolverRef = useRef<((value: DatasetItemType | null) => void) | null>(null);
@@ -251,7 +255,7 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const [data, setData] = useState<Partial<DatasetItemType>>();
+    const [data, setData] = useState<Partial<GetDatasetItemType>>();
     const [label, setLabel] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [editableRows, setEditableRows] = useState<FlatRowItem[]>([]);
@@ -315,7 +319,7 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
 
         return currentData !== initialFormattedData;
     }, [data, label, description, editorMode, jsonText, editableRows, initialFormattedData, isNewDataset]);
-
+    
     const resetState = () => {
         setData(undefined);
         setLabel("");
@@ -375,10 +379,34 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
         resetState();
     };
 
+    const handlePublishDataset = () => {
+        if (!data) return;
+
+        publishModal.open(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            data,
+            { type: "dataset" }
+        );
+    };
+
+    const handleUnpublishDataset = () => {
+        if (!data) return;
+
+        unpublishModal.open(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            data,
+            { type: "dataset" }
+        );
+    };
+
     const handleDeleteDataset = () => {
         if (!data) return;
 
         deleteModal.open(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             data as GetDatasetsType,
             {
                 type: "dataset",
@@ -658,13 +686,35 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
                             </fieldset>
 
                             {!isNewDataset && (
-                                <button
-                                    type="button"
-                                    className="btn btn-error"
-                                    onClick={handleDeleteDataset}
-                                >
-                                    {t("words.Delete")}
-                                </button>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex flex-row gap-2 w-full">
+                                        {!data.isPublished ? (
+                                            <button
+                                                type="button"
+                                                className="btn btn-success flex-1"
+                                                onClick={handlePublishDataset}
+                                            >
+                                                Publish
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className="btn bg-base-300 flex-1"
+                                                onClick={handleUnpublishDataset}
+                                            >
+                                                Unpublish
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="btn btn-error"
+                                        onClick={handleDeleteDataset}
+                                    >
+                                        {t("words.Delete")}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}
