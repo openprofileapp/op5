@@ -287,7 +287,7 @@ export default function Datasets() {
                                     </div>
 
                                     <div className="mt-4 pt-2 border-t border-base-300 text-xs text-sub flex justify-between items-center">
-                                        <span>Used in {d.uses} fields</span>
+                                        <span>Used in {d.uses} field{d.uses === 1 ? "" : "s"}</span>
                                         <span>
                                             {flattenDatasetData(
                                                 typeof d.data === "string" ? JSON.parse(d.data) : d.data
