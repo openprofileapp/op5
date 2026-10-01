@@ -7,6 +7,9 @@ import { toast } from "../../_common/scripts/toast.js";
 import { TemplateRowItemType } from "../../../_common/types/template/row.type.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
 import { TemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
+import { TemplateBlockItemType } from "../../../_common/types/template/block.type.js";
+import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { ValueOptionsType } from "../../../_common/types/value.type.js";
 
 interface Props {
     id: string;
@@ -21,12 +24,17 @@ interface Props {
     data: {
         field?: TemplateFieldItemType
         row?: TemplateRowItemType
+        block?: TemplateBlockItemType
         category?: TemplateCategoryItemType
     }
     onChange: (
         targetRowId: string,
         originalFieldId: string,
         incoming: Partial<TemplateFieldItemType>
+    ) => boolean | Promise<boolean>;
+    onValueChange: (
+        value: string | number, 
+        options?: ValueOptionsType
     ) => boolean | Promise<boolean>;
     onDelete: (
         id: string,
@@ -50,6 +58,7 @@ export default function TemplateContextMenu({
     data,
     isEditing = false,
     onChange,
+    onValueChange,
     onDelete,
     resolveDynamicValues,
     isBlockAsset = false
@@ -57,11 +66,13 @@ export default function TemplateContextMenu({
     const { t, ready: isTranslationReady } = useTranslation();
 
     const { 
-        deleteModal, 
-        editFieldModal, 
-        editCategoryModal 
+        deleteModal,
+        editFieldModal,
+        editBlockModal,
+        editCategoryModal
     } = useModals();
 
+    const [isLoadingRandom, setIsLoadingRandom] = useState<boolean>(false);
     const [isLocking, setIsLocking] = useState<boolean>(false);
 
     useEffect(() => {
@@ -143,6 +154,25 @@ export default function TemplateContextMenu({
                                 });
                             }
 
+                            if (type === "block") {
+                                editBlockModal.open({
+                                    isTemplate: true,
+                                    block: {
+                                        blockId: id,
+                                        label: data?.block?.label ?? "",
+                                        description: data?.block?.description?.trim() ?? "",
+                                        icon: data?.block?.icon || null
+                                    },
+                                    onUpdateBlock: async (options) => {
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        const result = await onChange(id, options);
+
+                                        return result !== false;
+                                    },
+                                });
+                            }
+
                             if (type === "category") {
                                 editCategoryModal.open({
                                     id,
@@ -168,35 +198,97 @@ export default function TemplateContextMenu({
             )}
 
             {type === "field" && (
-                <li>
-                    <button 
-                        className="flex items-center justify-between gap-4"
-                        onClick={async () => {
-                            closeContextMenu();
+                <>
+                    <li>
+                        <button
+                            type="button"
+                            className="flex items-center justify-between gap-4"
+                            disabled={isLoadingRandom}
+                            onClick={async () => {
+                                setIsLoadingRandom(true);
 
-                            setIsLocking(true);
+                                try {
+                                    const response = await fetch(
+                                        `${apiBaseUrl}/v3/templates/datasets/randomize/${data?.field?.options?.dataset}/`,
+                                        { credentials: "include" }
+                                    );
 
-                            await onChange(
-                                rowId,
-                                id,
-                                {
-                                    fieldId: id,
-                                    isLocked: !isLocked
+                                    const json = await response.json();
+
+                                    if (!response.ok) {
+                                        toast.show(
+                                            `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                            {
+                                                subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                                type: "error",
+                                            }
+                                        );
+                                    }
+
+                                    let currentValue = "";
+
+                                    for (const char of json.value) {
+                                        currentValue += char;
+
+                                        onValueChange(currentValue);
+
+                                        await new Promise((resolve) =>
+                                            setTimeout(resolve, 10)
+                                        );
+                                    }
+                                } catch (error) {
+                                    toast.show(
+                                        `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                        {
+                                            subtext: String(error),
+                                            type: "error",
+                                        }
+                                    );
+                                } finally {
+                                    setIsLoadingRandom(false);
                                 }
-                            )
+                            }}
+                        >
+                            Randomize
 
-                            setIsLocking(false);
-                        }}
-                    >
-                        {isLocked ? "Unlock" : "Lock"}
-                        <span className={`${isLocking ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}>
-                            {isLocked ? "" : ""}
-                        </span>
-                    </button>
-                </li>
+                            <span
+                                className={`${isLoadingRandom ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}
+                            >
+                                
+                            </span>
+                        </button>
+                    </li>
+                                        
+                    <li>
+                        <button 
+                            className="flex items-center justify-between gap-4"
+                            onClick={async () => {
+                                closeContextMenu();
+
+                                setIsLocking(true);
+
+                                await onChange(
+                                    rowId,
+                                    id,
+                                    {
+                                        fieldId: id,
+                                        isLocked: !isLocked
+                                    }
+                                )
+
+                                setIsLocking(false);
+                            }}
+                        >
+                            {isLocked ? "Unlock" : "Lock"}
+                            <span className={`${isLocking ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}>
+                                {isLocked ? "" : ""}
+                            </span>
+                        </button>
+                    </li>
+                </>
             )}
 
-            {type !== "row" && (type !== "category" || isEditing) && (
+            {type !== "row" && ((type !== "category" && type !== "block") || isEditing) && (
                 <hr />
             )}
 
