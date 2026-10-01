@@ -71,6 +71,7 @@ export type DraftCharacterType = {
     auraType: string;
     auraPrimary: string;
     auraSecondary: string;
+    isConfidential: boolean;
     isSensitive: boolean;
     isMature: boolean;
     visibility: VisibilityType;

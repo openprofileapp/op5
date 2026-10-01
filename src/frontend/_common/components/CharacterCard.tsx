@@ -58,6 +58,7 @@ export default function CharacterCard({
     const [isSensitive] = useState<boolean>(Boolean(data.isSensitive));
     const [isMature] = useState<boolean>(Boolean(data.isMature));
     const [isRevealed, setIsRevealed] = useState<boolean>(false);
+    const [isConfidentialRevealed, setIsConfidentialRevealed] = useState<boolean>(false);
 
     const [isPinned, setIsPinned] = useState<boolean>(isPinVisible);
     const [isPinLoading, setIsPinLoading] = useState<boolean>(false);
@@ -176,7 +177,7 @@ export default function CharacterCard({
 
     return (
         <div
-            className={`aura-effect character-card relative p-4 shadow-sm cursor-pointer transition-all duration-100 ${isHidden ? "grayscale opacity-50" : "grayscale-0"}`}
+            className={`aura-effect character-card relative p-4 shadow-sm ${("isConfidential" in data && data.isConfidential) && !isConfidentialRevealed ? "" : "cursor-pointer"} transition-all duration-100 ${isHidden ? "grayscale opacity-50" : "grayscale-0"}`}
             style={auraStyle}
             onContextMenu={(e) => {
                 e.preventDefault();
@@ -205,6 +206,52 @@ export default function CharacterCard({
                 });
             }}
         >
+            {Boolean("isConfidential" in data && data.isConfidential) && !isConfidentialRevealed && (
+                <div
+                    className="absolute inset-0 z-20 rounded-lg overflow-hidden flex flex-col items-center justify-center select-none bg-[#101114]/90 backdrop-blur-2xl"
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}
+                >
+                    <div
+                        className="absolute inset-0 opacity-30 pointer-events-none border border-2 rounded-lg"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                            backgroundSize: "150px 150px"
+                        }}
+                    />
+
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                        <span className="font-nerdfont text-6xl mb-4 leading-none text-white/90">
+                            󰷈
+                        </span>
+
+                        <span className="text-lg font-semibold px-4 uppercase">
+                            Confidential
+                        </span>
+
+                        <span className="text-xs my-4 max-w-xs border-t border-b border-error bg-error/20 p-2 leading-relaxed">
+                            Confidential material protected by non-disclosure obligations. Unauthorized access, disclosure, copying, distribution, or recording is prohibited where restricted by applicable agreements or law.
+                        </span>
+
+                        <span 
+                            className="text-xs mt-1 px-4 py-1 cursor-pointer border rounded-full border-white/50"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsConfidentialRevealed(true);
+                            }}
+                        >
+                            <span className="font-nerdfont text-sm mr-2">
+                                
+                            </span>
+
+                            {t("components.cards.clickToReveal")}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {Boolean(isMature) && !isRevealed && (
                 <div 
                     className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
@@ -221,11 +268,11 @@ export default function CharacterCard({
                         
                     </span>
 
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold px-4">
                         {t("components.cards.isMature")}
                     </span>
 
-                    <span className="text-xs text-sub mt-1">
+                    <span className="text-xs text-sub mt-1 px-4">
                         {t("components.cards.clickToReveal")}
                     </span>
                 </div>
@@ -247,11 +294,11 @@ export default function CharacterCard({
                         󰈉
                     </span>
 
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold px-4">
                         {t("components.cards.isSensitive")}
                     </span>
 
-                    <span className="text-xs text-sub mt-1">
+                    <span className="text-xs text-sub mt-1 px-4">
                         {t("components.cards.clickToReveal")}
                     </span>
                 </div>
