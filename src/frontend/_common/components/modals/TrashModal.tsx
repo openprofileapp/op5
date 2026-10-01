@@ -108,7 +108,7 @@ const TrashModal = forwardRef<TrashModalRef>((_, ref) => {
                     </form>
                     
                     <h3 className="font-bold text-2xl mb-6 text-center">
-                        {t("words.Move")} {data.displayName} {t("components.modals.trash.toTrash")}
+                        {t("words.Move")} {data.displayName || data.id} {t("components.modals.trash.toTrash")}
                     </h3>
 
                     <div className="flex gap-5 pb-8 pt-4 flex-col">
