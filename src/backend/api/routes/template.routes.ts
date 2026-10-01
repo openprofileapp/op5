@@ -27,6 +27,10 @@ import { updateCategories } from "../controllers/templates/updates/categories/up
 import { restoreTemplate } from "../controllers/templates/restore.controller.js";
 import { trashTemplete } from "../controllers/templates/trash.controller.js";
 import { deleteTemplete } from "../controllers/templates/delete.controller.js";
+import { updateBlocks } from "../controllers/templates/updates/blocks/updateBlocks.controller.js";
+import { publishDatasetController } from "../controllers/datasets/publishDataset.controller.js";
+import { unpublishDatasetController } from "../controllers/datasets/unpublishDataset.controller.js";
+import { randomizeDataset } from "../controllers/datasets/randomizeDataset.controller.js";
 
 const templateRoutes = Router();
 
@@ -42,6 +46,9 @@ templateRoutes.get("/datasets/drafts", getDraftDatasetController);
 templateRoutes.post("/datasets/update/:id", updateDatasetController);
 templateRoutes.post("/datasets/insert", insertDatasetController);
 templateRoutes.delete("/datasets/delete/:id", deleteDatasetController);
+templateRoutes.get("/datasets/publish/:id", publishDatasetController);
+templateRoutes.get("/datasets/unpublish/:id", unpublishDatasetController);
+templateRoutes.get("/datasets/randomize/:id", randomizeDataset);
 
 templateRoutes.get("/restore/:id", restoreTemplate);
 templateRoutes.get("/trash/:id", trashTemplete);
@@ -53,6 +60,7 @@ templateRoutes.post("/:templateId/categories/update/positions", positionCategori
 templateRoutes.delete("/:templateId/categories/delete/:categoryId", deleteCategories);
 
 templateRoutes.post("/:templateId/blocks/insert", insertBlock);
+templateRoutes.post("/:templateId/blocks/update", updateBlocks);
 templateRoutes.post("/:templateId/blocks/update/positions", positionBlocks);
 templateRoutes.delete("/:templateId/blocks/delete/:blockId", deleteBlock);
 
