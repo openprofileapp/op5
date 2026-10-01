@@ -14,7 +14,6 @@ import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/dom
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
 import ImageInput from "../../_common/components/ImageInput.js";
 import { Link } from "react-router-dom";
-import { toast } from "../../_common/scripts/toast.js";
 import { DropdownOptionsType } from "../../../_common/types/dropdown.type.js";
 import { TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 import TemplateContextMenu from "./TemplateContextMenu.js";
@@ -161,50 +160,57 @@ export default function TemplateField({
     };
 
     useEffect(() => {
-       if (type !== "dropdown" || !options?.dataset) {
+        if (type !== "dropdown" || !options?.dataset) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLoading(false);
-            
+
             return;
         };
 
         async function fetchDataset() {
             try {
-                const response = await fetch(
-                    `${apiBaseUrl}/v3/templates/datasets/drafts?id=${options?.dataset}`,
+                let response = await fetch(
+                    `${apiBaseUrl}/v3/templates/datasets?id=${options?.dataset}`,
                     { credentials: "include" }
                 );
 
-                const responseData = await response.json();
+                let responseData = await response.json();
 
-                if (!response.ok) {
-                    toast.show(
-                        `Failed to fetch dataset`, 
-                        { 
-                            subtext: `${responseData?.id || ""}${responseData?.id ? ": " : ""}${responseData?.message}`,
-                            type: "error" 
-                        }
+                if (!response.ok || responseData.items?.length === 0) {
+                    response = await fetch(
+                        `${apiBaseUrl}/v3/templates/datasets/drafts?id=${options?.dataset}`,
+                        { credentials: "include" }
                     );
+
+                    responseData = await response.json();
+                }
+
+                if (!response.ok || responseData.items?.length === 0) {
+                    setDataset([
+                        {
+                            id: "error",
+                            name: "This dataset is currently unavailable.",
+                            category: "error"
+                        }
+                    ]);
                 } else {
-                    if (responseData.items.length !== 0) {
-                        setDataset(JSON.parse(responseData.items?.[0].data) || []);
-                    }
+                    setDataset(JSON.parse(responseData.items?.[0].data) || []);
                 }
             } catch (error) {
-                toast.show(
-                        `Failed to fetch dataset`, 
-                        { 
-                            subtext: error as string,
-                            type: "error" 
-                        }
-                    );
+                setDataset([
+                    {
+                        id: "error",
+                        name: String(error),
+                        category: "error"
+                    }
+                ]);
             } finally {
                 setIsLoading(false);
             }
         }
 
         fetchDataset();
-    }, [type, options?.dataset, options]);
+    }, [type, options?.dataset]);
 
     const renderInputContent = () => {
         switch (type) {
@@ -472,6 +478,7 @@ export default function TemplateField({
                     data={{ field: data }}
                     isLocked={isLocked}
                     onChange={onFieldChange}
+                    onValueChange={onChange}
                     onDelete={onDelete}
                     resolveDynamicValues={resolveDynamicValues}
                     isEditing={dragHandleProps ? true : false}
