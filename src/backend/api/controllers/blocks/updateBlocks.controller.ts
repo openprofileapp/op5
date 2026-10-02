@@ -14,21 +14,14 @@ import { log } from "../../instances.js";
 export const updateBlocks = async (req: Request, res: Response) => {
     try {
         const { blockId } = req.params;
-        const { categoryId, data } = req.body;
+        const { data } = req.body;
 
         await assertBearer(req);
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "CREATE_ASSETS");
 
-        if (!categoryId) {
-            throw new AdvancedError({
-                code: 400,
-                message: i18n.t("responses.malformedRequest")
-            });
-        }
-
         const getResult = db.blocks.query(
-            "SELECT * FROM drafts WHERE id = ?",
+            "SELECT * FROM drafts WHERE blockId = ? LIMIT 1",
             [blockId]
         );
 
@@ -37,21 +30,27 @@ export const updateBlocks = async (req: Request, res: Response) => {
         if (getResult.rowCount === 0) {
             throw new AdvancedError({
                 code: 404,
-                message: i18n.t("responses.templateNotFound")
+                message: i18n.t("responses.blockNotFound"),
             });
         }
 
-        if (getResult.rows[0].ownerId !== req.session.userId) {
+        const block = getResult.rows[0];
+
+        if (block.ownerId !== req.session.userId) {
             throw new AdvancedError({
                 code: 401,
-                message: i18n.t("responses.unauthorized")
+                message: i18n.t("responses.unauthorized"),
             });
         }
 
-        if (!data || typeof data !== "object" || Object.keys(data).length === 0) {
+        if (
+            !data ||
+            typeof data !== "object" ||
+            Object.keys(data).length === 0
+        ) {
             throw new AdvancedError({
                 code: 400,
-                message: i18n.t("responses.malformedRequest")
+                message: i18n.t("responses.malformedRequest"),
             });
         }
 
@@ -59,18 +58,9 @@ export const updateBlocks = async (req: Request, res: Response) => {
             "displayName",
             "about",
             "icon",
-            "type",
-            "tags"
+            "categoryType",
+            "tags",
         ]);
-
-        let uploadedIcon;
-
-        if (data.icon) {
-            uploadedIcon = await uploadFile({
-                folder: `media/${blockId}`,
-                fileInput: data.icon
-            });
-        }
 
         const updates: string[] = [];
         const values: unknown[] = [];
@@ -82,17 +72,38 @@ export const updateBlocks = async (req: Request, res: Response) => {
             }
 
             if (key === "icon") {
-                value = uploadedIcon?.path;
+                if (typeof value === "string" && value.startsWith("data:")) {
+                    const uploadedIcon = await uploadFile({
+                        folder: `media/${blockId}`,
+                        fileInput: value,
+                    });
+
+                    if (!uploadedIcon?.path) {
+                        throw new AdvancedError({
+                            code: 500,
+                            message: i18n.t("responses.unknown"),
+                        });
+                    }
+
+                    value = uploadedIcon.path;
+                } else if (value === "") {
+                    value = null;
+                }
             }
 
             if (key === "tags") {
-                value = JSON.stringify(data.tags || [])
+                value = JSON.stringify(
+                    Array.isArray(value) ? value : []
+                );
             }
 
             updates.push(`${key} = ?`);
+
             values.push(
                 typeof value === "boolean"
-                    ? (value ? 1 : 0)
+                    ? value
+                        ? 1
+                        : 0
                     : value
             );
         }
@@ -100,7 +111,7 @@ export const updateBlocks = async (req: Request, res: Response) => {
         if (updates.length === 0) {
             throw new AdvancedError({
                 code: 400,
-                message: i18n.t("responses.malformedRequest")
+                message: i18n.t("responses.malformedRequest"),
             });
         }
 
@@ -110,7 +121,11 @@ export const updateBlocks = async (req: Request, res: Response) => {
         values.push(blockId);
 
         const result = db.blocks.query(
-            `UPDATE drafts SET ${updates.join(", ")} WHERE id = ?`,
+            `
+            UPDATE drafts
+            SET ${updates.join(", ")}
+            WHERE blockId = ?
+            `,
             values
         );
 
@@ -119,14 +134,13 @@ export const updateBlocks = async (req: Request, res: Response) => {
         return res.status(200).json({
             ok: true,
         });
-
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
 
             return res.status(error.code).json({
                 id: error.id,
-                message: error.message
+                message: error.message,
             });
         }
 
