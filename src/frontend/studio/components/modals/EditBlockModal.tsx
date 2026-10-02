@@ -86,9 +86,15 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
                         : ""
                 );
 
-                setLabel(block.label ?? "");
-                setDescription(block.description ?? "");
-                setType(block.type);
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                setLabel(block?.label || block?.displayName || "");
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                setDescription(block?.description || block?.about || "");
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                setType(block?.categoryType);
                 setTags(block.tags ?? []);
 
                 setIsSaving(false);
@@ -123,7 +129,9 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
                 label: label.trim(),
                 description: description.trim(),
                 icon: previewUrl || null,
-                type,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                categoryType: type,
                 tags,
             });
 
@@ -182,6 +190,8 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
                                     className="aspect-square h-24 w-24"
                                     value={icon}
                                     defaultUrl={previewUrl}
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-ignore
                                     onChange={(file, base64Url) => {
                                         if (
                                             file &&
@@ -238,45 +248,45 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
                             />
                         </div>
 
-                        {!optionsRef.current?.isTemplate && (
-                            <>
-                                <div className="flex flex-col gap-1 mt-1">
-                                    <label className="label">
-                                        Type
-                                    </label>
+                        <div className="flex flex-col gap-1 mt-1">
+                            <label className="label">
+                                Type
+                            </label>
 
-                                    <TypeableDropdownInput
-                                        value={type}
-                                        options={categories}
-                                        typeable={false}
-                                        onChange={(value) =>
-                                            setType(value as CategoryIdType)
-                                        }
-                                        placeholder="What type of block is this?"
-                                    />
-                                </div>
+                            <TypeableDropdownInput
+                                value={type}
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
+                                options={categories}
+                                typeable={false}
+                                onChange={(value) =>
+                                    setType(value as CategoryIdType)
+                                }
+                                placeholder="What type of block is this?"
+                            />
+                        </div>
 
-                                <div className="flex flex-col gap-1 mt-1">
-                                    <label className="label">
-                                        Tags
-                                    </label>
+                        <div className="flex flex-col gap-1 mt-1">
+                            <label className="label">
+                                Tags
+                            </label>
 
-                                    <TagInput
-                                        id="edit-block-tags"
-                                        value={tags}
-                                        onChange={setTags}
-                                        maxTags={10}
-                                        minLength={3}
-                                        maxLength={24}
-                                        onInvalid={(message) =>
-                                            toast.show(message, {
-                                                type: "error",
-                                            })
-                                        }
-                                    />
-                                </div>
-                            </>
-                        )}
+                            <TagInput
+                                id="edit-block-tags"
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
+                                value={tags}
+                                onChange={setTags}
+                                maxTags={10}
+                                minLength={3}
+                                maxLength={24}
+                                onInvalid={(message) =>
+                                    toast.show(message, {
+                                        type: "error",
+                                    })
+                                }
+                            />
+                        </div>
                     </fieldset>
 
                     <button
