@@ -97,7 +97,9 @@ export default function TemplateField({
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(true);
     const [dataset, setDataset] = useState<DropdownOptionsType>([]);
+    const [datasetCategories, setDatasetCategories] = useState<string[]>([]);
 
     /*const normalizeMetadataList = (
         target?: string | MetadataObject | (string | MetadataObject)[]
@@ -160,57 +162,95 @@ export default function TemplateField({
     };
 
     useEffect(() => {
-        if (type !== "dropdown" || !options?.dataset) {
+        if (!options?.dataset) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsLoading(false);
 
             return;
         };
 
-        async function fetchDataset() {
-            try {
-                let response = await fetch(
-                    `${apiBaseUrl}/v3/templates/datasets?id=${options?.dataset}`,
-                    { credentials: "include" }
-                );
-
-                let responseData = await response.json();
-
-                if (!response.ok || responseData.items?.length === 0) {
-                    response = await fetch(
-                        `${apiBaseUrl}/v3/templates/datasets/drafts?id=${options?.dataset}`,
+        if (type === "dropdown" || type === "text") {
+            async function fetchCategories() {
+                try {
+                    const response = await fetch(
+                        `${apiBaseUrl}/v3/templates/datasets/categories/${options?.dataset}`,
                         { credentials: "include" }
                     );
 
-                    responseData = await response.json();
-                }
+                    const responseData = await response.json();
 
-                if (!response.ok || responseData.items?.length === 0) {
+                    setDatasetCategories(responseData?.array || []);
+                } catch (error) {
                     setDataset([
                         {
                             id: "error",
-                            name: "This dataset is currently unavailable.",
+                            name: String(error),
                             category: "error"
                         }
                     ]);
-                } else {
-                    setDataset(JSON.parse(responseData.items?.[0].data) || []);
+                } finally {
+                    setIsCategoriesLoading(false);
                 }
-            } catch (error) {
-                setDataset([
-                    {
-                        id: "error",
-                        name: String(error),
-                        category: "error"
-                    }
-                ]);
-            } finally {
-                setIsLoading(false);
             }
+
+            fetchCategories();
         }
 
-        fetchDataset();
-    }, [type, options?.dataset]);
+        // If field, return all the categories
+        // Introduce a dropdown search bar to lookup stuff from local
+
+        if (type === "dropdown") {
+            const timeout = setTimeout(() => {
+                setIsLoading(true);
+
+                async function fetchDataset() {
+                    try {
+                        let response = await fetch(
+                            `${apiBaseUrl}/v3/templates/datasets?id=${options?.dataset}&dq=${localValue}`,
+                            { credentials: "include" }
+                        );
+
+                        let responseData = await response.json();
+
+                        if (!response.ok || responseData.items?.length === 0) {
+                            response = await fetch(
+                                `${apiBaseUrl}/v3/templates/datasets/drafts?id=${options?.dataset}&dq=${localValue}`,
+                                { credentials: "include" }
+                            );
+
+                            responseData = await response.json();
+                        }
+
+                        if (!response.ok || responseData.items?.length === 0) {
+                            setDataset([
+                                {
+                                    id: "error",
+                                    name: "This dataset is currently unavailable.",
+                                    category: "error"
+                                }
+                            ]);
+                        } else {
+                            setDataset(JSON.parse(responseData.items?.[0].data) || []);
+                        }
+                    } catch (error) {
+                        setDataset([
+                            {
+                                id: "error",
+                                name: String(error),
+                                category: "error"
+                            }
+                        ]);
+                    } finally {
+                        setIsLoading(false);
+                    }
+                }
+
+                fetchDataset();
+            }, 100);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [localValue, options?.dataset, type])
 
     const renderInputContent = () => {
         switch (type) {
@@ -284,16 +324,19 @@ export default function TemplateField({
                     <TypeableDropdownInput
                         id={`field-${id}`}
                         value={localValue}
-                        options={dataset}
-                        placeholder={placeholder || "Select or type..."}
+                        options={isLoading ? {} : dataset}
+                        placeholder={placeholder || "Type to filter dataset..."}
                         largeText={true}
-                        onChange={(value) => {
-                            setLocalValue(value as string);
-                            onChange?.(value as string);
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        onChange={(id, name) => {
+                            setLocalValue(id as string);
+                            onChange?.(name as string);
                         }}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onContextMenu={handleContextMenu}
+                        isServerSideFiltering={true}
                         typeable={options?.typeable}
                         multiple={options?.multiselect}
                         readonly={readOnly || isLocked}
@@ -483,6 +526,8 @@ export default function TemplateField({
                     resolveDynamicValues={resolveDynamicValues}
                     isEditing={dragHandleProps ? true : false}
                     isBlockAsset={isBlockAsset}
+                    isCategoriesLoading={isCategoriesLoading}
+                    datasetCategories={datasetCategories}
                 />
 
                 <fieldset className="fieldset w-full">
