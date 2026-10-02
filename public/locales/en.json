@@ -277,7 +277,7 @@
     "dropdown": {
       "selectOption": "Select Option",
       "selectOrType": "Select or type...",
-      "loadingDataset": "Loading dataset...",
+      "loadingDataset": "Loading...",
       "noMatchingOptions": "No matching options"
     },
     "modals": {
