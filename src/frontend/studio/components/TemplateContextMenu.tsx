@@ -10,6 +10,7 @@ import { TemplateCategoryItemType } from "../../../_common/types/template/catego
 import { TemplateBlockItemType } from "../../../_common/types/template/block.type.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
+import React from "react";
 
 interface Props {
     id: string;
@@ -44,6 +45,8 @@ interface Props {
         text: string
     ) => string;
     isBlockAsset: boolean;
+    isCategoriesLoading: boolean;
+    datasetCategories: string[];
 }
 
 export default function TemplateContextMenu({
@@ -61,7 +64,9 @@ export default function TemplateContextMenu({
     onValueChange,
     onDelete,
     resolveDynamicValues,
-    isBlockAsset = false
+    isBlockAsset = false,
+    isCategoriesLoading = false,
+    datasetCategories
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -72,8 +77,16 @@ export default function TemplateContextMenu({
         editCategoryModal
     } = useModals();
 
+    const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
+
     const [isLoadingRandom, setIsLoadingRandom] = useState<boolean>(false);
     const [isLocking, setIsLocking] = useState<boolean>(false);
+
+    const [categorySearch, setCategorySearch] = useState("");
+
+    const filteredCategories = datasetCategories?.filter((category) =>
+        category.toLowerCase().includes(categorySearch.toLowerCase())
+    );
 
     useEffect(() => {
         const menu = document.getElementById(`context-${id}`);
@@ -121,6 +134,16 @@ export default function TemplateContextMenu({
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [id, closeContextMenu]);
+
+    const checkSubMenuPosition = (
+        e: React.MouseEvent<HTMLLIElement>
+    ) => {
+        const button = e.currentTarget.getBoundingClientRect();
+        const submenuWidth = 208;
+        const spaceRight = window.innerWidth - button.right;
+
+        setIsSubMenuFlipped(spaceRight < submenuWidth);
+    };
 
     if (!isTranslationReady) return;
 
@@ -199,65 +222,291 @@ export default function TemplateContextMenu({
 
             {type === "field" && (
                 <>
-                    <li>
-                        <button
-                            type="button"
-                            className="flex items-center justify-between gap-4"
-                            disabled={isLoadingRandom}
-                            onClick={async () => {
-                                setIsLoadingRandom(true);
+                    {datasetCategories.length <= 1 ? (
+                        <li>
+                            <button
+                                type="button"
+                                className="flex items-center justify-between gap-4"
+                                disabled={isLoadingRandom}
+                                onClick={async () => {
+                                    setIsLoadingRandom(true);
 
-                                try {
-                                    const response = await fetch(
-                                        `${apiBaseUrl}/v3/templates/datasets/randomize/${data?.field?.options?.dataset}/`,
-                                        { credentials: "include" }
-                                    );
+                                    try {
+                                        if (!data?.field?.options?.dataset) {
+                                            toast.show(
+                                                "Connect a dataset to use randomize",
+                                                {
+                                                    type: "error",
+                                                }
+                                            );
 
-                                    const json = await response.json();
+                                            return;
+                                        }
 
-                                    if (!response.ok) {
+                                        const response = await fetch(
+                                            `${apiBaseUrl}/v3/templates/datasets/randomize/${data.field.options.dataset}/`,
+                                            {
+                                                credentials: "include",
+                                            }
+                                        );
+
+                                        const json = await response.json();
+
+                                        if (!response.ok) {
+                                            toast.show(
+                                                `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                                {
+                                                    subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                                    type: "error",
+                                                }
+                                            );
+
+                                            return;
+                                        }
+
+                                        let currentValue = "";
+
+                                        for (const char of json.value) {
+                                            currentValue += char;
+
+                                            onValueChange(currentValue);
+
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 10)
+                                            );
+                                        }
+                                    } catch (error) {
                                         toast.show(
                                             `${t("words.FailedTo")} randomize ${data?.field?.label}`,
                                             {
-                                                subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                                subtext: String(error),
                                                 type: "error",
                                             }
                                         );
+                                    } finally {
+                                        setIsLoadingRandom(false);
                                     }
+                                }}
+                            >
+                                Randomize
 
-                                    let currentValue = "";
-
-                                    for (const char of json.value) {
-                                        currentValue += char;
-
-                                        onValueChange(currentValue);
-
-                                        await new Promise((resolve) =>
-                                            setTimeout(resolve, 10)
-                                        );
-                                    }
-                                } catch (error) {
-                                    toast.show(
-                                        `${t("words.FailedTo")} randomize ${data?.field?.label}`,
-                                        {
-                                            subtext: String(error),
-                                            type: "error",
-                                        }
-                                    );
-                                } finally {
-                                    setIsLoadingRandom(false);
-                                }
+                                <span
+                                    className={`${
+                                        isLoadingRandom ? "loading" : ""
+                                    } font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}
+                                >
+                                    
+                                </span>
+                            </button>
+                        </li>
+                    ) : isCategoriesLoading ? (
+                        <div className="flex items-center justify-center">
+                            <div className="loading h-8" />
+                        </div>
+                    ) : (
+                        <li
+                            className="relative group"
+                            onMouseEnter={(e) => {
+                                checkSubMenuPosition(e);
                             }}
                         >
-                            Randomize
+                            <button
+                                type="button"
+                                className="justify-between"
+                            >
+                                Randomize
+
+                                <span className="flex items-center justify-center w-4 h-6 text-lg font-nerdfont leading-none shrink-0">
+                                    
+                                </span>
+                            </button>
 
                             <span
-                                className={`${isLoadingRandom ? "loading" : ""} font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}
+                                className={`absolute ${
+                                    isSubMenuFlipped ? "right-full" : "left-full"
+                                } h-full opacity-0 cursor-default`}
+                            />
+
+                            <ul
+                                className={`absolute ${
+                                    isSubMenuFlipped
+                                        ? "right-[calc(100%+12px)]"
+                                        : "left-[calc(100%-4px)]"
+                                } top-[-8px] dropdown pt-0 menu w-fit min-w-54 max-h-80 overflow-y-auto rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}
                             >
-                                
-                            </span>
-                        </button>
-                    </li>
+                                <div className="sticky top-0 z-30 bg-base-200">
+                                    <li>
+                                        <input
+                                            type="search"
+                                            className="input my-2 focus:bg-base-100"
+                                            value={categorySearch}
+                                            onChange={(e) => setCategorySearch(e.target.value)}
+                                            placeholder="Search categories..."
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </li>
+                                    
+                                    <li>
+                                        <button
+                                            type="button"
+                                            className="flex items-center justify-between gap-4"
+                                            disabled={isLoadingRandom}
+                                            onClick={async () => {
+                                                setIsLoadingRandom(true);
+
+                                                try {
+                                                    if (!data?.field?.options?.dataset) {
+                                                        toast.show(
+                                                            "Connect a dataset to use randomize",
+                                                            {
+                                                                type: "error",
+                                                            }
+                                                        );
+
+                                                        return;
+                                                    }
+
+                                                    const response = await fetch(
+                                                        `${apiBaseUrl}/v3/templates/datasets/randomize/${data.field.options.dataset}/`,
+                                                        {
+                                                            credentials: "include",
+                                                        }
+                                                    );
+
+                                                    const json = await response.json();
+
+                                                    if (!response.ok) {
+                                                        toast.show(
+                                                            `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                                            {
+                                                                subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                                                type: "error",
+                                                            }
+                                                        );
+
+                                                        return;
+                                                    }
+
+                                                    let currentValue = "";
+
+                                                    for (const char of json.value) {
+                                                        currentValue += char;
+
+                                                        onValueChange(currentValue);
+
+                                                        await new Promise((resolve) =>
+                                                            setTimeout(resolve, 10)
+                                                        );
+                                                    }
+                                                } catch (error) {
+                                                    toast.show(
+                                                        `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                                        {
+                                                            subtext: String(error),
+                                                            type: "error",
+                                                        }
+                                                    );
+                                                } finally {
+                                                    setIsLoadingRandom(false);
+                                                }
+                                            }}
+                                        >
+                                            Random
+
+                                            <span
+                                                className={`${
+                                                    isLoadingRandom ? "loading" : ""
+                                                } font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}
+                                            >
+                                                
+                                            </span>
+                                        </button>
+                                    </li>
+
+                                    <hr />
+                                </div>
+
+                                {filteredCategories.map((category) => (
+                                    <li key={category}>
+                                        <button
+                                            type="button"
+                                            className="justify-between"
+                                            disabled={isLoadingRandom}
+                                            onClick={async () => {
+                                                setIsLoadingRandom(true);
+
+                                                try {
+                                                    if (!data?.field?.options?.dataset) {
+                                                        toast.show(
+                                                            "Connect a dataset to use randomize",
+                                                            {
+                                                                type: "error",
+                                                            }
+                                                        );
+
+                                                        return;
+                                                    }
+
+                                                    const response = await fetch(
+                                                        `${apiBaseUrl}/v3/templates/datasets/randomize/${data.field.options.dataset}/${category}`,
+                                                        {
+                                                            credentials: "include",
+                                                        }
+                                                    );
+
+                                                    const json = await response.json();
+
+                                                    if (!response.ok) {
+                                                        toast.show(
+                                                            `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                                            {
+                                                                subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                                                type: "error",
+                                                            }
+                                                        );
+
+                                                        return;
+                                                    }
+
+                                                    let currentValue = "";
+
+                                                    for (const char of json.value) {
+                                                        currentValue += char;
+
+                                                        onValueChange(currentValue);
+
+                                                        await new Promise((resolve) =>
+                                                            setTimeout(resolve, 10)
+                                                        );
+                                                    }
+                                                } catch (error) {
+                                                    toast.show(
+                                                        `${t("words.FailedTo")} randomize ${data?.field?.label}`,
+                                                        {
+                                                            subtext: String(error),
+                                                            type: "error",
+                                                        }
+                                                    );
+                                                } finally {
+                                                    setIsLoadingRandom(false);
+                                                }
+                                            }}
+                                        >
+                                            {category}
+
+                                            <span
+                                                className={`${
+                                                    isLoadingRandom ? "loading" : ""
+                                                } font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center`}
+                                            >
+                                                
+                                            </span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </li>
+                    )}
                                         
                     <li>
                         <button 
