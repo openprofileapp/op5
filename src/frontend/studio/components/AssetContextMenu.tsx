@@ -1,78 +1,49 @@
-import { useEffect } from "react";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { TemplateFieldItemType } from "../../../_common/types/template/field.type.js";
-import { TemplateRowItemType } from "../../../_common/types/template/row.type.js";
-import { FieldNameType } from "../../../_common/types/field.type.js";
-import { TemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
-import { TemplateBlockItemType } from "../../../_common/types/template/block.type.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { toast } from "../../_common/scripts/toast.js";
+import { BlockItemType } from "../../../_common/types/blocks/block.type.js";
 
 interface Props {
-    id: string;
-    type: "field" | "row" | "block" | "category";
-    label?: string;
-    url?: string;
-    assetId: string;
-    rowId: string;
-    readOnly?: boolean;
-    isLocked?: boolean;
-    isEditing?: boolean;
-    data: {
-        field?: TemplateFieldItemType;
-        row?: TemplateRowItemType;
-        block?: TemplateBlockItemType;
-        category?: TemplateCategoryItemType;
-    };
+    data: BlockItemType
     onChange: (
-        targetRowId: string,
-        originalFieldId: string,
+        blockId: string,
         incoming: Partial<TemplateFieldItemType>
     ) => boolean | Promise<boolean>;
     onDelete: (
-        id: string,
-        type: "field" | "row" | "block" | "category"
+        blockId: string,
     ) => void;
-    resolveDynamicValues: (text: string) => string;
-    isBlockAsset: boolean;
-    onPublish?: () => void | Promise<void>;
 }
 
 export default function AssetContextMenu({
-    id,
-    type,
-    label,
-    assetId,
-    rowId,
-    readOnly = false,
-    isLocked = false,
     data,
-    isEditing = false,
     onChange,
-    onDelete,
-    resolveDynamicValues,
-    isBlockAsset = false,
-    onPublish
+    onDelete
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
-    const {
+    const { 
         deleteModal,
-        editFieldModal,
         editBlockModal,
-        editCategoryModal
     } = useModals();
 
     useEffect(() => {
-        const menu = document.getElementById(`context-${id}`);
+        const menu = document.getElementById(`block-${data.blockId}`);
 
         if (!menu) return;
 
         const handleToggle = (event: Event) => {
             const toggleEvent = event as ToggleEvent;
 
-            document.body.style.overflow =
-                toggleEvent.newState === "open" ? "hidden" : "";
+            if (toggleEvent.newState === "open") {
+                document.body.style.overflow = "hidden";
+            } else {
+                document.body.style.overflow = "";
+            }
         };
 
         menu.addEventListener("toggle", handleToggle);
@@ -81,19 +52,23 @@ export default function AssetContextMenu({
             menu.removeEventListener("toggle", handleToggle);
             document.body.style.overflow = "";
         };
-    }, [id]);
+    }, [data]);
 
-    const closeContextMenu = () => {
-        document.getElementById(`context-${id}`)?.hidePopover();
-    };
+    const closeContextMenu = useCallback(() => {
+        document.getElementById(`block-${data.blockId}`)?.hidePopover();
+    }, [data]);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const menu = document.getElementById(`context-${id}`);
+        const handleClickOutside = (e: MouseEvent) => {
+            const menu = document.getElementById(`block-${data.blockId}`);
 
-            if (menu && !menu.contains(event.target as Node)) {
-                closeContextMenu();
+            if (!menu) return;
+
+            if (menu.contains(e.target as Node)) {
+                return;
             }
+
+            closeContextMenu();
         };
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -101,138 +76,101 @@ export default function AssetContextMenu({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [id]);
+    }, [data, closeContextMenu]);
 
-    if (!isTranslationReady) return null;
+    if (!isTranslationReady) return;
 
     return (
         <ul
-            className={`${
-                readOnly ? "hidden" : ""
-            } dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50`}
+            className="dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible fixed z-50"
             popover="manual"
-            id={`context-${id}`}
+            id={`block-${data.blockId}`}
         >
             <li>
-                <button
+                <button 
                     className="flex items-center justify-between gap-4"
                     onClick={() => {
                         closeContextMenu();
-                        void onPublish?.();
+
+                        editBlockModal.open({
+                            isTemplate: true,
+                            // @ts-ignore
+                            block: data,
+                            onUpdateBlock: async (options) => {
+                                // @ts-ignore
+                                const result = await onChange(options.blockId, options);
+  
+                                return result !== false;
+                            },
+                        });
                     }}
-                    disabled={!onPublish}
                 >
-                    Publish
+                    Edit
                     <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                        󰐊
+                        
                     </span>
                 </button>
             </li>
 
             <hr />
 
-            {!isLocked && isEditing && type !== "row" && (
-                <li>
-                    <button
-                        className="flex items-center justify-between gap-4"
-                        onClick={() => {
-                            closeContextMenu();
+            <li>
+                <button 
+                    className="flex items-center justify-between gap-4 text-accent"
+                    onClick={() => {
+                        closeContextMenu();
 
-                            if (type === "field") {
-                                editFieldModal.open({
-                                    type: data.field?.type as FieldNameType,
-                                    id,
-                                    flex: data.field?.flex,
-                                    label,
-                                    placeholder: data.field?.placeholder,
-                                    options: data.field?.options,
-                                    guide: data.field?.guide,
-                                    onChange: async (options) => {
-                                        const result = await onChange(
-                                            rowId,
-                                            id,
-                                            options
-                                        );
-                                        return result !== false;
-                                    },
-                                    resolveDynamicValues
-                                });
+                        deleteModal.open(
+                            // @ts-ignore
+                            {
+                                id: data.blockId, 
+                                displayName: data.displayName
+                            },
+                            { 
+                                assetId: data.blockId,
+                                type: "blockAsset",
+                                onDelete,
+                                isBlockAsset: true
                             }
-
-                            if (type === "block") {
-                                editBlockModal.open({
-                                    isTemplate: true,
-                                    block: {
-                                        blockId: id,
-                                        label: data.block?.label ?? "",
-                                        description:
-                                            data.block?.description?.trim() ?? "",
-                                        icon: data.block?.icon || null
-                                    },
-                                    onUpdateBlock: async (options) => {
-                                        // @ts-ignore
-                                        const result = await onChange(id, options);
-                                        return result !== false;
-                                    }
-                                });
-                            }
-
-                            if (type === "category") {
-                                editCategoryModal.open({
-                                    id,
-                                    label: data.category?.label,
-                                    types: data.category?.types,
-                                    onChange: async (options) => {
-                                        // @ts-ignore
-                                        const result = await onChange(id, options);
-                                        return result !== false;
-                                    },
-                                    resolveDynamicValues
-                                });
-                            }
-                        }}
-                    >
-                        Edit
-                        <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
-                            
-                        </span>
-                    </button>
-                </li>
-            )}
+                        )
+                    }}
+                >
+                    {t("words.Delete")}
+                    <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
+                        󰗨
+                    </span>
+                </button>
+            </li>
 
             <hr />
 
-            {!isLocked && isEditing && (
-                <li>
-                    <button
-                        className="flex items-center justify-between gap-4 text-accent"
-                        onClick={() => {
-                            closeContextMenu();
+            <li>
+                <button 
+                    className="flex items-center justify-between gap-4"
+                    onClick={async () => {
+                        closeContextMenu();
 
-                            // @ts-ignore
-                            deleteModal.open(
-                                {
-                                    id,
-                                    displayName: label
-                                },
-                                {
-                                    assetId,
-                                    type,
-                                    skipCountdown:
-                                        type === "field" || type === "row",
-                                    onDelete,
-                                    isBlockAsset
-                                }
+                        try {
+                            await navigator.clipboard.writeText(data.blockId);
+
+                            toast.show(
+                                t("components.toasts.copiedId"), 
+                                { type: "success" }
                             );
-                        }}
-                    >
-                        {t("words.Delete")}
-                        <span className="font-nerdfont text-xl flex h-6 w-4 leading-none items-center justify-center">
-                            󰗨
-                        </span>
-                    </button>
-                </li>
-            )}
+                        } catch {
+                            toast.show(
+                                t("components.toasts.failedCopiedId"), 
+                                { type: "error" }
+                            );
+                        }
+                    }}
+                >
+                    Copy ID
+                    <span className="font-nerdfont text-3xl flex h-6 w-4 leading-none items-center justify-center">
+                        󰻾
+                    </span>
+                </button>
+            </li>
         </ul>
-    );
+    )
 }
