@@ -10,36 +10,57 @@ import { db } from "../../databases/db.js";
 import { config } from "../../../../../app.config.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
 
-export const getPublishedDatasetController = async (req: Request, res: Response) => {
+export const getPublishedDatasetController = async (
+    req: Request,
+    res: Response
+) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
 
         const q = req.query.q as string | undefined;
+        const dq = req.query.dq as string | undefined;
+
         const id = req.query.id as string | undefined;
         const sortBy = req.query.sortBy as string;
 
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
+        const dataLimit = req.query.dataLimit;
+        
         const offset = Number(req.query.offset) || 0;
 
         const trimmedQuery = q?.trim();
+        const trimmedDataQuery = dq?.trim();
+
+        if (trimmedDataQuery && !id) {
+            return res.status(400).json({
+                message: "An id is required when using data query."
+            });
+        }
+
         const queryTerm = `%${trimmedQuery}%`;
+        const dataQueryTerm = `%${trimmedDataQuery}%`;
 
         const queryClause = trimmedQuery
             ? `AND (
-                label LIKE ?
-                OR description LIKE ?
-                OR data LIKE ?
-                OR tags LIKE ?
+                p.label LIKE ?
+                OR p.description LIKE ?
+                OR p.data LIKE ?
+                OR p.tags LIKE ?
             )`
             : "";
 
         const queryParams = trimmedQuery
-            ? [queryTerm, queryTerm, queryTerm, queryTerm]
+            ? [
+                queryTerm,
+                queryTerm,
+                queryTerm,
+                queryTerm
+            ]
             : [];
 
         const idClause = id
-            ? "AND id = ?"
+            ? "AND p.id = ?"
             : "";
 
         const idParams = id
@@ -50,37 +71,97 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
 
         switch (sortBy) {
             case "recent":
-                formattedSortBy = "updatedDate DESC";
+                formattedSortBy = "p.updatedDate DESC";
                 break;
 
             case "newest":
-                formattedSortBy = "createdDate DESC";
+                formattedSortBy = "p.createdDate DESC";
                 break;
 
             case "oldest":
-                formattedSortBy = "createdDate ASC";
+                formattedSortBy = "p.createdDate ASC";
                 break;
 
             case "nameAsc":
-                formattedSortBy = "label ASC";
+                formattedSortBy = "p.label ASC";
                 break;
 
             case "nameDesc":
-                formattedSortBy = "label DESC";
+                formattedSortBy = "p.label DESC";
                 break;
 
             case "popularAsc":
-                formattedSortBy = "uses ASC";
+                formattedSortBy = "p.uses ASC";
                 break;
 
             default:
-                formattedSortBy = "uses DESC, createdDate DESC";
+                formattedSortBy = "p.uses DESC, p.createdDate DESC";
+                break;
         }
+
+        const dataExpression = trimmedDataQuery
+            ? `
+                CASE
+                    WHEN json_type(p.data) = 'array' THEN (
+                        SELECT COALESCE(
+                            json_group_array(json(item.value)),
+                            '[]'
+                        )
+                        FROM (
+                            SELECT item.value
+                            FROM json_each(p.data) AS item
+                            WHERE item.value LIKE ?
+                            LIMIT ?
+                        ) AS item
+                    )
+
+                    WHEN json_type(p.data) = 'object' THEN (
+                        SELECT COALESCE(
+                            json_group_object(
+                                category,
+                                json(items)
+                            ),
+                            '{}'
+                        )
+                        FROM (
+                            SELECT
+                                category,
+                                json_group_array(json(value)) AS items
+                            FROM (
+                                SELECT
+                                    category.key AS category,
+                                    item.value AS value,
+                                    ROW_NUMBER() OVER () AS rowNumber
+                                FROM json_each(p.data) AS category
+                                JOIN json_each(category.value) AS item
+                                WHERE json_type(category.value) = 'array'
+                                    AND item.value LIKE ?
+                            )
+                            WHERE rowNumber <= ?
+                            GROUP BY category
+                        )
+                    )
+
+                    ELSE p.data
+                END
+            `
+            : "p.data";
+
+        const dataParams = trimmedDataQuery
+            ? [
+                dataQueryTerm,
+                dataLimit === "none" ? 999999 : limit,
+                dataQueryTerm,
+                dataLimit === "none" ? 999999 : limit
+            ]
+            : [];
 
         const result = db.templates.query(
             `
-                SELECT *
-                FROM published_datasets
+                SELECT
+                    p.*,
+                    ${dataExpression} AS data
+                FROM published_datasets p
                 WHERE 1=1
                 ${idClause}
                 ${queryClause}
@@ -88,6 +169,7 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
                 LIMIT ? OFFSET ?
             `,
             [
+                ...dataParams,
                 ...idParams,
                 ...queryParams,
                 limit,
@@ -99,8 +181,8 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
 
         const countResult = db.templates.query<{ total: number }>(
             `
-                SELECT 1
-                FROM published_datasets
+                SELECT COUNT(*) AS total
+                FROM published_datasets p
                 WHERE 1=1
                 ${idClause}
                 ${queryClause}
@@ -116,6 +198,7 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
         const parsedRows = result.rows.map(row => ({
             ...row,
             tags: parseJson(row.tags),
+            data: parseJson(row.data),
             isRecommended: Boolean(row.isRecommended),
             isSensitive: Boolean(row.isSensitive),
             isMature: Boolean(row.isMature),
@@ -123,7 +206,7 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
 
         return res.status(200).json({
             items: parsedRows,
-            count: countResult.rowCount
+            count: countResult.rows[0]?.total ?? 0
         });
     } catch (error) {
         if (error instanceof AdvancedError) {
@@ -133,12 +216,12 @@ export const getPublishedDatasetController = async (req: Request, res: Response)
                 id: error.id,
                 message: error.message
             });
-        } else {
-            log.unknown.error(error).save();
-
-            return res.status(500).json({
-                message: i18n.t("responses.unknown"),
-            });
         }
+
+        log.unknown.error(error).save();
+
+        return res.status(500).json({
+            message: i18n.t("responses.unknown"),
+        });
     }
 };
