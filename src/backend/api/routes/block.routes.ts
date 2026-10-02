@@ -14,6 +14,7 @@ import { updateValue } from "../controllers/blocks/updates/updateValue.controlle
 import { deleteFields } from "../controllers/blocks/updates/fields/deleteField.controller.js";
 import { insertBlock } from "../controllers/blocks/insertBlock.controller.js";
 import { updateBlocks } from "../controllers/blocks/updateBlocks.controller.js";
+import { deleteBlocks } from "../controllers/blocks/delete.controller.js";
 
 const blockRoutes = Router();
 
@@ -25,6 +26,7 @@ blockRoutes.get("/drafts/:id/data", getDraftBlockDataController);
 
 blockRoutes.post("/insert", insertBlock);
 blockRoutes.post("/:blockId/update", updateBlocks);
+blockRoutes.delete("/delete/:id", deleteBlocks);
 
 blockRoutes.post("/:blockId/rows/insert", insertRows);
 blockRoutes.post("/:blockId/rows/update/positions", positionRows);
