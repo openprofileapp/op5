@@ -131,21 +131,6 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         multiple ? "" : getLabel(value as DropdownOptionValue)
     );
 
-    useEffect(() => {
-        if (multiple) return;
-
-        const valueString = String(value ?? "");
-
-        const matched = normalizedOptions.find(
-            (opt) => String(opt.id) === valueString
-        );
-
-        if (matched) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setInputValue(matched.name);
-        }
-    }, [value, normalizedOptions, multiple, setInputValue]);
-
     const [prevValue, setPrevValue] = useState<DropdownOptionValue | DropdownOptionValue[]>(value);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
@@ -330,11 +315,18 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
             const next = exists
                 ? selectedValues.filter((v) => v !== opt.id)
                 : [...selectedValues, opt.id];
-            onChange?.(next);
+            const nextTwo = exists
+                ? selectedValues.filter((v) => v !== opt.id)
+                : [...selectedValues, opt.id];
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+            onChange?.(next, nextTwo);
             setInputValue("");
         } else {
             setInputValue(opt?.name);
-            onChange?.(opt.id);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            onChange?.(opt.id, opt.name);
             handleClose();
         }
     };
