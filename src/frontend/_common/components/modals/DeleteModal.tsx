@@ -125,6 +125,7 @@ const DeleteModal = forwardRef<DeleteModalRef>((_, ref) => {
 
         switch (options.type) {
             case "template":
+            case "blockAsset":
                 return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/delete/${id}`;
 
             case "dataset":
