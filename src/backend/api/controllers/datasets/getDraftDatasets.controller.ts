@@ -17,17 +17,30 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
         assertAccount(req.session);
 
         const q = req.query.q as string | undefined;
+        const dq = req.query.dq as string | undefined;
+
         const id = req.query.id as string | undefined;
         const sortBy = req.query.sortBy as string;
 
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
+        const dataLimit = req.query.dataLimit;
+
         const offset = Number(req.query.offset) || 0;
+
+        const trimmedQuery = q?.trim();
+        const trimmedDataQuery = dq?.trim();
+
+        if (trimmedDataQuery && !id) {
+            return res.status(400).json({
+                message: "An id is required when using data query."
+            });
+        }
 
         const accessClause = "WHERE d.ownerId = ?";
         const accessParams = [req.session.userId];
 
-        const trimmedQuery = q?.trim();
         const queryTerm = `%${trimmedQuery}%`;
+        const dataQueryTerm = `%${trimmedDataQuery}%`;
 
         const queryClause = trimmedQuery
             ? `AND (
@@ -81,10 +94,70 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
                 formattedSortBy = "d.uses DESC, d.createdDate DESC";
         }
 
+        const dataExpression = `
+            CASE
+                WHEN json_type(d.data) = 'array' THEN (
+                    SELECT COALESCE(
+                        json_group_array(json(item.value)),
+                        '[]'
+                    )
+                    FROM (
+                        SELECT item.value
+                        FROM json_each(d.data) AS item
+                        WHERE ? IS NULL
+                            OR item.value LIKE ?
+                        LIMIT ?
+                    ) AS item
+                )
+
+                WHEN json_type(d.data) = 'object' THEN (
+                    SELECT COALESCE(
+                        json_group_object(
+                            category,
+                            json(items)
+                        ),
+                        '{}'
+                    )
+                    FROM (
+                        SELECT
+                            category,
+                            json_group_array(json(value)) AS items
+                        FROM (
+                            SELECT
+                                category.key AS category,
+                                item.value AS value,
+                                ROW_NUMBER() OVER () AS rowNumber
+                            FROM json_each(d.data) AS category
+                            JOIN json_each(category.value) AS item
+                            WHERE json_type(category.value) = 'array'
+                                AND (
+                                    ? IS NULL
+                                    OR item.value LIKE ?
+                                )
+                        )
+                        WHERE rowNumber <= ?
+                        GROUP BY category
+                    )
+                )
+
+                ELSE d.data
+            END
+        `;
+
+        const dataParams = [
+            trimmedDataQuery || null,
+            dataQueryTerm,
+            dataLimit === "none" ? 999999 : limit,
+            trimmedDataQuery || null,
+            dataQueryTerm,
+            dataLimit === "none" ? 999999 : limit
+        ];
+
         const result = db.templates.query<DatasetItemType>(
             `
-                SELECT 
+                SELECT
                     d.*,
+                    ${dataExpression} AS data,
                     CASE WHEN p.id IS NOT NULL THEN 1 ELSE 0 END AS isPublished
                 FROM draft_datasets d
                 LEFT JOIN published_datasets p ON d.id = p.id
@@ -95,6 +168,7 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
                 LIMIT ? OFFSET ?
             `,
             [
+                ...dataParams,
                 ...accessParams,
                 ...idParams,
                 ...queryParams,
@@ -142,12 +216,12 @@ export const getDraftDatasetController = async (req: Request, res: Response) => 
                 id: error.id,
                 message: error.message
             });
-        } else {
-            log.unknown.error(error).save();
-
-            return res.status(500).json({
-                message: i18n.t("responses.unknown"),
-            });
         }
+
+        log.unknown.error(error).save();
+
+        return res.status(500).json({
+            message: i18n.t("responses.unknown"),
+        });
     }
 };
