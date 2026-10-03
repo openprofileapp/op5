@@ -624,9 +624,9 @@ export default function Template() {
                 blockId: snowflake.gen(),
                 sourceBlockId: incoming.sourceBlockId || "",
                 isSourceBlockConnected: true,
-                icon: "",
-                label: "",
-                description: "",
+                icon: incoming?.icon || "",
+                label: incoming?.label || "Untitled",
+                description: incoming?.description,
                 position: currentCategoryBlocks?.length ?? 0,
                 createdBy: window.session.userId,
                 updatedDate: new Date().toISOString(),
@@ -668,9 +668,9 @@ export default function Template() {
                         blockId: payload.blockId,
                         categoryId: currentCategoryId,
                         sourceBlockId: payload.sourceBlockId,
-                        icon: payload.sourceBlockId ? "" : payload.icon,
-                        label: payload.sourceBlockId ? "" : payload.label,
-                        description: payload.sourceBlockId ? "" : payload.description,
+                        icon: payload?.icon,
+                        label: payload.label,
+                        description: payload.description,
                         position: payload.position,
                     }),
                 }
@@ -733,6 +733,7 @@ export default function Template() {
         );
 
         navigate(`/template/${templateId}/${currentCategoryId}/${payload.blockId}`);
+        window.location.reload();
 
         return true;
     };
@@ -1102,7 +1103,7 @@ export default function Template() {
 
         const payload = {
             sourceBlockId: incoming.sourceBlockId ?? "",
-            icon: incoming.icon ?? "",
+            icon: incoming?.icon?.replace(`https://${window.config.domains.cdn}`, "") ?? "",
             label: incoming.label || "Untitled",
             description: incoming.description ?? "",
             position: incoming.position ?? 0,
@@ -2257,7 +2258,7 @@ export default function Template() {
                                                                                                 src={
                                                                                                     block.icon.startsWith("data:")
                                                                                                         ? block.icon
-                                                                                                        : `${cdnBaseUrl}${block.icon}`
+                                                                                                        : `${cdnBaseUrl}${block?.icon?.replace(`https://${window.config.domains.cdn}`, "")}`
                                                                                                 }
                                                                                                 alt={block.label || "Block icon"}
                                                                                             />
