@@ -14,6 +14,7 @@ import { toast } from "../../../_common/scripts/toast.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import ImageInput from "../../../_common/components/ImageInput.js";
 import TagInput from "../../../_common/components/TagInput.js";
+import { useModals } from "../../../_common/hooks/ModalContext.hook.js";
 
 export type EditBlockType = {
     blockId: string;
@@ -39,7 +40,11 @@ export interface EditBlockModalRef {
 
 const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
     const { ready: isTranslationReady } = useTranslation();
-
+    const { 
+        publishModal,
+        unpublishModal
+    } = useModals();
+    
     const modalRef = useRef<HTMLDialogElement | null>(null);
     const optionsRef = useRef<EditBlockModalOptions | null>(null);
 
@@ -152,6 +157,28 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
             setIsSaving(false);
         }
     }
+
+    const handlePublish = () => {
+        if (!optionsRef.current?.block) return;
+
+        publishModal.open(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            optionsRef.current?.block,
+            { type: "block" }
+        );
+    };
+
+    const handleUnpublish = () => {
+        if (!optionsRef.current?.block) return;
+
+        unpublishModal.open(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            optionsRef.current?.block,
+            { type: "block" }
+        );
+    };
 
     if (!isTranslationReady) return null;
 
@@ -296,14 +323,40 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
 
                     <button
                         type="button"
+                        className="btn btn-success"
+                        onClick={() => {
+                            handleSave();
+                            handlePublish();
+                        }}
+                    >
+                        Save and Publish
+                    </button>
+
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {/* @ts-ignore */}
+                    {optionsRef.current?.block?.isPublished && (
+                        <button
+                            type="button"
+                            className="btn bg-base-300"
+                            onClick={() => {
+                                handleSave();
+                                handleUnpublish();
+                            }}
+                        >
+                            Save and Unpublish
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="btn btn-accent w-full mt-2"
+                        className="btn btn-accent w-full"
                     >
                         {isSaving ? (
                             <span className="loading loading-spinner" />
                         ) : (
-                            "Save Changes"
+                            "Save as Draft"
                         )}
                     </button>
                 </div>
