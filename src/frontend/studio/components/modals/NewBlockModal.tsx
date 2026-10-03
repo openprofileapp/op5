@@ -172,22 +172,15 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                 const publishedBlocks = blocksJson.items ?? [];
                 const draftBlocks = draftsJson.items ?? [];
 
-                const publishedIds = new Set(
-                    publishedBlocks.map((block) => block.blockId)
+                const blocksMap = new Map(
+                    publishedBlocks.map((block) => [block.blockId, block])
                 );
 
-                const blocks = [
-                    ...publishedBlocks.filter(
-                        (block) => !draftBlocks.some(
-                            (draft) => draft.blockId === block.blockId
-                        )
-                    ),
-                    ...draftBlocks.filter(
-                        (draft) => !publishedIds.has(draft.blockId)
-                    ),
-                ];
+                for (const draft of draftBlocks) {
+                    blocksMap.set(draft.blockId, draft);
+                }
 
-                setBlocks(blocks);
+                setBlocks([...blocksMap.values()]);
                 setCount(blocks.length);
             } catch (err: unknown) {
                 if ((err as Error).name !== "AbortError") {
@@ -204,7 +197,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
         return () => {
             controller.abort();
         };
-    }, [isOpen, screen, debouncedSearchQuery, sortBy]);
+    }, [isOpen, screen, debouncedSearchQuery, sortBy, blocks.length]);
 
     function handleSelect(item?: GetBlockItemType) {
         setIcon(null);
