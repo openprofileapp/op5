@@ -24,14 +24,14 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
-        const accessClause = "WHERE ownerId = ?";
+        const accessClause = "WHERE d.ownerId = ?";
         const accessParams: (string | number)[] = [req.session.userId];
 
         let idClause = "";
         const idParams: string[] = [];
 
         if (id) {
-            idClause = "AND blockId = ?";
+            idClause = "AND d.blockId = ?";
             idParams.push(id);
         }
 
@@ -40,10 +40,10 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
 
         const queryClause = trimmedQuery
             ? `AND (
-                displayName LIKE ?
-                OR about LIKE ?
-                OR tags LIKE ?
-                OR categoryType LIKE ?
+                d.displayName LIKE ?
+                OR d.about LIKE ?
+                OR d.tags LIKE ?
+                OR d.categoryType LIKE ?
             )`
             : "";
 
@@ -62,8 +62,8 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
                     ${requestedTypes
                         .map(
                             () => `
-                                categoryType LIKE ?
-                                OR categoryType LIKE ?
+                                d.categoryType LIKE ?
+                                OR d.categoryType LIKE ?
                             `
                         )
                         .join(" OR ")}
@@ -80,37 +80,44 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
 
         switch (sortBy) {
             case "recent":
-                formattedSortBy = "updatedDate DESC";
+                formattedSortBy = "d.updatedDate DESC";
                 break;
 
             case "newest":
-                formattedSortBy = "createdDate DESC";
+                formattedSortBy = "d.createdDate DESC";
                 break;
 
             case "oldest":
-                formattedSortBy = "createdDate ASC";
+                formattedSortBy = "d.createdDate ASC";
                 break;
 
             case "nameAsc":
-                formattedSortBy = "label ASC";
+                formattedSortBy = "d.label ASC";
                 break;
 
             case "nameDesc":
-                formattedSortBy = "label DESC";
+                formattedSortBy = "d.label DESC";
                 break;
 
             case "popularAsc":
-                formattedSortBy = "uses ASC";
+                formattedSortBy = "d.uses ASC";
                 break;
 
             default:
-                formattedSortBy = "uses DESC, createdDate DESC";
+                formattedSortBy = "d.uses DESC, d.createdDate DESC";
         }
 
         const result = db.blocks.query(
             `
-                SELECT *
-                FROM drafts
+                SELECT
+                    d.*,
+                    CASE
+                        WHEN p.blockId IS NOT NULL THEN 1
+                        ELSE 0
+                    END AS isPublished
+                FROM drafts d
+                LEFT JOIN published p
+                    ON d.blockId = p.blockId
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -133,7 +140,7 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
         const countResult = db.blocks.query(
             `
                 SELECT 1
-                FROM drafts
+                FROM drafts d
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
@@ -152,7 +159,8 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
         const parsedRows = result.rows.map(({ ownerId, ...row }) => ({
             ...row,
             owner: whatIs(ownerId as string),
-            tags: parseJson(row.tags)
+            tags: parseJson(row.tags),
+            isPublished: Boolean(row.isPublished)
         }));
 
         return res.status(200).json({
