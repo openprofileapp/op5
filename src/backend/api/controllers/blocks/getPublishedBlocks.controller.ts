@@ -11,15 +11,19 @@ import { config } from "../../../../../app.config.js";
 import whatIs from "../../services/whatIs.service.js";
 import { parseJson } from "../../../_common/helpers/parseJson.js";
 
-export const getPublishedBlocksController = async (req: Request, res: Response) => {
+export const getPublishedBlocksController = async (
+    req: Request,
+    res: Response
+) => {
     try {
         await assertBearer(req);
         assertAccount(req.session);
 
         const id = req.query.id as string | undefined;
         const q = req.query.q as string | undefined;
-        const sortBy = req.query.sortBy as string;
-        
+        const sortBy = req.query.sortBy as string | undefined;
+        const types = req.query.types as string | undefined;
+
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
@@ -36,7 +40,7 @@ export const getPublishedBlocksController = async (req: Request, res: Response) 
 
         const queryClause = trimmedQuery
             ? `AND (
-                displayName LIKE ? 
+                displayName LIKE ?
                 OR about LIKE ?
                 OR tags LIKE ?
                 OR categoryType LIKE ?
@@ -46,6 +50,31 @@ export const getPublishedBlocksController = async (req: Request, res: Response) 
         const queryParams = trimmedQuery
             ? [queryTerm, queryTerm, queryTerm, queryTerm]
             : [];
+
+        const requestedTypes = (types ?? "")
+            .split(",")
+            .map((type) => type.trim())
+            .filter(Boolean);
+
+        const typeClause = requestedTypes.length
+            ? `
+                AND (
+                    ${requestedTypes
+                        .map(
+                            () => `
+                                categoryType LIKE ?
+                                OR categoryType LIKE ?
+                            `
+                        )
+                        .join(" OR ")}
+                )
+            `
+            : "";
+
+        const typeParams = requestedTypes.flatMap((type) => [
+            `%"${type}"%`,
+            `%${type}%`,
+        ]);
 
         let formattedSortBy: string;
 
@@ -79,14 +108,16 @@ export const getPublishedBlocksController = async (req: Request, res: Response) 
                 WHERE 1=1
                 ${idClause}
                 ${queryClause}
+                ${typeClause}
                 ORDER BY ${formattedSortBy}
                 LIMIT ? OFFSET ?
             `,
             [
                 ...idParams,
                 ...queryParams,
+                ...typeParams,
                 limit,
-                offset
+                offset,
             ]
         );
 
@@ -94,15 +125,17 @@ export const getPublishedBlocksController = async (req: Request, res: Response) 
 
         const countResult = db.blocks.query<{ total: number }>(
             `
-                SELECT 1
+                SELECT COUNT(*) AS total
                 FROM published
                 WHERE 1=1
                 ${idClause}
                 ${queryClause}
+                ${typeClause}
             `,
             [
                 ...idParams,
-                ...queryParams
+                ...queryParams,
+                ...typeParams,
             ]
         );
 
@@ -111,25 +144,27 @@ export const getPublishedBlocksController = async (req: Request, res: Response) 
         const parsedRows = result.rows.map(({ ownerId, ...row }) => ({
             ...row,
             owner: whatIs(ownerId as string),
-            tags: parseJson(row.tags)
+            tags: parseJson(row.tags),
         }));
 
         return res.status(200).json({
             items: parsedRows,
-            count: countResult.rowCount
+            count: countResult.rows[0]?.total ?? 0,
         });
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
+
             return res.status(error.code).json({
                 id: error.id,
-                message: error.message
-            });
-        } else {
-            log.unknown.error(error).save();
-            return res.status(500).json({
-                message: i18n.t("responses.unknown"),
+                message: error.message,
             });
         }
+
+        log.unknown.error(error).save();
+
+        return res.status(500).json({
+            message: i18n.t("responses.unknown"),
+        });
     }
 };

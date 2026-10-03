@@ -19,7 +19,8 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
         const id = req.query.id as string | undefined;
         const q = req.query.q as string | undefined;
         const sortBy = req.query.sortBy as string;
-        
+        const types = req.query.types as string | undefined;
+
         const limit = Number(req.query.limit) || config.limits.assetsPerPage;
         const offset = Number(req.query.offset) || 0;
 
@@ -39,7 +40,7 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
 
         const queryClause = trimmedQuery
             ? `AND (
-                displayName LIKE ? 
+                displayName LIKE ?
                 OR about LIKE ?
                 OR tags LIKE ?
                 OR categoryType LIKE ?
@@ -50,27 +51,58 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
             ? [queryTerm, queryTerm, queryTerm, queryTerm]
             : [];
 
+        const requestedTypes = (types ?? "")
+            .split(",")
+            .map((type) => type.trim())
+            .filter(Boolean);
+
+        const typeClause = requestedTypes.length
+            ? `
+                AND (
+                    ${requestedTypes
+                        .map(
+                            () => `
+                                categoryType LIKE ?
+                                OR categoryType LIKE ?
+                            `
+                        )
+                        .join(" OR ")}
+                )
+            `
+            : "";
+
+        const typeParams = requestedTypes.flatMap((type) => [
+            `%"${type}"%`,
+            `%${type}%`,
+        ]);
+
         let formattedSortBy: string;
 
         switch (sortBy) {
             case "recent":
                 formattedSortBy = "updatedDate DESC";
                 break;
+
             case "newest":
                 formattedSortBy = "createdDate DESC";
                 break;
+
             case "oldest":
                 formattedSortBy = "createdDate ASC";
                 break;
+
             case "nameAsc":
                 formattedSortBy = "label ASC";
                 break;
+
             case "nameDesc":
                 formattedSortBy = "label DESC";
                 break;
+
             case "popularAsc":
                 formattedSortBy = "uses ASC";
                 break;
+
             default:
                 formattedSortBy = "uses DESC, createdDate DESC";
         }
@@ -82,6 +114,7 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
+                ${typeClause}
                 ORDER BY ${formattedSortBy}
                 LIMIT ? OFFSET ?
             `,
@@ -89,6 +122,7 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
                 ...accessParams,
                 ...idParams,
                 ...queryParams,
+                ...typeParams,
                 limit,
                 offset
             ]
@@ -96,18 +130,20 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
 
         assertDbSuccess(result);
 
-        const countResult = db.blocks.query<{ total: number }>(
+        const countResult = db.blocks.query(
             `
                 SELECT 1
                 FROM drafts
                 ${accessClause}
                 ${idClause}
                 ${queryClause}
+                ${typeClause}
             `,
             [
                 ...accessParams,
                 ...idParams,
-                ...queryParams
+                ...queryParams,
+                ...typeParams
             ]
         );
 
@@ -126,15 +162,17 @@ export const getDraftBlocksController = async (req: Request, res: Response) => {
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
+
             return res.status(error.code).json({
                 id: error.id,
                 message: error.message
             });
-        } else {
-            log.unknown.error(error).save();
-            return res.status(500).json({
-                message: i18n.t("responses.unknown"),
-            });
         }
+
+        log.unknown.error(error).save();
+
+        return res.status(500).json({
+            message: i18n.t("responses.unknown"),
+        });
     }
 };
