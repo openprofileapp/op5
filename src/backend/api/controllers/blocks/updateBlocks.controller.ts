@@ -10,6 +10,7 @@ import { db } from "../../databases/db.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import uploadFile from "../../../_common/helpers/uploadFile.js";
 import { log } from "../../instances.js";
+import { config } from "../../../../../app.config.js";
 
 export const updateBlocks = async (req: Request, res: Response) => {
     try {
@@ -89,6 +90,10 @@ export const updateBlocks = async (req: Request, res: Response) => {
                 } else if (value === "") {
                     value = null;
                 }
+
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                value = value?.replace(`https://${config.domains.cdn}`, "")
             }
 
             if (key === "tags") {

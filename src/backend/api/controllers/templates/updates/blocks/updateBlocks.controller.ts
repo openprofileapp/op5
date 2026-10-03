@@ -11,6 +11,7 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
 import uploadFile from "../../../../../_common/helpers/uploadFile.js";
+import { config } from "../../../../../../../app.config.js";
 
 export const updateBlocks = async (req: Request, res: Response) => {
     try {
@@ -78,19 +79,27 @@ export const updateBlocks = async (req: Request, res: Response) => {
             let value: unknown = originalValue;
 
             if (key === "icon") {
-                if (value === null || value === "") {
-                    value = null;
-                } else if (
-                    typeof value === "string" &&
-                    value.startsWith("data:")
-                ) {
+                if (typeof value === "string" && value.startsWith("data:")) {
                     const uploadedIcon = await uploadFile({
-                        folder: `media/${templateId}`,
+                        folder: `media/${blockId}`,
                         fileInput: value,
                     });
 
-                    value = uploadedIcon?.path;
+                    if (!uploadedIcon?.path) {
+                        throw new AdvancedError({
+                            code: 500,
+                            message: i18n.t("responses.unknown"),
+                        });
+                    }
+
+                    value = uploadedIcon.path;
+                } else if (value === "") {
+                    value = null;
                 }
+
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                value = value?.replace(`https://${config.domains.cdn}`, "")
             }
 
             updates.push(`${key} = ?`);
