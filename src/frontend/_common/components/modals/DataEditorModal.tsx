@@ -379,7 +379,7 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
         resetState();
     };
 
-    const handlePublishDataset = () => {
+    const handlePublish = () => {
         if (!data) return;
 
         publishModal.open(
@@ -390,7 +390,7 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
         );
     };
 
-    const handleUnpublishDataset = () => {
+    const handleUnpublish = () => {
         if (!data) return;
 
         unpublishModal.open(
@@ -688,21 +688,27 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
                             {!isNewDataset && (
                                 <div className="flex flex-col gap-2">
                                     <div className="flex flex-row gap-2 w-full">
-                                        {!data.isPublished ? (
-                                            <button
-                                                type="button"
-                                                className="btn btn-success flex-1"
-                                                onClick={handlePublishDataset}
-                                            >
-                                                Publish
-                                            </button>
-                                        ) : (
+                                        <button
+                                            type="button"
+                                            className="btn btn-success flex-1"
+                                            onClick={() => {
+                                                handleSave();
+                                                handlePublish();
+                                            }}
+                                        >
+                                            Save and Publish
+                                        </button>
+
+                                        {data.isPublished && (
                                             <button
                                                 type="button"
                                                 className="btn bg-base-300 flex-1"
-                                                onClick={handleUnpublishDataset}
+                                                onClick={() => {
+                                                    handleSave();
+                                                    handleUnpublish();
+                                                }}
                                             >
-                                                Unpublish
+                                                Save and Unpublish
                                             </button>
                                         )}
                                     </div>
@@ -813,7 +819,7 @@ const DatasetEditorModal = forwardRef<DataEditorModalRef>((_, ref) => {
                             <span className={`font-nerdfont leading-none ${isLoading ? "loading w-6 h-6" : ""}`}>
                                 {!isLoading && (!hasChanges ? "" : "󰆓")}
                             </span>
-                            {!isLoading && (hasChanges ? t("words.Save") : t("words.Saved"))}
+                            {!isLoading && (hasChanges ? "Save as Draft" : t("words.Saved"))}
                         </button>
                     </div>
                 </div>
