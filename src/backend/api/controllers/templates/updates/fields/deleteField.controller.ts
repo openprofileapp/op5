@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import { updateDatasetUses } from "../../../../helpers/manageUses.js";
 
 export const deleteFields = async (req: Request, res: Response) => {
     try {
@@ -45,20 +46,7 @@ export const deleteFields = async (req: Request, res: Response) => {
             });
         }
 
-        const updateDatasetResult = db.templates.query(
-            `
-            UPDATE draft_datasets
-            SET uses = MAX(uses - 1, 0)
-            WHERE id = (
-                SELECT json_extract(options, '$.dataset')
-                FROM draft_fields
-                WHERE fieldId = ?
-            )
-            `,
-            [fieldId]
-        );
-
-        assertDbSuccess(updateDatasetResult);
+        updateDatasetUses(fieldId as string, null);
 
         const deleteResult = db.templates.query(
             `DELETE FROM draft_fields WHERE fieldId = ?`,

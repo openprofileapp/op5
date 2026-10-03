@@ -11,6 +11,7 @@ import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
+import { updateDatasetUses } from "../../../../helpers/manageUses.js";
 
 export const updateFields = async (req: Request, res: Response) => {
     try {
@@ -115,37 +116,8 @@ export const updateFields = async (req: Request, res: Response) => {
             }
 
             if (key === "options") {
-                const getResult = db.templates.query(
-                    "SELECT * FROM draft_fields WHERE fieldId = ?",
-                    [originalFieldId]
-                );
-
-                assertDbSuccess(getResult);
-
                 // @ts-ignore
-                if (JSON.parse(getResult.rows?.[0]?.options)?.dataset !== value?.dataset) {
-                    db.templates.transaction((q) => {
-                        const resultOne = q(
-                            `UPDATE draft_datasets
-                            SET uses = MAX(uses - 1, 0)
-                            WHERE id = ?`,
-                            // @ts-ignore
-                            [JSON.parse(getResult.rows?.[0]?.options)?.dataset]
-                        );
-
-                        assertDbSuccess(resultOne);
-
-                        const resultTwo = q(
-                            `UPDATE draft_datasets
-                            SET uses = uses + 1
-                            WHERE id = ?`,
-                            // @ts-ignore
-                            [value?.dataset]
-                        );
-
-                        assertDbSuccess(resultTwo);
-                    })
-                }
+                updateDatasetUses(originalFieldId, value?.dataset ?? null);
 
                 value = JSON.stringify(value ?? [])
             }
