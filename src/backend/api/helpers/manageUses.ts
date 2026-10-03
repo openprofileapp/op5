@@ -25,6 +25,13 @@ export function updateDatasetUses(
 
     db.templates.transaction((q) => {
         if (previousDataset) {
+            q(
+                `UPDATE published_datasets
+                 SET uses = MAX(uses - 1, 0)
+                 WHERE id = ?`,
+                [previousDataset]
+            );
+
             const result = q(
                 `UPDATE draft_datasets
                  SET uses = MAX(uses - 1, 0)
@@ -36,6 +43,13 @@ export function updateDatasetUses(
         }
 
         if (dataset) {
+            q(
+                `UPDATE published_datasets
+                 SET uses = uses + 1
+                 WHERE id = ?`,
+                [dataset]
+            );
+
             const result = q(
                 `UPDATE draft_datasets
                  SET uses = uses + 1
