@@ -67,6 +67,7 @@ interface Props {
         text: string
     ) => string;
     isBlockAsset: boolean;
+    noContextMenu: boolean;
 }
 
 export default function TemplateField({
@@ -90,7 +91,8 @@ export default function TemplateField({
     onFieldChange,
     onDelete,
     resolveDynamicValues,
-    isBlockAsset = false
+    isBlockAsset = false,
+    noContextMenu = false
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -295,8 +297,10 @@ export default function TemplateField({
                     urlText = `${urlData?.subdomain}${urlData?.subdomain ? "." : ""}${urlData?.domain}`;
                 }
 
+                const Component = noContextMenu ? "div" : Link
+
                 return (
-                    <Link
+                    <Component
                         id={`field-${id}`}
                         to={url}
                         target={
@@ -315,7 +319,7 @@ export default function TemplateField({
                         <span className="font-nerdfont leading-none">
                             
                         </span>
-                    </Link>
+                    </Component>
                 );
             }
 
@@ -510,25 +514,27 @@ export default function TemplateField({
     return (
         <>
             <div className="flex gap-3 w-full">
-                <TemplateContextMenu 
-                    id={id}
-                    type="field"
-                    label={label}
-                    url={url}
-                    assetId={assetId}
-                    rowId={rowId}
-                    readOnly={readOnly}
-                    data={{ field: data }}
-                    isLocked={isLocked}
-                    onChange={onFieldChange}
-                    onValueChange={onChange}
-                    onDelete={onDelete}
-                    resolveDynamicValues={resolveDynamicValues}
-                    isEditing={dragHandleProps ? true : false}
-                    isBlockAsset={isBlockAsset}
-                    isCategoriesLoading={isCategoriesLoading}
-                    datasetCategories={datasetCategories}
-                />
+                {!noContextMenu && (
+                    <TemplateContextMenu 
+                        id={id}
+                        type="field"
+                        label={label}
+                        url={url}
+                        assetId={assetId}
+                        rowId={rowId}
+                        readOnly={readOnly}
+                        data={{ field: data }}
+                        isLocked={isLocked}
+                        onChange={onFieldChange}
+                        onValueChange={onChange}
+                        onDelete={onDelete}
+                        resolveDynamicValues={resolveDynamicValues}
+                        isEditing={dragHandleProps ? true : false}
+                        isBlockAsset={isBlockAsset}
+                        isCategoriesLoading={isCategoriesLoading}
+                        datasetCategories={datasetCategories}
+                    />
+                )}
 
                 <fieldset className="fieldset w-full">
                     <legend className="fieldset-legend text-sm font-normal flex items-center gap-2">
