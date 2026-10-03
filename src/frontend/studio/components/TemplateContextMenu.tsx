@@ -180,6 +180,7 @@ export default function TemplateContextMenu({
                             if (type === "block") {
                                 editBlockModal.open({
                                     isTemplate: true,
+                                    skipAssetFields: true,
                                     block: {
                                         blockId: id,
                                         label: data?.block?.label ?? "",
