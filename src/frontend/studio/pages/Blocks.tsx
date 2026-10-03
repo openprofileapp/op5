@@ -327,9 +327,17 @@ export default function Blocks() {
                                                             󰏔
                                                         </span>
 
-                                                        {formatNumber(data.uses || 0).short}
+                                                        {formatNumber(data.uses || 0).short} Use{data.uses === 1 ? "" : "s"}
                                                     </span>
                                                 </div>
+                                            )}
+
+                                            {/* @ts-ignore */}
+                                            {data.isPublished && (
+                                                <span className="absolute top-2 right-2 font-bold text-xs text-sub bg-base-200 border border-base-300 rounded px-2 py-1">
+                                                    <span className="font-nerdfont leading-none mr-1.5"></span>
+                                                    PUBLISHED
+                                                </span>
                                             )}
 
                                             <div className="flex flex-col items-center justify-center my-auto w-full">
@@ -346,9 +354,9 @@ export default function Blocks() {
                                                     />
                                                 )}
 
-                                                <span className="text-base font-semibold mt-3">
-                                                    {data.displayName || data.blockId}
-                                                </span>
+                                                <div className="flex gap-2 items-center truncate">
+                                                    <span className="font-bold text-lg truncate">{data.displayName || data.blockId}</span>
+                                                </div>
                                                 {data.about && (
                                                     <span className="text-xs text-sub mt-1 line-clamp-4">
                                                         {data.about}
