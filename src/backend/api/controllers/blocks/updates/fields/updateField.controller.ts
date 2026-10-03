@@ -102,13 +102,6 @@ export const updateFields = async (req: Request, res: Response) => {
                     );
 
                     assertDbSuccess(updateValueResult);
-
-                    const updateValueHistoryResult = db.blocks.query(
-                        "UPDATE history SET fieldId = ? WHERE fieldId = ?",
-                        [value, originalFieldId]
-                    );
-
-                    assertDbSuccess(updateValueHistoryResult);
                 }
             }
 
