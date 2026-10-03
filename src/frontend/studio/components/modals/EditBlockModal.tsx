@@ -26,6 +26,7 @@ export type EditBlockType = {
 };
 
 export interface EditBlockModalOptions {
+    skipAssetFields: boolean;
     isTemplate: boolean;
     block: EditBlockType;
     onUpdateBlock: (data: EditBlockType) => boolean | Promise<boolean>;
@@ -248,45 +249,49 @@ const EditBlockModal = forwardRef<EditBlockModalRef, object>((_, ref) => {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-1 mt-1">
-                            <label className="label">
-                                Type
-                            </label>
+                        {!optionsRef.current?.skipAssetFields && (
+                            <>
+                                <div className="flex flex-col gap-1 mt-1">
+                                    <label className="label">
+                                        Type
+                                    </label>
 
-                            <TypeableDropdownInput
-                                value={type}
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-ignore
-                                options={categories}
-                                typeable={false}
-                                onChange={(value) =>
-                                    setType(value as CategoryIdType)
-                                }
-                                placeholder="What type of block is this?"
-                            />
-                        </div>
+                                    <TypeableDropdownInput
+                                        value={type}
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        options={categories}
+                                        typeable={false}
+                                        onChange={(value) =>
+                                            setType(value as CategoryIdType)
+                                        }
+                                        placeholder="What type of block is this?"
+                                    />
+                                </div>
 
-                        <div className="flex flex-col gap-1 mt-1">
-                            <label className="label">
-                                Tags
-                            </label>
+                                <div className="flex flex-col gap-1 mt-1">
+                                    <label className="label">
+                                        Tags
+                                    </label>
 
-                            <TagInput
-                                id="edit-block-tags"
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-ignore
-                                value={tags}
-                                onChange={setTags}
-                                maxTags={10}
-                                minLength={3}
-                                maxLength={24}
-                                onInvalid={(message) =>
-                                    toast.show(message, {
-                                        type: "error",
-                                    })
-                                }
-                            />
-                        </div>
+                                    <TagInput
+                                        id="edit-block-tags"
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        value={tags}
+                                        onChange={setTags}
+                                        maxTags={10}
+                                        minLength={3}
+                                        maxLength={24}
+                                        onInvalid={(message) =>
+                                            toast.show(message, {
+                                                type: "error",
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </>
+                        )}
                     </fieldset>
 
                     <button
