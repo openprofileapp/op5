@@ -42,7 +42,7 @@ export const unpublishDatasetController = async (req: Request, res: Response) =>
         }
 
         const deleteResult = db.templates.query(
-            "DELETE FROM published_datasets WHERE id = ?",
+            "DELETE FROM published_datasets WHERE id = ? LIMIT 1",
             [id]
         );
 
