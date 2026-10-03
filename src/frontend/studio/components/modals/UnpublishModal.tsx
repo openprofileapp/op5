@@ -74,7 +74,7 @@ const UnunpublishModal = forwardRef<UnunpublishModalRef>((_, ref) => {
             const response = await fetch(
                 `${apiBaseUrl}/v3/${
                     options.type === "dataset" ? "templates/dataset" : options.type
-                }s/unpublish/${"id" in data && data?.id}`, 
+                }s/unpublish/${("id" in data && data?.id) || ("blockId" in data && data?.blockId)}`,
                 { credentials: "include" }
             );
 
