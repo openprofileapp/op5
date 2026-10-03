@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { AdvancedError } from "kage-library";
 
-import { log } from "../../../../instances.js";
+import { log, snowflake } from "../../../../instances.js";
 import { assertBearer } from "../../../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../../../_common/asserts/platformPermissions.assert.js";
@@ -9,6 +9,12 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 import uploadFile from "../../../../../_common/helpers/uploadFile.js";
+import { BlockItemType } from "../../../../../../_common/types/blocks/block.type.js";
+import { RowItemType } from "../../../../../../_common/types/blocks/row.type.js";
+import { FieldItemType } from "../../../../../../_common/types/blocks/field.type.js";
+import { ValueType } from "../../../../../../_common/types/blocks/value.type.js";
+import { MediaType } from "../../../../../../_common/types/media.type.js";
+import { config } from "../../../../../../../app.config.js";
 
 export const insertBlock = async (req: Request, res: Response) => {
     try {
@@ -66,13 +72,26 @@ export const insertBlock = async (req: Request, res: Response) => {
                 ? position 
                 : countResult.rowCount;
 
-        let uploadedIcon;
+        let finalIcon = icon;
 
         if (icon) {
-            uploadedIcon = await uploadFile({
-                folder: `media/${templateId}`,
-                fileInput: icon
-            });
+            if (typeof icon === "string" && icon.startsWith("data:")) {
+                const uploadedIcon = await uploadFile({
+                    folder: `media/${blockId}`,
+                    fileInput: icon,
+                });
+
+                if (!uploadedIcon?.path) {
+                    throw new AdvancedError({
+                        code: 500,
+                        message: i18n.t("responses.unknown"),
+                    });
+                }
+
+                finalIcon = uploadedIcon.path;
+            }
+
+            finalIcon = finalIcon?.replace(`https://${config.domains.cdn}`, "")
         }
 
         const insertResult = db.templates.query(
@@ -92,7 +111,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                 blockId,
                 categoryId,
                 sourceBlockId ?? null,
-                uploadedIcon?.path ?? null,
+                finalIcon || null,
                 label ?? null,
                 description ?? null,
                 targetPosition,
@@ -101,6 +120,166 @@ export const insertBlock = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(insertResult);
+
+        let isDraftBlock: boolean = true;
+
+        const getBlock = db.blocks.query<BlockItemType>(
+            `SELECT 1 FROM drafts WHERE blockId = ? AND ownerId = ?`,
+            [sourceBlockId, req.session.userId]
+        );
+
+        assertDbSuccess(getBlock);
+
+        if (getBlock.rowCount === 0) {
+            isDraftBlock = false;
+        } 
+
+        const sourceRows = db.blocks.query<RowItemType>(
+            `SELECT *
+            FROM ${isDraftBlock ? "draft" : "published"}_rows
+            WHERE blockId = ?
+            ORDER BY position ASC`,
+            [sourceBlockId]
+        );
+
+        assertDbSuccess(sourceRows);
+
+        sourceRows.rows.forEach(row => {
+            const newRowId = snowflake.gen();
+
+            const insertRow = db.templates.query(
+                `INSERT INTO draft_rows (
+                    templateId,
+                    rowId,
+                    blockId,
+                    position,
+                    createdBy
+                ) VALUES (?, ?, ?, ?, ?)`,
+                [
+                    templateId,
+                    newRowId,
+                    blockId,
+                    row.position,
+                    req.session.userId
+                ]
+            );
+
+            assertDbSuccess(insertRow);
+
+            const sourceFields = db.blocks.query<FieldItemType>(
+                `SELECT *
+                FROM ${isDraftBlock ? "draft" : "published"}_fields
+                WHERE blockId = ?
+                AND rowId = ?
+                ORDER BY position ASC`,
+                [sourceBlockId, row.rowId]
+            );
+
+            assertDbSuccess(sourceFields);
+
+            sourceFields.rows.forEach(field => {
+                const insertField = db.templates.query(
+                    `INSERT INTO draft_fields (
+                        templateId,
+                        rowId,
+                        fieldId,
+                        flex,
+                        type,
+                        label,
+                        placeholder,
+                        options,
+                        guide,
+                        position,
+                        createdBy
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        templateId,
+                        newRowId,
+                        field.fieldId,
+                        field.flex,
+                        field.type ?? "text",
+                        field.label ?? "",
+                        field.placeholder ?? "",
+                        JSON.stringify(field.options ?? []),
+                        field.guide ?? "",
+                        field.position,
+                        req.session.userId
+                    ]
+                );
+
+                assertDbSuccess(insertField);
+            });
+        });
+
+        const sourceValues = db.blocks.query<ValueType>(
+            `SELECT * FROM 
+                ${isDraftBlock ? "draft" : "published"}_values 
+                WHERE blockId = ?`,
+            [sourceBlockId]
+        );
+
+        assertDbSuccess(sourceValues);
+
+        sourceValues.rows.forEach(value => {
+            const insertResult = db.templates.query(
+                `INSERT INTO draft_values (
+                    templateId,
+                    fieldId,
+                    authorId,
+                    content
+                ) VALUES (?, ?, ?, ?)
+                ON CONFLICT (templateId, fieldId) DO UPDATE SET
+                    authorId = excluded.authorId,
+                    content = excluded.content`,
+                [
+                    templateId,
+                    value.fieldId,
+                    req.session.userId,
+                    value.content
+                ]
+            );
+
+            assertDbSuccess(insertResult);
+        });
+
+        const sourceMedia = db.media.query<MediaType>(
+            `SELECT * FROM 
+                ${isDraftBlock ? "draft" : "published"}_content 
+                WHERE assetId = ?`,
+            [sourceBlockId]
+        );
+
+        assertDbSuccess(sourceMedia);
+
+        sourceMedia.rows.forEach(media => {
+            const insertResult = db.templates.query(
+                `INSERT INTO draft_content (
+                    assetId,
+                    fieldId,
+                    url,
+                    description,
+                    credit,
+                    addedBy
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT (assetId, fieldId) DO UPDATE SET
+                    url = excluded.url,
+                    description = excluded.description,
+                    credit = excluded.credit,
+                    addedBy = excluded.addedBy`,
+                [
+                    templateId,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    media.fieldId,
+                    media.url,
+                    media.description,
+                    media.credit,
+                    req.session.userId
+                ]
+            );
+
+            assertDbSuccess(insertResult);
+        });
 
         return res.status(201).json({
             ok: true,
