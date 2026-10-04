@@ -48,6 +48,34 @@ export const unpublishBlockController = async (req: Request, res: Response) => {
 
         assertDbSuccess(deleteResult);
 
+        const deleteRowsResult = db.blocks.query(
+            "DELETE FROM published_rows WHERE blockId = ?",
+            [id]
+        );
+
+        assertDbSuccess(deleteRowsResult);
+
+        const deleteFieldsResult = db.blocks.query(
+            "DELETE FROM published_fields WHERE blockId = ?",
+            [id]
+        );
+
+        assertDbSuccess(deleteFieldsResult);
+
+        const deleteValuesResult = db.blocks.query(
+            "DELETE FROM published_values WHERE blockId = ?",
+            [id]
+        );
+
+        assertDbSuccess(deleteValuesResult);
+
+        const deleteMediaResult = db.media.query(
+            "DELETE FROM published_content WHERE assetId = ?",
+            [id]
+        );
+
+        assertDbSuccess(deleteMediaResult);
+
         return res.status(201).json({ ok: true });
     } catch (error) {
         if (error instanceof AdvancedError) {
