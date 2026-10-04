@@ -1365,7 +1365,8 @@ export default function Block() {
                                                                                 newFieldModal.open({
                                                                                     // @ts-ignore
                                                                                     targetRowId: row.rowId,
-                                                                                    onAddField: handleAddField
+                                                                                    onAddField: handleAddField,
+                                                                                    resolveDynamicValues
                                                                                 });
                                                                             }}
                                                                             className="cursor-pointer border-2 w-10 my-2 border-dashed border-base-300 rounded flex items-center justify-center transition-colors text-sm opacity-70 hover:opacity-100"
