@@ -9,6 +9,7 @@ import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
+import { updateDatasetUses } from "../../../../helpers/manageUses.js";
 
 export const updateFields = async (req: Request, res: Response) => {
     try {
@@ -67,7 +68,7 @@ export const updateFields = async (req: Request, res: Response) => {
             }
 
             if (key === "fieldId") {
-                if (typeof value !== "string" || !/^[a-z-]+$/.test(value)) {
+                if (typeof value !== "string" || !/^[a-z-0-9]+$/.test(value)) {
                     throw new AdvancedError({
                         code: 400,
                         message: i18n.t("responses.invalidFieldId")
@@ -106,6 +107,10 @@ export const updateFields = async (req: Request, res: Response) => {
             }
 
             if (key === "options") {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                updateDatasetUses(blockId, originalFieldId, value?.dataset ?? null);
+                
                 value = JSON.stringify(value ?? [])
             }
 
