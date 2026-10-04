@@ -54,11 +54,18 @@ export const insertFields = async (req: Request, res: Response) => {
         }
 
         const getFieldIdResult = db.templates.query(
-            "SELECT * FROM draft_fields WHERE fieldId = ?",
-            [fieldId]
+            "SELECT * FROM draft_fields WHERE fieldId = ? AND templateId = ?",
+            [fieldId, templateId]
         );
 
         assertDbSuccess(getFieldIdResult);
+
+        if (typeof fieldId !== "string" || !/^[a-z-0-9]+$/.test(fieldId)) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.invalidFieldId")
+            });
+        }
 
         if (getFieldIdResult.rowCount !== 0) {
             throw new AdvancedError({
