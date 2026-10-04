@@ -6,7 +6,7 @@ export type MediaType = {
     position: string;
     visibility: string;
     addedBy: string;
-    addedDate: string;
+    date: string;
 }
 
 export type GetMediaType = Omit<
