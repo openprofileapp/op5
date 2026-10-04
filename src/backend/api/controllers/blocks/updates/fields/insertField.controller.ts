@@ -46,6 +46,13 @@ export const insertFields = async (req: Request, res: Response) => {
             });
         }
 
+        if (typeof fieldId !== "string" || !/^[a-z-0-9]+$/.test(fieldId)) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.invalidFieldId")
+            });
+        }
+
         if (fieldId === "display-name") {
             throw new AdvancedError({
                 code: 400,
@@ -111,6 +118,17 @@ export const insertFields = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(insertResult);
+
+        if (options?.dataset) {
+            const updateResult = db.templates.query(
+                `UPDATE draft_datasets
+                SET uses = uses + 1
+                WHERE id = ?`,
+                [options?.dataset]
+            );
+
+            assertDbSuccess(updateResult);
+        }
 
         return res.status(201).json({ ok: true });
     } catch (error) {
