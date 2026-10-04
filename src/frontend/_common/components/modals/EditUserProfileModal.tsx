@@ -1303,7 +1303,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
 
                                             <TypeableDropdownInput
                                                 value={
-                                                    data.birthDateVisibility.charAt(0).toUpperCase() + data.birthDateVisibility.slice(1).toLowerCase()
+                                                    data.sendMessages.charAt(0).toUpperCase() + data.sendMessages.slice(1).toLowerCase()
                                                 }
                                                 options={[
                                                     { id: "public", name: "Public" },
@@ -1315,7 +1315,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                                 typeable={false}
                                                 onChange={(option) =>
                                                     handleFieldChange(
-                                                        "birthDateVisibility",
+                                                        "sendMessages",
                                                         option as VisibilityType
                                                     )
                                                 }
@@ -1340,7 +1340,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
 
                                             <TypeableDropdownInput
                                                 value={
-                                                    data.foundedDateVisibility.charAt(0).toUpperCase() + data.foundedDateVisibility.slice(1).toLowerCase()
+                                                    data.sendComments.charAt(0).toUpperCase() + data.sendComments.slice(1).toLowerCase()
                                                 }
                                                 options={[
                                                     { id: "public", name: "Public" },
@@ -1352,7 +1352,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                                 typeable={false}
                                                 onChange={(option) =>
                                                     handleFieldChange(
-                                                        "foundedDateVisibility",
+                                                        "sendComments",
                                                         option as VisibilityType
                                                     )
                                                 }
