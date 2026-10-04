@@ -46,11 +46,11 @@ export const deleteFields = async (req: Request, res: Response) => {
             });
         }
 
-        updateDatasetUses(fieldId as string, null);
+        updateDatasetUses(templateId as string, fieldId as string, null);
 
         const deleteResult = db.templates.query(
-            `DELETE FROM draft_fields WHERE fieldId = ?`,
-            [fieldId]
+            "DELETE FROM draft_fields WHERE fieldId = ? AND templateId = ?",
+            [fieldId, templateId]
         );
 
         assertDbSuccess(deleteResult);
