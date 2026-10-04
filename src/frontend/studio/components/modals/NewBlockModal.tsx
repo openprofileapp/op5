@@ -413,7 +413,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
 
                                                     {formatNumber(
                                                         item.uses || 0
-                                                    ).short}
+                                                    ).short} use{item.uses === 1 ? "" : "s"}
                                                 </span>
                                             </div>
                                         )}
