@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import {
     useRef,
     useState,
@@ -239,7 +241,7 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
 
         loadDatasets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+    }, [isOpen]);
 
     async function handleSave() {
         const onChange = optionsRef.current?.onChange;
@@ -348,8 +350,8 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                             setId(
                                                 e.target.value
                                                     .toLowerCase()
-                                                    .replace(/\s+/g, "_")
-                                                    .replace(/[^a-z-]/g, "")
+                                                    .replace(/\s+/g, "-")
+                                                    .replace(/[^a-z-0-9]/g, "")
                                             )
                                         }
                                     />
@@ -360,11 +362,51 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                         Placeholder
 
                                         <Tooltip content={(
-                                            <div className="flex flex-col gap-1 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
-                                                <div>Use the following varibles to display dynamic data from the character.</div>
+                                            <div className="flex flex-col gap-2 max-w-120 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
+                                                <div>You can dynamically display field values in placeholders, guides, and other field values by putting its id in brackets as shown below.</div>
                                                 <br/>
-                                                <div><strong>{"{DISPLAY_NAME}"}:</strong> Alice</div>
-                                                <div><strong>{"{DISPLAY_NAME_POSSESSIVE}"}:</strong> Alice's</div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name}")}
+                                                </div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.possessive}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.possessive}")}
+                                                </div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.pluralize}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.pluralize}")}
+                                                </div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.lowercase}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.lowercase}")}
+                                                </div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.uppercase}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.uppercase}")}
+                                                </div>
+                                                <div>
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.titlecase}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.titlecase}")}
+                                                </div>
+                                                <div className="mb-2">
+                                                    <code className="bg-base-100 border border-base-300 rounded p-1">{"{display-name.capitalize}"}</code>
+                                                    <span className="mx-1.5 font-nerdfont leading-none"></span>
+                                                    {/* @ts-ignore */}
+                                                    {optionsRef.current?.resolveDynamicValues("{display-name.capitalize}")}
+                                                </div>
                                             </div>
                                         )}>
                                             <span className="font-nerdfont text-sm"></span>
@@ -563,7 +605,6 @@ const EditFieldModal = forwardRef<EditFieldModalRef, object>((_, ref) => {
                                                 placeholder={placeholder || "Select or type..."}
                                                 typeable={false}
                                                 onChange={(value) => {
-                                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                                     // @ts-ignore
                                                     setOptions((prev) => ({
                                                         ...prev,
