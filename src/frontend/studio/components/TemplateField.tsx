@@ -413,7 +413,7 @@ export default function TemplateField({
                         maxRating={max || 5}
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
-                        valueFormat={Object.keys(valueRecord).length ? valueRecord : null}
+                        valueFormat={Object.keys(valueRecord ?? {}).length ? valueRecord : null}
                         readOnly={readOnly || isLocked}
                         onContextMenu={handleContextMenu}
                         onChange={(value) => {
