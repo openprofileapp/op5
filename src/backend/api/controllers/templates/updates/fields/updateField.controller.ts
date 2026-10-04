@@ -70,7 +70,7 @@ export const updateFields = async (req: Request, res: Response) => {
             }
 
             if (key === "fieldId") {
-                if (typeof value !== "string" || !/^[a-z-]+$/.test(value)) {
+                if (typeof value !== "string" || !/^[a-z-0-9]+$/.test(value)) {
                     throw new AdvancedError({
                         code: 400,
                         message: i18n.t("responses.invalidFieldId")
@@ -86,8 +86,8 @@ export const updateFields = async (req: Request, res: Response) => {
 
                 if (originalFieldId !== value) {
                     const getFieldIdResult = db.templates.query(
-                        "SELECT * FROM draft_fields WHERE fieldId = ?",
-                        [value]
+                        "SELECT * FROM draft_fields WHERE fieldId = ? AND templateId = ?",
+                        [value, templateId]
                     );
 
                     assertDbSuccess(getFieldIdResult);
@@ -117,7 +117,7 @@ export const updateFields = async (req: Request, res: Response) => {
 
             if (key === "options") {
                 // @ts-ignore
-                updateDatasetUses(originalFieldId, value?.dataset ?? null);
+                updateDatasetUses(templateId, originalFieldId, value?.dataset ?? null);
 
                 value = JSON.stringify(value ?? [])
             }
@@ -173,7 +173,6 @@ export const updateFields = async (req: Request, res: Response) => {
         return res.status(200).json({
             ok: true,
         });
-
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
