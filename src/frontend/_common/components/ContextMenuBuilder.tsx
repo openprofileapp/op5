@@ -16,6 +16,7 @@ import { useModals } from '../hooks/ModalContext.hook.js';
 import { GetNotificationMuteType, GetNotificationSubscriptionType } from '../../../_common/types/notification.type.js';
 import { formatRemainingTime, getRemainingTimeIcon } from '../scripts/time.js';
 import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/characters/character.type.js';
+import { GetUserItemType } from '../../../_common/types/user.type.js';
 
 type Props = {
     isQuickAction?: boolean
@@ -58,6 +59,7 @@ export type ContextMenuBuilderOptions = {
     isBlockInteractionLoading?: boolean;
     setIsBlocked?: Dispatch<SetStateAction<boolean>>;
     setIsBlockInteractionLoading?: (loading: boolean) => void;
+    setRefetchData?: Dispatch<SetStateAction<boolean>>;
 };
 
 export function ContextMenuBuilder({
@@ -95,7 +97,8 @@ export function ContextMenuBuilder({
     isBlocked,
     isBlockInteractionLoading,
     setIsBlocked,
-    setIsBlockInteractionLoading
+    setIsBlockInteractionLoading,
+    setRefetchData
 }: ContextMenuBuilderOptions) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -113,7 +116,9 @@ export function ContextMenuBuilder({
         reportModal,
         trashModal,
         deleteModal,
-        shareModal
+        shareModal,
+        editUserProfileModal,
+        editTemplateModal
     } = useModals();
     
     const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
@@ -450,18 +455,16 @@ export function ContextMenuBuilder({
             </li>
         ),
 
-        edit: (props: Props = {}): ReactNode => window.session.userId === data.id && (
+        edit: (props: Props = {}): ReactNode => window.session.userId === data.id && setRefetchData && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.EditProfile")}
                 onClick={async () => {
                     closeContextMenu(data.id);
 
-                    // editModal.open(data);
-                    toast.show(
-                        "DEVELOPER NEEDED: Add edit modal", 
-                        { type: "warning" }
-                    );
+                    await editUserProfileModal.open(data as GetUserItemType, () => {
+                        setRefetchData(true);
+                    });
                 }}
             >
                 <button className={`
@@ -469,6 +472,32 @@ export function ContextMenuBuilder({
                         ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (t("words.EditProfile")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
+        ),
+
+        // @ts-ignore
+        editCharacter: (props: Props = {}): ReactNode => window.session.userId === data?.owner?.id && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Edit")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    await editTemplateModal.open(data as GetUserItemType, () => {
+                        window.location.reload();
+                    });
+                }}
+            >
+                <button className={`
+                        justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? (t("words.Edit")) : ""}
 
                     <span className={textClassList}>
                         
