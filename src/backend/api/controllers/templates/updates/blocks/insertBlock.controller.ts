@@ -15,6 +15,7 @@ import { FieldItemType } from "../../../../../../_common/types/blocks/field.type
 import { ValueType } from "../../../../../../_common/types/blocks/value.type.js";
 import { MediaType } from "../../../../../../_common/types/media.type.js";
 import { config } from "../../../../../../../app.config.js";
+import { updateBlockUses } from "../../../../helpers/manageUses.js";
 
 export const insertBlock = async (req: Request, res: Response) => {
     try {
@@ -121,165 +122,191 @@ export const insertBlock = async (req: Request, res: Response) => {
 
         assertDbSuccess(insertResult);
 
-        let isDraftBlock: boolean = true;
+        if (sourceBlockId) {
+            let isDraftBlock: boolean = true;
 
-        const getBlock = db.blocks.query<BlockItemType>(
-            `SELECT 1 FROM drafts WHERE blockId = ? AND ownerId = ?`,
-            [sourceBlockId, req.session.userId]
-        );
-
-        assertDbSuccess(getBlock);
-
-        if (getBlock.rowCount === 0) {
-            isDraftBlock = false;
-        } 
-
-        const sourceRows = db.blocks.query<RowItemType>(
-            `SELECT *
-            FROM ${isDraftBlock ? "draft" : "published"}_rows
-            WHERE blockId = ?
-            ORDER BY position ASC`,
-            [sourceBlockId]
-        );
-
-        assertDbSuccess(sourceRows);
-
-        sourceRows.rows.forEach(row => {
-            const newRowId = snowflake.gen();
-
-            const insertRow = db.templates.query(
-                `INSERT INTO draft_rows (
-                    templateId,
-                    rowId,
-                    blockId,
-                    position,
-                    createdBy
-                ) VALUES (?, ?, ?, ?, ?)`,
-                [
-                    templateId,
-                    newRowId,
-                    blockId,
-                    row.position,
-                    req.session.userId
-                ]
+            const getBlock = db.blocks.query<BlockItemType>(
+                `SELECT 1 FROM drafts WHERE blockId = ? AND ownerId = ?`,
+                [sourceBlockId, req.session.userId]
             );
 
-            assertDbSuccess(insertRow);
+            assertDbSuccess(getBlock);
 
-            const sourceFields = db.blocks.query<FieldItemType>(
+            if (getBlock.rowCount === 0) {
+                isDraftBlock = false;
+            } 
+
+            const sourceRows = db.blocks.query<RowItemType>(
                 `SELECT *
-                FROM ${isDraftBlock ? "draft" : "published"}_fields
+                FROM ${isDraftBlock ? "draft" : "published"}_rows
                 WHERE blockId = ?
-                AND rowId = ?
                 ORDER BY position ASC`,
-                [sourceBlockId, row.rowId]
+                [sourceBlockId]
             );
 
-            assertDbSuccess(sourceFields);
+            assertDbSuccess(sourceRows);
 
-            sourceFields.rows.forEach(field => {
-                const insertField = db.templates.query(
-                    `INSERT INTO draft_fields (
+            sourceRows.rows.forEach(row => {
+                const newRowId = snowflake.gen();
+
+                const insertRow = db.templates.query(
+                    `INSERT INTO draft_rows (
                         templateId,
                         rowId,
-                        fieldId,
-                        flex,
-                        type,
-                        label,
-                        placeholder,
-                        options,
-                        guide,
+                        blockId,
                         position,
                         createdBy
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    ) VALUES (?, ?, ?, ?, ?)`,
                     [
                         templateId,
                         newRowId,
-                        field.fieldId,
-                        field.flex,
-                        field.type ?? "text",
-                        field.label ?? "",
-                        field.placeholder ?? "",
-                        JSON.stringify(field.options ?? []),
-                        field.guide ?? "",
-                        field.position,
+                        blockId,
+                        row.position,
                         req.session.userId
                     ]
                 );
 
-                assertDbSuccess(insertField);
+                assertDbSuccess(insertRow);
+
+                const sourceFields = db.blocks.query<FieldItemType>(
+                    `SELECT *
+                    FROM ${isDraftBlock ? "draft" : "published"}_fields
+                    WHERE blockId = ?
+                    AND rowId = ?
+                    ORDER BY position ASC`,
+                    [sourceBlockId, row.rowId]
+                );
+
+                assertDbSuccess(sourceFields);
+
+                sourceFields.rows.forEach(field => {
+                    const getFieldIdResult = db.templates.query(
+                        "SELECT * FROM draft_fields WHERE fieldId = ? AND templateId = ?",
+                        [field.fieldId, templateId]
+                    );
+
+                    assertDbSuccess(getFieldIdResult);
+
+                    if (getFieldIdResult.rowCount !== 0) {
+                        field.fieldId = `${field.fieldId}-${snowflake.gen()}`
+                    }
+
+                    const insertField = db.templates.query(
+                        `INSERT INTO draft_fields (
+                            templateId,
+                            rowId,
+                            fieldId,
+                            flex,
+                            type,
+                            label,
+                            placeholder,
+                            options,
+                            guide,
+                            position,
+                            createdBy
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            templateId,
+                            newRowId,
+                            field.fieldId,
+                            field.flex,
+                            field.type ?? "text",
+                            field.label ?? "",
+                            field.placeholder ?? "",
+                            JSON.stringify(field.options ?? []),
+                            field.guide ?? "",
+                            field.position,
+                            req.session.userId
+                        ]
+                    );
+
+                    assertDbSuccess(insertField);
+
+                    if (field.options?.dataset) {
+                        const updateResult = db.templates.query(
+                            `UPDATE draft_datasets
+                            SET uses = uses + 1
+                            WHERE id = ?`,
+                            [field.options?.dataset]
+                        );
+
+                        assertDbSuccess(updateResult);
+                    }
+                });
             });
-        });
 
-        const sourceValues = db.blocks.query<ValueType>(
-            `SELECT * FROM 
-                ${isDraftBlock ? "draft" : "published"}_values 
-                WHERE blockId = ?`,
-            [sourceBlockId]
-        );
-
-        assertDbSuccess(sourceValues);
-
-        sourceValues.rows.forEach(value => {
-            const insertResult = db.templates.query(
-                `INSERT INTO draft_values (
-                    templateId,
-                    fieldId,
-                    authorId,
-                    content
-                ) VALUES (?, ?, ?, ?)
-                ON CONFLICT (templateId, fieldId) DO UPDATE SET
-                    authorId = excluded.authorId,
-                    content = excluded.content`,
-                [
-                    templateId,
-                    value.fieldId,
-                    req.session.userId,
-                    value.content
-                ]
+            const sourceValues = db.blocks.query<ValueType>(
+                `SELECT * FROM 
+                    ${isDraftBlock ? "draft" : "published"}_values 
+                    WHERE blockId = ?`,
+                [sourceBlockId]
             );
 
-            assertDbSuccess(insertResult);
-        });
+            assertDbSuccess(sourceValues);
 
-        const sourceMedia = db.media.query<MediaType>(
-            `SELECT * FROM 
-                ${isDraftBlock ? "draft" : "published"}_content 
-                WHERE assetId = ?`,
-            [sourceBlockId]
-        );
+            sourceValues.rows.forEach(value => {
+                const insertResult = db.templates.query(
+                    `INSERT INTO draft_values (
+                        templateId,
+                        fieldId,
+                        authorId,
+                        content
+                    ) VALUES (?, ?, ?, ?)
+                    ON CONFLICT (templateId, fieldId) DO UPDATE SET
+                        authorId = excluded.authorId,
+                        content = excluded.content`,
+                    [
+                        templateId,
+                        value.fieldId,
+                        req.session.userId,
+                        value.content
+                    ]
+                );
 
-        assertDbSuccess(sourceMedia);
+                assertDbSuccess(insertResult);
+            });
 
-        sourceMedia.rows.forEach(media => {
-            const insertResult = db.templates.query(
-                `INSERT INTO draft_content (
-                    assetId,
-                    fieldId,
-                    url,
-                    description,
-                    credit,
-                    addedBy
-                ) VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT (assetId, fieldId) DO UPDATE SET
-                    url = excluded.url,
-                    description = excluded.description,
-                    credit = excluded.credit,
-                    addedBy = excluded.addedBy`,
-                [
-                    templateId,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    media.fieldId,
-                    media.url,
-                    media.description,
-                    media.credit,
-                    req.session.userId
-                ]
+            const sourceMedia = db.media.query<MediaType>(
+                `SELECT * FROM 
+                    ${isDraftBlock ? "draft" : "published"}_content 
+                    WHERE assetId = ?`,
+                [sourceBlockId]
             );
 
-            assertDbSuccess(insertResult);
-        });
+            assertDbSuccess(sourceMedia);
+
+            sourceMedia.rows.forEach(media => {
+                const insertResult = db.templates.query(
+                    `INSERT INTO draft_content (
+                        assetId,
+                        fieldId,
+                        url,
+                        description,
+                        credit,
+                        addedBy
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (assetId, fieldId) DO UPDATE SET
+                        url = excluded.url,
+                        description = excluded.description,
+                        credit = excluded.credit,
+                        addedBy = excluded.addedBy`,
+                    [
+                        templateId,
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        media.fieldId,
+                        media.url,
+                        media.description,
+                        media.credit,
+                        req.session.userId
+                    ]
+                );
+
+                assertDbSuccess(insertResult);
+            });
+
+            updateBlockUses(sourceBlockId, "add");
+        }
 
         return res.status(201).json({
             ok: true,
