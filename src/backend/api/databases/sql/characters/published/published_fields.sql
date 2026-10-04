@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS published_fields (
     flex INTEGER NOT NULL DEFAULT 1,
     type TEXT NOT NULL,
     label TEXT,
-    position INTEGER NOT NULL DEFAULT 0
+    position INTEGER NOT NULL DEFAULT 0,
+
+    UNIQUE (assetId, rowId, fieldId)
 );
