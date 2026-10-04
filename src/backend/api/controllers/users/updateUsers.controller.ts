@@ -18,7 +18,7 @@ import getEnv from "../../../../_common/helpers/getEnv.js";
 
 const VALID_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
-const VALID_SEND_VISIBILITIES = ["default", "registered", "followers", "friends", "private"] as const;
+const VALID_SEND_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
 const VALID_TYPES = ["user", "author", "publisher"] as const;
 const VALID_PRESENCES = ["online", "idle", "dnd", "offline"] as const;
 const TAG_REGEX = /^[a-z-]+$/;
