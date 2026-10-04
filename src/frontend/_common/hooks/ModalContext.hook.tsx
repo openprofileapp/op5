@@ -20,6 +20,7 @@ import EditCategoryModal, { EditCategoryModalRef } from "../../studio/components
 import EditBlockModal, { EditBlockModalRef } from "../../studio/components/modals/EditBlockModal.js";
 import PublishModal, { PublishModalRef } from "../../studio/components/modals/PublishModal.js";
 import UnpublishModal, { UnpublishModalRef } from "../../studio/components/modals/UnpublishModal.js";
+import EditTemplateModal, { EditTemplateModalRef } from "../components/modals/EditTemplateModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -90,6 +91,10 @@ interface ModalContextType {
         open: (...args: Parameters<EditCategoryModalRef["open"]>) => ReturnType<EditCategoryModalRef["open"]> | undefined;
         close: () => void;
     };
+    editTemplateModal: {
+        open: (...args: Parameters<EditTemplateModalRef["open"]>) => ReturnType<EditTemplateModalRef["open"]> | undefined;
+        close: () => void;
+    };
     editBlockModal: {
         open: (...args: Parameters<EditBlockModalRef["open"]>) => ReturnType<EditBlockModalRef["open"]> | undefined;
         close: () => void;
@@ -124,6 +129,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const uploadMediaModalRef = useRef<UploadMediaModalRef>(null);
     const editFieldModalRef = useRef<EditFieldModalRef>(null);
     const editCategoryModalRef = useRef<EditCategoryModalRef>(null);
+    const editTemplateModalRef = useRef<EditTemplateModalRef>(null);
     const editBlockModalRef = useRef<EditBlockModalRef>(null);
     const publishModalRef = useRef<PublishModalRef>(null);
     const unpublishModalRef = useRef<UnpublishModalRef>(null);
@@ -266,6 +272,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                     editCategoryModalRef.current?.close();
                 },
             },
+            editTemplateModal: {
+                open: (...args: Parameters<EditTemplateModalRef["open"]>) => {
+                    return editTemplateModalRef.current?.open(...args);
+                },
+                close: () => {
+                    editTemplateModalRef.current?.close();
+                },
+            },
             editBlockModal: {
                 open: (...args: Parameters<EditBlockModalRef["open"]>) => {
                     return editBlockModalRef.current?.open(...args);
@@ -289,7 +303,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 close: () => {
                     unpublishModalRef.current?.close();
                 },
-            }
+            },
         }),
         []
     );
@@ -313,6 +327,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <UploadMediaModal ref={uploadMediaModalRef} />
             <EditFieldModal ref={editFieldModalRef} />
             <EditCategoryModal ref={editCategoryModalRef} />
+            <EditTemplateModal ref={editTemplateModalRef} />
             <EditBlockModal ref={editBlockModalRef} />
             <PublishModal ref={publishModalRef} />
             <UnpublishModal ref={unpublishModalRef} />
