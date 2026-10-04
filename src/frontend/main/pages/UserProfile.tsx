@@ -371,6 +371,7 @@ export default function UserProfile() {
         isBlockInteractionLoading,
         setIsBlocked,
         setIsBlockInteractionLoading,
+        setRefetchData
     });
 
     useEffect(() => {
