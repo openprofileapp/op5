@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import { updateBlockUses } from "../../../../helpers/manageUses.js";
 
 export const deleteBlock = async (req: Request, res: Response) => {
     try {
@@ -109,6 +110,20 @@ export const deleteBlock = async (req: Request, res: Response) => {
             );
 
             assertDbSuccess(deleteRowsResult);
+
+            const getBlockResult = q(
+                `SELECT sourceBlockId
+                FROM draft_blocks
+                WHERE templateId = ?
+                AND blockId = ?`,
+                [templateId, blockId]
+            );
+
+            assertDbSuccess(getBlockResult);
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            updateBlockUses(getBlockResult?.rows?.[0]?.sourceBlockId as string, "remove");
 
             const deleteBlocksResult = q(
                 `DELETE FROM draft_blocks
