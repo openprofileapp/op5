@@ -79,6 +79,8 @@ export default function TemplateCard({
         >
             {!isTrash && 
                 contextMenuBuilder.items([
+                    contextMenuBuilder.editCharacter(),
+                    contextMenuBuilder.separator(),
                     contextMenuBuilder.trash({ isTemplate: true }),
                     Boolean(window.session.user?.isDeveloper) && 
                         contextMenuBuilder.separator(),
