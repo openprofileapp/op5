@@ -254,7 +254,7 @@ export default function CharacterCard({
 
             {Boolean(isMature) && !isRevealed && (
                 <div 
-                    className="absolute inset-0 z-20 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
+                    className="absolute inset-0 z-11 rounded-lg flex flex-col items-center justify-center glass cursor-pointer transition-all select-none"
                     onClick={(e) => {                        
                         e.stopPropagation();
                         setIsRevealed(true);
@@ -359,7 +359,9 @@ export default function CharacterCard({
                         ]),
                     isHomeScreen && 
                         contextMenuBuilder.dismiss(),
-                    window.session.userId && isHomeScreen && 
+                    isStudio && 
+                        contextMenuBuilder.editCharacter(),
+                    window.session.userId && (isHomeScreen || isStudio) &&
                         contextMenuBuilder.separator(),
                     !isStudio && contextMenuBuilder.viewInStudio(),
                     !isStudio && window.session.userId === data.owner?.id && 
@@ -418,6 +420,8 @@ export default function CharacterCard({
                     if (isPreview) return;
 
                     characterModal.open(data);
+                    
+                    if (isStudio) return;
 
                     setHasSeenNotification(true);
 
