@@ -18,7 +18,7 @@ type DataType =
     | TemplateType
     | DraftCharacterType
 
-export interface UnunpublishModalRef {
+export interface UnpublishModalRef {
     open: (
         data: DataType, 
         options?: InteractionOptions
@@ -26,7 +26,7 @@ export interface UnunpublishModalRef {
     close: () => void;
 }
 
-const UnunpublishModal = forwardRef<UnunpublishModalRef>((_, ref) => {
+const UnpublishModal = forwardRef<UnpublishModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -187,5 +187,5 @@ const UnunpublishModal = forwardRef<UnunpublishModalRef>((_, ref) => {
     );
 });
 
-UnunpublishModal.displayName = "UnunpublishModal";
-export default UnunpublishModal;
+UnpublishModal.displayName = "UnpublishModal";
+export default UnpublishModal;
