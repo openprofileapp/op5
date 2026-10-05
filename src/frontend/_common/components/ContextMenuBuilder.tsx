@@ -15,8 +15,9 @@ import { toast } from '../scripts/toast.js';
 import { useModals } from '../hooks/ModalContext.hook.js';
 import { GetNotificationMuteType, GetNotificationSubscriptionType } from '../../../_common/types/notification.type.js';
 import { formatRemainingTime, getRemainingTimeIcon } from '../scripts/time.js';
-import { GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/characters/character.type.js';
+import { DraftCharacterType, GetDraftCharacterItemType, GetPublishedCharacterItemType } from '../../../_common/types/characters/character.type.js';
 import { GetUserItemType } from '../../../_common/types/user.type.js';
+import { GetTemplateItemType } from '../../../_common/types/template/template.type.js';
 
 type Props = {
     isQuickAction?: boolean
@@ -118,7 +119,8 @@ export function ContextMenuBuilder({
         deleteModal,
         shareModal,
         editUserProfileModal,
-        editTemplateModal
+        editTemplateModal,
+        editCharacterModal
     } = useModals();
     
     const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
@@ -431,7 +433,7 @@ export function ContextMenuBuilder({
 
         // DEVELOPER NEEDED: Also display on assets where the user has permission to view in studio
         viewInStudio: (props: Props = {}): ReactNode => 
-            ("owner" in data && data.owner.id === window.session.userId) && 
+            ("owner" in data && data?.owner?.id === window.session.userId) && 
         (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
@@ -442,7 +444,7 @@ export function ContextMenuBuilder({
             >
                 <a 
                     className={`justify-between ${props.isQuickAction && quickActionClassList}`}
-                    href={`${studioBaseUrl}/character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                    href={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data.displayName || "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -481,14 +483,14 @@ export function ContextMenuBuilder({
         ),
 
         // @ts-ignore
-        editCharacter: (props: Props = {}): ReactNode => window.session.userId === data?.owner?.id && (
+        editTemplate: (props: Props = {}): ReactNode => window.session.userId === data?.owner?.id && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
                 data-tip={t("words.Edit")}
                 onClick={async () => {
                     closeContextMenu(data.id);
 
-                    await editTemplateModal.open(data as GetUserItemType, () => {
+                    await editTemplateModal.open(data as unknown as GetTemplateItemType, () => {
                         window.location.reload();
                     });
                 }}
@@ -498,6 +500,32 @@ export function ContextMenuBuilder({
                         ${props.isQuickAction && quickActionClassList}
                     `}>
                     {!props.isQuickAction ? (t("words.Edit")) : ""}
+
+                    <span className={textClassList}>
+                        
+                    </span>
+                </button>
+            </li>
+        ),
+
+        // @ts-ignore
+        editCharacter: (props: Props = {}): ReactNode => window.session.userId === data?.owner?.id && (
+            <li
+                className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                data-tip={t("words.Edit")}
+                onClick={async () => {
+                    closeContextMenu(data.id);
+
+                    await editCharacterModal.open(data as unknown as DraftCharacterType, () => {
+                        window.location.reload();
+                    });
+                }}
+            >
+                <button className={`
+                        justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? "Edit Overview" : ""}
 
                     <span className={textClassList}>
                         
@@ -604,7 +632,7 @@ export function ContextMenuBuilder({
                 <Link 
                     className={`justify-between ${props.isQuickAction && quickActionClassList}`}
                     to={`/${"owner" in data 
-                        ? `character/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`
+                        ? `character/${data.id}${formatDisplayNameToUrl(data.displayName || "")}`
                         : `user/${data?.usernames?.find(u => u.isPrimary)?.username || data.id}`
                     }`}
                 >
@@ -627,7 +655,7 @@ export function ContextMenuBuilder({
             >
                 <Link 
                     className={`justify-between ${props.isQuickAction && quickActionClassList}`}
-                    to={`/read/${data.id}-${formatDisplayNameToUrl(data.displayName || "")}`}
+                    to={`/read/${data.id}${formatDisplayNameToUrl(data.displayName || "")}`}
                 >
                     {!props.isQuickAction ? t("words.Read") : ""}
 
@@ -1463,6 +1491,7 @@ export function ContextMenuBuilder({
                 onClick={async () => {
                     closeContextMenu(data.id);
 
+                    // @ts-ignore
                     deleteModal.open(data as GetDraftCharacterItemType, {
                         setIsDismissed,
                         isTemplate: props.isTemplate
