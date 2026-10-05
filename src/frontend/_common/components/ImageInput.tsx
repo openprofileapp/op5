@@ -234,6 +234,7 @@ export default function ImageInput({
 
             uploadMediaModal.open({
                 type: "content",
+                accept,
                 fieldId: id ?? "",
                 url: previewUrl ?? "",
                 description: (options?.description as string) ?? "",
