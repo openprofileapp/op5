@@ -296,7 +296,7 @@ export default function getPublishedCharactersService({
 
     const checkCollectionParams = getAs ? [getAs] : [];
 
-    const mediaSelectSql = includeMedia 
+    const mediaSelectSql = includeMedia
         ? `
             COALESCE(
                 (
@@ -311,12 +311,16 @@ export default function getPublishedCharactersService({
                             'date', m.date
                         )
                     )
-                    FROM media.published_overview m
-                    WHERE m.assetId = published.id
+                    FROM (
+                        SELECT *
+                        FROM media.published_overview
+                        WHERE assetId = published.id
+                        ORDER BY position ASC
+                    ) m
                 ),
                 json('[]')
             ) AS media
-        ` 
+        `
         : "NULL AS media";
 
     const notificationsParams: (string | undefined)[] = [];

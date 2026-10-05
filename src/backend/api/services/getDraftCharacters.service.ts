@@ -216,7 +216,7 @@ export default function getDraftCharactersService({
 
     const checkCollectionParams = getAs ? [getAs] : [];
 
-    const mediaSelectSql = includeMedia 
+    const mediaSelectSql = includeMedia
         ? `
             COALESCE(
                 (
@@ -231,14 +231,18 @@ export default function getDraftCharactersService({
                             'date', m.date
                         )
                     )
-                    FROM media.draft_overview m
-                    WHERE m.assetId = drafts.id
+                    FROM (
+                        SELECT *
+                        FROM media.draft_overview
+                        WHERE assetId = drafts.id
+                        ORDER BY position ASC
+                    ) m
                 ),
                 json('[]')
             ) AS media
-        ` 
+        `
         : "NULL AS media";
-
+        
     const notificationsParams: (string | undefined)[] = [];
 
     const notificationsSelectSql = `
