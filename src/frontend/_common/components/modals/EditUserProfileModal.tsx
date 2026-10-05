@@ -884,21 +884,24 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                         <label className="label flex gap-2">
                                             Content Flags
 
-                                            <Tooltip content={(
-                                                <div className="flex flex-col gap-2 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
-                                                    <div>
-                                                        <strong>Sensitive Content (viewable by everyone):</strong>
-                                                        <br />
-                                                        Your content includes sensitive themes, such as trauma, severe mental health struggles (e.g., self-harm or suicide), grief, hate speech, abuse, minor gore, or non-sexual revealing clothing.
-                                                    </div>
+                                            <Tooltip 
+                                                content={(
+                                                    <div className="flex flex-col gap-2 tooltip-content bg-base-200 text-xs text-left border border-base-300 rounded shadow-2xl">
+                                                        <div>
+                                                            <strong>Sensitive Content (viewable by everyone):</strong>
+                                                            <br />
+                                                            Your content includes sensitive themes, such as trauma, severe mental health struggles (e.g., self-harm or suicide), grief, hate speech, abuse, minor gore, or non-sexual revealing clothing.
+                                                        </div>
 
-                                                    <div>
-                                                        <strong>Mature Content (18+ accounts only):</strong>
-                                                        <br />
-                                                        Your content includes themes restricted to adult audiences due to explicit detail, such as graphic violence, suggestive sexual content, severe profanity, explicit substance abuse, simulated gambling, or sexually suggestive revealing clothing.
+                                                        <div>
+                                                            <strong>Mature Content (18+ accounts only):</strong>
+                                                            <br />
+                                                            Your content includes themes restricted to adult audiences due to explicit detail, such as graphic violence, suggestive sexual content, severe profanity, explicit substance abuse, simulated gambling, or sexually suggestive revealing clothing.
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}>
+                                                )}
+                                                position="bottom"
+                                            >
                                                 <span className="font-nerdfont text-sm"></span>
                                             </Tooltip>
                                         </label>
