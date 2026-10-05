@@ -17,6 +17,7 @@ export type MediaType = "overview" | "content";
 
 export interface UploadMediaModalOptions {
     type: MediaType;
+    accept: string;
     fieldId: string;
     url?: string;
     description?: string;
@@ -162,7 +163,7 @@ const UploadMediaModal = forwardRef<UploadMediaModalRef, object>((_, ref) => {
                                         setMediaFile(file);
                                         setPreviewUrl(base64Url || "");
                                     }}
-                                    accept="image/png, image/jpeg, image/jpg"
+                                    accept={`${optionsRef.current?.accept || "image/png, image/jpeg, image/jpg"}`}
                                     label="media"
                                 />
                             </div>
