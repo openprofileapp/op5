@@ -134,37 +134,42 @@ async function bootstrap() {
         <React.StrictMode>
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
-                    <ModalProvider>
-                        <BrowserRouter>
+                    <BrowserRouter>
+                        <ModalProvider>
                             <ToastContainer />
-                            <CaptchaPortal siteKey={window.config.integrations.hcaptcha} />
+                            <CaptchaPortal
+                                siteKey={window.config.integrations.hcaptcha}
+                            />
                             <Messages />
+
                             <Routes>
-                                <Route 
-                                    path="/template/:templateId/:categoryId?/:blockId?" 
-                                    element={<Template />} 
+                                <Route
+                                    path="/template/:templateId/:categoryId?/:blockId?"
+                                    element={<Template />}
                                 />
 
                                 <Route element={<RootLayout />}>
-                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                    <Route
+                                        path="/"
+                                        element={<Navigate to="/dashboard" replace />}
+                                    />
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/analytics" element={<Analytics />} />
                                     <Route path="/content" element={<Content />} />
-
                                     <Route path="/templates" element={<Templates />} />
                                     <Route path="/blocks" element={<Blocks />} />
                                     <Route path="/datasets" element={<Datasets />} />
-
                                     <Route path="/block/:blockId" element={<Block />} />
-
                                     <Route path="/trash" element={<Trash />} />
-
                                     <Route path="/404" element={<NotFound />} />
-                                    <Route path="*" element={<Navigate to="/404" replace />} />
+                                    <Route
+                                        path="*"
+                                        element={<Navigate to="/404" replace />}
+                                    />
                                 </Route>
                             </Routes>
-                        </BrowserRouter>
-                    </ModalProvider>
+                        </ModalProvider>
+                    </BrowserRouter>
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
