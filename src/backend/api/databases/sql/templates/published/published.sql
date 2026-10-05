@@ -7,7 +7,5 @@ CREATE TABLE IF NOT EXISTS published (
     source TEXT NOT NULL DEFAULT 'community',
     uses INTEGER NOT NULL DEFAULT 0,
     updatedDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    isDeleted INTEGER NOT NULL DEFAULT 0,
-    deletedDate TEXT
+    createdDate TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
