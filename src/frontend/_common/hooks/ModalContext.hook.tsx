@@ -21,6 +21,7 @@ import EditBlockModal, { EditBlockModalRef } from "../../studio/components/modal
 import PublishModal, { PublishModalRef } from "../../studio/components/modals/PublishModal.js";
 import UnpublishModal, { UnpublishModalRef } from "../../studio/components/modals/UnpublishModal.js";
 import EditTemplateModal, { EditTemplateModalRef } from "../components/modals/EditTemplateModal.js";
+import EditCharacterModal, { EditCharacterModalRef } from "../components/modals/EditCharacterModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -95,6 +96,10 @@ interface ModalContextType {
         open: (...args: Parameters<EditTemplateModalRef["open"]>) => ReturnType<EditTemplateModalRef["open"]> | undefined;
         close: () => void;
     };
+    editCharacterModal: {
+        open: (...args: Parameters<EditCharacterModalRef["open"]>) => ReturnType<EditCharacterModalRef["open"]> | undefined;
+        close: () => void;
+    };
     editBlockModal: {
         open: (...args: Parameters<EditBlockModalRef["open"]>) => ReturnType<EditBlockModalRef["open"]> | undefined;
         close: () => void;
@@ -130,6 +135,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const editFieldModalRef = useRef<EditFieldModalRef>(null);
     const editCategoryModalRef = useRef<EditCategoryModalRef>(null);
     const editTemplateModalRef = useRef<EditTemplateModalRef>(null);
+    const editCharacterModalRef = useRef<EditCharacterModalRef>(null);
     const editBlockModalRef = useRef<EditBlockModalRef>(null);
     const publishModalRef = useRef<PublishModalRef>(null);
     const unpublishModalRef = useRef<UnpublishModalRef>(null);
@@ -280,6 +286,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                     editTemplateModalRef.current?.close();
                 },
             },
+            editCharacterModal: {
+                open: (...args: Parameters<EditCharacterModalRef["open"]>) => {
+                    return editCharacterModalRef.current?.open(...args);
+                },
+                close: () => {
+                    editCharacterModalRef.current?.close();
+                },
+            },
             editBlockModal: {
                 open: (...args: Parameters<EditBlockModalRef["open"]>) => {
                     return editBlockModalRef.current?.open(...args);
@@ -328,6 +342,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <EditFieldModal ref={editFieldModalRef} />
             <EditCategoryModal ref={editCategoryModalRef} />
             <EditTemplateModal ref={editTemplateModalRef} />
+            <EditCharacterModal ref={editCharacterModalRef} />
             <EditBlockModal ref={editBlockModalRef} />
             <PublishModal ref={publishModalRef} />
             <UnpublishModal ref={unpublishModalRef} />
