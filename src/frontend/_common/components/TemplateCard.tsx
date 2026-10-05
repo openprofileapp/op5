@@ -11,11 +11,13 @@ import { Link } from "react-router-dom";
 type Props = {
     data: GetTemplateItemType;
     isTrash?: boolean;
+    isPreview?: boolean;
 };
 
 export default function TemplateCard({
     data,
-    isTrash
+    isTrash,
+    isPreview
 }: Props) {
     const { t, ready: isTranslationReady } = useTranslation();
 
@@ -45,6 +47,8 @@ export default function TemplateCard({
     ) return null;
 
     const avatarClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover";
+
+    const Component = isPreview ? "div" : Link;
 
     return (
         <div
@@ -77,9 +81,9 @@ export default function TemplateCard({
                 });
             }}
         >
-            {!isTrash && 
+            {!isTrash && !isPreview &&
                 contextMenuBuilder.items([
-                    contextMenuBuilder.editCharacter(),
+                    contextMenuBuilder.editTemplate(),
                     contextMenuBuilder.separator(),
                     contextMenuBuilder.trash({ isTemplate: true }),
                     Boolean(window.session.user?.isDeveloper) && 
@@ -88,7 +92,7 @@ export default function TemplateCard({
                 ].filter(Boolean))
             }
 
-            {isTrash && 
+            {isTrash && !isPreview &&
                 contextMenuBuilder.items([
                     contextMenuBuilder.restore({ isTemplate: true }),
                     contextMenuBuilder.separator(),
@@ -99,10 +103,18 @@ export default function TemplateCard({
                 ].filter(Boolean))
             }
 
-            <Link 
+            <Component 
                 to={`/template/${data.id}`}
             >
                 <div className="absolute inset-0 group">
+                    {/* @ts-ignore */}
+                    {data.isPublished && (
+                        <span className="absolute top-3 left-3 z-2 font-bold text-xs text-sub bg-base-100 border border-base-300 rounded px-2 py-1">
+                            <span className="font-nerdfont leading-none mr-1.5"></span>
+                            PUBLISHED
+                        </span>
+                    )}
+
                     <img
                         className={avatarClassList}
                         src={`${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
@@ -119,9 +131,9 @@ export default function TemplateCard({
                         </div>
                     </div>
 
-                    <div className="text-xs line-clamp-8 my-2">{data.about || t("defaults.noTemplateAbout")}</div>            
+                    <div className="text-xs line-clamp-8 my-2">{data.about || t("defaults.noTemplateAbout")}</div>   
                 </div>
-            </Link>
+            </Component>
         </div>
     );
 }
