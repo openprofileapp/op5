@@ -148,7 +148,9 @@ const PublishModal = forwardRef<PublishModalRef>((_, ref) => {
                                 <br />
 
                                 <span className="text-sub text-xs">
-                                    Anyone can discover it and add it to their templates.
+                                    Anyone can discover it and {
+                                        options.type === "template" ? "use it for their characters" : options.type === "character" ? "read the contents" : "add it to their templates"
+                                    }.
                                 </span>
                             </div>
                         </div>
