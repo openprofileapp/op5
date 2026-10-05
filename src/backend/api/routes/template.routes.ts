@@ -32,6 +32,9 @@ import { publishDatasetController } from "../controllers/datasets/publishDataset
 import { unpublishDatasetController } from "../controllers/datasets/unpublishDataset.controller.js";
 import { randomizeDataset } from "../controllers/datasets/randomizeDataset.controller.js";
 import { getCategoriesDataset } from "../controllers/datasets/getCategoriesDataset.controller.js";
+import { updateTemplates } from "../controllers/templates/updateTemplates.controller.js";
+import { publishTemplateController } from "../controllers/templates/publishTemplate.controller.js";
+import { unpublishTemplateController } from "../controllers/templates/unpublishTemplate.controller.js";
 
 const templateRoutes = Router();
 
@@ -56,6 +59,9 @@ templateRoutes.get("/datasets/categories/:id", getCategoriesDataset);
 templateRoutes.get("/restore/:id", restoreTemplate);
 templateRoutes.get("/trash/:id", trashTemplete);
 templateRoutes.delete("/delete/:id", deleteTemplete);
+templateRoutes.get("/publish/:id", publishTemplateController);
+templateRoutes.get("/unpublish/:id", unpublishTemplateController);
+templateRoutes.post("/update/:templateId", updateTemplates);
 
 templateRoutes.post("/:templateId/categories/insert", insertCategories);
 templateRoutes.post("/:templateId/categories/update", updateCategories);
