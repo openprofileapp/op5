@@ -2,12 +2,14 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { Link } from "react-router-dom";
 
-import { cdnBaseUrl, mainBaseUrl } from "../../scripts/domains.js";
-import { GetPublishedCharacterItemType } from "../../../../_common/types/characters/character.type.js";
+import { cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../scripts/domains.js";
+import { DraftCharacterType, GetPublishedCharacterItemType } from "../../../../_common/types/characters/character.type.js";
 import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
 import Badges from "../Badges.js";
 import { formatShortRelative } from "../../scripts/time.js";
+import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
+import { useModals } from "../../hooks/ModalContext.hook.js";
 
 export interface CharacterModalRef {
     open: (data: GetPublishedCharacterItemType) => void;
@@ -16,6 +18,7 @@ export interface CharacterModalRef {
 
 const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
+    const { editCharacterModal } = useModals();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
     const [data, setData] = useState<GetPublishedCharacterItemType>();
@@ -264,7 +267,6 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         ) : (
                                             data.media
                                                 ?.slice()
-                                                .sort((a, b) => Number(a.position) - Number(b.position))
                                                 .map((item, index) => (
                                                     <ZoomableMedia 
                                                         key={index}
@@ -300,7 +302,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         ) : (
                                             data.tags.map((tag) => (
                                                 <Link
-                                                    to={`/browse/${encodeURIComponent(tag)}`}
+                                                    to={`${mainBaseUrl}/browse/${encodeURIComponent(tag)}`}
                                                     onClick={handleClose}
                                                 >
                                                     <div className="flex gap-2 items-center justify-center rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300">
@@ -405,12 +407,37 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                         Close
                     </button>
 
-                    <button 
-                        type="button" 
-                        className="btn btn-accent flex-3"
-                    >
-                        Read
-                    </button>
+                    {window.location.hostname.startsWith(window.config.domains.studio) ? (
+                        <>
+                            <div
+                                type="button"
+                                className="btn btn-accent flex-1"
+                                onClick={async () => {
+                                    await editCharacterModal.open(data as unknown as DraftCharacterType, () => {
+                                        window.location.reload();
+                                    });
+                                }}
+                            >
+                                Edit Overview
+                            </div>
+
+                            <Link
+                                type="button"
+                                className="btn btn-accent flex-2"
+                                to={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                            >
+                                Edit Content
+                            </Link>
+                        </>
+                    ) : (
+                        <Link
+                            type="button"
+                            className="btn btn-accent flex-3"
+                            to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                        >
+                            Read
+                        </Link>
+                    )}
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">
