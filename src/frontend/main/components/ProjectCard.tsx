@@ -326,7 +326,7 @@ export default function ProjectCard({
 
                             {owner?.isVerified ?
                                 <div className="z-1 relative font-normal tooltip tooltip-top tooltip-accent">
-                                    <a href={`https://${window.config.domains.support}/en-us/articles/verification`} target="_blank"
+                                    <a href={`https://${window.config.domains.support}/en-us/article/verification`} target="_blank"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                         }}

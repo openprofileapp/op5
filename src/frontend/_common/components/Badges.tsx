@@ -199,7 +199,7 @@ export default function Badges({
             icon: (
                 <a
                     className={`${largeIcons ? "text-xl" : "text-lg"} font-nerdfont leading-none text-sub`}
-                    href={`${supportBaseUrl}/${window?.session?.locale ?? "en"}/articles/verification`}
+                    href={`${supportBaseUrl}/${window?.session?.locale ?? "en"}/article/verification`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
@@ -223,7 +223,7 @@ export default function Badges({
             icon: (
                 <a
                     className={`${largeIcons ? "text-lg" : "text-base"} font-nerdfont leading-none text-sub`}
-                    href={`${supportBaseUrl}/${window?.session?.locale ?? "en"}/articles/fair-use`}
+                    href={`${supportBaseUrl}/${window?.session?.locale ?? "en"}/article/fair-use`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
