@@ -35,11 +35,12 @@ export default function Metadata({
 
     if (!isTranslationReady) return null;
 
-    const isStudio = window.location.hostname.includes("studio.");
+    const isStudio = window.location.hostname.includes(window.config.domains.studio);
+    const isSupport = window.location.hostname.includes(window.config.domains.support);
 
     const formattedTitle = title 
-        ? `${title} | ${window.config.metadata.name}${isStudio ? " Studio" : ""}`
-        : `${window.config.metadata.name}${t("metadata.tagline") ? " | " : ""}${t("metadata.tagline")}${isStudio ? " Studio" : ""}`;
+        ? `${title} | ${window.config.metadata.name}${isStudio ? " Studio" : ""}${isSupport ? " Support" : ""}`
+        : `${window.config.metadata.name}${t("metadata.tagline") ? " | " : ""}${t("metadata.tagline")}${isStudio ? " Studio" : ""}${isSupport ? " Support" : ""}`;
 
     const formattedDescription = description || t("metadata.description") ;
     const formattedKeywords = [t("metadata.keywords"), keywords].filter(Boolean).join(", ");
