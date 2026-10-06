@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import Metadata from "../components/Metadata.js";
 import Marquee from "../components/Marquee.js";
+import { mainBaseUrl } from "../scripts/domains.js";
 
 export default function NotFound() {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -40,7 +41,7 @@ export default function NotFound() {
                     <div className="flex flex-row gap-2 w-full">
                         <Link
                             className="btn btn-accent flex-1"
-                            to="/"
+                            to={`${mainBaseUrl}`}
                         >
                             {t("pages.goHome")}
                         </Link>
