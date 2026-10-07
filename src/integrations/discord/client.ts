@@ -22,9 +22,9 @@ Create instances
 export const discord = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers, 
-        GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent,
+        // GatewayIntentBits.GuildMembers, 
+        // GatewayIntentBits.GuildMessages, 
+        // GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates
     ] 
 });
@@ -71,7 +71,7 @@ discord.once(Events.ClientReady, async (client) => {
     });
 });
 
-discord.login(getEnv(config.isProduction ? "INTEGRATION_DISCORD_BOT_TOKEN" : "INTEGRATION_DISCORD_DEV_BOT_TOKEN"));
+discord.login(getEnv("INTEGRATION_DISCORD_BOT_TOKEN") as string);
 
 process.once("SIGTERM", () => terminateApp(log));
 process.once("SIGINT", () => terminateApp(log));

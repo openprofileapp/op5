@@ -78,21 +78,13 @@ export default async function registerSlashCommands() {
     (discord as any).commands = commandsCollection;
 
     const rest = new REST({ version: "10" }).setToken(
-        getEnv(
-            config.isProduction
-                ? "INTEGRATION_DISCORD_BOT_TOKEN"
-                : "INTEGRATION_DISCORD_DEV_BOT_TOKEN"
-        )
+        getEnv("INTEGRATION_DISCORD_BOT_TOKEN") as string
     );
 
     try {
         await rest.put(
             Routes.applicationGuildCommands(
-                getEnv(
-                    config.isProduction
-                        ? "INTEGRATION_DISCORD_CLIENT_ID"
-                        : "INTEGRATION_DISCORD_DEV_CLIENT_ID"
-                ),
+                getEnv("INTEGRATION_DISCORD_CLIENT_ID") as string,
                 config.integrations.discord.guild.id
             ),
             { body: commandsArray }
