@@ -250,7 +250,7 @@ export const config = {
                             "Editing a character profile",
                             "Working on a character template",
                             "Inserting dataset entries",
-                            "Editing a block asset"
+                            "Editing a block"
                         ],
                     }
                 },
