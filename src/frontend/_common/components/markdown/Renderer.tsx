@@ -175,6 +175,35 @@ function renderTextWithColors(text: string): React.ReactNode {
     });
 }
 
+function renderMarkdownText(text: string): React.ReactNode {
+    const mentionParts = text.split(/<@([A-Za-z0-9_-]+)>/g);
+
+    return mentionParts.map((part, index) => {
+        if (index % 2 === 1) {
+            return (
+                <RenderMention
+                    key={`${part}-${index}`}
+                    id={part}
+                />
+            );
+        }
+
+        return renderTextWithColors(part);
+    });
+}
+
+function renderMarkdownChildren(
+    children: React.ReactNode
+): React.ReactNode {
+    return React.Children.map(children, (child) => {
+        if (typeof child === "string") {
+            return renderMarkdownText(child);
+        }
+
+        return child;
+    });
+}
+
 export interface MarkdownRendererProps {
     content?: string;
     className?: string;
@@ -255,6 +284,42 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                         return <u>{children}</u>;
                     },
 
+                    ul({ children }) {
+                        return (
+                            <ul className="list-disc pl-6 space-y-1">
+                                {children}
+                            </ul>
+                        );
+                    },
+
+                    ol({ children }) {
+                        return (
+                            <ol className="list-decimal pl-6 space-y-1">
+                                {children}
+                            </ol>
+                        );
+                    },
+
+                    li({ children }) {
+                        return (
+                            <li className="pl-1">
+                                {renderMarkdownChildren(children)}
+                            </li>
+                        );
+                    },
+
+                    hr() {
+                        return <div className="my-8 border-t border-base-300" />;
+                    },
+
+                    blockquote({ children }) {
+                        return (
+                            <blockquote className="border-l-4 border-base-300 pl-4 my-4 text-sub rounded">
+                                {renderMarkdownChildren(children)}
+                            </blockquote>
+                        );
+                    },
+
                     table({ children }) {
                         return (
                             <div className="overflow-x-auto border border-base-300 rounded p-0">
@@ -306,12 +371,20 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
                         return (
                             <code
-                                className={`!rounded px-1.5 py-0.5 font-mono text-sm ${
+                                className={`rounded px-1.5 py-0.5 font-mono text-sm bg-base-200 ${
                                     codeClassName || ""
                                 }`}
                             >
                                 {children}
                             </code>
+                        );
+                    },
+
+                    pre({ children }) {
+                        return (
+                            <pre className="rounded border border-base-300 bg-base-200 p-4 whitespace-pre-wrap break-words">
+                                {children}
+                            </pre>
                         );
                     },
 
@@ -333,26 +406,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
                         return (
                             <p className="mb-4 first:mt-0 last:mb-0">
-                                {React.Children.map(children, (child) => {
-                                    if (typeof child !== "string") {
-                                        return child;
-                                    }
-
-                                    const mentionParts = child.split(
-                                        /<@([A-Za-z0-9_-]+)>/g
-                                    );
-
-                                    return mentionParts.map((part, index) =>
-                                        index % 2 === 1 ? (
-                                            <RenderMention
-                                                key={`${part}-${index}`}
-                                                id={part}
-                                            />
-                                        ) : (
-                                            renderTextWithColors(part)
-                                        )
-                                    );
-                                })}
+                                {renderMarkdownChildren(children)}
                             </p>
                         );
                     },
