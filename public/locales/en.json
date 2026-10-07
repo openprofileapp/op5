@@ -29,7 +29,7 @@
     "unauthorized": "You do not have permission to perform this action",
     "badGateway": "Bad gateway. Try refreshing!",
     "failedCommand": "Error executing command! A report was filed and sent to the developer",
-    "noAccount": "You need an account to perfect this action",
+    "noAccount": "You need an account to perform this action",
     "database": "An error occurred while performing a database operation",
     "unknown": "An unknown error occurred",
     "webpush": "Failed to send push notification.",
