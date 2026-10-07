@@ -26,9 +26,12 @@ QUICK CONFIG
 // Disables Vite, unsafe SSL, and dev domains
 const isProduction = false;
 
+// Enable nightly mode
+const isNightly = true;
+
 // Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
-const stage = "beta"; // prealpha | alpha | beta | rc | release
+const stage = isNightly ? "nightly" : "beta"; // prealpha | alpha | beta | rc | release | nightly
 const build = "build-488a2af"; // DO NOT TOUCH, AUTO-GENERATED
 const buildDate = "2026-09-03T12:03:16.849Z"; // DO NOT TOUCH, AUTO-GENERATED
 
@@ -45,6 +48,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 
 export const config = {
     isProduction,
+    isNightly,
 
     // https://nerdfonts.com
     useNerdFonts: true,
@@ -234,7 +238,7 @@ export const config = {
                 status: "online", // online | idle | dnd | invisible
                 activity: {
                     type: "Playing", // Playing | Streaming | Listening | Watching | Competing
-                    text: `v${semver}-${stage}-${build}`,
+                    text: `v${semver}-${stage}${isNightly ? `-${build}` : ""}`,
                 }
             },
             modules: {
