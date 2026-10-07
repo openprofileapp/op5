@@ -156,7 +156,7 @@ export function formatShortRelative(dateInput?: string | number | Date): string 
     const diffHours = Math.abs(now.diff(dt, "hours").hours);
 
     if (diffHours < 48) {
-        return dt.toRelative({ style: "short" }) ?? "0 seconds ago";
+        return dt.toRelative() ?? "0 seconds ago";
     }
 
     return dt.toFormat("LLLL d, yyyy");
