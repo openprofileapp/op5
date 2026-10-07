@@ -66,7 +66,8 @@ export const config = {
             auth: false,
             api: false,
             cdn: false,
-            support: false
+            support: false,
+            discord_api: false
         }
     },
 
@@ -167,7 +168,8 @@ export const config = {
         api: isProduction ? "300M" : "1G",
         cdn: isProduction ? "150M" : "1G",
         support: isProduction ? "350M" : "1G",
-        discord_client: isProduction ? "150M" : "1G"
+        discord_client: isProduction ? "150M" : "1G",
+        discord_api: isProduction ? "150M" : "1G"
     },
 
     // Port numbers on localhost (default: 1052* and 3955*)
@@ -181,7 +183,7 @@ export const config = {
         api: 10525,
         cdn: 10526,
         support: 10527,
-        nightly: 10521,
+        discord_api: 10528,
         ws: {
             main: 39551,
             studio: 39552,
@@ -192,29 +194,31 @@ export const config = {
 
     // IP addresses assigned to each server
     ips: {
-        gateway: isProduction ? "127.0.0.0" : "127.0.0.0",
-        main: isProduction ? "127.0.0.0" : "127.0.0.0",
-        studio: isProduction ? "127.0.0.0" : "127.0.0.0",
-        status: isProduction ? "127.0.0.0" : "127.0.0.0",
-        auth: isProduction ? "127.0.0.0" : "127.0.0.0",
-        api: isProduction ? "127.0.0.0" : "127.0.0.0",
-        cdn: isProduction ? "127.0.0.0" : "127.0.0.0",
-        support: isProduction ? "127.0.0.0" : "127.0.0.0",
-        nightly: isProduction ? "127.0.0.0" : "127.0.0.0",
+        gateway: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        main: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        studio: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        status: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        auth: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        api: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        cdn: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        support: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        nightly: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        discord_api: !isNightly ? "127.0.0.0" : "127.0.0.0"
     },
 
     // Domains assigned to each server
     domains: {
-        gateway: isProduction ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
-        main: isProduction ? "prod.openprofile.app" : "dev.openprofile.app",
-        studio: isProduction ? "studio.prod.openprofile.app" : "studio.dev.openprofile.app",
-        status: isProduction ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
-        auth: isProduction ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
-        api: isProduction ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
-        cdn: isProduction ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
-        support: isProduction ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
-        nightly: isProduction ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
-        shortlink: isProduction ? "prod.op5.to" : "dev.op5.to"
+        gateway: !isNightly ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
+        main: !isNightly ? "prod.openprofile.app" : "dev.openprofile.app",
+        studio: !isNightly ? "studio.prod.openprofile.app" : "studio.dev.openprofile.app",
+        status: !isNightly ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
+        auth: !isNightly ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
+        api: !isNightly ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
+        cdn: !isNightly ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
+        support: !isNightly ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
+        nightly: !isNightly ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
+        shortlink: !isNightly ? "prod.op5.to" : "dev.op5.to",
+        discord_api: !isNightly ? "discord-api.prod.openprofile.app" : "discord-api.dev.openprofile.app",
     },
 
     // Third-party applications
