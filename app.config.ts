@@ -218,6 +218,7 @@ export const config = {
         support: !isNightly ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
         nightly: !isNightly ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
         shortlink: !isNightly ? "prod.op5.to" : "dev.op5.to",
+        // DEVELOPER NEEDED: Discord api should only run on stable, not nightly
         discord_api: !isNightly ? "discord-api.prod.openprofile.app" : "discord-api.dev.openprofile.app",
     },
 
@@ -239,6 +240,20 @@ export const config = {
         },
         discord: {
             presence: {
+                assistant: {
+                    status: "dnd", // online | idle | dnd | invisible
+                    activity: {
+                        type: "Playing", // Playing | Streaming | Listening | Watching | Competing
+                        text: [
+                            "Viewing a user profile",
+                            "Reading a character profile",
+                            "Editing a character profile",
+                            "Working on a character template",
+                            "Inserting dataset entries",
+                            "Editing a block asset"
+                        ],
+                    }
+                },
                 status: "online", // online | idle | dnd | invisible
                 activity: {
                     type: "Playing", // Playing | Streaming | Listening | Watching | Competing
