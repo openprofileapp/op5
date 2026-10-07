@@ -22,6 +22,7 @@ import PublishModal, { PublishModalRef } from "../../studio/components/modals/Pu
 import UnpublishModal, { UnpublishModalRef } from "../../studio/components/modals/UnpublishModal.js";
 import EditTemplateModal, { EditTemplateModalRef } from "../components/modals/EditTemplateModal.js";
 import EditCharacterModal, { EditCharacterModalRef } from "../components/modals/EditCharacterModal.js";
+import FeedbackModal, { FeedbackModalRef } from "../components/modals/FeedbackModal.js";
 
 interface ModalContextType {
     notificationsModal: {
@@ -112,6 +113,10 @@ interface ModalContextType {
         open: (...args: Parameters<UnpublishModalRef["open"]>) => ReturnType<UnpublishModalRef["open"]> | undefined;
         close: () => void;
     };
+    feedbackModal: {
+        open: (...args: Parameters<FeedbackModalRef["open"]>) => ReturnType<FeedbackModalRef["open"]> | undefined;
+        close: () => void;
+    };
 }
 
 const ModalContext = createContext<ModalContextType | null>(null);
@@ -139,6 +144,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const editBlockModalRef = useRef<EditBlockModalRef>(null);
     const publishModalRef = useRef<PublishModalRef>(null);
     const unpublishModalRef = useRef<UnpublishModalRef>(null);
+    const feedbackModalRef = useRef<FeedbackModalRef>(null);
 
     const value = useMemo(
         () => ({
@@ -318,6 +324,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                     unpublishModalRef.current?.close();
                 },
             },
+            feedbackModal: {
+                open: (...args: Parameters<FeedbackModalRef["open"]>) => {
+                    return feedbackModalRef.current?.open(...args);
+                },
+                close: () => {
+                    feedbackModalRef.current?.close();
+                },
+            },
         }),
         []
     );
@@ -346,6 +360,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <EditBlockModal ref={editBlockModalRef} />
             <PublishModal ref={publishModalRef} />
             <UnpublishModal ref={unpublishModalRef} />
+            <FeedbackModal ref={feedbackModalRef} />
 
             {children}
         </ModalContext.Provider>

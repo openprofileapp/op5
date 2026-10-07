@@ -10,10 +10,18 @@ import { log } from "../instances.js"
 
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {
+        isProduction: config.isProduction,
         useNerdFonts: config.useNerdFonts,
         theme: config.theme,
         metadata: config.metadata,
-        domains: config.domains
+        domains: config.domains,
+        integrations: {
+            webPush: config.integrations.webPush,
+            hcaptcha: config.integrations.hcaptcha,
+            adsence: config.integrations.adsence,
+            brandfetch: config.integrations.brandfetch,
+            oauth2: config.integrations.oauth2
+        },
     }
 
     try {

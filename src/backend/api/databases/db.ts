@@ -24,7 +24,8 @@ const paths = {
     notifications: "data/databases/notifications.sqlite",
     advertisements: "data/databases/advertisements.sqlite",
     templates: "data/databases/templates.sqlite",
-    blocks: "data/databases/blocks.sqlite"
+    blocks: "data/databases/blocks.sqlite",
+    articles: "data/databases/articles.sqlite"
 }
 
 export const db = {
@@ -43,7 +44,8 @@ export const db = {
     notifications: new Database(paths.notifications),
     advertisements: new Database(paths.advertisements),
     templates: new Database(paths.templates),
-    blocks: new Database(paths.blocks)
+    blocks: new Database(paths.blocks),
+    articles: new Database(paths.articles)
 };
 
 db.audits.transaction(q => {
@@ -502,6 +504,23 @@ db.templates.transaction(q => {
 
     if (!q("SELECT * FROM draft_datasets LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/templates/drafts/draft_datasets.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+});
+
+db.articles.transaction(q => {
+    if (!q("SELECT * FROM views LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/articles/views.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM votes LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/articles/votes.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM feedback LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/articles/feedback.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });

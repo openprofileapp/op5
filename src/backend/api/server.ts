@@ -30,6 +30,7 @@ import metadataRoute from "./routes/metadata.route.js";
 import presenceRoute from "./routes/presence.route.js";
 import templateRoutes from "./routes/template.routes.js";
 import blockRoutes from "./routes/block.routes.js";
+import articleRoutes from "./routes/article.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -175,6 +176,13 @@ v3.use(
     "/postregister", 
     rateLimitMiddleware(240), 
     postregisterRoute
+);
+
+v3.use(
+    "/articles", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    articleRoutes
 );
 
 /* 

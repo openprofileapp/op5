@@ -44,4 +44,4 @@ To submit an application, send an email to `support@openprofile.app` explaining 
 
 OpenProfile will review submissions on a case-by-case basis. Verification typically takes 2–4 weeks depending on the volume of applications and the type of content submitted.
 
--# OpenProfile and its systems are still incomplete and are subject to change by the time of full release.
+##### OpenProfile and its systems are still incomplete and are subject to change by the time of full release.
