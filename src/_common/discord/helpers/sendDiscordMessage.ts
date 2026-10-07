@@ -1,6 +1,6 @@
 import { TextChannel, DMChannel, NewsChannel, ThreadChannel } from "discord.js";
 
-import { discord, log } from "../client.js";
+import { discord, log } from "../../../integrations/discord/client.js";
 import { config } from "../../../../app.config.js";
 
 /**
