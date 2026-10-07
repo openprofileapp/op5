@@ -2,6 +2,9 @@ import https from "https";
 import express, { Router } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
+import { Client, Events, GatewayIntentBits, ActivityType } from "discord.js";
+
+import { parseDuration } from "kage-library";
 
 import { config } from "../../../app.config.js";
 import { log } from "./instances.js";
@@ -23,6 +26,12 @@ const app = express();
 app.set("trust proxy", 1);
 app.set("json spaces", 2);
 const v1 = Router();
+
+export const discord = new Client({ 
+    intents: [
+        GatewayIntentBits.Guilds,
+    ] 
+});
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -51,6 +60,70 @@ v1.use(
     rateLimitMiddleware(240), 
     whatIsRoute
 );
+
+/* 
+————————————————————————————————————————————————————————————————
+Client
+———————————————————————————————————————————————————————————————— 
+*/
+
+discord.once(Events.ClientReady, async (client) => {
+    if (config.isProduction) {
+        // Mark Discord bot hosting servers (e.g, BisectHosting) as ONLINE
+        log.network.info("successfully finished startup"); // Must be all lowercase
+    }
+
+    log.discord.info(`Client logged in as ${client.user.tag}`);
+
+    const activities =
+        config.integrations.discord.presence.assistant.activity.text;
+
+    let previousActivity: string | undefined;
+
+    const updatePresence = () => {
+        if (!activities?.length) return;
+
+        const availableActivities =
+            activities.length > 1
+                ? activities.filter(
+                      (activity) => activity !== previousActivity,
+                  )
+                : activities;
+
+        const activity =
+            availableActivities[
+                Math.floor(Math.random() * availableActivities.length)
+            ];
+
+        previousActivity = activity;
+
+        client.user.setPresence({
+            status: config.integrations.discord.presence.assistant.status,
+            activities: [
+                {
+                    name: activity,
+                    type: ActivityType[
+                        config.integrations.discord.presence.assistant.activity.type
+                    ],
+                },
+            ],
+        });
+
+        const minDelay = parseDuration("10s");
+        const maxDelay = parseDuration("60m");
+
+        const delay =
+            Math.floor(
+                Math.random() * (maxDelay - minDelay + 1),
+            ) + minDelay;
+
+        setTimeout(updatePresence, delay);
+    };
+
+    updatePresence();
+});
+
+discord.login(getEnv("INTEGRATION_DISCORD_ASSISTANT_BOT_TOKEN") as string);
 
 /* 
 ————————————————————————————————————————————————————————————————
