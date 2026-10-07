@@ -16,6 +16,7 @@ export const statusController = async (req: Request, res: Response) => {
     const support = await wc.ping(`https://${config.domains.support}`);
     const nightly = await wc.ping(`https://${config.domains.nightly}`);
     const gateway = await wc.ping(`https://${config.domains.gateway}`);
+    const discord_api = await wc.ping(`https://${config.domains.discord_api}`);
 
     res.json({ 
         main,
@@ -25,6 +26,7 @@ export const statusController = async (req: Request, res: Response) => {
         cdn, 
         support,
         nightly,
-        gateway 
+        gateway,
+        discord_api
     });
 };

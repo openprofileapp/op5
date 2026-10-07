@@ -109,6 +109,17 @@ module.exports = {
         NODE_OPTIONS: "--no-warnings",
         FORCE_COLOR: "1"
       }
+    },
+    {
+      name: "discord_api",
+      script: "./dist/src/backend/discord-api/server.js",
+      interpreter: "node",
+      autorestart: true,
+      max_memory_restart: "300M",
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
     }
   ],
 };

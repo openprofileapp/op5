@@ -38,6 +38,12 @@
       "folderNames": ["discord"]
     },
     {
+      "name": "discord-api",
+      "base": "robot",
+      "color": "#5865F2",
+      "folderNames": ["discord-api"]
+    },
+    {
       "name": "studio",
       "base": "ui",
       "color": "#ff6f43",

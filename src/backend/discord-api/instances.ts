@@ -1,0 +1,16 @@
+import { Logger, Snowflake, WebClient } from "kage-library";
+
+import { config } from "../../../app.config.js";
+
+export const log = new Logger({
+    path: "/logs/discord-api",
+    useNerdFonts: config.useNerdFonts,
+    saveAllToFile: config.debug.logger.api
+});
+
+export const snowflake = new Snowflake(config.generation.epoch, 2);
+
+export const wc = new WebClient({
+    crawler: config.crawler,
+    useSecureSSL: config.isProduction
+});

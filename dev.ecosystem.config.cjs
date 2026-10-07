@@ -208,6 +208,27 @@ module.exports = {
         NODE_OPTIONS: "--no-warnings",
         FORCE_COLOR: "1"
       }
+    },
+    {
+      name: "discord_api",
+      script: "./src/backend/discord-api/server.ts",
+      interpreter: "node",
+      node_args: "--import tsx",
+      autorestart: true,
+      max_memory_restart: "1G",
+      watch: [
+        "./app.config.ts",
+        "./src/backend/discord-api",
+        "./src/backend/_common",
+        "./src/_common"
+      ],
+      ignore_watch: [
+        "**/*.tsx"
+      ],
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
     }
   ]
 };
