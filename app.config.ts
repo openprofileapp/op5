@@ -67,7 +67,8 @@ export const config = {
             api: false,
             cdn: false,
             support: false,
-            discord_api: false
+            discord_api: false,
+            console: false
         }
     },
 
@@ -169,7 +170,8 @@ export const config = {
         cdn: isProduction ? "150M" : "1G",
         support: isProduction ? "350M" : "1G",
         discord_client: isProduction ? "150M" : "1G",
-        discord_api: isProduction ? "150M" : "1G"
+        discord_api: isProduction ? "150M" : "1G",
+        console: isProduction ? "150M" : "1G"
     },
 
     // Port numbers on localhost (default: 1052* and 3955*)
@@ -184,11 +186,13 @@ export const config = {
         cdn: 10526,
         support: 10527,
         discord_api: 10528,
+        console: 10529,
         ws: {
             main: 39551,
             studio: 39552,
             status: 39553,
-            support: 39554
+            support: 39554,
+            console: 39555
         }
     },
 
@@ -203,7 +207,8 @@ export const config = {
         cdn: !isNightly ? "127.0.0.0" : "127.0.0.0",
         support: !isNightly ? "127.0.0.0" : "127.0.0.0",
         nightly: !isNightly ? "127.0.0.0" : "127.0.0.0",
-        discord_api: !isNightly ? "127.0.0.0" : "127.0.0.0"
+        discord_api: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        console: !isNightly ? "127.0.0.0" : "127.0.0.0"
     },
 
     // Domains assigned to each server
@@ -220,6 +225,7 @@ export const config = {
         shortlink: !isNightly ? "prod.op5.to" : "dev.op5.to",
         // DEVELOPER NEEDED: Discord api should only run on stable, not nightly
         discord_api: !isNightly ? "discord-api.prod.openprofile.app" : "discord-api.dev.openprofile.app",
+        console: !isNightly ? "console.prod.openprofile.app" : "console.dev.openprofile.app",
     },
 
     // Third-party applications
@@ -268,7 +274,8 @@ export const config = {
             },
             channels: {
                 commands: "907182663775948841",
-                commandsDev: "00000000000000000"
+                commandsDev: "1514196888138678392",
+                logs: "1207075758082629692"
             }
         }
     },
