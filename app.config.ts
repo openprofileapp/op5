@@ -34,6 +34,13 @@ const semver = "5.1.0"; // 5.major.minor.patch
 const stage = isNightly ? "nightly" : "beta"; // prealpha | alpha | beta | rc | release | nightly
 const build = "build-488a2af"; // DO NOT TOUCH, AUTO-GENERATED
 const buildDate = "2026-09-03T12:03:16.849Z"; // DO NOT TOUCH, AUTO-GENERATED
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const fullVersion = stage === "release"
+        ? semver
+        : stage === "beta"
+            ? `${semver}-${stage}`
+            : `${semver}-${stage}-${build}`;
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -120,7 +127,7 @@ export const config = {
         version: {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            full: `${stage === "release" ? semver : [semver, stage, build].filter(Boolean).join("-")}`,
+            full: fullVersion,
             semver,
             stage,
             build,
@@ -213,19 +220,97 @@ export const config = {
 
     // Domains assigned to each server
     domains: {
-        gateway: !isNightly ? "gateway.prod.openprofile.app" : "gateway.dev.openprofile.app",
-        main: !isNightly ? "prod.openprofile.app" : "dev.openprofile.app",
-        studio: !isNightly ? "studio.prod.openprofile.app" : "studio.dev.openprofile.app",
-        status: !isNightly ? "status.prod.openprofile.app" : "status.dev.openprofile.app",
-        auth: !isNightly ? "auth.prod.openprofile.app" : "auth.dev.openprofile.app",
-        api: !isNightly ? "api.prod.openprofile.app" : "api.dev.openprofile.app",
-        cdn: !isNightly ? "cdn.prod.openprofile.app" : "cdn.dev.openprofile.app",
-        support: !isNightly ? "support.prod.openprofile.app" : "support.dev.openprofile.app",
-        nightly: !isNightly ? "nightly.prod.openprofile.app" : "nightly.dev.openprofile.app",
-        shortlink: !isNightly ? "prod.op5.to" : "dev.op5.to",
-        // DEVELOPER NEEDED: Discord api should only run on stable, not nightly
-        discord_api: !isNightly ? "discord-api.prod.openprofile.app" : "discord-api.dev.openprofile.app",
-        console: !isNightly ? "console.prod.openprofile.app" : "console.dev.openprofile.app",
+        gateway: isProduction
+            ? isNightly
+                ? "nightly.gateway.prod.openprofile.app"
+                : "gateway.prod.openprofile.app"
+            : isNightly
+                ? "nightly.gateway.dev.openprofile.app"
+                : "gateway.dev.openprofile.app",
+
+        main: isProduction
+            ? isNightly
+                ? "nightly.prod.openprofile.app"
+                : "prod.openprofile.app"
+            : isNightly
+                ? "nightly.dev.openprofile.app"
+                : "dev.openprofile.app",
+
+        studio: isProduction
+            ? isNightly
+                ? "nightly.studio.prod.openprofile.app"
+                : "studio.prod.openprofile.app"
+            : isNightly
+                ? "nightly.studio.dev.openprofile.app"
+                : "studio.dev.openprofile.app",
+
+        status: isProduction
+            ? isNightly
+                ? "nightly.status.prod.openprofile.app"
+                : "status.prod.openprofile.app"
+            : isNightly
+                ? "nightly.status.dev.openprofile.app"
+                : "status.dev.openprofile.app",
+
+        auth: isProduction
+            ? isNightly
+                ? "nightly.auth.prod.openprofile.app"
+                : "auth.prod.openprofile.app"
+            : isNightly
+                ? "nightly.auth.dev.openprofile.app"
+                : "auth.dev.openprofile.app",
+
+        api: isProduction
+            ? isNightly
+                ? "nightly.api.prod.openprofile.app"
+                : "api.prod.openprofile.app"
+            : isNightly
+                ? "nightly.api.dev.openprofile.app"
+                : "api.dev.openprofile.app",
+
+        cdn: isProduction
+            ? isNightly
+                ? "nightly.cdn.prod.openprofile.app"
+                : "cdn.prod.openprofile.app"
+            : isNightly
+                ? "nightly.cdn.dev.openprofile.app"
+                : "cdn.dev.openprofile.app",
+
+        support: isProduction
+            ? isNightly
+                ? "nightly.support.prod.openprofile.app"
+                : "support.prod.openprofile.app"
+            : isNightly
+                ? "nightly.support.dev.openprofile.app"
+                : "support.dev.openprofile.app",
+
+        nightly: isProduction
+            ? "nightly.prod.openprofile.app"
+            : "nightly.dev.openprofile.app",
+
+        shortlink: isProduction
+            ? isNightly
+                ? "nightly.prod.op5.to"
+                : "prod.op5.to"
+            : isNightly
+                ? "nightly.dev.op5.to"
+                : "dev.op5.to",
+
+        discord_api: isProduction
+            ? isNightly
+                ? "nightly.discord-api.prod.openprofile.app"
+                : "discord-api.prod.openprofile.app"
+            : isNightly
+                ? "nightly.discord-api.dev.openprofile.app"
+                : "discord-api.dev.openprofile.app",
+
+        console: isProduction
+            ? isNightly
+                ? "nightly.console.prod.openprofile.app"
+                : "console.prod.openprofile.app"
+            : isNightly
+                ? "nightly.console.dev.openprofile.app"
+                : "console.dev.openprofile.app",
     },
 
     // Third-party applications
@@ -263,7 +348,7 @@ export const config = {
                 status: "online", // online | idle | dnd | invisible
                 activity: {
                     type: "Playing", // Playing | Streaming | Listening | Watching | Competing
-                    text: `v${semver}-${stage}${isNightly ? `-${build}` : ""}`,
+                    text: fullVersion,
                 }
             },
             modules: {
@@ -273,6 +358,7 @@ export const config = {
                 id: "854387025837817917"
             },
             channels: {
+                status: "1226198336009408583",
                 commands: "907182663775948841",
                 commandsDev: "1514196888138678392",
                 logs: "1207075758082629692"
