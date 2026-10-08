@@ -14,7 +14,7 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
-import whatIsRoute from "./routes/whatIs.route.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -50,9 +50,9 @@ app.use("/health", healthRoute);
 app.use("/v3", v1);
 
 v1.use(
-    "/whatis", 
+    "/", 
     rateLimitMiddleware(240), 
-    whatIsRoute
+    notificationRoutes
 );
 
 /* 
