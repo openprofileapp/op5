@@ -32,4 +32,8 @@ export const discord = new Client({
     ] 
 });
 
-export const discordMessage = new DiscordMessage(discord, log);
+export const discordMessage = new DiscordMessage(
+    discord, 
+    log,
+    config.integrations.discord.guild.id
+);
