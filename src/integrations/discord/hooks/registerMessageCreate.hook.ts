@@ -1,4 +1,4 @@
-import { discord } from "../client.js";
+import { discord } from "../instances.js";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export default function registerMessageCreate() {

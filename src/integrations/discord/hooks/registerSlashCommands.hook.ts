@@ -11,7 +11,7 @@ import { I18nService } from "kage-library";
 
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { discord, log } from "../client.js";
+import { discord, log } from "../instances.js";
 
 type Command = {
     data: pkg.SlashCommandBuilder;
