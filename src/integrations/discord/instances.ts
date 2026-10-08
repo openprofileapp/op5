@@ -29,7 +29,7 @@ export const discord = new Client({
         // GatewayIntentBits.GuildMessages, 
         // GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates
-    ] 
+    ]
 });
 
 export const discordMessage = new DiscordMessage(

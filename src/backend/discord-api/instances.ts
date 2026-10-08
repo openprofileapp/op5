@@ -25,7 +25,7 @@ export const wc = new WebClient({
 export const discord = new Client({ 
     intents: [
         GatewayIntentBits.Guilds
-    ] 
+    ]
 });
 
 export const discordMessage = new DiscordMessage(
