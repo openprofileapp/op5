@@ -2,31 +2,43 @@ import type { Request, Response } from 'express';
 
 import { config } from '../../../../app.config.js';
 import { wc } from '../../_common/instances.js';
+import { assertApiSecret } from '../../_common/asserts/apiSecret.assert.js';
 
 export const statusController = async (req: Request, res: Response) => {
+    assertApiSecret(req);
 
-    // DEVELOPER NEEDED: ADD API SECRET AUTH HERE
+    function cleanUrl(url: string) {
+        return url.replace("nightly.", "");
+    }
 
     // Do not ping the status server
-    const main = await wc.ping(`https://${config.domains.main}`);
-    const studio = await wc.ping(`https://${config.domains.studio}/health`);
-    const auth = await wc.ping(`https://${config.domains.auth}/health`);
-    const api = await wc.ping(`https://${config.domains.api}/health`);
-    const cdn = await wc.ping(`https://${config.domains.cdn}/health`);
-    const support = await wc.ping(`https://${config.domains.support}`);
-    const nightly = await wc.ping(`https://${config.domains.nightly}`);
-    const gateway = await wc.ping(`https://${config.domains.gateway}`);
-    const discord_api = await wc.ping(`https://${config.domains.discord_api}`);
+    const stable = {
+        main: await wc.ping(`https://${cleanUrl(config.domains.main)}/health`),
+        studio: await wc.ping(`https://${cleanUrl(config.domains.studio)}/health`),
+        auth: await wc.ping(`https://${cleanUrl(config.domains.auth)}/health`),
+        api: await wc.ping(`https://${cleanUrl(config.domains.api)}/health`),
+        cdn: await wc.ping(`https://${cleanUrl(config.domains.cdn)}/health`),
+        support: await wc.ping(`https://${cleanUrl(config.domains.support)}/health`),
+        console: await wc.ping(`https://${cleanUrl(config.domains.console)}/health`),
+        gateway: await wc.ping(`https://${cleanUrl(config.domains.gateway)}`),
+        shortlink: await wc.ping(`https://${cleanUrl(config.domains.shortlink)}/health`),
+        discord_api: await wc.ping(`https://${cleanUrl(config.domains.discord_api)}/health`)
+    };
 
-    res.json({ 
-        main,
-        studio,
-        auth,
-        api, 
-        cdn, 
-        support,
-        nightly,
-        gateway,
-        discord_api
+    // Do not ping the status server
+    const nightly = {
+        main: await wc.ping(`https://nightly.${cleanUrl(config.domains.main)}/health`),
+        studio: await wc.ping(`https://nightly.${cleanUrl(config.domains.studio)}/health`),
+        auth: await wc.ping(`https://nightly.${cleanUrl(config.domains.auth)}/health`),
+        api: await wc.ping(`https://nightly.${cleanUrl(config.domains.api)}/health`),
+        cdn: await wc.ping(`https://nightly.${cleanUrl(config.domains.cdn)}/health`),
+        support: await wc.ping(`https://nightly.${cleanUrl(config.domains.support)}/health`),
+        console: await wc.ping(`https://nightly.${cleanUrl(config.domains.console)}/health`),
+        gateway: await wc.ping(`https://nightly.${cleanUrl(config.domains.gateway)}`)
+    };
+
+    res.json({
+        stable,
+        nightly
     });
 };
