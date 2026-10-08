@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { AdvancedError } from "kage-library";
-import { log } from "../instances.js";
+import { log, wc } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
@@ -9,6 +9,8 @@ import postInteractionService from "../services/postInteraction.service.js";
 import sendNotificationService from "../services/sendNotification.service.js";
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
 import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
+import { config } from "../../../../app.config.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 
 export const postregisterController = async (req: Request, res: Response) => {
     try {
@@ -133,6 +135,19 @@ export const postregisterController = async (req: Request, res: Response) => {
             id,
             "9534968913312158", 
             "follows"
+        );
+
+        await wc.callAPI(
+            `https://${config.domains.discord_api}/v1/accounts/new`,
+            {
+                method: "POST",
+                auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                body: {
+                    userId: id,
+                    username,
+                    displayName
+                }
+            }
         );
     } catch(error) {
         if (error instanceof AdvancedError) {
