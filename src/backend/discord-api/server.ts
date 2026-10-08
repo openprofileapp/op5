@@ -7,7 +7,7 @@ import { Events, ActivityType } from "discord.js";
 import { parseDuration } from "kage-library";
 
 import { config } from "../../../app.config.js";
-import { discord, discordMessage, log } from "./instances.js";
+import { discord, log } from "./instances.js";
 import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
@@ -146,8 +146,4 @@ cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
     
     log.cleanLogs();
-});
-
-await discordMessage.send("1514196888138678392", {
-    content: "Test",
 });
