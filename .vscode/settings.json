@@ -28,7 +28,9 @@
     "*.iss": "disc",
     "server.ts": "nodejs_alt",
     "proxy.ts": "nodejs_alt",
-    "gateway.ts": "nodejs_alt"
+    "gateway.ts": "nodejs_alt",
+    "instances.ts": "instances",
+    "client.ts": "client"
   },
   "material-icon-theme.folders.customClones": [
     {
@@ -116,6 +118,18 @@
       "base": "database",
       "color": "#7e57c2",
       "fileExtensions": ["db.preload.ts", "db.preload.js"]
+    },
+    {
+      "name": "instances",
+      "base": "nodejs_alt",
+      "color": "#888888",
+      "fileExtensions": ["instances.ts", "instances.js"]
+    },
+    {
+      "name": "client",
+      "base": "nodejs_alt",
+      "color": "#1e88e5",
+      "fileExtensions": ["client.ts", "client.js"]
     }
   ],
   "editor.tokenColorCustomizations": {
