@@ -31,6 +31,7 @@ import presenceRoute from "./routes/presence.route.js";
 import templateRoutes from "./routes/template.routes.js";
 import blockRoutes from "./routes/block.routes.js";
 import articleRoutes from "./routes/article.routes.js";
+import checkRoute from "./routes/check.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -183,6 +184,12 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     articleRoutes
+);
+
+v3.use(
+    "/check", 
+    rateLimitMiddleware(240), 
+    checkRoute
 );
 
 /* 

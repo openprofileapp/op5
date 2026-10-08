@@ -15,6 +15,8 @@ import { maintenanceMiddleware } from "../_common/middlewares/maintenance.middle
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import getPlatformStatusService from "./services/getPlatformStatus.service.js";
+import commonRoutes from "../_common/routes/common.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -47,6 +49,8 @@ Routes
 */
 
 app.use("/health", healthRoute);
+app.use("/", commonRoutes);
+
 app.use("/v1", v1);
 
 v1.use(
@@ -146,4 +150,11 @@ cron.schedule("0 0 * * *", () => {
     log.cron.info("Running daily tasks...");
     
     log.cleanLogs();
+});
+
+// Run on start then every minute
+await getPlatformStatusService();
+
+cron.schedule("* * * * *", async () => {
+    await getPlatformStatusService();
 });

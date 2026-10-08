@@ -17,6 +17,7 @@ import appRoute from "./routes/app.route.js";
 import commonRoutes from "../_common/routes/common.routes.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import articleRoutes from "./routes/article.routes.js";
+import healthRoute from "../_common/routes/health.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -59,6 +60,7 @@ Routes
 
 if (!vite) app.use(express.static(path.join(config.folders.root, "src", "frontend")));
 
+app.use("/health", healthRoute);
 app.use("/", router);
 
 router.use("/", commonRoutes);

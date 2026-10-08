@@ -16,6 +16,7 @@ import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js"
 import appRoute from "./routes/app.route.js";
 import statusRoute from "./routes/status.route.js";
 import path from "path";
+import commonRoutes from "../_common/routes/common.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -58,25 +59,11 @@ Routes
 
 if (!vite) app.use(express.static(path.join(config.folders.root, "src", "frontend")));
 
+app.use("/", commonRoutes);
 app.use("/", router);
 
 router.use("/check", statusRoute); // Must remain prioritized to prevent React controlling the path
 router.use("/", appRoute);
-
-// MERGE WITH CHECK? EARLY-BETA CODE
-/*
-("/now", (req, res) => {
-    res.status(200).send({
-        online: guard.online.size, 
-        max: guard.max,
-        users: format_number(Math.ceil((database.query("accounts", "SELECT COUNT(*) AS length FROM public"))?.length), "long"),
-        profiles: format_number(Math.ceil((database.query("profiles", "SELECT COUNT(*) AS length FROM published"))?.length), "long"),
-        drafts: format_number(Math.ceil((database.query("profiles", "SELECT COUNT(*) AS length FROM draft WHERE (deleted IS NULL OR deleted != 1)"))?.length), "long"),
-        views: format_number(Math.ceil((database.query("interactions", "SELECT COUNT(*) AS length FROM views"))?.length), "long"),
-        reads: format_number(Math.ceil((database.query("interactions", "SELECT COUNT(*) AS length FROM reads"))?.length), "long"),
-    });
-});
-*/
 
 // DEVELOPER NEEDED: https://status.dev.openprofile.app/
 // AUTO-CREATE INCIDENTS BASED ON LATENCY AND LOG THEM TO A DATABASE

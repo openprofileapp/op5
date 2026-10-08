@@ -22,6 +22,7 @@ import switchRoutes from "./routes/switch.route.js";
 import logoutRoute from "./routes/logout.route.js";
 import connectRoute from "./routes/connection/connect.route.js";
 import disconnectRoute from "./routes/connection/disconnect.route.js";
+import checkRoute from "./routes/check.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -63,6 +64,12 @@ router.use("/logout", validateSessionMiddleware, rateLimitMiddleware(10), logout
 router.use("/connect", rateLimitMiddleware(120), connectRoute);
 router.use("/disconnect", rateLimitMiddleware(120), disconnectRoute);
 // router.use("/mfa", validateSessionMiddleware, rateLimitMiddleware(20), mfaRoutes);
+
+router.use(
+    "/check", 
+    rateLimitMiddleware(240), 
+    checkRoute
+);
 
 /* 
 ————————————————————————————————————————————————————————————————

@@ -20,6 +20,7 @@ import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js"
 import websocketRoute from "./routes/websocket.route.js";
 import { wc } from "../_common/instances.js";
 import { checkIdleTimer } from "../_common/helpers/presence.js";
+import healthRoute from "../_common/routes/health.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -62,6 +63,7 @@ Routes
 
 if (!vite) app.use(express.static(path.join(config.folders.root, "src", "frontend")));
 
+app.use("/health", healthRoute);
 app.use("/", router);
 
 router.use("/", commonRoutes);
