@@ -13,7 +13,7 @@ export const newAccountController = async (req: Request, res: Response) => {
             userId,
             username,
             displayName
-        } = req.params;
+        } = req.body;
 
         if (!userId) return;
 
