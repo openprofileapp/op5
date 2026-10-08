@@ -2,12 +2,12 @@ import https from "https";
 import express, { Router } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
-import { Client, Events, GatewayIntentBits, ActivityType } from "discord.js";
+import { Events, ActivityType } from "discord.js";
 
 import { parseDuration } from "kage-library";
 
 import { config } from "../../../app.config.js";
-import { discordMessage, log } from "./instances.js";
+import { discord, discordMessage, log } from "./instances.js";
 import getEnv from "../../_common/helpers/getEnv.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
@@ -26,12 +26,6 @@ const app = express();
 app.set("trust proxy", 1);
 app.set("json spaces", 2);
 const v1 = Router();
-
-export const discord = new Client({ 
-    intents: [
-        GatewayIntentBits.Guilds,
-    ] 
-});
 
 /* 
 ————————————————————————————————————————————————————————————————
