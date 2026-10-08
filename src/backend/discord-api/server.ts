@@ -123,7 +123,7 @@ discord.once(Events.ClientReady, async (client) => {
     updatePresence();
 });
 
-discord.login(getEnv("INTEGRATION_DISCORD_ASSISTANT_BOT_TOKEN") as string);
+await discord.login(getEnv("INTEGRATION_DISCORD_ASSISTANT_BOT_TOKEN") as string);
 
 /* 
 ————————————————————————————————————————————————————————————————

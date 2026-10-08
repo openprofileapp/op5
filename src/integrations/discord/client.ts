@@ -38,7 +38,7 @@ discord.once(Events.ClientReady, async (client) => {
     });
 });
 
-discord.login(getEnv("INTEGRATION_DISCORD_BOT_TOKEN") as string);
+await discord.login(getEnv("INTEGRATION_DISCORD_BOT_TOKEN") as string);
 
 process.once("SIGTERM", () => terminateApp(log));
 process.once("SIGINT", () => terminateApp(log));
