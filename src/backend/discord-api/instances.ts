@@ -1,6 +1,13 @@
-import { Logger, Snowflake, WebClient } from "kage-library";
+import { Client, GatewayIntentBits } from "discord.js";
 
-import { config } from "../../../app.config.js";
+import { 
+    Logger,
+    Snowflake,
+    WebClient
+} from "kage-library";
+
+import { config } from "../../../app.config.js"
+import DiscordMessage from "../../_common/discord/classes/discordMessage.js";
 
 export const log = new Logger({
     path: "/logs/discord-api",
@@ -14,3 +21,11 @@ export const wc = new WebClient({
     crawler: config.crawler,
     useSecureSSL: config.isProduction
 });
+
+export const discord = new Client({ 
+    intents: [
+        GatewayIntentBits.Guilds
+    ] 
+});
+
+export const discordMessage = new DiscordMessage(discord, log);
