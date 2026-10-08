@@ -47,7 +47,7 @@ Routes
 */
 
 app.use("/health", healthRoute);
-app.use("/v3", v1);
+app.use("/v1", v1);
 
 v1.use(
     "/", 
