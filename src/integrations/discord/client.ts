@@ -1,45 +1,12 @@
-import { Client, Events, GatewayIntentBits, ActivityType } from "discord.js";
+import { Events, ActivityType } from "discord.js";
 import cron from "node-cron";
-
-import { 
-    Logger,
-    Snowflake,
-    WebClient
-} from "kage-library";
 
 import { config } from "../../../app.config.js"
 import getEnv from "../../_common/helpers/getEnv.js"
+import { discord, log } from "./instances.js";
 import terminateApp from "../../_common/helpers/terminateApp.js";
 import registerSlashCommands from "./hooks/registerSlashCommands.hook.js";
 import registerMessageCreate from "./hooks/registerMessageCreate.hook.js";
-
-/* 
-————————————————————————————————————————————————————————————————
-Create instances 
-———————————————————————————————————————————————————————————————— 
-*/
-
-export const discord = new Client({ 
-    intents: [
-        GatewayIntentBits.Guilds,
-        // GatewayIntentBits.GuildMembers, 
-        // GatewayIntentBits.GuildMessages, 
-        // GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildVoiceStates
-    ] 
-});
-
-export const log = new Logger({
-    path: "/logs/integrations",
-    useNerdFonts: config.useNerdFonts,
-    saveAllToFile: config.debug.logger.main
-});
-
-export const snowflake = new Snowflake(config.generation.epoch);
-export const wc = new WebClient({
-    crawler: config.crawler,
-    useSecureSSL: config.isProduction
-});
 
 /* 
 ————————————————————————————————————————————————————————————————
