@@ -5,9 +5,9 @@ import { WebSocket } from "ws";
 import { connectedClients } from "../server.js";
 import { log } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
 import { transformValueTypes } from "framer-motion";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
 
 interface SendWebSocketMessageBody {
     sessionId?: string;
@@ -19,20 +19,7 @@ export const websocketController = async (req: Request, res: Response) => {
     try {
         const { sessionId, userId, data } = req.body as SendWebSocketMessageBody;
 
-        const authHeader = req.headers.authorization;
-
-        let isAuthorized = false;
-
-        if (authHeader?.startsWith("ApiSecret ")) {
-            isAuthorized = authHeader.split(" ")[1] === getEnv("API_SECRET");
-        }
-
-        if (!isAuthorized) {
-            throw new AdvancedError({
-                code: 401,
-                message: i18n.t("responses.unauthorized")
-            });
-        }
+        assertApiSecret(req);
 
         if (!sessionId && !userId) {
             assertNotNull([sessionId, userId]);

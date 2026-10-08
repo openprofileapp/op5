@@ -8,26 +8,13 @@ import { log } from "../../instances.js";
 import { SessionType } from "../../types/session.type.js";
 import { i18n } from "../../../_common/instances.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
-import getEnv from "../../../../_common/helpers/getEnv.js";
+import { assertApiSecret } from "../../../_common/asserts/apiSecret.assert.js";
 
 export const connectSessionController = async (req: Request, res: Response) => {
     try {
         const { sessionId } = req.params;
 
-        const authHeader = req.headers.authorization;
-
-        let isAuthorized = false;
-
-        if (authHeader?.startsWith("ApiSecret ")) {
-            isAuthorized = authHeader.split(" ")[1] === getEnv("API_SECRET");
-        }
-
-        if (!isAuthorized) {
-            throw new AdvancedError({
-                code: 401,
-                message: i18n.t("responses.unauthorized")
-            })
-        }
+        assertApiSecret(req);
 
         const getResult = db.accounts.query<SessionType>(
             "SELECT * FROM sessions WHERE sessionId = ?",

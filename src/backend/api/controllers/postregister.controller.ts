@@ -5,10 +5,10 @@ import { log } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
 import postInteractionService from "../services/postInteraction.service.js";
 import sendNotificationService from "../services/sendNotification.service.js";
 import { NotificationNameType } from "../../../_common/types/notification.type.js";
+import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
 
 export const postregisterController = async (req: Request, res: Response) => {
     try {
@@ -27,21 +27,7 @@ export const postregisterController = async (req: Request, res: Response) => {
             inviteCode
         } = req.body;
 
-        const authHeader = req.headers.authorization;
-
-        let isAuthorized = false;
-
-        if (authHeader?.startsWith("ApiSecret ")) {
-            isAuthorized = authHeader.split(" ")[1] === getEnv("API_SECRET");
-        }
-
-        if (!isAuthorized) {
-            throw new AdvancedError({
-                code: 401,
-                message: i18n.t("responses.unauthorized")
-            })
-        }
-
+        assertApiSecret(req);
         assertNotNull(id);
 
         const userResult = db.users.query(
