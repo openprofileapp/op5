@@ -82,19 +82,17 @@ const local = https.createServer(
         const target = hostname ? serverMap[hostname] : undefined;
 
         if (!target) {
-            log.proxy.warn(`Host '${hostname}' is not mapped to a server`).save();
+            const mainDomain = config.domains.main;
 
-            const i18n = await I18nService.load(
-                { 
-                    localesPath: "/public/locales", 
-                    locale: "en", 
-                    defaultLocale: config.metadata.locale 
-                }
-            );
+            log.proxy.warn(
+                `Host '${hostname}' is not mapped. Redirecting to '${mainDomain}'`
+            ).save();
 
-            res.setHeader("Content-Type", "text/plain; charset=utf-8");
-            res.writeHead(502);
-            return res.end(i18n.t("messages.badGateway"));
+            res.writeHead(301, {
+                Location: `https://${mainDomain}${req.url || "/"}`
+            });
+
+            return res.end();
         }
 
         proxy.web(
