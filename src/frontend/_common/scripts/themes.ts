@@ -143,7 +143,7 @@ export const themes = [
             }
         },
         premiumOnly: true,
-        freeMonth: "October"
+        freeMonth: "october"
     }
 ] as const;
 
@@ -155,10 +155,17 @@ export function applyTheme(id: string) {
     const theme = themes.find(theme => theme.id === id);
     const root = document.documentElement;
 
+    const monthName = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+    }).format(new Date()).toLowerCase();
+
     if (
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         theme?.premiumOnly && 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        theme?.freeMonth !== monthName &&
         !window.session.permissions.array.includes("PREMIUM_ACCESS")
     ) {
         toast.show(
