@@ -20,9 +20,11 @@ import uploadFile from "../../_common/helpers/uploadFile.js";
 import { snowflake } from "../instances.js";
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
+import { AwardType } from "../../../_common/types/award.type.js";
 
 type Props = {
     session: ValidSessionType;
+    ip: string;
     delegationToken: string;
     email?: string;
     isEmailVerified?: boolean;
@@ -53,6 +55,7 @@ type ReturnTokensType = {
 
 type RegisterAccountProps = {
     session: ValidSessionType;
+    ip: string;
     email: string;
     isEmailVerified?: boolean;
     birthDate?: string;
@@ -165,6 +168,7 @@ function addDelegation(
 
 export async function registerAccount({
     session,
+    ip,
     email,
     isEmailVerified,
     birthDate,
@@ -189,6 +193,7 @@ export async function registerAccount({
     let formattedUsername = username;
     let permissions = PlatformPermissionsService.getRole("member");
     const badges: BadgeNameType[] = [];
+    const awards: Partial<AwardType>[] = [];
     const notifications: NotificationNameType[] = [];
     let isAuraEnabled = 0;
 
@@ -303,7 +308,11 @@ export async function registerAccount({
         permissions = PlatformPermissionsService.getRole("premium");
 
         badges.push("PREMIUM");
-        badges.push("PRECURSOR");
+
+        awards.push({
+            type: "PRECURSOR",
+            comment: String(registrationsCountResult.rowCount + 1)
+        });
 
         notifications.push("LIFETIME_PREMIUM_REGISTRATION");
         notifications.push("PRECURSOR_REGISTRATION");
@@ -349,15 +358,17 @@ export async function registerAccount({
                 birthDate,
                 permissions,
                 locale,
-                timezone
-            ) VALUES (?, ?, ?, ?, ?, ?)`,
+                timezone,
+                initialIp
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
                 1,
                 birthDate,
                 permissions.value,
                 session.locale,
-                session.timezone
+                session.timezone,
+                ip
             ]
         );
 
@@ -450,6 +461,7 @@ export async function registerAccount({
                 about,
                 theme,
                 badges,
+                awards,
                 notifications,
                 inviteCode: session.inviteCode
             }
@@ -468,6 +480,7 @@ export async function registerAccount({
 
 export default async function loginOrRegisterAccountService({
     session,
+    ip,
     delegationToken,
     email,
     isEmailVerified,
@@ -517,6 +530,15 @@ export default async function loginOrRegisterAccountService({
     }
 
     if (account && account.id) {
+        if (!account.initialIp) {
+            const result = db.accounts.query(
+                "UPDATE users SET initialIp = ? WHERE id = ?",
+                [ip, account.id]
+            );
+
+            assertDbSuccess(result);
+        }
+
         const result = db.accounts.query(
             `INSERT INTO connections (userId, connectionId, connectionName, connectionText)
             VALUES (?, ?, ?, ?)
@@ -556,6 +578,7 @@ export default async function loginOrRegisterAccountService({
     } else {
         const newUserId = await registerAccount({
             session,
+            ip,
             email,
             isEmailVerified,
             birthDate,

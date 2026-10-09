@@ -10,6 +10,7 @@ export type UserAccountType = {
     locale: string;
     timezone: string;
     earnedRevenueUSD: number;
+    initialIp: string;
     hasReadTerms: boolean;
     hasCompletedOnboarding: boolean;
     lastActive: string;

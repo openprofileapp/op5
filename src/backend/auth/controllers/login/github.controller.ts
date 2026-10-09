@@ -8,6 +8,7 @@ import { config } from "../../../../../app.config.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import loginOrRegisterAccountService from "../../services/loginOrRegisterAccount.service.js";
 import { log } from "../../instances.js";
+import fetchGeoIp from "../../helpers/fetchGeoIp.js";
 
 type ExternalAccountResponse = {
     login: string;
@@ -71,6 +72,7 @@ export const githubLoginController = async (req: Request, res: Response) => {
 
         const response = await loginOrRegisterAccountService({
             session: req.session,
+            ip: (await fetchGeoIp(req.ip || "")).ip,
             delegationToken: req.cookies?.delegationToken,
             email: externalEmailResponse[0].email,
             isEmailVerified: externalEmailResponse[0].verified,

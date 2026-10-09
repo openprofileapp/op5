@@ -8,6 +8,7 @@ import { config } from "../../../../../app.config.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import loginOrRegisterAccountService from "../../services/loginOrRegisterAccount.service.js";
 import { log } from "../../instances.js";
+import fetchGeoIp from "../../helpers/fetchGeoIp.js";
 
 type ExternalTokenResponse = {
     access_token: string;
@@ -64,6 +65,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
 
         const response = await loginOrRegisterAccountService({
             session: req.session,
+            ip: (await fetchGeoIp(req.ip || "")).ip,
             delegationToken: req.cookies?.delegationToken,
             email: externalResponse.email,
             isEmailVerified: externalResponse.email_verified,

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
     earnedRevenueUSD INTEGER DEFAULT 0,
+    initialIp TEXT,
     hasReadTerms INTEGER NOT NULL DEFAULT 0,
     hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0,
     isSuspended INTEGER NOT NULL DEFAULT 0,
