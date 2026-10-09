@@ -2,6 +2,7 @@ import i18n from "../i18n.js";
 import { banner } from "./banner.js";
 import { cookie } from "./cookies.js";
 import { cdnBaseUrl } from "./domains.js";
+import { toast } from "./toast.js";
 
 let themeBannerId: number | null = null;
 
@@ -153,6 +154,20 @@ export type ThemesNameType = ThemesType["name"];
 export function applyTheme(id: string) {
     const theme = themes.find(theme => theme.id === id);
     const root = document.documentElement;
+
+    if (
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        theme?.premiumOnly && 
+        !window.session.permissions.array.includes("PREMIUM_ACCESS")
+    ) {
+        toast.show(
+            "You premium to use this theme",
+            { type: "error" }
+        );
+
+        return;
+    }
 
     cookie.set("theme", theme?.id as string);
 
