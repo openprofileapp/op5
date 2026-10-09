@@ -11,6 +11,9 @@ import { I18nextProvider } from "react-i18next"
 
 import i18n from "../_common/i18n.js"
 import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
+import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
+import { verifySession } from "../_common/scripts/session.js"
+import { banner } from "../_common/scripts/banner.js"
 
 import "../_common/styles/tailwind.css"
 import "../_common/styles/app.css"
@@ -21,10 +24,9 @@ import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
 import Messages from "../_common/components/Messages.js"
 
 import NotFound from "../_common/pages/NotFound.js"
+import Maintenance from "../_common/pages/Maintenance.js"
+
 import Article from "./pages/Article.js"
-import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
-import { verifySession } from "../_common/scripts/session.js"
-import { banner } from "../_common/scripts/banner.js"
 
 const style = document.createElement("style")
 
@@ -119,24 +121,35 @@ async function bootstrap() {
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
                     <BrowserRouter>
-                        <ModalProvider>
-                            <ToastContainer />
-                            <CaptchaPortal
-                                siteKey={window.config.integrations.hcaptcha}
-                            />
-                            <Messages />
-                            <Routes>
-                                <Route path="/en-us/article/*" element={<Article />} />
+                        {window.config.isMaintenance ? (
+                            <Maintenance />
+                        ) : (
+                            <ModalProvider>
+                                <ToastContainer />
+                                <CaptchaPortal
+                                    siteKey={window.config.integrations.hcaptcha}
+                                />
+                                <Messages />
 
-                                <Route path="/404" element={<NotFound />} />
-                                <Route path="*" element={<Navigate to="/404" replace />} />
-                            </Routes>
-                        </ModalProvider>
+                                <Routes>
+                                    <Route
+                                        path="/en-us/article/*"
+                                        element={<Article />}
+                                    />
+
+                                    <Route path="/404" element={<NotFound />} />
+                                    <Route
+                                        path="*"
+                                        element={<Navigate to="/404" replace />}
+                                    />
+                                </Routes>
+                            </ModalProvider>
+                        )}
                     </BrowserRouter>
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
-    )
+    );
 }
 
 bootstrap();

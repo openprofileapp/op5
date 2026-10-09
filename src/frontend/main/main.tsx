@@ -45,6 +45,7 @@ import Onboarding from "./pages/account/Onboarding.js"
 import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
 import Unavailable from "../_common/pages/Unavailable.js"
+import Maintenance from "../_common/pages/Maintenance.js"
 
 import UserProfile from "./pages/UserProfile.js"
 
@@ -147,7 +148,7 @@ async function bootstrap() {
         );
     }
 
-    if (window.session.userId) {
+    if (window.session?.userId) {
         const response = await fetch(
             `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
             {
@@ -166,11 +167,22 @@ async function bootstrap() {
         <React.StrictMode>
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
-                    <RouterProvider router={router} />
+                    {window.config.isMaintenance ? (
+                        <RouterProvider
+                            router={createBrowserRouter([
+                                {
+                                    path: "*",
+                                    element: <Maintenance />,
+                                },
+                            ])}
+                        />
+                    ) : (
+                        <RouterProvider router={router} />
+                    )}
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
-    )
+    );
 }
 
 bootstrap();

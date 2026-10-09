@@ -12,6 +12,7 @@ import { i18n } from "../../_common/instances.js";
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {
         useNerdFonts: config.useNerdFonts,
+        isMaintenance: config.maintenance.isEnabled,
         theme: config.theme,
         metadata: config.metadata,
         domains: config.domains,

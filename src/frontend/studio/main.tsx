@@ -10,6 +10,7 @@ import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
 import { verifySession } from "../_common/scripts/session.js"
+import setupWebPushNotifications from "../_common/scripts/webPush.js"
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -41,6 +42,7 @@ import Dashboard from "./pages/Dashboard.js"
 import Analytics from "./pages/Analytics.js"
 import Content from "./pages/Content.js"
 import Templates from "./pages/Templates.js"
+import Blocks from "./pages/Blocks.js"
 import Datasets from "./pages/Datasets.js"
 import Trash from "./pages/Trash.js"
 
@@ -48,8 +50,7 @@ import Template from "./pages/Template.js"
 import Block from "./pages/Block.js"
 
 import NotFound from "../_common/pages/NotFound.js"
-import setupWebPushNotifications from "../_common/scripts/webPush.js"
-import Blocks from "./pages/Blocks.js"
+import Maintenance from "../_common/pages/Maintenance.js"
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootLayout() {
@@ -115,7 +116,7 @@ async function bootstrap() {
         );
     }
 
-    if (window.session.userId) {
+    if (window.session?.userId) {
         const response = await fetch(
             `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
             {
@@ -135,45 +136,49 @@ async function bootstrap() {
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
                     <BrowserRouter>
-                        <ModalProvider>
-                            <ToastContainer />
-                            <CaptchaPortal
-                                siteKey={window.config.integrations.hcaptcha}
-                            />
-                            <Messages />
-
-                            <Routes>
-                                <Route
-                                    path="/template/:templateId/:categoryId?/:blockId?"
-                                    element={<Template />}
+                        {window.config.isMaintenance ? (
+                            <Maintenance />
+                        ) : (
+                            <ModalProvider>
+                                <ToastContainer />
+                                <CaptchaPortal
+                                    siteKey={window.config.integrations.hcaptcha}
                                 />
+                                <Messages />
 
-                                <Route element={<RootLayout />}>
+                                <Routes>
                                     <Route
-                                        path="/"
-                                        element={<Navigate to="/dashboard" replace />}
+                                        path="/template/:templateId/:categoryId?/:blockId?"
+                                        element={<Template />}
                                     />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/analytics" element={<Analytics />} />
-                                    <Route path="/content" element={<Content />} />
-                                    <Route path="/templates" element={<Templates />} />
-                                    <Route path="/blocks" element={<Blocks />} />
-                                    <Route path="/datasets" element={<Datasets />} />
-                                    <Route path="/block/:blockId" element={<Block />} />
-                                    <Route path="/trash" element={<Trash />} />
-                                    <Route path="/404" element={<NotFound />} />
-                                    <Route
-                                        path="*"
-                                        element={<Navigate to="/404" replace />}
-                                    />
-                                </Route>
-                            </Routes>
-                        </ModalProvider>
+
+                                    <Route element={<RootLayout />}>
+                                        <Route
+                                            path="/"
+                                            element={<Navigate to="/dashboard" replace />}
+                                        />
+                                        <Route path="/dashboard" element={<Dashboard />} />
+                                        <Route path="/analytics" element={<Analytics />} />
+                                        <Route path="/content" element={<Content />} />
+                                        <Route path="/templates" element={<Templates />} />
+                                        <Route path="/blocks" element={<Blocks />} />
+                                        <Route path="/datasets" element={<Datasets />} />
+                                        <Route path="/block/:blockId" element={<Block />} />
+                                        <Route path="/trash" element={<Trash />} />
+                                        <Route path="/404" element={<NotFound />} />
+                                        <Route
+                                            path="*"
+                                            element={<Navigate to="/404" replace />}
+                                        />
+                                    </Route>
+                                </Routes>
+                            </ModalProvider>
+                        )}
                     </BrowserRouter>
                 </I18nextProvider>
             </HelmetProvider>
         </React.StrictMode>
-    )
+    );
 }
 
 bootstrap();
