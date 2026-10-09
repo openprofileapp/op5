@@ -71,6 +71,7 @@
     "invalidDateFormat": "Invalid date format",
     "invalidVisibility": "Invalid visibility",
     "invalidFieldId": "Invalid field id",
+    "notAdult": "You must be at least 18 years old to perform this action",
     "invalidType": "Invalid account type",
     "underage": "You must be at least 13 years old to use OpenProfile",
     "cannotChangeHiddenState": "Some parts of your profile have been set hidden by a moderator. It cannot be updated at this time.",
