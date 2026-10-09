@@ -197,6 +197,8 @@ export function applyTheme(id: string) {
         !cookie.get("hasSeenThemeBanner") &&
         cookie.get("theme") !== "dark"
     ) {
+        if (themeBannerId) return;
+
         themeBannerId = banner.show(
             i18n.t("banners.theme"),
             {
