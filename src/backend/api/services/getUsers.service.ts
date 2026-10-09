@@ -27,6 +27,7 @@ type Props = {
     includeInteractionItems?: boolean;
     includeLinks?: boolean;
     internalPermissionsBypass?: boolean;
+    isAdult?: boolean;
 };
 
 export default function getUsersService({
@@ -41,7 +42,8 @@ export default function getUsersService({
     delegatedAccounts,
     includeInteractionItems = false,
     includeLinks = false,
-    internalPermissionsBypass = false
+    internalPermissionsBypass = false,
+    isAdult = false
 }: Props): GetUserType {    
     let interests;
 
@@ -66,6 +68,10 @@ export default function getUsersService({
 
     const idClause = id ? "AND users.id = ?" : "";
     const idParams = id ? [id] : [];
+
+    const matureClause = isAdult
+        ? ""
+        : "AND (users.isMature IS NULL OR users.isMature = 0)";
 
     const verifiedClause = sortBy === "verified" ? "AND verifiedBadges.id IS NOT NULL" : "";
 
@@ -412,6 +418,7 @@ export default function getUsersService({
             ${trendingJoin}
             WHERE hides.source IS NULL
                 AND ${visibilityCondition}
+                ${matureClause}
                 ${verifiedClause}
                 ${recentClause}
                 ${trendingWhereClause}
@@ -423,6 +430,7 @@ export default function getUsersService({
             ORDER BY ${orderClause}
             LIMIT ? OFFSET ?
         `,
+
         [
             ...interactionParams,
             ...notificationsParams,
@@ -468,6 +476,7 @@ export default function getUsersService({
             ${trendingJoin}
             WHERE hides.source IS NULL
                 AND ${visibilityCondition}
+                ${matureClause}
                 ${verifiedClause}
                 ${recentClause}
                 ${trendingWhereClause}

@@ -25,6 +25,7 @@ type Props = {
     includeInteractionItems?: boolean;
     includeMedia?: boolean;
     internalPermissionsBypass?: boolean;
+    isAdult?: boolean;
 };
 
 export default function getPublishedCharactersService({
@@ -40,7 +41,8 @@ export default function getPublishedCharactersService({
     delegatedAccounts,
     includeInteractionItems = false,
     includeMedia = false,
-    internalPermissionsBypass = false
+    internalPermissionsBypass = false,
+    isAdult = false
 }: Props): GetPublishedCharacterType {    
     let interests;
 
@@ -55,6 +57,10 @@ export default function getPublishedCharactersService({
 
     const ownerIdClause = ownerId ? "AND published.ownerId = ?" : "";
     const ownerIdParams = ownerId ? [ownerId] : [];
+
+    const matureClause = isAdult
+        ? ""
+        : "AND (published.isMature IS NULL OR published.isMature = 0)";
 
     const verifiedClause = sortBy === "verified" ? "AND verifiedBadges.id IS NOT NULL" : "";
 
@@ -424,6 +430,7 @@ export default function getPublishedCharactersService({
             ${trendingJoin}
             WHERE hides.source IS NULL
                 AND ${visibilityCondition}
+                ${matureClause}
                 ${verifiedClause}
                 ${recentClause}
                 ${trendingWhereClause}
@@ -485,6 +492,7 @@ export default function getPublishedCharactersService({
             ${trendingJoin}
             WHERE hides.source IS NULL
                 AND ${visibilityCondition}
+                ${matureClause}
                 ${verifiedClause}
                 ${recentClause}
                 ${trendingWhereClause}
