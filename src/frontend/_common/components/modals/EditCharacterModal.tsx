@@ -725,11 +725,13 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                                                             Your content includes sensitive themes, such as trauma, severe mental health struggles (e.g., self-harm or suicide), grief, hate speech, abuse, minor gore, or non-sexual revealing clothing.
                                                         </div>
 
-                                                        <div>
-                                                            <strong>Mature Content (18+ accounts only):</strong>
-                                                            <br />
-                                                            Your content includes themes restricted to adult audiences due to explicit detail, such as graphic violence, suggestive sexual content, severe profanity, explicit substance abuse, simulated gambling, or sexually suggestive revealing clothing.
-                                                        </div>
+                                                        {window.session.isAdult && (
+                                                            <div>
+                                                                <strong>Mature Content (18+ accounts only):</strong>
+                                                                <br />
+                                                                Your content includes themes restricted to adult audiences due to explicit detail, such as graphic violence, suggestive sexual content, severe profanity, explicit substance abuse, simulated gambling, or sexually suggestive revealing clothing.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                                 position="bottom"
@@ -746,12 +748,14 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                                                 onChange={(checked) => handleFieldChange("isSensitive", checked as unknown as boolean)}
                                             />
 
-                                            <CheckboxInput
-                                                label="Mature Content"
-                                                checked={data.isMature}
-                                                className="mt-1"
-                                                onChange={(checked) => handleFieldChange("isMature", checked as unknown as boolean)}
-                                            />
+                                            {window.session.isAdult && (
+                                                <CheckboxInput
+                                                    label="Mature Content"
+                                                    checked={data.isMature}
+                                                    className="mt-1"
+                                                    onChange={(checked) => handleFieldChange("isMature", checked as unknown as boolean)}
+                                                />
+                                            )}
                                         </div>
                                     </div>
 
