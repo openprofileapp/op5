@@ -58,7 +58,7 @@ function RootLayout() {
 }
 
 async function bootstrap() {
-    if (!window.config.isMaintenance) {
+    if (!window.config.maintenance.isEnabled) {
         await verifySession();
 
         if (!localStorage.getItem("locale")) {
@@ -138,7 +138,7 @@ async function bootstrap() {
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
                     <BrowserRouter>
-                        {window.config.isMaintenance ? (
+                        {window.config.maintenance.isEnabled ? (
                             <Maintenance />
                         ) : (
                             <ModalProvider>

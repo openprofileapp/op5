@@ -7,8 +7,8 @@ import { SessionActionType } from "../../../_common/types/validSession.type.ts";
 
 export type ClientConfig = {
     isProduction: Config["isProduction"];
-    isMaintenance: Config["maintenance"]["isEnabled"];
     useNerdFonts: Config["useNerdFonts"];
+    maintenance: Config["maintenance"];
     theme: Config["theme"];
     metadata: Config["metadata"];
     domains: Config["domains"];

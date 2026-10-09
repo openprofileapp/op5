@@ -31,6 +31,7 @@ const isNightly = false;
 
 // Enable maintenance mode
 const isMaintenance = false;
+const maintenanceText = "We're updating OpenProfle to a new version.";
 
 // Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
@@ -95,8 +96,9 @@ export const config = {
 
     // Displays the maintenance landing
     maintenance: {
-        isEnabled: isMaintenance
-        // reason is editable in ./src/assets/locales/*.json
+        isEnabled: isMaintenance,
+        reason: maintenanceText
+        // Per-locale reason is editable in ./src/assets/locales/*.json and only displays if no maintenanceText
     },
 
     theme: {

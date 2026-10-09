@@ -11,15 +11,19 @@ import { i18n } from "../../_common/instances.js";
 
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {
+        isProduction: config.isProduction,
         useNerdFonts: config.useNerdFonts,
-        isMaintenance: config.maintenance.isEnabled,
+        maintenance: config.maintenance,
         theme: config.theme,
         metadata: config.metadata,
         domains: config.domains,
         integrations: {
+            webPush: config.integrations.webPush,
             hcaptcha: config.integrations.hcaptcha,
+            adsence: config.integrations.adsence,
+            brandfetch: config.integrations.brandfetch,
             oauth2: config.integrations.oauth2
-        }
+        },
     }
 
     try {

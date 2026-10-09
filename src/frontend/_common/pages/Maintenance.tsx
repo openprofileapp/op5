@@ -61,7 +61,7 @@ export default function Maintenance() {
                         </h3>
 
                         <p className="text-center text-sm text-sub py-4">
-                            {t("maintenance.reason")}
+                            {window.config.maintenance.reason || t("maintenance.reason")}
                         </p>
 
                         <p className="text-center text-sm text-sub pb-4">

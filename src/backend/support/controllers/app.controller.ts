@@ -11,8 +11,8 @@ import { log } from "../instances.js"
 export const renderApp = async (req: Request, res: Response) => {
     const clientConfig = {
         isProduction: config.isProduction,
-        isMaintenance: config.maintenance.isEnabled,
         useNerdFonts: config.useNerdFonts,
+        maintenance: config.maintenance,
         theme: config.theme,
         metadata: config.metadata,
         domains: config.domains,

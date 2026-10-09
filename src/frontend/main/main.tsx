@@ -90,7 +90,7 @@ const router = createBrowserRouter([
 ]);
 
 async function bootstrap() {
-    if (!window.config.isMaintenance) {
+    if (!window.config.maintenance.isEnabled) {
         await verifySession();
 
         if (!localStorage.getItem("locale")) {
@@ -169,7 +169,7 @@ async function bootstrap() {
         <React.StrictMode>
             <HelmetProvider>
                 <I18nextProvider i18n={i18n}>
-                    {window.config.isMaintenance ? (
+                    {window.config.maintenance.isEnabled ? (
                         <RouterProvider
                             router={createBrowserRouter([
                                 {
