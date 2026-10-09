@@ -6,6 +6,6 @@ export default function createRedirect(
 ) {
     return (req: Request, res: Response) => {
         const pathname = req.originalUrl.replace(replace, "") || "/";
-        return res.redirect(302, `https://${redirect}${pathname}`);
+        return res.redirect(302, `${redirect}${pathname}`);
     };
 }
