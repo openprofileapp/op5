@@ -45,75 +45,77 @@ style.textContent = `
 document.head.appendChild(style)
 
 async function bootstrap() {
-    await verifySession();
+    if (!window.config.isMaintenance) {
+        await verifySession();
 
-    if (!localStorage.getItem("locale")) {
-        localStorage.setItem(
-            "locale", 
-            window.session.locale || window.config.metadata.locale
-        );
-    }
+        if (!localStorage.getItem("locale")) {
+            localStorage.setItem(
+                "locale", 
+                window.session.locale || window.config.metadata.locale
+            );
+        }
 
-    if (localStorage.getItem("locale")) {
-        await i18n.changeLanguage(localStorage.getItem("locale") as string);
+        if (localStorage.getItem("locale")) {
+            await i18n.changeLanguage(localStorage.getItem("locale") as string);
 
-        if (
-            (
-                localStorage.getItem("locale")?.startsWith("zh") ||
-                localStorage.getItem("locale")?.startsWith("es") ||
-                localStorage.getItem("locale")?.startsWith("hi") ||
-                localStorage.getItem("locale")?.startsWith("ar") ||
-                localStorage.getItem("locale")?.startsWith("ru") ||
-                localStorage.getItem("locale")?.startsWith("id") ||
-                localStorage.getItem("locale")?.startsWith("ja")
-            ) &&
-            !localStorage.getItem("hasSeenLocaleBanner")
-        ) {
+            if (
+                (
+                    localStorage.getItem("locale")?.startsWith("zh") ||
+                    localStorage.getItem("locale")?.startsWith("es") ||
+                    localStorage.getItem("locale")?.startsWith("hi") ||
+                    localStorage.getItem("locale")?.startsWith("ar") ||
+                    localStorage.getItem("locale")?.startsWith("ru") ||
+                    localStorage.getItem("locale")?.startsWith("id") ||
+                    localStorage.getItem("locale")?.startsWith("ja")
+                ) &&
+                !localStorage.getItem("hasSeenLocaleBanner")
+            ) {
+                banner.show(
+                    i18n.t("banners.locale"),
+                    {
+                        type: "warning",
+                        closeAction: { 
+                            onClick: () => {
+                                localStorage.setItem("hasSeenLocaleBanner", "true");
+                            } 
+                        }
+                    }
+                );
+            }
+        }
+
+        if (!localStorage.getItem("hasSeenBetaBanner")) {
             banner.show(
-                i18n.t("banners.locale"),
+                i18n.t("banners.beta"),
                 {
-                    type: "warning",
+                    type: "error",
+                    button: { 
+                        label: "Join our Discord", 
+                        onClick: () => {
+                            window.open(window.config.metadata.urls.discord.main, "_blank");
+                        } 
+                    },
                     closeAction: { 
                         onClick: () => {
-                            localStorage.setItem("hasSeenLocaleBanner", "true");
+                            localStorage.setItem("hasSeenBetaBanner", "true");
                         } 
                     }
                 }
             );
         }
-    }
 
-    if (!localStorage.getItem("hasSeenBetaBanner")) {
-        banner.show(
-            i18n.t("banners.beta"),
-            {
-                type: "error",
-                button: { 
-                    label: "Join our Discord", 
-                    onClick: () => {
-                        window.open(window.config.metadata.urls.discord.main, "_blank");
-                    } 
-                },
-                closeAction: { 
-                    onClick: () => {
-                        localStorage.setItem("hasSeenBetaBanner", "true");
-                    } 
+        if (window.session?.userId) {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/users?id=${window.session?.userId}`,
+                {
+                    credentials: "include",
                 }
-            }
-        );
-    }
+            );
 
-    if (window.session?.userId) {
-        const response = await fetch(
-            `${apiBaseUrl}/v3/users?id=${window.session?.userId}`,
-            {
-                credentials: "include",
-            }
-        );
+            const data = await response.json()
 
-        const data = await response.json()
-
-        window.session.user = data.items[0];
+            window.session.user = data.items[0];
+        }
     }
 
     ReactDOM.createRoot(document.getElementById("root")!).render(
