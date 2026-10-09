@@ -6,18 +6,18 @@ import { GetUserItemType } from "../../../_common/types/user.type.ts";
 import { SessionActionType } from "../../../_common/types/validSession.type.ts";
 
 export type ClientConfig = {
-    isProduction: Config["isProduction"]
-    isMaintenance: Config["maintenance"]["isEnabled"]
+    isProduction: Config["isProduction"];
+    isMaintenance: Config["maintenance"]["isEnabled"];
     useNerdFonts: Config["useNerdFonts"];
     theme: Config["theme"];
     metadata: Config["metadata"];
     domains: Config["domains"];
     integrations: {
-        webPush: Config["integrations"]["webPush"]
-        hcaptcha: Config["integrations"]["hcaptcha"]
-        adsence: Config["integrations"]["adsence"]
-        brandfetch: Config["integrations"]["brandfetch"]
-        oauth2: Config["integrations"]["oauth2"]
+        webPush: Config["integrations"]["webPush"];
+        hcaptcha: Config["integrations"]["hcaptcha"];
+        adsence: Config["integrations"]["adsence"];
+        brandfetch: Config["integrations"]["brandfetch"];
+        oauth2: Config["integrations"]["oauth2"];
     }
 };
 
@@ -30,14 +30,15 @@ export type ClientSession = {
     locale: string;
     timezone: string;
     delegatedAccounts?: string[];
-    user?: GetUserItemType
-    action?: SessionActionType
+    user?: GetUserItemType;
+    isAdult: boolean;
+    action?: SessionActionType;
 };
 
 declare global {
     interface Window {
-        config: ClientConfig,
-        session: ClientSession,
+        config: ClientConfig;
+        session: ClientSession;
         ws: unknown;
         adsbygoogle: unknown[];
     }
