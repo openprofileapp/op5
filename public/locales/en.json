@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "Under Construction",
+      "maintenance": "Under Maintenance",
       "notFound": "404 - Page Not Found",
       "unavailable": "503 - Temporarily Unavailable"
     },
@@ -403,6 +404,9 @@
       "subtext": "Our servers are currently experiencing heavy load.",
       "update": "Your page will refresh automatically in",
       "marquee": "TEMPORARILY UNAVAILABLE"
+    },
+    "maintenance": {
+      "marquee": "UNDER MAINTENANCE"
     },
     "userProfile": {
       "searchCharacters": "Name, franchises, topics...",
