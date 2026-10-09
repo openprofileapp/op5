@@ -17,5 +17,6 @@ export type ValidSessionType = {
     delegatedAccounts?: string[];
     mfaToken?: string;
     accessToken?: string;
+    isAdult: boolean;
     action?: SessionActionType;
 };
