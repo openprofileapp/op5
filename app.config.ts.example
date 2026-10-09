@@ -29,6 +29,9 @@ const isProduction = false;
 // Enable nightly mode
 const isNightly = false;
 
+// Enable maintenance mode
+const isMaintenance = false;
+
 // Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
 const stage = isNightly ? "nightly" : "beta"; // prealpha | alpha | beta | rc | release | nightly
@@ -92,7 +95,7 @@ export const config = {
 
     // Displays the maintenance landing
     maintenance: {
-        isEnabled: false
+        isEnabled: isMaintenance
         // reason is editable in ./src/assets/locales/*.json
     },
 
