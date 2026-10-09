@@ -429,6 +429,13 @@ export const updateUsers = async (req: Request, res: Response) => {
                 }
             }
 
+            if (key === "isMature" && !req.session.isAdult) {
+                throw new AdvancedError({
+                    code: 400,
+                    message: i18n.t("responses.notAdult")
+                });
+            }
+
             if (
                 [
                     "isDeveloper", 
