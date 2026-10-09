@@ -20,9 +20,7 @@ const RenderMention: React.FC<{ id: string }> = ({ id }) => {
     useEffect(() => {
         async function fetchMentionData() {
             try {
-                const response = await fetch(`${apiBaseUrl}/v3/whatis/${id}`, {
-                    credentials: "include",
-                });
+                const response = await fetch(`${apiBaseUrl}/v3/whatis/${id}`, { credentials: "include" });
 
                 if (response.ok) {
                     const data = await response.json();

@@ -6,9 +6,7 @@ export const verifySession = async (): Promise<void> => {
 
         const response = await fetch(
             `${authBaseUrl}/session${inviteCode ? `?invite=${encodeURIComponent(inviteCode)}` : ""}`,
-            {
-                credentials: "include",
-            }
+            { credentials: "include" }
         );
 
         window.session = await response.json();

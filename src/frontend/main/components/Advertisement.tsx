@@ -47,9 +47,7 @@ export default function AdvertisementBox({
 
         const fetchAdvertisements = async () => {
             try {
-                const res = await fetch(`${apiBaseUrl}/v3/advertisements?adSlot=${adSlot}`, {
-                    credentials: "include",
-                });
+                const res = await fetch(`${apiBaseUrl}/v3/advertisements?adSlot=${adSlot}`, { credentials: "include" });
 
                 if (!res.ok) {
                     if (isMounted) setIsFetchingApi(false);

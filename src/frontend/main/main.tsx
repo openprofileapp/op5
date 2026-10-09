@@ -150,9 +150,7 @@ async function bootstrap() {
         if (window.session?.userId) {
             const response = await fetch(
                 `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
-                {
-                    credentials: "include",
-                }
+                { credentials: "include" }
             );
 
             const data = await response.json()
