@@ -8,9 +8,11 @@ import i18n from "../_common/i18n.js"
 import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
-import { apiBaseUrl, cdnBaseUrl } from "../_common/scripts/domains.js"
+import { apiBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
 import { verifySession } from "../_common/scripts/session.js"
+import { applyTheme, fonts } from "../_common/scripts/themes.js"
+import { cookie } from "../_common/scripts/cookies.js";
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -18,17 +20,7 @@ import "./scripts/main.js";
 
 const style = document.createElement("style");
 
-style.textContent = `
-    @font-face {
-        font-family: "Alexandria";
-        src: url("${cdnBaseUrl}/fonts/alexandria/AlexandriaVariableFont.ttf") format("truetype");
-    }
-
-    @font-face {
-        font-family: "NerdFont";
-        src: url("${cdnBaseUrl}/fonts/jetbrainsmono/JetBrainsMonoNerdFontPropo-Regular.ttf") format("truetype");
-    }
-`;
+style.textContent = fonts;
 
 document.head.appendChild(style);
 
@@ -93,27 +85,33 @@ async function bootstrap() {
     if (!window.config.maintenance.isEnabled) {
         await verifySession();
 
-        if (!localStorage.getItem("locale")) {
-            localStorage.setItem(
+        if (!cookie.get("theme")) {
+            cookie.set("theme", "dark");
+        }
+
+        applyTheme(cookie.get("theme") ?? "dark");
+
+        if (!cookie.get("locale")) {
+            cookie.set(
                 "locale", 
                 window.session.locale || window.config.metadata.locale
             );
         }
 
-        if (localStorage.getItem("locale")) {
-            await i18n.changeLanguage(localStorage.getItem("locale") as string);
+        if (cookie.get("locale")) {
+            await i18n.changeLanguage(cookie.get("locale") as string);
 
             if (
                 (
-                    localStorage.getItem("locale")?.startsWith("zh") ||
-                    localStorage.getItem("locale")?.startsWith("es") ||
-                    localStorage.getItem("locale")?.startsWith("hi") ||
-                    localStorage.getItem("locale")?.startsWith("ar") ||
-                    localStorage.getItem("locale")?.startsWith("ru") ||
-                    localStorage.getItem("locale")?.startsWith("id") ||
-                    localStorage.getItem("locale")?.startsWith("ja")
+                    cookie.get("locale")?.startsWith("zh") ||
+                    cookie.get("locale")?.startsWith("es") ||
+                    cookie.get("locale")?.startsWith("hi") ||
+                    cookie.get("locale")?.startsWith("ar") ||
+                    cookie.get("locale")?.startsWith("ru") ||
+                    cookie.get("locale")?.startsWith("id") ||
+                    cookie.get("locale")?.startsWith("ja")
                 ) &&
-                !localStorage.getItem("hasSeenLocaleBanner")
+                !cookie.get("hasSeenLocaleBanner")
             ) {
                 banner.show(
                     i18n.t("banners.locale"),
@@ -121,7 +119,7 @@ async function bootstrap() {
                         type: "warning",
                         closeAction: { 
                             onClick: () => {
-                                localStorage.setItem("hasSeenLocaleBanner", "true");
+                                cookie.set("hasSeenLocaleBanner", "true");
                             } 
                         }
                     }

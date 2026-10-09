@@ -20,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile is in beta and some features are not yet available, but will be rolling out soon.",
-    "locale": "This translation is unverified and some words may be inaccurate."
+    "locale": "This translation is unverified and some words may be inaccurate.",
+    "theme": "This theme is incomplete and there may be broken visuals."
   },
   "responses": {
     "character": "An error occurred while fetching character",

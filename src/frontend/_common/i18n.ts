@@ -3,11 +3,12 @@ import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
 
 import { cdnBaseUrl } from "./scripts/domains.js";
+import { cookie } from "./scripts/cookies.js";
 
 const config = window.config;
 
 const initialLocale = (
-    localStorage.getItem("locale") || 
+    cookie.get("locale") || 
     navigator.language || 
     config.metadata.locale
 ).toLowerCase();

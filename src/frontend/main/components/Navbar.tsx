@@ -14,6 +14,9 @@ import CreateAssetModal from "../../_common/components/modals/CreateAssetModal.j
 
 import { apiBaseUrl, authBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { recommendedTags } from "../../_common/scripts/tags.js";
+import { ThemesType, applyTheme, themes } from "../../_common/scripts/themes.js";
+import ThemeOption from "../../_common/components/ThemeOption.js";
+import { cookie } from "../../_common/scripts/cookies.js";
 
 type Props = {
     isBannerPage?: boolean;
@@ -31,6 +34,12 @@ export default function Navbar({ isBannerPage = false }: Props) {
     
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [isContextMenuFlipped, setIsContextMenuFlipped] = useState(false);
+
+    const [currentTheme, setCurrentTheme] = useState<ThemesType>(() => {
+        const savedTheme = cookie.get("theme");
+        return themes.find(theme => theme.id === savedTheme)
+            ?? themes.find(theme => theme.id === "dark")!;
+    });
 
     // MAKE THESE AS IMPORTABLE MAYBE?
     function exampleTrigger() {
@@ -218,6 +227,27 @@ export default function Navbar({ isBannerPage = false }: Props) {
 
         return () => clearTimeout(handler);
     }, [query, searchParams, navigate, location]);
+
+    const monthName = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+    }).format(new Date()).toLowerCase();
+
+    const hasPremium = window.session.permissions.array.includes("PREMIUM_ACCESS");
+
+    const isFreeThisMonth = (theme: (typeof themes)[number]) =>
+        theme?.freeMonth?.toLowerCase() === monthName;
+
+    const freeThemes = themes.filter(
+        theme => !theme?.premiumOnly
+    );
+
+    const freeThisMonthThemes = themes.filter(
+        theme => theme?.premiumOnly && isFreeThisMonth(theme)
+    );
+
+    const premiumThemes = themes.filter(
+        theme => theme?.premiumOnly && !isFreeThisMonth(theme)
+    );
 
     if (!isTranslationReady) return null;
 
@@ -577,6 +607,86 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                     
                                 </span>
                             </Link>
+                        </li>
+
+                        <hr />
+
+                        <li className="relative group">
+                            <button className="flex items-center justify-between gap-4 w-full">
+                                <span>Theme</span>
+
+                                <span className="flex items-center gap-2">
+                                    <span className="text-xs text-sub">
+                                        {themes.find(theme => theme.id === currentTheme.id)?.name}
+                                    </span>
+
+                                    <span className="font-nerdfont text-lg flex h-6 w-4 leading-none items-center justify-center">
+                                        
+                                    </span>
+                                </span>
+                            </button>
+
+                            <span className={`absolute ${isContextMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`}></span>
+
+                            <ul className={`absolute ${isContextMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] max-h-80 overflow-y-auto dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`}>
+                                {freeThemes.map(theme => (
+                                    <li key={theme.id} className="px-1">
+                                        <ThemeOption
+                                            theme={theme}
+                                            selected={currentTheme.id === theme.id}
+                                            onSelect={() => {
+                                                applyTheme(theme.id);
+                                                setCurrentTheme(theme);
+                                            }}
+                                        />
+                                    </li>
+                                ))}
+
+                                {freeThisMonthThemes.length !== 0 && (
+                                    <div className="divider text-xs my-3">
+                                        <span className="flex gap-2">
+                                            Seasonal
+                                        </span>
+                                    </div>
+                                )}
+
+                                {freeThisMonthThemes.map(theme => (
+                                    <li key={theme.id} className="px-1">
+                                        <ThemeOption
+                                            theme={theme}
+                                            selected={currentTheme.id === theme.id}
+                                            onSelect={() => {
+                                                applyTheme(theme.id);
+                                                setCurrentTheme(theme);
+                                            }}
+                                        />
+                                    </li>
+                                ))}
+
+                                <div className="divider text-xs my-3">
+                                    <span 
+                                        className="flex gap-2 tooltip" 
+                                        data-tip="Premium Feature"
+                                    >
+                                        Premium
+                                        <span className="font-nerdfont leading-none text-sm text-premium"></span>
+                                    </span>
+                                </div>
+
+                                {premiumThemes.map(theme => (
+                                    <li key={theme.id} className="px-1">
+                                        <ThemeOption
+                                            theme={theme}
+                                            selected={currentTheme.id === theme.id}
+                                            disabled={!hasPremium}
+                                            onSelect={() => {
+                                                applyTheme(theme.id);
+                                                setCurrentTheme(theme);
+                                            }}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
                         </li>
 
                         <hr />
