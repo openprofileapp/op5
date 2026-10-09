@@ -25,6 +25,7 @@ export const postregisterController = async (req: Request, res: Response) => {
             about,
             theme,
             badges,
+            awards,
             notifications,
             inviteCode
         } = req.body;
@@ -78,7 +79,7 @@ export const postregisterController = async (req: Request, res: Response) => {
             const placeholders = uniqueBadges.map(() => "(?, ?)").join(", ");
             const values = uniqueBadges.flatMap((badge) => [id, badge]);
 
-            const badgesResult = db.users.query(
+            const badgesResult = db.badges.query(
                 `INSERT INTO badges (
                     id, 
                     type
@@ -87,6 +88,30 @@ export const postregisterController = async (req: Request, res: Response) => {
             );
 
             assertDbSuccess(badgesResult);
+        }
+
+        const uniqueAwards = Array.from(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            new Map(awards.map(award => [award.type, award])).values()
+        );
+
+        if (uniqueAwards.length > 0) {
+            const placeholders = uniqueAwards.map(() => "(?, ?, ?)").join(", ");
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const values = uniqueAwards.flatMap(award => [id, award.type, award.comment]);
+
+            const awardsResult = db.awards.query(
+                `INSERT INTO awards (
+                    id,
+                    type,
+                    comment
+                ) VALUES ${placeholders}`,
+                values
+            );
+
+            assertDbSuccess(awardsResult);
         }
 
         if (inviteCode) {
