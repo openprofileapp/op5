@@ -67,8 +67,7 @@ if (!vite) app.use(express.static(path.join(config.folders.root, "src", "fronten
 app.use(
     "/dashboard",
     createRedirect(
-        `https://${config.domains.studio}`, 
-        "/dashboard"
+        `https://${config.domains.studio}`
     )
 );
 
