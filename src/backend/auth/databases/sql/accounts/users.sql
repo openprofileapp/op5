@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     earnedRevenueUSD INTEGER DEFAULT 0,
     initialIp TEXT,
     hasReadTerms INTEGER NOT NULL DEFAULT 0,
+    lastReadTermsVersion TEXT NOT NULL DEFAULT '0',
     hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0,
     isSuspended INTEGER NOT NULL DEFAULT 0,
     isDeleted INTEGER NOT NULL DEFAULT 0,

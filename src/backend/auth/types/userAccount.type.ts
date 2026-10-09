@@ -12,6 +12,7 @@ export type UserAccountType = {
     earnedRevenueUSD: number;
     initialIp: string;
     hasReadTerms: boolean;
+    lastReadTermsVersion: string;
     hasCompletedOnboarding: boolean;
     lastActive: string;
     isSuspended: boolean;
