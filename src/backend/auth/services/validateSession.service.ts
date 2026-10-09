@@ -683,20 +683,36 @@ export default async function validateSession(
     assertDbSuccess(updatedUserSessionResult);
 
     let permissions;
+    let isAdult = false;
 
     if (row.userId) {
         const result = db.accounts.query<UserAccountType>(
-            "SELECT permissions FROM users WHERE id = ? LIMIT 1",
+            "SELECT * FROM users WHERE id = ? LIMIT 1",
             [row.userId]
         );
 
         assertDbSuccess(result);
 
+        const account = result.rows[0];
+
         permissions = {
-            value: result.rows[0].permissions,
+            value: account.permissions,
             array: PlatformPermissionsService.decode(
-                result.rows[0].permissions
+                account.permissions
             )
+        }
+
+        if (account.birthDate) {
+            const birthDate = new Date(account.birthDate);
+            const today = new Date();
+
+            isAdult =
+                !Number.isNaN(birthDate.getTime()) &&
+                new Date(
+                    today.getFullYear() - 18,
+                    today.getMonth(),
+                    today.getDate()
+                ) >= birthDate;
         }
     } else {
         permissions = PlatformPermissionsService.getRole("guest");
@@ -735,6 +751,7 @@ export default async function validateSession(
         delegatedAccounts,
         // ...(returnMfaToken === true && { mfaToken })
         ...(returnAccessToken === true && { accessToken }),
+        isAdult,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         action
