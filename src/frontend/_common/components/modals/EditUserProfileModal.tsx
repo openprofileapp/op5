@@ -880,7 +880,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                         />
                                     </div>
 
-                                    {data.type !== "user" && (
+                                    {data.type !== "user" && !data.badges?.some((badge) => badge.type === "VERIFIED") && (
                                         <a
                                             className="btn btn-accent mt-1"
                                             href={`${supportBaseUrl}/en-us/article/verification`}
