@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
-import { log } from "../scripts/main.js";
-
 import Metadata from "../../_common/components/Metadata.js";
-
 import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import AssetCarousel from "../components/AssetCarousel.js";
 import { Link } from "react-router-dom";
+import { log } from "../../_common/scripts/logger.js";
 
 export default function Home() {
     const { t, ready: isTranslationReady } = useTranslation();
