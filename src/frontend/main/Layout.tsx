@@ -5,7 +5,7 @@ import ToastContainer from "../_common/components/ToastContainer.js"
 import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
 import Messages from "../_common/components/Messages.js"
 import Navbar from "./components/Navbar.js"
-import Footer from "./components/Footer.js"
+import Footer from "../_common/components/Footer.js"
 import BannerContainer from "../_common/components/BannerContainer.js"
 
 const execludedPaths = [

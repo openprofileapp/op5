@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { cdnBaseUrl, supportBaseUrl } from "../../_common/scripts/domains.js";
+import { cdnBaseUrl, mainBaseUrl, supportBaseUrl } from "../scripts/domains.js";
 
 export default function Footer() {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -16,8 +16,8 @@ export default function Footer() {
 
                         <div className="flex flex-col gap-2 text-sm">
                             <div className="flex flex-row gap-5">
-                                <Link className="link-hover" to="/terms">Terms of Service</Link>
-                                <Link className="link-hover" to="/privacy">Privacy Policy</Link>
+                                <Link className="link-hover" to={`${mainBaseUrl}/terms`}>Terms of Service</Link>
+                                <Link className="link-hover" to={`${mainBaseUrl}/privacy`}>Privacy Policy</Link>
                                 <Link className="link-hover" to={`${supportBaseUrl}`}>Support</Link>
                             </div>
 

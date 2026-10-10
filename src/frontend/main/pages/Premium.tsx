@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import Metadata from "../../_common/components/Metadata.js";
 import Navbar from "../components/Navbar.js";
-import Footer from "../components/Footer.js";
+import Footer from "../../_common/components/Footer.js";
 
 export default function Premium() {
     const { t, ready: isTranslationReady } = useTranslation();
