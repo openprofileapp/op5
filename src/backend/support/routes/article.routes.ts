@@ -7,7 +7,7 @@ import { getImportantChangesController } from '../controllers/articles/getImport
 const articleRoutes = Router();
 
 articleRoutes.get("/", getArticlesController);
-articleRoutes.get("/*slug", getArticleController);
 articleRoutes.get("/latest", getImportantChangesController);
+articleRoutes.get("/*slug", getArticleController);
 
 export default articleRoutes;
