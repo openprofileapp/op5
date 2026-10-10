@@ -33,10 +33,10 @@ import ToastContainer from "../_common/components/ToastContainer.js"
 import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
 import Messages from "../_common/components/Messages.js"
 
-import NotFound from "../_common/pages/NotFound.js"
 import Maintenance from "../_common/pages/Maintenance.js"
 
 import Article from "./pages/Article.js"
+import Index from "./pages/Index.js"
 
 async function bootstrap() {
     if (!window.config.maintenance.isEnabled) {
@@ -117,16 +117,10 @@ async function bootstrap() {
                                 <Messages />
 
                                 <Routes>
-                                    <Route
-                                        path="/en-us/article/*"
-                                        element={<Article />}
-                                    />
+                                    <Route path="/"element={<Index />} />
+                                    <Route path="/en-us/article/*" element={<Article />} />
 
-                                    <Route path="/404" element={<NotFound />} />
-                                    <Route
-                                        path="*"
-                                        element={<Navigate to="/404" replace />}
-                                    />
+                                    <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>
                             </ModalProvider>
                         )}
