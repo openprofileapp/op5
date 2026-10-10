@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { formatNumber } from "kage-library/client";
 
-import { apiBaseUrl, cdnBaseUrl, mainBaseUrl, supportBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl, mainBaseUrl, shortlinkBaseUrl, supportBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
 import MarkdownRenderer from "../../_common/components/markdown/Renderer.js";
 import { formatShortRelative } from "../../_common/scripts/time.js";
@@ -594,7 +594,7 @@ export default function Article() {
 
     const metadata = {
         title: article?.title,
-        author: article?.author,
+        author: article?.author?.replaceAll("{SHORTLINK}", shortlinkBaseUrl),
         date: article?.date,
         updated: article?.updated,
     };
@@ -725,7 +725,12 @@ export default function Article() {
                             )}
 
                             <MarkdownRenderer
-                                content={ article.content}
+                                content={
+                                    article.content
+                                        .replaceAll("{CDN}", cdnBaseUrl)
+                                        .replaceAll("{SUPPORT}", supportBaseUrl)
+                                        .replaceAll("{SHORTLINK}", shortlinkBaseUrl)
+                                }
                             />
 
                             <footer className="mt-12 border-t border-base-300 pt-8">
