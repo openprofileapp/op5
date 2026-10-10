@@ -11,9 +11,34 @@ function formatTitle(value: string) {
         .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function parseKeywords(value: string): string[] {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+        return [];
+    }
+
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        return trimmed
+            .slice(1, -1)
+            .split(",")
+            .map((keyword) =>
+                keyword.trim().replace(/^["']|["']$/g, ""),
+            )
+            .filter(Boolean);
+    }
+
+    return trimmed
+        .split(",")
+        .map((keyword) =>
+            keyword.trim().replace(/^["']|["']$/g, ""),
+        )
+        .filter(Boolean);
+}
+
 function getMetadata(content: string): ArticleMetadata {
     const match = content.match(
-        /^\uFEFF?\s*---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/
+        /^\uFEFF?\s*---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/,
     );
 
     if (!match) {
@@ -22,18 +47,57 @@ function getMetadata(content: string): ArticleMetadata {
 
     const metadata: ArticleMetadata = {};
 
-    for (const line of match[1].split(/\r?\n/)) {
-        const match = line.match(/^(\w+)\s*:\s*(.+)$/);
+    const lines = match[1].split(/\r?\n/);
 
-        if (!match) {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        const arrayMatch = line.match(/^keywords\s*:\s*$/);
+
+        if (arrayMatch) {
+            const keywords: string[] = [];
+
+            while (i + 1 < lines.length) {
+                const itemMatch = lines[i + 1].match(
+                    /^\s+-\s+(.+?)\s*$/,
+                );
+
+                if (!itemMatch) {
+                    break;
+                }
+
+                keywords.push(
+                    itemMatch[1]
+                        .trim()
+                        .replace(/^["']|["']$/g, ""),
+                );
+
+                i++;
+            }
+
+            metadata.keywords = keywords;
             continue;
         }
 
-        const [, key, value] = match;
+        const lineMatch = line.match(/^(\w+)\s*:\s*(.*)$/);
 
-        metadata[key as keyof ArticleMetadata] = value
+        if (!lineMatch) {
+            continue;
+        }
+
+        const [, key, rawValue] = lineMatch;
+        const value = rawValue
             .trim()
             .replace(/^["']|["']$/g, "");
+
+        if (key === "keywords") {
+            metadata.keywords = parseKeywords(rawValue);
+            continue;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        metadata[key as keyof ArticleMetadata] = value;
     }
 
     return metadata;
@@ -117,6 +181,7 @@ function createArticleItem(
         author: metadata.author,
         date: metadata.date,
         updated: metadata.updated,
+        keywords: metadata.keywords,
     };
 }
 
@@ -160,8 +225,6 @@ export async function getArticle(
             filePath,
             "utf8",
         );
-
-        // const metadata = getMetadata(rawContent);
 
         const item = createArticleItem(
             filePath,

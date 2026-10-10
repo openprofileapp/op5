@@ -54,6 +54,17 @@ function getGroups(
     };
 }
 
+function matchesArticle(article: ArticleItem, query: string): boolean {
+    if (!query) return true;
+
+    return (
+        article.title.toLowerCase().includes(query) ||
+        (article.keywords ?? []).some((keyword) =>
+            keyword.toLowerCase().includes(query)
+        )
+    );
+}
+
 function ArticleNavItem({
     article,
     currentSlug,
@@ -182,7 +193,7 @@ export default function Article() {
 
                 if (!response.ok) {
                     if ( response.status === 404) {
-                        navigate("/404", { replace: true });
+                        navigate("/", { replace: true });
                     } else {
                         toast.show(
                             "Failed to fetch article", 
@@ -330,9 +341,6 @@ export default function Article() {
         handleVotes();
     }, [slug]);
 
-    // CALL THE API TO THE DATA RETURN HERE
-    // currentVote: "y", "n"
-
     useEffect(() => {
         window.scrollTo({
             top: 0,
@@ -352,35 +360,18 @@ export default function Article() {
     const currentGroup = currentArticle?.group;
     const normalizedQuery = query.trim().toLowerCase();
 
-    const filteredUngrouped =
-        groups.ungrouped.filter(
-            (item) =>
-                !normalizedQuery ||
-                item.title
-                    .toLowerCase()
-                    .includes(normalizedQuery),
-        );
+    const filteredUngrouped = groups.ungrouped.filter((item) =>
+        matchesArticle(item, normalizedQuery)
+    );
 
-    const filteredGroups =
-        groups.grouped
-            .map((group) => ({
-                ...group,
-
-                articles:
-                    group.articles.filter(
-                        (item) =>
-                            !normalizedQuery ||
-                            item.title
-                                .toLowerCase()
-                                .includes(
-                                    normalizedQuery,
-                                ),
-                    ),
-            }))
-            .filter(
-                (group) =>
-                    group.articles.length > 0,
-            );
+    const filteredGroups = groups.grouped
+        .map((group) => ({
+            ...group,
+            articles: group.articles.filter((item) =>
+                matchesArticle(item, normalizedQuery)
+            ),
+        }))
+        .filter((group) => group.articles.length > 0);
 
     const currentIndex =
         articles.findIndex(
@@ -640,8 +631,10 @@ export default function Article() {
 
                         <div className="ml-auto mr-2 flex items-center gap-5 text-sm md:mr-4">
                             <Link to={mainBaseUrl}>
-                                <span className="flex h-8 w-4 items-center justify-center">
-                                    <span className="font-nerdfont text-xl is-drawer-close:hidden">
+                                <span className="flex gap-2 h-8 items-center justify-center">
+                                    Leave Support
+                                    
+                                    <span className="font-nerdfont text-base is-drawer-close:hidden">
                                         
                                     </span>
                                 </span>
@@ -785,6 +778,8 @@ export default function Article() {
                                                         submitFeedback
                                                     );
                                                 } else {
+                                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                    // @ts-ignore
                                                     submitFeedback();
                                                 }
                                             }}
@@ -867,11 +862,13 @@ export default function Article() {
                         <div className="menu w-full grow justify-between">
 
                             <div className="flex flex-col gap-4">
-                                <img
-                                    alt="OpenProfile wordmark"
-                                    className="my-2 mt-4 h-6 w-full"
-                                    src={`${cdnBaseUrl}${window.config.metadata.assets.wordmark}`}
-                                />
+                                <Link to={supportBaseUrl}>
+                                    <img
+                                        alt="OpenProfile wordmark"
+                                        className="my-2 mt-4 h-6 w-full"
+                                        src={`${cdnBaseUrl}${window.config.metadata.assets.wordmark}`}
+                                    />
+                                </Link>
 
                                 <label className="input w-full">
                                     <span className="mr-1 font-nerdfont text-base">
@@ -886,6 +883,16 @@ export default function Article() {
                                             setQuery(event.target.value)
                                         }
                                     />
+
+                                    {query && (
+                                        <button
+                                            type="button"
+                                            className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
+                                            onClick={() => setQuery("")}
+                                        >
+                                            
+                                        </button>
+                                    )}
                                 </label>
 
                                 <div>
@@ -985,28 +992,6 @@ export default function Article() {
                                         )}
                                 </div>
                             </div>
-
-                            <ul>
-                                <hr />
-
-                                <li>
-                                    <button
-                                        className="flex items-center gap-4"
-                                        disabled={true}
-                                        onClick={async () => {
-                                            // ACTION HERE
-                                        }}
-                                    >
-                                        <span className="font-nerdfont flex h-8 w-4 items-center justify-center text-xl">
-                                            
-                                        </span>
-
-                                        <span className="is-drawer-close:hidden text-sm">
-                                            Settings
-                                        </span>
-                                    </button>
-                                </li>
-                            </ul>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 ---
 title: Verification
 author: [AvatarKage]({SHORTLINK}/5719552362357773)
+keywords: verification, verified, verified author, verified publisher, verification badge, verification requirements, how to get verified, apply for verification, verification application, author verification, publisher verification, account verification, eligibility, published books, published fiction, screenplay credits, writing portfolio, literary awards, professional publishing, business registration, profile verification, verified profile, custom URLs, priority visibility, OpenProfile verification, verification benefits, verification policy
 date: 2026-01-13
 updated: 2026-01-13
 ---

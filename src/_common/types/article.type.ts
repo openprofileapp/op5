@@ -1,18 +1,20 @@
-export type ArticleMetadata = {
+export interface ArticleMetadata {
     title?: string;
     author?: string;
     date?: string;
     updated?: string;
-};
+    keywords?: string[];
+}
 
-export type ArticleItem = {
+export interface ArticleItem {
     slug: string;
     title: string;
     group?: string;
     author?: string;
     date?: string;
     updated?: string;
-};
+    keywords?: string[];
+}
 
 export type Article = ArticleItem & {
     content: string;
