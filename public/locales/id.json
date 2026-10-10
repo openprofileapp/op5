@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "Sedang dibangun",
+      "maintenance": "Sedang dalam Pemeliharaan",
       "notFound": "404 - Halaman Tidak Ditemukan",
       "unavailable": "503 - Untuk Sementara Tidak Tersedia"
     },
@@ -19,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile masih dalam versi beta dan beberapa fitur belum tersedia, namun akan segera diluncurkan.",
-    "locale": "Terjemahan ini belum diverifikasi dan beberapa kata mungkin tidak akurat."
+    "locale": "Terjemahan ini belum diverifikasi dan beberapa kata mungkin tidak akurat.",
+    "theme": "Tema ini tidak lengkap dan mungkin ada visual yang rusak."
   },
   "responses": {
     "character": "Terjadi kesalahan saat mengambil karakter",
@@ -34,10 +36,19 @@
     "unknown": "Terjadi kesalahan yang tidak diketahui.",
     "webpush": "Gagal mengirim pemberitahuan push.",
     "pinLimit": "Anda telah mencapai jumlah maksimum (24) pin.",
+    "blockLimit": "Anda telah mencapai jumlah maksimum (32) blok",
+    "categoryLimit": "Anda telah mencapai jumlah maksimum (16) kategori",
+    "fieldLimit": "Anda telah mencapai jumlah maksimum (5) bidang",
+    "usernameLimit": "Anda telah mencapai jumlah maksimum (3) nama pengguna",
+    "linkLimit": "Anda telah mencapai jumlah maksimum (15) tautan",
     "delegationLimit": "Anda telah mencapai jumlah maksimum (8) akun yang didelegasikan.",
     "authorizationHeader": "Header Otorisasi tidak ada",
+    "templateNotFound": "Templat tidak ditemukan",
+    "characterNotFound": "Karakter tidak ditemukan",
+    "datasetNotFound": "Kumpulan data tidak ditemukan",
     "fileNotFound": "Berkas tidak ditemukan",
     "accountNotFound": "Akun tidak ditemukan",
+    "sessionNotFound": "Sesi tidak ditemukan",
     "emailNotFound": "Email tidak ditemukan",
     "connectionNotFound": "Koneksi tidak ditemukan",
     "accountSuspended": "Akun ini ditangguhkan",
@@ -46,13 +57,31 @@
     "unverifiedEmail": "Email akun eksternal Anda tidak terverifikasi.",
     "invalidEmail": "Email akun eksternal Anda tidak valid.",
     "takenEmail": "Email akun eksternal Anda sudah dipakai.",
+    "takenUsername": "Nama pengguna berikut diambil:",
     "fileUnknown": "Jenis file tidak diketahui atau tidak didukung",
     "fileTooLarge": "File melebihi batas 1 MB",
     "failedAccountRegistration": "Gagal mendaftarkan akun",
+    "premiumRequired": "Anda harus berlangganan premium untuk melakukan ini",
+    "invalidUsernameLength": "Nama pengguna Anda berikut harus terdiri dari 3-24 karakter:",
+    "invalidDisplayNameLength": "Nama tampilan Anda tidak boleh lebih dari 32 karakter",
+    "invalidLength": "Kata ganti atau lokasi lebih dari 64 karakter",
+    "invalidAboutLength": "Ikhtisar Anda tidak boleh lebih dari 320 karakter",
+    "invalidStatusLength": "Status Anda tidak boleh lebih dari 160 karakter",
+    "invalidMarkdownLength": "Tentang Anda tidak boleh lebih dari 16384 karakter",
+    "invalidTagsFormat": "Tag hanya boleh berisi a-z dan tanda hubung, dan panjangnya antara 3-24 karakter",
+    "invalidDateFormat": "Format tanggal tidak valid",
+    "invalidVisibility": "Visibilitas tidak valid",
+    "invalidFieldId": "Id bidang tidak valid",
+    "notAdult": "Anda harus berusia minimal 18 tahun untuk melakukan tindakan ini",
+    "invalidType": "Jenis akun tidak valid",
+    "underage": "Anda harus berusia minimal 13 tahun untuk menggunakan OpenProfile",
+    "cannotChangeHiddenState": "Beberapa bagian profil Anda telah disembunyikan oleh moderator. Saat ini tidak dapat diperbarui.",
     "ownerInteraction": {
       "follow": "Anda tidak dapat berhenti mengikuti konten Anda sendiri.",
       "like": "Anda tidak dapat membedakan konten Anda sendiri."
-    }
+    },
+    "unsavedChanges": "Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin pergi?",
+    "duplicateId": "ID duplikat ditemukan:"
   },
   "words": {
     "You": "Anda",
@@ -60,29 +89,214 @@
     "liked": "disukai",
     "unliked": "tidak seperti",
     "like": "menyukai",
+    "Like": "Menyukai",
     "unlike": "tidak seperti",
+    "Unlike": "Berbeda dengan",
     "followed": "diikuti",
     "unfollowed": "berhenti mengikuti",
     "follow": "mengikuti",
+    "Follow": "Mengikuti",
     "unfollow": "berhenti mengikuti",
-    "Search": "Mencari"
+    "Unfollow": "Berhenti mengikuti",
+    "Search": "Mencari",
+    "Description": "Keterangan",
+    "Pinned": "Disematkan",
+    "Limited": "Terbatas",
+    "More": "Lagi",
+    "dismiss": "membubarkan",
+    "Dismiss": "Membubarkan",
+    "dismissed": "diberhentikan",
+    "View": "Melihat",
+    "Read": "Membaca",
+    "Chat": "Mengobrol",
+    "ComingSoon": "Segera hadir",
+    "Added": "Ditambahkan",
+    "Removed": "DIHAPUS",
+    "add": "menambahkan",
+    "Add": "Menambahkan",
+    "remove": "menghapus",
+    "to": "ke",
+    "from": "dari",
+    "Interested": "Tertarik",
+    "NotInterested": "Tidak Tertarik",
+    "hide": "bersembunyi",
+    "unhide": "memperlihatkan",
+    "again": "lagi",
+    "Notifications": "Pemberitahuan",
+    "Mute": "Bisu",
+    "Muted": "Meredam",
+    "mute": "bisu",
+    "Unmute": "Membunyikan",
+    "Unmuted": "Dibunyikan",
+    "unmute": "membunyikan",
+    "Indefinitely": "Tanpa batas waktu",
+    "for": "untuk",
+    "Report": "Laporan",
+    "Share": "Membagikan",
+    "CopyId": "Salin ID",
+    "Moderate": "Sedang",
+    "Manage": "Mengelola",
+    "avatar": "avatar",
+    "banner": "spanduk",
+    "Online": "On line",
+    "Idle": "Menganggur",
+    "DND": "Jangan Ganggu",
+    "LastActive": "Terakhir Aktif",
+    "Message": "Pesan",
+    "EditProfile": "Sunting Profil",
+    "Edit": "Sunting",
+    "AddFriend": "Permintaan Teman",
+    "Restrict": "Membatasi",
+    "Block": "Memblokir",
+    "restrict": "membatasi",
+    "unrestrict": "tidak membatasi",
+    "Unrestrict": "Batalkan batasan",
+    "restricted": "terbatas",
+    "unrestricted": "tidak dibatasi",
+    "block": "memblokir",
+    "unblock": "buka blokir",
+    "Unblock": "Buka blokir",
+    "blocked": "diblokir",
+    "unblocked": "tidak diblokir",
+    "fanflair": "bakat kipas",
+    "Joined": "Bergabung",
+    "Born": "Dilahirkan",
+    "Founded": "Didirikan",
+    "Since": "Sejak",
+    "ExternalLinks": "Tautan Eksternal",
+    "Awards": "Penghargaan",
+    "Registration": "Pendaftaran",
+    "AwardedOn": "Diberikan pada",
+    "Caught": "Tertangkap",
+    "bugs": "bug",
+    "bug": "serangga",
+    "Views": "Tampilan",
+    "Reads": "Membaca",
+    "Likes": "Suka",
+    "Followers": "Pengikut",
+    "Following": "Mengikuti",
+    "Shares": "Bagikan",
+    "Advertisement": "Iklan",
+    "ProvidedBy": "Disediakan oleh",
+    "Sponsor": "Sponsor",
+    "About": "Tentang",
+    "Characters": "Karakter",
+    "PinToProfile": "Sematkan ke Profil",
+    "UnpinFromProfile": "Lepas sematan dari Profil",
+    "pinned": "Disematkan",
+    "unpinned": "dilepas pinnya",
+    "TogglePreview": "Alihkan Pratinjau",
+    "Bold": "Berani",
+    "Italic": "miring",
+    "Underline": "Menggarisbawahi",
+    "Strikethrough": "Dicoret",
+    "Heading": "Menuju",
+    "Link": "Link",
+    "Image": "Gambar",
+    "Code": "Kode",
+    "Quote": "Mengutip",
+    "List": "Daftar",
+    "Mention": "Menyebutkan",
+    "Verified": "Terverifikasi",
+    "Table": "Meja",
+    "Grid": "jaringan",
+    "Save": "Menyimpan",
+    "Saved": "Disimpan",
+    "OpenEditor": "Buka Penyunting",
+    "CloseEditor": "Tutup Penyunting",
+    "Close": "Menutup",
+    "MoveToTrash": "Pindah ke Sampah",
+    "Restore": "Memulihkan",
+    "DeletePermanently": "Hapus Secara Permanen",
+    "Restored": "Pulih",
+    "restore": "memulihkan",
+    "move": "bergerak",
+    "Move": "Bergerak",
+    "Moved": "Terharu",
+    "toTrash": "ke tempat sampah",
+    "deleted": "dihapus",
+    "delete": "menghapus",
+    "Delete": "Menghapus"
+  },
+  "time": {
+    "hour1": "1 Jam",
+    "hour4": "4 Jam",
+    "hour8": "8 Jam",
+    "hour24": "24 Jam"
+  },
+  "defaults": {
+    "noCharacterAbout": "Karakter ini tidak memiliki gambaran umum.",
+    "noTemplateAbout": "Templat ini tidak memiliki deskripsi.",
+    "noUserAbout": "Pengguna ini tidak memiliki gambaran umum.",
+    "noFriendView": "sebagai teman untuk melihat profilnya.",
+    "noFanflair": "Fanflair belum tersedia.",
+    "onlyYou": "Hanya terlihat oleh Anda",
+    "onlyFriends": "Hanya terlihat oleh teman Anda",
+    "hideAds": "Berlangganan Premium untuk menyembunyikan ini.",
+    "failedToSaveProfile": "Gagal menyimpan profil Anda",
+    "savedYourProfile": "Profil Anda telah disimpan"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "Lihat di Studio",
+        "chatComingSoon": "Obrolan (segera hadir)",
+        "messageComingSoon": "Pesan (segera hadir)",
+        "addToCollection": "Tambahkan ke Koleksi",
+        "newCollection": "Koleksi Baru"
+      }
+    },
+    "toasts": {
+      "notInterested": "Anda tidak akan melihat lagi",
+      "interested": "Anda akan melihat",
+      "copiedId": "ID disalin ke papan klip",
+      "failedCopiedId": "Gagal menyalin ID ke papan klip",
+      "copiedLink": "Tautan disalin ke papan klip",
+      "failedCopiedLink": "Gagal menyalin tautan ke papan klip"
+    },
+    "badges": {
+      "verifiedComment": "Profil ini dikelola oleh pemilik kekayaan intelektual atau individu yang berwenang.",
+      "unofficialCommentPart1": "Profil ini dikelola oleh penggemar berdasarkan penggunaan wajar dan mungkin berisi informasi yang tidak akurat.",
+      "unofficialCommentPart2": "Kekayaan intelektual milik:",
+      "officialName": "Akun Resmi",
+      "staffName": "Staf Profil Terbuka",
+      "partnerName": "Program Mitra",
+      "verifiedName": "Terverifikasi",
+      "premiumName": "Premi",
+      "unofficialName": "Dikelola Komunitas",
+      "limitedName": "Profil Pribadi"
+    },
+    "awards": {
+      "contributorName": "Penyumbang",
+      "entomologistName": "Ahli ilmu serangga",
+      "precursorName": "Pendahulu"
+    },
+    "cards": {
+      "isBlocked": "Pengguna yang Diblokir",
+      "isSensitive": "Konten Sensitif",
+      "isMature": "Konten Dewasa",
+      "clickToReveal": "Klik untuk Mengungkapkan",
+      "limited": "Karakter ini tersedia untuk Anda melalui izin atau pertemanan."
+    },
     "dropdown": {
       "selectOption": "Pilih Opsi",
-      "selectOrType": "Pilih atau ketik..."
+      "selectOrType": "Pilih atau ketik...",
+      "loadingDataset": "Memuat...",
+      "noMatchingOptions": "Tidak ada opsi yang cocok"
     },
     "modals": {
       "close": "Menutup",
+      "cancel": "Membatalkan",
+      "save": "Menyimpan",
       "captchaHeader": "Apakah kamu robot?",
       "limit": {
-        "subtext": "tidak akan bisa:",
+        "subtextTopOne": "tidak akan bisa:",
+        "subtextTopTwo": "akan dapat:",
         "messagesTitle": "Mengirimi Anda pesan pribadi.",
         "messagesSubtext": "Percakapan yang ada masih bisa dibaca.",
         "subtextTwo": "mungkin masih bisa:"
       },
       "block": {
-        "title": "Memblokir",
         "rowOneTitleStaff": "Berinteraksi dengan akun atau publikasi Anda.",
         "rowOneTitle": "Lihat atau berinteraksi dengan akun atau publikasi Anda.",
         "rowOneSubtext": "Tindakan ini akan menghapus atau menyembunyikan interaksi yang ada.",
@@ -96,7 +310,6 @@
         "result": "Anda memblokir"
       },
       "restrict": {
-        "title": "Membatasi",
         "rowOneTitle": "Komentari publikasi Anda.",
         "rowOneSubtext": "Tindakan ini tidak akan menghapus komentar yang sudah ada.",
         "rowThreeTitle": "Mengirimi Anda permintaan pertemanan.",
@@ -108,6 +321,35 @@
         "notEnough": "Tidak cukup? Coba Blokir!",
         "result": "Anda membatasi"
       },
+      "trash": {
+        "rowOneTitle": "Ini akan dihapus secara otomatis dalam 30 hari.",
+        "rowOneSubtext": "Anda dapat memulihkannya dari sampah hingga saat itu.",
+        "toTrash": "ke tempat sampah"
+      },
+      "delete": {
+        "rowOneTitle": "Tindakan ini bersifat permanen dan tidak dapat dibatalkan.",
+        "rowOneSubtext": "Dukungan OpenProfile tidak akan dapat memulihkan ini."
+      },
+      "report": {
+        "title": "Laporan",
+        "rowTitle": "Laporan harus jujur, akurat, bebas dari bias atau distorsi, dan dibuat dengan itikad baik.",
+        "footer": "Pelanggaran kekayaan intelektual dan laporan teknis tidak bersifat anonim.",
+        "type": "Jenis Laporan",
+        "placeholder": "Jenis laporan apa yang Anda ajukan?",
+        "description": "Jelaskan laporan Anda sedetail mungkin sehingga kami dapat mengatasi masalah ini dengan tepat.",
+        "submit": "Kirim Laporan",
+        "result": "Terima kasih atas laporannya",
+        "abuse": "Penyalahgunaan & Pelecehan",
+        "spam": "Spam & Perilaku Menipu",
+        "inappropriate": "Konten Tidak Pantas",
+        "dmca": "Pelanggaran Kekayaan Intelektual",
+        "misuse": "Penyalahgunaan Platform",
+        "safety": "Privasi & Keamanan",
+        "impersonation": "Peniruan",
+        "ai": "Konten Buatan AI",
+        "bug": "Kesalahan & Bug Teknis",
+        "other": "Lainnya"
+      },
       "mute": {
         "title": "Bisu",
         "subtext": "Anda tidak akan diberitahu kapan",
@@ -118,6 +360,21 @@
         "rowThreeTitle": "Mengirimi Anda pesan pribadi.",
         "rowThreeSubtext": "Anda masih akan menerima notifikasi untuk obrolan grup bersama.",
         "result": "Anda membungkam"
+      },
+      "notifications": {
+        "title": "Kelola Notifikasi",
+        "subtext": "Anda akan mendapat pemberitahuan kapan",
+        "rowOneTitle": "Mendapat pembaruan atau perubahan publikasi.",
+        "rowOneTitleUser": "Memublikasikan konten baru.",
+        "rowOneSubtext": "Ini tidak mengubah tampilannya di feed Anda.",
+        "rowTwoTitle": "Apakah kolaborator ditugaskan atau dicabut.",
+        "rowTwoSubtext": "Hal ini hanya berlaku untuk kolaborator yang dipublikasikan oleh pemiliknya.",
+        "rowThreeTitle": "Menerima interaksi baru.",
+        "rowThreeSubtext": "Anda tidak akan menerima notifikasi dari pengguna yang dibisukan.",
+        "rowFourTitle": "Menerima aktivitas komentar baru.",
+        "rowFourSubtext": "Anda tidak akan menerima notifikasi dari pengguna yang dibisukan atau diblokir.",
+        "result": "Preferensi Anda telah disimpan",
+        "error": "Gagal menyimpan preferensi Anda"
       },
       "share": {
         "title": "Membagikan",
@@ -150,10 +407,24 @@
       "update": "Halaman Anda akan disegarkan secara otomatis",
       "marquee": "UNTUK SEMENTARA TIDAK TERSEDIA"
     },
-    "home": {
-      "title": "Halaman Contoh",
-      "body": "Untuk mengedit halaman ini, kunjungi ./src/frontend/main/pages/Home.tsx",
-      "button": "Klik Saya"
+    "maintenance": {
+      "marquee": "Sedang dalam Pemeliharaan"
+    },
+    "userProfile": {
+      "searchCharacters": "Nama, waralaba, topik...",
+      "end": "Anda telah mencapai akhir!",
+      "noCharactersFound": "Tidak ada karakter yang ditemukan.",
+      "endSub": "untuk tidak pernah melewatkan publikasi baru."
+    },
+    "datasets": {
+      "notFound": "Tidak ada kumpulan data yang ditemukan.",
+      "searchDatasets": "Nama, deskripsi, entri data..."
+    },
+    "templates": {
+      "notFound": "Tidak ada templat yang ditemukan."
+    },
+    "blocks": {
+      "notFound": "Tidak ada blok yang ditemukan."
     }
   }
 }

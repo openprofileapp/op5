@@ -36,8 +36,8 @@ const maintenanceText = "We're updating OpenProfle to a new version.";
 // Version name is editable in ./src/assets/locales/*.json
 const semver = "5.1.0"; // 5.major.minor.patch
 const stage = isNightly ? "nightly" : "beta"; // prealpha | alpha | beta | rc | release | nightly
-const build = "build-488a2af"; // DO NOT TOUCH, AUTO-GENERATED
-const buildDate = "2026-09-03T12:03:16.849Z"; // DO NOT TOUCH, AUTO-GENERATED
+const build = "build-2a8753d"; // DO NOT TOUCH, AUTO-GENERATED
+const buildDate = "2026-10-10T21:28:38.050Z"; // DO NOT TOUCH, AUTO-GENERATED
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const fullVersion = stage === "release"

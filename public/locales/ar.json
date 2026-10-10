@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "تحت الإنشاء",
+      "maintenance": "تحت الصيانة",
       "notFound": "404 - الصفحة غير موجودة",
       "unavailable": "503-غير متاح مؤقتًا"
     },
@@ -19,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile في مرحلة تجريبية وبعض الميزات ليست متاحة بعد، ولكن سيتم طرحها قريبًا.",
-    "locale": "لم يتم التحقق من هذه الترجمة وقد تكون بعض الكلمات غير دقيقة."
+    "locale": "لم يتم التحقق من هذه الترجمة وقد تكون بعض الكلمات غير دقيقة.",
+    "theme": "هذا الموضوع غير مكتمل وقد تكون هناك عناصر مرئية معطلة."
   },
   "responses": {
     "character": "حدث خطأ أثناء جلب الحرف",
@@ -34,10 +36,19 @@
     "unknown": "حدث خطأ غير معروف.",
     "webpush": "فشل في إرسال إشعار الدفع.",
     "pinLimit": "لقد وصلت إلى الحد الأقصى لعدد الدبابيس (24).",
+    "blockLimit": "لقد وصلت إلى الحد الأقصى لعدد (32) من الكتل",
+    "categoryLimit": "لقد وصلت إلى الحد الأقصى (16) من الفئات",
+    "fieldLimit": "لقد وصلت إلى الحد الأقصى لعدد (5) من الحقول",
+    "usernameLimit": "لقد وصلت إلى الحد الأقصى لعدد (3) من أسماء المستخدمين",
+    "linkLimit": "لقد وصلت إلى الحد الأقصى لعدد الروابط (15).",
     "delegationLimit": "لقد وصلت إلى الحد الأقصى (8) من الحسابات المفوضة.",
     "authorizationHeader": "رأس التفويض مفقود",
+    "templateNotFound": "لم يتم العثور على القالب",
+    "characterNotFound": "لم يتم العثور على الحرف",
+    "datasetNotFound": "لم يتم العثور على مجموعة البيانات",
     "fileNotFound": "لم يتم العثور على الملف",
     "accountNotFound": "لم يتم العثور على الحساب",
+    "sessionNotFound": "لم يتم العثور على الجلسة",
     "emailNotFound": "لم يتم العثور على البريد الإلكتروني",
     "connectionNotFound": "لم يتم العثور على الاتصال",
     "accountSuspended": "هذا الحساب معطل",
@@ -46,13 +57,31 @@
     "unverifiedEmail": "لم يتم التحقق من البريد الإلكتروني لحسابك الخارجي.",
     "invalidEmail": "البريد الإلكتروني لحسابك الخارجي غير صالح.",
     "takenEmail": "البريد الإلكتروني الخاص بحسابك الخارجي مأخوذ بالفعل.",
+    "takenUsername": "يتم أخذ اسم المستخدم التالي:",
     "fileUnknown": "نوع الملف غير معروف أو غير مدعوم",
     "fileTooLarge": "يتجاوز الملف الحد المسموح به وهو 1 ميغابايت",
     "failedAccountRegistration": "فشل في تسجيل الحساب",
+    "premiumRequired": "يجب أن تكون مشتركًا في Premium للقيام بذلك",
+    "invalidUsernameLength": "يجب أن يتكون اسم المستخدم التالي من 3 إلى 24 حرفًا:",
+    "invalidDisplayNameLength": "لا يمكن أن يتجاوز اسم العرض الخاص بك 32 حرفًا",
+    "invalidLength": "الضمائر أو الموقع يزيد عن 64 حرفًا",
+    "invalidAboutLength": "لا يمكن أن تكون النظرة العامة الخاصة بك أطول من 320 حرفًا",
+    "invalidStatusLength": "لا يمكن أن تزيد حالتك عن 160 حرفًا",
+    "invalidMarkdownLength": "لا يمكن أن يكون أطول من 16384 حرفًا",
+    "invalidTagsFormat": "يمكن أن تحتوي العلامات فقط على a-z وشرطات، وأن تتراوح بين 3 إلى 24 حرفًا",
+    "invalidDateFormat": "تنسيق التاريخ غير صالح",
+    "invalidVisibility": "رؤية غير صالحة",
+    "invalidFieldId": "معرف الحقل غير صالح",
+    "notAdult": "يجب أن يكون عمرك 18 عامًا على الأقل للقيام بهذا الإجراء",
+    "invalidType": "نوع الحساب غير صالح",
+    "underage": "يجب أن يكون عمرك 13 عامًا على الأقل حتى تتمكن من استخدام OpenProfile",
+    "cannotChangeHiddenState": "تم إخفاء بعض أجزاء ملفك الشخصي بواسطة أحد المشرفين. لا يمكن تحديثه في هذا الوقت.",
     "ownerInteraction": {
       "follow": "لا يمكنك إلغاء متابعة المحتوى الخاص بك.",
       "like": "لا يمكنك عكس المحتوى الخاص بك."
-    }
+    },
+    "unsavedChanges": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟",
+    "duplicateId": "تم العثور على معرف مكرر:"
   },
   "words": {
     "You": "أنت",
@@ -60,29 +89,214 @@
     "liked": "أحب",
     "unliked": "غير مرغوب فيه",
     "like": "يحب",
+    "Like": "يحب",
     "unlike": "على عكس",
+    "Unlike": "على عكس",
     "followed": "يتبع",
     "unfollowed": "غير متابع",
     "follow": "يتبع",
+    "Follow": "يتبع",
     "unfollow": "إلغاء المتابعة",
-    "Search": "يبحث"
+    "Unfollow": "إلغاء المتابعة",
+    "Search": "يبحث",
+    "Description": "وصف",
+    "Pinned": "مثبت",
+    "Limited": "محدود",
+    "More": "أكثر",
+    "dismiss": "رفض",
+    "Dismiss": "رفض",
+    "dismissed": "تم رفضه",
+    "View": "منظر",
+    "Read": "يقرأ",
+    "Chat": "محادثة",
+    "ComingSoon": "قريباً",
+    "Added": "تمت الإضافة",
+    "Removed": "تمت الإزالة",
+    "add": "يضيف",
+    "Add": "يضيف",
+    "remove": "يزيل",
+    "to": "ل",
+    "from": "من",
+    "Interested": "مهتم",
+    "NotInterested": "غير مهتم",
+    "hide": "يخفي",
+    "unhide": "إظهار",
+    "again": "مرة أخرى",
+    "Notifications": "إشعارات",
+    "Mute": "صامت",
+    "Muted": "كتم الصوت",
+    "mute": "صامت",
+    "Unmute": "إلغاء كتم الصوت",
+    "Unmuted": "تم إلغاء كتم الصوت",
+    "unmute": "إلغاء كتم الصوت",
+    "Indefinitely": "إلى أجل غير مسمى",
+    "for": "ل",
+    "Report": "تقرير",
+    "Share": "يشارك",
+    "CopyId": "نسخ معرف",
+    "Moderate": "معتدل",
+    "Manage": "يدير",
+    "avatar": "الصورة الرمزية",
+    "banner": "راية",
+    "Online": "متصل",
+    "Idle": "عاطل",
+    "DND": "لا تخل",
+    "LastActive": "آخر نشاط",
+    "Message": "رسالة",
+    "EditProfile": "تحرير الملف الشخصي",
+    "Edit": "يحرر",
+    "AddFriend": "طلب صديق",
+    "Restrict": "يقيد",
+    "Block": "حاجز",
+    "restrict": "يقيد",
+    "unrestrict": "غير مقيد",
+    "Unrestrict": "غير مقيد",
+    "restricted": "مقيد",
+    "unrestricted": "غير مقيد",
+    "block": "حاجز",
+    "unblock": "إلغاء الحظر",
+    "Unblock": "إلغاء الحظر",
+    "blocked": "محظور",
+    "unblocked": "غير محظور",
+    "fanflair": "ذوق",
+    "Joined": "انضم",
+    "Born": "وُلِدّ",
+    "Founded": "تأسست",
+    "Since": "منذ",
+    "ExternalLinks": "روابط خارجية",
+    "Awards": "الجوائز",
+    "Registration": "تسجيل",
+    "AwardedOn": "منحت على",
+    "Caught": "أمسك",
+    "bugs": "البق",
+    "bug": "حشرة",
+    "Views": "وجهات النظر",
+    "Reads": "يقرأ",
+    "Likes": "يحب",
+    "Followers": "المتابعون",
+    "Following": "التالي",
+    "Shares": "أسهم",
+    "Advertisement": "إعلان",
+    "ProvidedBy": "المقدمة من",
+    "Sponsor": "راعي",
+    "About": "عن",
+    "Characters": "الشخصيات",
+    "PinToProfile": "تثبيت على الملف الشخصي",
+    "UnpinFromProfile": "قم بإلغاء التثبيت من الملف الشخصي",
+    "pinned": "مثبت",
+    "unpinned": "غير مثبت",
+    "TogglePreview": "تبديل المعاينة",
+    "Bold": "عريض",
+    "Italic": "مائل",
+    "Underline": "تسطير",
+    "Strikethrough": "يتوسطه خط",
+    "Heading": "عنوان",
+    "Link": "وصلة",
+    "Image": "صورة",
+    "Code": "شفرة",
+    "Quote": "يقتبس",
+    "List": "قائمة",
+    "Mention": "يذكر",
+    "Verified": "تم التحقق منه",
+    "Table": "طاولة",
+    "Grid": "شبكة",
+    "Save": "يحفظ",
+    "Saved": "أنقذ",
+    "OpenEditor": "افتح المحرر",
+    "CloseEditor": "إغلاق المحرر",
+    "Close": "يغلق",
+    "MoveToTrash": "الانتقال إلى سلة المهملات",
+    "Restore": "يعيد",
+    "DeletePermanently": "حذف نهائيا",
+    "Restored": "المستعادة",
+    "restore": "يعيد",
+    "move": "يتحرك",
+    "Move": "يتحرك",
+    "Moved": "انتقل",
+    "toTrash": "إلى سلة المهملات",
+    "deleted": "تم حذفه",
+    "delete": "يمسح",
+    "Delete": "يمسح"
+  },
+  "time": {
+    "hour1": "1 ساعة",
+    "hour4": "4 ساعات",
+    "hour8": "8 ساعات",
+    "hour24": "24 ساعة"
+  },
+  "defaults": {
+    "noCharacterAbout": "هذه الشخصية ليس لديها نظرة عامة.",
+    "noTemplateAbout": "هذا القالب لا يحتوي على وصف.",
+    "noUserAbout": "هذا المستخدم ليس لديه نظرة عامة.",
+    "noFriendView": "كصديق لعرض ملفه الشخصي.",
+    "noFanflair": "Fanflairs ليست متاحة بعد.",
+    "onlyYou": "مرئية لك فقط",
+    "onlyFriends": "مرئية فقط لأصدقائك",
+    "hideAds": "اشترك في Premium لإخفاء هذا.",
+    "failedToSaveProfile": "فشل في حفظ ملف التعريف الخاص بك",
+    "savedYourProfile": "تم حفظ ملف التعريف الخاص بك"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "عرض في الاستوديو",
+        "chatComingSoon": "الدردشة (قريبا)",
+        "messageComingSoon": "الرسالة (قريبا)",
+        "addToCollection": "أضف إلى المجموعة",
+        "newCollection": "مجموعة جديدة"
+      }
+    },
+    "toasts": {
+      "notInterested": "لن ترى بعد الآن",
+      "interested": "سوف ترى",
+      "copiedId": "تم نسخ المعرف إلى الحافظة",
+      "failedCopiedId": "فشل نسخ المعرف إلى الحافظة",
+      "copiedLink": "تم نسخ الرابط إلى الحافظة",
+      "failedCopiedLink": "فشل نسخ الرابط إلى الحافظة"
+    },
+    "badges": {
+      "verifiedComment": "تتم إدارة هذا الملف الشخصي من قبل أصحاب الملكية الفكرية أو الأفراد المعتمدين.",
+      "unofficialCommentPart1": "تتم إدارة ملف التعريف هذا بواسطة المعجبين بموجب الاستخدام العادل وقد يحتوي على معلومات غير دقيقة.",
+      "unofficialCommentPart2": "الملكية الفكرية تعود إلى:",
+      "officialName": "الحساب الرسمي",
+      "staffName": "طاقم العمل في الملف الشخصي المفتوح",
+      "partnerName": "برنامج الشريك",
+      "verifiedName": "تم التحقق منه",
+      "premiumName": "غالي",
+      "unofficialName": "إدارة المجتمع",
+      "limitedName": "الملف الشخصي الخاص"
+    },
+    "awards": {
+      "contributorName": "مساهم",
+      "entomologistName": "عالم الحشرات",
+      "precursorName": "السلائف"
+    },
+    "cards": {
+      "isBlocked": "مستخدم محظور",
+      "isSensitive": "المحتوى الحساس",
+      "isMature": "محتوى ناضج",
+      "clickToReveal": "انقر للكشف",
+      "limited": "هذه الشخصية متاحة لك من خلال الأذونات أو الصداقة."
+    },
     "dropdown": {
       "selectOption": "حدد الخيار",
-      "selectOrType": "حدد أو اكتب..."
+      "selectOrType": "حدد أو اكتب...",
+      "loadingDataset": "تحميل...",
+      "noMatchingOptions": "لا توجد خيارات مطابقة"
     },
     "modals": {
       "close": "يغلق",
+      "cancel": "يلغي",
+      "save": "يحفظ",
       "captchaHeader": "هل أنت روبوت؟",
       "limit": {
-        "subtext": "لن تكون قادرة على:",
+        "subtextTopOne": "لن تكون قادرة على:",
+        "subtextTopTwo": "سوف تكون قادرة على:",
         "messagesTitle": "أرسل لك رسائل خاصة.",
         "messagesSubtext": "لا يزال من الممكن قراءة المحادثات الحالية.",
         "subtextTwo": "ربما لا يزال بإمكانك:"
       },
       "block": {
-        "title": "حاجز",
         "rowOneTitleStaff": "التفاعل مع حسابك أو المنشورات الخاصة بك.",
         "rowOneTitle": "عرض أو التفاعل مع حسابك أو المنشورات الخاصة بك.",
         "rowOneSubtext": "سيؤدي هذا إلى إزالة التفاعلات الحالية أو إخفائها.",
@@ -96,7 +310,6 @@
         "result": "لقد منعت"
       },
       "restrict": {
-        "title": "يقيد",
         "rowOneTitle": "التعليق على المنشورات الخاصة بك.",
         "rowOneSubtext": "لن يؤدي هذا إلى إزالة التعليقات الموجودة.",
         "rowThreeTitle": "أرسل لك طلبات الصداقة.",
@@ -108,6 +321,35 @@
         "notEnough": "لا يكفي؟ حاول الحظر بدلاً من ذلك!",
         "result": "لقد قمت بتقييد"
       },
+      "trash": {
+        "rowOneTitle": "سيتم حذفه تلقائيًا خلال 30 يومًا.",
+        "rowOneSubtext": "يمكنك استعادته من سلة المهملات الخاصة بك حتى ذلك الحين.",
+        "toTrash": "إلى سلة المهملات"
+      },
+      "delete": {
+        "rowOneTitle": "هذا الإجراء دائم ولا يمكن التراجع عنه.",
+        "rowOneSubtext": "لن يتمكن دعم OpenProfile من استرداد هذا."
+      },
+      "report": {
+        "title": "تقرير",
+        "rowTitle": "ويجب أن تكون التقارير صادقة ودقيقة وخالية من التحيز أو التشويه، وأن يتم إعدادها بحسن نية.",
+        "footer": "انتهاكات الملكية الفكرية والتقارير الفنية ليست مجهولة المصدر.",
+        "type": "Report Type",
+        "placeholder": "ما نوع التقرير الذي تقدمه؟",
+        "description": "قم بوصف بلاغك بأكبر قدر ممكن من التفاصيل حتى نتمكن من معالجة المشكلة بشكل صحيح.",
+        "submit": "إرسال التقرير",
+        "result": "شكرا على التقرير",
+        "abuse": "الإساءة والتحرش",
+        "spam": "البريد العشوائي والسلوك الخادع",
+        "inappropriate": "محتوى غير لائق",
+        "dmca": "انتهاكات الملكية الفكرية",
+        "misuse": "Platform Misuse",
+        "safety": "الخصوصية والأمان",
+        "impersonation": "التمثيل",
+        "ai": "المحتوى الذي تم إنشاؤه بواسطة الذكاء الاصطناعي",
+        "bug": "الأخطاء الفنية والأخطاء",
+        "other": "آخر"
+      },
       "mute": {
         "title": "صامت",
         "subtext": "لن يتم إعلامك متى",
@@ -118,6 +360,21 @@
         "rowThreeTitle": "يرسل لك رسائل خاصة.",
         "rowThreeSubtext": "ستظل تتلقى إشعارات للمحادثات الجماعية المشتركة.",
         "result": "لقد كتمت"
+      },
+      "notifications": {
+        "title": "إدارة الإخطارات",
+        "subtext": "سيتم إعلامك عندما",
+        "rowOneTitle": "يحصل على تحديث أو تغيير المنشور.",
+        "rowOneTitleUser": "ينشر محتوى جديد.",
+        "rowOneSubtext": "هذا لا يغير كيفية ظهوره في خلاصتك.",
+        "rowTwoTitle": "تم تعيين المتعاونين أو إبطالهم.",
+        "rowTwoSubtext": "ينطبق هذا فقط على المتعاونين الذين أعلنهم المالك.",
+        "rowThreeTitle": "يتلقى تفاعلات جديدة.",
+        "rowThreeSubtext": "لن تتلقى إشعارات من المستخدمين الذين تم كتم صوتهم.",
+        "rowFourTitle": "يتلقى نشاط تعليق جديد.",
+        "rowFourSubtext": "لن تتلقى إشعارات من المستخدمين الذين تم كتم صوتهم أو حظرهم.",
+        "result": "تم حفظ تفضيلاتك",
+        "error": "فشل في حفظ تفضيلاتك"
       },
       "share": {
         "title": "يشارك",
@@ -150,10 +407,24 @@
       "update": "سيتم تحديث صفحتك تلقائيًا",
       "marquee": "غير متاح مؤقتا"
     },
-    "home": {
-      "title": "صفحة المثال",
-      "body": "لتحرير هذه الصفحة، قم بزيارة ./src/frontend/main/pages/Home.tsx",
-      "button": "انقر فوق أنا"
+    "maintenance": {
+      "marquee": "تحت الصيانة"
+    },
+    "userProfile": {
+      "searchCharacters": "الاسم والامتيازات والموضوعات ...",
+      "end": "لقد وصلت إلى النهاية!",
+      "noCharactersFound": "لم يتم العثور على أي أحرف.",
+      "endSub": "لكي لا تفوت أي منشور جديد."
+    },
+    "datasets": {
+      "notFound": "لم يتم العثور على مجموعات بيانات.",
+      "searchDatasets": "الاسم والوصف وإدخال البيانات..."
+    },
+    "templates": {
+      "notFound": "لم يتم العثور على قوالب."
+    },
+    "blocks": {
+      "notFound": "لم يتم العثور على كتل."
     }
   }
 }

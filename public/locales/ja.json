@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "工事中",
+      "maintenance": "メンテナンス中",
       "notFound": "404 - ページが見つかりません",
       "unavailable": "503 - 一時的に利用できません"
     },
@@ -19,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile はベータ版であり、一部の機能はまだ利用できませんが、間もなく公開される予定です。",
-    "locale": "この翻訳は未検証であり、一部の単語が不正確である可能性があります。"
+    "locale": "この翻訳は未検証であり、一部の単語が不正確である可能性があります。",
+    "theme": "このテーマは不完全であり、壊れたビジュアルがある可能性があります。"
   },
   "responses": {
     "character": "文字の取得中にエラーが発生しました",
@@ -34,10 +36,19 @@
     "unknown": "不明なエラーが発生しました。",
     "webpush": "プッシュ通知の送信に失敗しました。",
     "pinLimit": "ピンの数が最大数 (24) に達しました。",
+    "blockLimit": "ブロックの最大量 (32) に達しました",
+    "categoryLimit": "カテゴリの最大数 (16) に達しました",
+    "fieldLimit": "フィールドの最大数 (5) に達しました",
+    "usernameLimit": "ユーザー名が最大数 (3 個) に達しました",
+    "linkLimit": "リンクが最大数 (15) に達しました",
     "delegationLimit": "委任されたアカウントの最大数 (8) に達しました。",
     "authorizationHeader": "Authorization ヘッダーがありません",
+    "templateNotFound": "テンプレートが見つかりません",
+    "characterNotFound": "文字が見つかりません",
+    "datasetNotFound": "データセットが見つかりません",
     "fileNotFound": "ファイルが見つかりません",
     "accountNotFound": "アカウントが見つかりません",
+    "sessionNotFound": "セッションが見つかりません",
     "emailNotFound": "メールが見つかりません",
     "connectionNotFound": "接続が見つかりません",
     "accountSuspended": "このアカウントは停止されています",
@@ -46,13 +57,31 @@
     "unverifiedEmail": "外部アカウントのメールアドレスが検証されていません。",
     "invalidEmail": "外部アカウントのメールアドレスが無効です。",
     "takenEmail": "外部アカウントのメールアドレスはすでに使用されています。",
+    "takenUsername": "次のユーザー名が取得されます。",
     "fileUnknown": "不明なファイルタイプまたはサポートされていないファイルタイプ",
     "fileTooLarge": "ファイルが 1 MB の制限を超えています",
     "failedAccountRegistration": "アカウントの登録に失敗しました",
+    "premiumRequired": "これを行うにはプレミアムに登録する必要があります",
+    "invalidUsernameLength": "次のユーザー名は 3 ～ 24 文字である必要があります。",
+    "invalidDisplayNameLength": "表示名は 32 文字以下にする必要があります",
+    "invalidLength": "代名詞または場所が 64 文字を超えています",
+    "invalidAboutLength": "概要は 320 文字を超えることはできません",
+    "invalidStatusLength": "ステータスは 160 文字を超えることはできません",
+    "invalidMarkdownLength": "About は 16384 文字を超えることはできません",
+    "invalidTagsFormat": "タグには、a ～ z とダッシュのみを含めることができ、3 ～ 24 文字にすることができます。",
+    "invalidDateFormat": "無効な日付形式です",
+    "invalidVisibility": "無効な可視性",
+    "invalidFieldId": "無効なフィールドID",
+    "notAdult": "このアクションを実行するには、18 歳以上である必要があります",
+    "invalidType": "無効なアカウントの種類です",
+    "underage": "OpenProfile を使用するには 13 歳以上である必要があります",
+    "cannotChangeHiddenState": "あなたのプロフィールの一部はモデレーターによって非表示に設定されています。現時点では更新できません。",
     "ownerInteraction": {
       "follow": "自分のコンテンツのフォローを解除することはできません。",
       "like": "自分のコンテンツに異論を唱えることはできません。"
-    }
+    },
+    "unsavedChanges": "未保存の変更があります。本当に退会してもよろしいですか?",
+    "duplicateId": "重複した ID が見つかりました:"
   },
   "words": {
     "You": "あなた",
@@ -60,29 +89,214 @@
     "liked": "好きだった",
     "unliked": "嫌い",
     "like": "のように",
+    "Like": "のように",
     "unlike": "とは異なり",
+    "Unlike": "とは異なり",
     "followed": "フォローしました",
     "unfollowed": "フォローを外されました",
     "follow": "フォローする",
+    "Follow": "フォローする",
     "unfollow": "フォローを解除する",
-    "Search": "検索"
+    "Unfollow": "フォローを解除する",
+    "Search": "検索",
+    "Description": "説明",
+    "Pinned": "固定された",
+    "Limited": "限定",
+    "More": "もっと",
+    "dismiss": "却下する",
+    "Dismiss": "却下する",
+    "dismissed": "解雇された",
+    "View": "ビュー",
+    "Read": "読む",
+    "Chat": "チャット",
+    "ComingSoon": "近日公開",
+    "Added": "追加した",
+    "Removed": "削除されました",
+    "add": "追加",
+    "Add": "追加",
+    "remove": "取り除く",
+    "to": "に",
+    "from": "から",
+    "Interested": "興味がある",
+    "NotInterested": "興味がない",
+    "hide": "隠れる",
+    "unhide": "再表示",
+    "again": "また",
+    "Notifications": "通知",
+    "Mute": "ミュート",
+    "Muted": "ミュート",
+    "mute": "ミュート",
+    "Unmute": "ミュートを解除する",
+    "Unmuted": "ミュート解除",
+    "unmute": "ミュートを解除する",
+    "Indefinitely": "無期限に",
+    "for": "のために",
+    "Report": "報告",
+    "Share": "共有",
+    "CopyId": "IDをコピーする",
+    "Moderate": "適度",
+    "Manage": "管理",
+    "avatar": "アバター",
+    "banner": "バナー",
+    "Online": "オンライン",
+    "Idle": "アイドル状態",
+    "DND": "邪魔しないでください",
+    "LastActive": "最終アクティブ",
+    "Message": "メッセージ",
+    "EditProfile": "プロフィールの編集",
+    "Edit": "編集",
+    "AddFriend": "友達リクエスト",
+    "Restrict": "制限",
+    "Block": "ブロック",
+    "restrict": "制限",
+    "unrestrict": "制限を解除する",
+    "Unrestrict": "制限を解除する",
+    "restricted": "制限付き",
+    "unrestricted": "無制限の",
+    "block": "ブロック",
+    "unblock": "ブロックを解除する",
+    "Unblock": "ブロックを解除する",
+    "blocked": "ブロックされました",
+    "unblocked": "ブロックされていない",
+    "fanflair": "ファンフレア",
+    "Joined": "参加しました",
+    "Born": "生まれる",
+    "Founded": "設立",
+    "Since": "以来",
+    "ExternalLinks": "外部リンク",
+    "Awards": "受賞歴",
+    "Registration": "登録",
+    "AwardedOn": "受賞日",
+    "Caught": "つかまった",
+    "bugs": "バグ",
+    "bug": "バグ",
+    "Views": "ビュー",
+    "Reads": "読み取り",
+    "Likes": "いいね！",
+    "Followers": "フォロワー",
+    "Following": "続く",
+    "Shares": "株式",
+    "Advertisement": "広告",
+    "ProvidedBy": "提供元",
+    "Sponsor": "スポンサー",
+    "About": "について",
+    "Characters": "キャラクター",
+    "PinToProfile": "プロフィールにピン留めする",
+    "UnpinFromProfile": "プロフィールからピン留めを解除する",
+    "pinned": "固定された",
+    "unpinned": "固定されていない",
+    "TogglePreview": "プレビューの切り替え",
+    "Bold": "大胆な",
+    "Italic": "イタリック",
+    "Underline": "下線",
+    "Strikethrough": "取り消し線",
+    "Heading": "見出し",
+    "Link": "リンク",
+    "Image": "画像",
+    "Code": "コード",
+    "Quote": "引用",
+    "List": "リスト",
+    "Mention": "言及",
+    "Verified": "確認済み",
+    "Table": "テーブル",
+    "Grid": "グリッド",
+    "Save": "保存",
+    "Saved": "保存されました",
+    "OpenEditor": "エディタを開く",
+    "CloseEditor": "エディタを閉じる",
+    "Close": "近い",
+    "MoveToTrash": "ゴミ箱に移動",
+    "Restore": "復元する",
+    "DeletePermanently": "完全に削除",
+    "Restored": "復元されました",
+    "restore": "復元する",
+    "move": "動く",
+    "Move": "動く",
+    "Moved": "移転しました",
+    "toTrash": "ゴミ箱へ",
+    "deleted": "削除されました",
+    "delete": "消去",
+    "Delete": "消去"
+  },
+  "time": {
+    "hour1": "1時間",
+    "hour4": "4時間",
+    "hour8": "8時間",
+    "hour24": "24時間"
+  },
+  "defaults": {
+    "noCharacterAbout": "このキャラクターには概要がありません。",
+    "noTemplateAbout": "このテンプレートには説明がありません。",
+    "noUserAbout": "このユーザーには概要がありません。",
+    "noFriendView": "友達としてプロフィールを表示します。",
+    "noFanflair": "ファンフレアはまだ利用できません。",
+    "onlyYou": "あなただけに表示されます",
+    "onlyFriends": "友達にのみ表示されます",
+    "hideAds": "これを非表示にするには、プレミアムに登録してください。",
+    "failedToSaveProfile": "プロフィールを保存できませんでした",
+    "savedYourProfile": "プロフィールが保存されました"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "スタジオで見る",
+        "chatComingSoon": "チャット（近日公開予定）",
+        "messageComingSoon": "メッセージ（近日公開予定）",
+        "addToCollection": "コレクションに追加",
+        "newCollection": "新しいコレクション"
+      }
+    },
+    "toasts": {
+      "notInterested": "もう見られなくなります",
+      "interested": "ご覧のとおりです",
+      "copiedId": "ID がクリップボードにコピーされました",
+      "failedCopiedId": "IDをクリップボードにコピーできませんでした",
+      "copiedLink": "リンクがクリップボードにコピーされました",
+      "failedCopiedLink": "リンクをクリップボードにコピーできませんでした"
+    },
+    "badges": {
+      "verifiedComment": "このプロファイルは、その知的財産の所有者または権限を与えられた個人によって管理されます。",
+      "unofficialCommentPart1": "このプロフィールはフェアユースに基づいてファンによって管理されており、不正確な情報が含まれている可能性があります。",
+      "unofficialCommentPart2": "知的財産は以下に属します。",
+      "officialName": "公式アカウント",
+      "staffName": "オープンプロフィールスタッフ",
+      "partnerName": "パートナープログラム",
+      "verifiedName": "確認済み",
+      "premiumName": "プレミアム",
+      "unofficialName": "コミュニティ管理",
+      "limitedName": "プライベートプロフィール"
+    },
+    "awards": {
+      "contributorName": "投稿者",
+      "entomologistName": "昆虫学者",
+      "precursorName": "前駆"
+    },
+    "cards": {
+      "isBlocked": "ブロックされたユーザー",
+      "isSensitive": "機密性の高いコンテンツ",
+      "isMature": "成人向けコンテンツ",
+      "clickToReveal": "クリックして表示",
+      "limited": "このキャラクターは、許可または友情を通じて利用できます。"
+    },
     "dropdown": {
       "selectOption": "オプションの選択",
-      "selectOrType": "選択または入力..."
+      "selectOrType": "選択または入力...",
+      "loadingDataset": "読み込み中...",
+      "noMatchingOptions": "一致するオプションはありません"
     },
     "modals": {
       "close": "近い",
+      "cancel": "キャンセル",
+      "save": "保存",
       "captchaHeader": "あなたはロボットですか？",
       "limit": {
-        "subtext": "次のことができなくなります。",
+        "subtextTopOne": "次のことができなくなります。",
+        "subtextTopTwo": "次のことができるようになります:",
         "messagesTitle": "プライベートメッセージを送信します。",
         "messagesSubtext": "既存の会話は引き続き読み取ることができます。",
         "subtextTwo": "まだ次のことができるかもしれません:"
       },
       "block": {
-        "title": "ブロック",
         "rowOneTitleStaff": "自分のアカウントまたは出版物と対話します。",
         "rowOneTitle": "自分のアカウントまたは出版物を表示または操作します。",
         "rowOneSubtext": "これにより、既存のインタラクションが削除または非表示になります。",
@@ -96,7 +310,6 @@
         "result": "ブロックしました"
       },
       "restrict": {
-        "title": "制限",
         "rowOneTitle": "あなたの出版物にコメントしてください。",
         "rowOneSubtext": "これにより、既存のコメントは削除されません。",
         "rowThreeTitle": "友達リクエストを送信します。",
@@ -108,6 +321,35 @@
         "notEnough": "足りない？代わりにブロックしてみてください。",
         "result": "あなたは制限しました"
       },
+      "trash": {
+        "rowOneTitle": "30 日後に自動的に削除されます。",
+        "rowOneSubtext": "それまではゴミ箱から復元できます。",
+        "toTrash": "ゴミ箱へ"
+      },
+      "delete": {
+        "rowOneTitle": "このアクションは永続的であり、元に戻すことはできません。",
+        "rowOneSubtext": "OpenProfile サポートではこれを回復できません。"
+      },
+      "report": {
+        "title": "報告",
+        "rowTitle": "報告は正直かつ正確で、偏見や歪曲がなく、誠実に作成される必要があります。",
+        "footer": "知的財産侵害および技術報告は匿名ではありません。",
+        "type": "レポートの種類",
+        "placeholder": "どのような種類のレポートを提出しますか?",
+        "description": "問題に適切に対処できるよう、レポートについてできるだけ詳しく説明してください。",
+        "submit": "レポートの提出",
+        "result": "ご報告ありがとうございます",
+        "abuse": "虐待と嫌がらせ",
+        "spam": "スパムと欺瞞的な行為",
+        "inappropriate": "不適切なコンテンツ",
+        "dmca": "知的財産侵害",
+        "misuse": "プラットフォームの悪用",
+        "safety": "プライバシーと安全性",
+        "impersonation": "なりすまし",
+        "ai": "AI が生成したコンテンツ",
+        "bug": "技術的なエラーとバグ",
+        "other": "他の"
+      },
       "mute": {
         "title": "ミュート",
         "subtext": "次の場合は通知されません",
@@ -118,6 +360,21 @@
         "rowThreeTitle": "プライベートメッセージを送信します。",
         "rowThreeSubtext": "共有グループ チャットの通知は引き続き受信します。",
         "result": "ミュートしました"
+      },
+      "notifications": {
+        "title": "通知の管理",
+        "subtext": "次のときに通知が届きます",
+        "rowOneTitle": "更新または公開の変更を取得します。",
+        "rowOneTitleUser": "新しいコンテンツを公開します。",
+        "rowOneSubtext": "これによってフィード上での表示方法は変わりません。",
+        "rowTwoTitle": "コラボレーターが割り当てられているか、取り消されています。",
+        "rowTwoSubtext": "これは、所有者によって公開されたコラボレーターにのみ適用されます。",
+        "rowThreeTitle": "新しいインタラクションを受け取ります。",
+        "rowThreeSubtext": "ミュートされたユーザーからの通知は受信されません。",
+        "rowFourTitle": "新しいコメントアクティビティを受け取ります。",
+        "rowFourSubtext": "ミュートまたはブロックされたユーザーからの通知は受信されません。",
+        "result": "Your preferences have been saved",
+        "error": "設定を保存できませんでした"
       },
       "share": {
         "title": "共有",
@@ -150,10 +407,24 @@
       "update": "ページは自動的に更新されます",
       "marquee": "一時的に利用できません"
     },
-    "home": {
-      "title": "サンプルページ",
-      "body": "このページを編集するには、./src/frontend/main/pages/Home.tsx にアクセスしてください。",
-      "button": "クリックミー"
+    "maintenance": {
+      "marquee": "メンテナンス中"
+    },
+    "userProfile": {
+      "searchCharacters": "名前、フランチャイズ、トピック...",
+      "end": "最後まで到達しました!",
+      "noCharactersFound": "文字が見つかりません。",
+      "endSub": "新刊を見逃さないように。"
+    },
+    "datasets": {
+      "notFound": "データセットが見つかりません。",
+      "searchDatasets": "名前、説明、データエントリ..."
+    },
+    "templates": {
+      "notFound": "テンプレートが見つかりませんでした。"
+    },
+    "blocks": {
+      "notFound": "ブロックが見つかりませんでした。"
     }
   }
 }

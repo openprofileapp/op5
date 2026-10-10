@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "建设中",
+      "maintenance": "维护中",
       "notFound": "404 - 找不到页面",
       "unavailable": "503 - 暂时不可用"
     },
@@ -19,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile 处于测试阶段，某些功能尚不可用，但很快就会推出。",
-    "locale": "此翻译未经验证，有些词可能不准确。"
+    "locale": "此翻译未经验证，有些词可能不准确。",
+    "theme": "该主题不完整，视觉效果可能不完整。"
   },
   "responses": {
     "character": "获取字符时发生错误",
@@ -34,10 +36,19 @@
     "unknown": "发生未知错误。",
     "webpush": "发送推送通知失败。",
     "pinLimit": "您已达到最大引脚数 (24)。",
+    "blockLimit": "您已达到区块的最大数量 (32)",
+    "categoryLimit": "您已达到类别的最大数量 (16)",
+    "fieldLimit": "您已达到字段的最大数量 (5)",
+    "usernameLimit": "您已达到用户名数量上限 (3)",
+    "linkLimit": "您已达到链接数量上限 (15)",
     "delegationLimit": "您已达到委托账户的最大数量 (8)。",
     "authorizationHeader": "缺少授权标头",
+    "templateNotFound": "找不到模板",
+    "characterNotFound": "找不到角色",
+    "datasetNotFound": "未找到数据集",
     "fileNotFound": "找不到文件",
     "accountNotFound": "未找到帐户",
+    "sessionNotFound": "未找到会话",
     "emailNotFound": "未找到电子邮件",
     "connectionNotFound": "未找到连接",
     "accountSuspended": "该帐号已被暂停",
@@ -46,13 +57,31 @@
     "unverifiedEmail": "您的外部帐户电子邮件未经过验证。",
     "invalidEmail": "您的外部帐户电子邮件无效。",
     "takenEmail": "您的外部帐户电子邮件已被占用。",
+    "takenUsername": "使用以下用户名：",
     "fileUnknown": "未知或不支持的文件类型",
     "fileTooLarge": "文件超过 1 MB 限制",
     "failedAccountRegistration": "注册账号失败",
+    "premiumRequired": "您需要订阅高级版才能执行此操作",
+    "invalidUsernameLength": "您的以下用户名必须包含 3-24 个字符：",
+    "invalidDisplayNameLength": "您的显示名称不能超过 32 个字符",
+    "invalidLength": "代词或位置超​​过 64 个字符",
+    "invalidAboutLength": "您的概述不能超过 320 个字符",
+    "invalidStatusLength": "您的状态不能超过 160 个字符",
+    "invalidMarkdownLength": "您的关于不能超过 16384 个字符",
+    "invalidTagsFormat": "标签只能包含 a-z 和破折号，且长度介于 3-24 个字符之间",
+    "invalidDateFormat": "日期格式无效",
+    "invalidVisibility": "可见性无效",
+    "invalidFieldId": "字段 ID 无效",
+    "notAdult": "您必须年满 18 岁才能执行此操作",
+    "invalidType": "帐户类型无效",
+    "underage": "您必须年满 13 岁才能使用 OpenProfile",
+    "cannotChangeHiddenState": "您的个人资料的某些部分已被版主设置为隐藏。目前无法更新。",
     "ownerInteraction": {
       "follow": "您无法取消关注自己的内容。",
       "like": "您不能不喜欢自己的内容。"
-    }
+    },
+    "unsavedChanges": "您有未保存的更改。您确定要离开吗？",
+    "duplicateId": "发现重复的 ID："
   },
   "words": {
     "You": "你",
@@ -60,29 +89,214 @@
     "liked": "喜欢",
     "unliked": "不喜欢的",
     "like": "喜欢",
+    "Like": "喜欢",
     "unlike": "不像",
+    "Unlike": "不像",
     "followed": "已关注",
     "unfollowed": "取消关注",
     "follow": "跟随",
+    "Follow": "跟随",
     "unfollow": "取消关注",
-    "Search": "搜索"
+    "Unfollow": "取消关注",
+    "Search": "搜索",
+    "Description": "描述",
+    "Pinned": "已固定",
+    "Limited": "有限的",
+    "More": "更多的",
+    "dismiss": "解雇",
+    "Dismiss": "解雇",
+    "dismissed": "被解雇",
+    "View": "看法",
+    "Read": "读",
+    "Chat": "聊天",
+    "ComingSoon": "即将推出",
+    "Added": "额外",
+    "Removed": "已删除",
+    "add": "添加",
+    "Add": "添加",
+    "remove": "消除",
+    "to": "到",
+    "from": "从",
+    "Interested": "感兴趣的",
+    "NotInterested": "不感兴趣",
+    "hide": "隐藏",
+    "unhide": "取消隐藏",
+    "again": "再次",
+    "Notifications": "通知",
+    "Mute": "沉默的",
+    "Muted": "静音",
+    "mute": "沉默的",
+    "Unmute": "取消静音",
+    "Unmuted": "取消静音",
+    "unmute": "取消静音",
+    "Indefinitely": "无限期",
+    "for": "为了",
+    "Report": "报告",
+    "Share": "分享",
+    "CopyId": "复制身份证件",
+    "Moderate": "缓和",
+    "Manage": "管理",
+    "avatar": "头像",
+    "banner": "横幅",
+    "Online": "在线的",
+    "Idle": "闲置的",
+    "DND": "请勿打扰",
+    "LastActive": "最后活跃",
+    "Message": "信息",
+    "EditProfile": "编辑个人资料",
+    "Edit": "编辑",
+    "AddFriend": "请求好友",
+    "Restrict": "限制",
+    "Block": "堵塞",
+    "restrict": "限制",
+    "unrestrict": "不限制",
+    "Unrestrict": "不限制",
+    "restricted": "受限制的",
+    "unrestricted": "无限制的",
+    "block": "堵塞",
+    "unblock": "解锁",
+    "Unblock": "解锁",
+    "blocked": "被阻止",
+    "unblocked": "畅通",
+    "fanflair": "范弗莱尔",
+    "Joined": "已加入",
+    "Born": "出生",
+    "Founded": "成立",
+    "Since": "自从",
+    "ExternalLinks": "外部链接",
+    "Awards": "奖项",
+    "Registration": "登记",
+    "AwardedOn": "授予于",
+    "Caught": "捕捉",
+    "bugs": "虫子",
+    "bug": "漏洞",
+    "Views": "意见",
+    "Reads": "读",
+    "Likes": "喜欢",
+    "Followers": "追随者",
+    "Following": "下列的",
+    "Shares": "股份",
+    "Advertisement": "广告",
+    "ProvidedBy": "提供者：",
+    "Sponsor": "赞助",
+    "About": "关于",
+    "Characters": "人物",
+    "PinToProfile": "固定到配置文件",
+    "UnpinFromProfile": "从个人资料中取消固定",
+    "pinned": "已固定",
+    "unpinned": "未固定的",
+    "TogglePreview": "切换预览",
+    "Bold": "大胆的",
+    "Italic": "斜体",
+    "Underline": "强调",
+    "Strikethrough": "删除线",
+    "Heading": "标题",
+    "Link": "关联",
+    "Image": "图像",
+    "Code": "代码",
+    "Quote": "引用",
+    "List": "列表",
+    "Mention": "提到",
+    "Verified": "已验证",
+    "Table": "桌子",
+    "Grid": "网格",
+    "Save": "节省",
+    "Saved": "已保存",
+    "OpenEditor": "打开编辑器",
+    "CloseEditor": "关闭编辑器",
+    "Close": "关闭",
+    "MoveToTrash": "移至垃圾箱",
+    "Restore": "恢复",
+    "DeletePermanently": "永久删除",
+    "Restored": "已恢复",
+    "restore": "恢复",
+    "move": "移动",
+    "Move": "移动",
+    "Moved": "搬家了",
+    "toTrash": "扔垃圾",
+    "deleted": "已删除",
+    "delete": "删除",
+    "Delete": "删除"
+  },
+  "time": {
+    "hour1": "1小时",
+    "hour4": "4小时",
+    "hour8": "8小时",
+    "hour24": "24小时"
+  },
+  "defaults": {
+    "noCharacterAbout": "这个角色没有概述。",
+    "noTemplateAbout": "该模板没有说明。",
+    "noUserAbout": "该用户没有概览。",
+    "noFriendView": "作为朋友查看他们的个人资料。",
+    "noFanflair": "Fanflair 尚不可用。",
+    "onlyYou": "仅您可见",
+    "onlyFriends": "仅您的好友可见",
+    "hideAds": "订阅高级版即可隐藏此内容。",
+    "failedToSaveProfile": "无法保存您的个人资料",
+    "savedYourProfile": "您的个人资料已保存"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "在工作室查看",
+        "chatComingSoon": "聊天（即将推出）",
+        "messageComingSoon": "留言（即将推出）",
+        "addToCollection": "添加到收藏",
+        "newCollection": "新系列"
+      }
+    },
+    "toasts": {
+      "notInterested": "你将不再看到",
+      "interested": "你会看到",
+      "copiedId": "ID已复制到剪贴板",
+      "failedCopiedId": "无法将 ID 复制到剪贴板",
+      "copiedLink": "链接已复制到剪贴板",
+      "failedCopiedLink": "无法将链接复制到剪贴板"
+    },
+    "badges": {
+      "verifiedComment": "此配置文件由其知识产权所有者或授权个人管理。",
+      "unofficialCommentPart1": "此个人资料是在合理使用的情况下由粉丝管理的，可能包含不准确的信息。",
+      "unofficialCommentPart2": "知识产权属于：",
+      "officialName": "公众号",
+      "staffName": "开放档案员工",
+      "partnerName": "合作伙伴计划",
+      "verifiedName": "已验证",
+      "premiumName": "优质的",
+      "unofficialName": "社区管理",
+      "limitedName": "私人档案"
+    },
+    "awards": {
+      "contributorName": "贡献者",
+      "entomologistName": "昆虫学家",
+      "precursorName": "前体"
+    },
+    "cards": {
+      "isBlocked": "被阻止的用户",
+      "isSensitive": "敏感内容",
+      "isMature": "成人内容",
+      "clickToReveal": "点击显示",
+      "limited": "您可以通过权限或友谊来使用此角色。"
+    },
     "dropdown": {
       "selectOption": "选择选项",
-      "selectOrType": "选择或输入..."
+      "selectOrType": "选择或输入...",
+      "loadingDataset": "加载中...",
+      "noMatchingOptions": "没有匹配的选项"
     },
     "modals": {
       "close": "关闭",
+      "cancel": "取消",
+      "save": "节省",
       "captchaHeader": "你是机器人吗？",
       "limit": {
-        "subtext": "将无法：",
+        "subtextTopOne": "将无法：",
+        "subtextTopTwo": "将能够：",
         "messagesTitle": "给你发私信。",
         "messagesSubtext": "仍然可以阅读现有的对话。",
         "subtextTwo": "也许仍然能够："
       },
       "block": {
-        "title": "堵塞",
         "rowOneTitleStaff": "与您的帐户或出版物互动。",
         "rowOneTitle": "查看您的帐户或出版物或与之互动。",
         "rowOneSubtext": "这将删除或隐藏现有的交互。",
@@ -96,7 +310,6 @@
         "result": "你屏蔽了"
       },
       "restrict": {
-        "title": "限制",
         "rowOneTitle": "对您的出版物发表评论。",
         "rowOneSubtext": "这不会删除现有评论。",
         "rowThreeTitle": "向您发送好友请求。",
@@ -108,6 +321,35 @@
         "notEnough": "不够？尝试阻止！",
         "result": "你限制了"
       },
+      "trash": {
+        "rowOneTitle": "30 天后将自动删除。",
+        "rowOneSubtext": "在此之前您可以从垃圾箱中恢复它。",
+        "toTrash": "扔垃圾"
+      },
+      "delete": {
+        "rowOneTitle": "此操作是永久性的且无法撤消。",
+        "rowOneSubtext": "OpenProfile 支持将无法恢复此问题。"
+      },
+      "report": {
+        "title": "报告",
+        "rowTitle": "报告应诚实、准确、无偏见或歪曲，并真诚地做出。",
+        "footer": "知识产权侵权和技术报告不是匿名的。",
+        "type": "报告类型",
+        "placeholder": "您要提交什么类型的报告？",
+        "description": "尽可能详细地描述您的报告，以便我们能够正确解决该问题。",
+        "submit": "提交报告",
+        "result": "感谢您的报告",
+        "abuse": "Abuse & Harassment",
+        "spam": "Spam & Deceptive Behavior",
+        "inappropriate": "Inappropriate Content",
+        "dmca": "Intellectual Property Violations",
+        "misuse": "平台滥用",
+        "safety": "隐私与安全",
+        "impersonation": "冒充",
+        "ai": "人工智能生成的内容",
+        "bug": "技术错误和错误",
+        "other": "其他"
+      },
       "mute": {
         "title": "沉默的",
         "subtext": "当以下情况时您不会收到通知",
@@ -118,6 +360,21 @@
         "rowThreeTitle": "向您发送私人消息。",
         "rowThreeSubtext": "您仍然会收到共享群聊的通知。",
         "result": "你静音了"
+      },
+      "notifications": {
+        "title": "管理通知",
+        "subtext": "您将在以下时间收到通知",
+        "rowOneTitle": "获取更新或发布更改。",
+        "rowOneTitleUser": "发布新内容。",
+        "rowOneSubtext": "这不会改变它在您的 Feed 上的显示方式。",
+        "rowTwoTitle": "已分配或撤销协作者。",
+        "rowTwoSubtext": "这仅适用于所有者公开的合作者。",
+        "rowThreeTitle": "接收新的互动。",
+        "rowThreeSubtext": "您将不会收到来自静音用户的通知。",
+        "rowFourTitle": "收到新的评论活动。",
+        "rowFourSubtext": "您将不会收到来自静音或阻止的用户的通知。",
+        "result": "您的偏好设置已保存",
+        "error": "无法保存您的偏好设置"
       },
       "share": {
         "title": "分享",
@@ -150,10 +407,24 @@
       "update": "您的页面将自动刷新",
       "marquee": "暂时不可用"
     },
-    "home": {
-      "title": "示例页面",
-      "body": "要编辑此页面，请访问 ./src/frontend/main/pages/Home.tsx",
-      "button": "点我"
+    "maintenance": {
+      "marquee": "维护中"
+    },
+    "userProfile": {
+      "searchCharacters": "名称、特许经营权、主题...",
+      "end": "你已经到达终点了！",
+      "noCharactersFound": "未找到任何字符。",
+      "endSub": "不错过任何新出版物。"
+    },
+    "datasets": {
+      "notFound": "未找到数据集。",
+      "searchDatasets": "名称、描述、数据条目..."
+    },
+    "templates": {
+      "notFound": "没有找到模板。"
+    },
+    "blocks": {
+      "notFound": "没有找到任何块。"
     }
   }
 }

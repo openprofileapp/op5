@@ -5,6 +5,7 @@
   "metadata": {
     "titles": {
       "construction": "Bajo construcción",
+      "maintenance": "En mantenimiento",
       "notFound": "404 - Página no encontrada",
       "unavailable": "503 - No disponible temporalmente"
     },
@@ -19,7 +20,8 @@
   },
   "banners": {
     "beta": "OpenProfile está en versión beta y algunas funciones aún no están disponibles, pero se implementarán pronto.",
-    "locale": "Esta traducción no está verificada y algunas palabras pueden ser inexactas."
+    "locale": "Esta traducción no está verificada y algunas palabras pueden ser inexactas.",
+    "theme": "Este tema está incompleto y es posible que haya imágenes rotas."
   },
   "responses": {
     "character": "Se produjo un error al recuperar el carácter.",
@@ -34,10 +36,19 @@
     "unknown": "Se produjo un error desconocido.",
     "webpush": "No se pudo enviar la notificación push.",
     "pinLimit": "Has alcanzado la cantidad máxima (24) de pines.",
+    "blockLimit": "Has alcanzado la cantidad máxima (32) de bloques.",
+    "categoryLimit": "Has alcanzado la cantidad máxima (16) de categorías.",
+    "fieldLimit": "Has alcanzado la cantidad máxima (5) de campos.",
+    "usernameLimit": "Has alcanzado la cantidad máxima (3) de nombres de usuario",
+    "linkLimit": "Has alcanzado la cantidad máxima (15) de enlaces.",
     "delegationLimit": "Has alcanzado la cantidad máxima (8) de cuentas delegadas.",
     "authorizationHeader": "Falta el encabezado de autorización",
+    "templateNotFound": "Plantilla no encontrada",
+    "characterNotFound": "Carácter no encontrado",
+    "datasetNotFound": "Conjunto de datos no encontrado",
     "fileNotFound": "Archivo no encontrado",
     "accountNotFound": "Cuenta no encontrada",
+    "sessionNotFound": "Sesión no encontrada",
     "emailNotFound": "Correo electrónico no encontrado",
     "connectionNotFound": "Conexión no encontrada",
     "accountSuspended": "Esta cuenta está suspendida.",
@@ -46,13 +57,31 @@
     "unverifiedEmail": "El correo electrónico de su cuenta externa no está verificado.",
     "invalidEmail": "El correo electrónico de su cuenta externa no es válido.",
     "takenEmail": "El correo electrónico de su cuenta externa ya está en uso.",
+    "takenUsername": "Se toma el siguiente nombre de usuario:",
     "fileUnknown": "Tipo de archivo desconocido o no compatible",
     "fileTooLarge": "El archivo supera el límite de 1 MB",
     "failedAccountRegistration": "No se pudo registrar la cuenta",
+    "premiumRequired": "Necesitas estar suscrito a premium para hacer esto",
+    "invalidUsernameLength": "Su siguiente nombre de usuario debe tener entre 3 y 24 caracteres:",
+    "invalidDisplayNameLength": "Su nombre para mostrar no puede tener más de 32 caracteres",
+    "invalidLength": "Un pronombre o ubicación tiene más de 64 caracteres.",
+    "invalidAboutLength": "Su resumen no puede tener más de 320 caracteres",
+    "invalidStatusLength": "Su estado no puede tener más de 160 caracteres",
+    "invalidMarkdownLength": "Su información no puede tener más de 16384 caracteres",
+    "invalidTagsFormat": "Las etiquetas solo pueden contener a-z y guiones, y tener entre 3 y 24 caracteres",
+    "invalidDateFormat": "Formato de fecha no válido",
+    "invalidVisibility": "Visibilidad no válida",
+    "invalidFieldId": "ID de campo no válido",
+    "notAdult": "Debes tener al menos 18 años para realizar esta acción.",
+    "invalidType": "Tipo de cuenta no válida",
+    "underage": "Debes tener al menos 13 años para utilizar OpenProfile",
+    "cannotChangeHiddenState": "Un moderador ha ocultado algunas partes de su perfil. No se puede actualizar en este momento.",
     "ownerInteraction": {
       "follow": "No puedes dejar de seguir tu propio contenido.",
       "like": "No puedes diferenciarte de tu propio contenido."
-    }
+    },
+    "unsavedChanges": "Tienes cambios sin guardar. ¿Estás seguro de que quieres irte?",
+    "duplicateId": "ID duplicado encontrado:"
   },
   "words": {
     "You": "Tú",
@@ -60,29 +89,214 @@
     "liked": "apreciado",
     "unliked": "no me gusta",
     "like": "como",
+    "Like": "Como",
     "unlike": "a diferencia de",
+    "Unlike": "A diferencia de",
     "followed": "seguido",
     "unfollowed": "dejado de seguir",
     "follow": "seguir",
+    "Follow": "Seguir",
     "unfollow": "dejar de seguir",
-    "Search": "Buscar"
+    "Unfollow": "Dejar de seguir",
+    "Search": "Buscar",
+    "Description": "Descripción",
+    "Pinned": "Fijado",
+    "Limited": "Limitado",
+    "More": "Más",
+    "dismiss": "despedir",
+    "Dismiss": "Despedir",
+    "dismissed": "despedido",
+    "View": "Vista",
+    "Read": "Leer",
+    "Chat": "Charlar",
+    "ComingSoon": "Muy pronto",
+    "Added": "Agregado",
+    "Removed": "Remoto",
+    "add": "agregar",
+    "Add": "Agregar",
+    "remove": "eliminar",
+    "to": "a",
+    "from": "de",
+    "Interested": "Interesado",
+    "NotInterested": "No interesado",
+    "hide": "esconder",
+    "unhide": "mostrar",
+    "again": "de nuevo",
+    "Notifications": "Notificaciones",
+    "Mute": "Silenciar",
+    "Muted": "Apagado",
+    "mute": "silenciar",
+    "Unmute": "Dejar de silenciar",
+    "Unmuted": "no silenciado",
+    "unmute": "reactivar el silencio",
+    "Indefinitely": "indefinidamente",
+    "for": "para",
+    "Report": "Informe",
+    "Share": "Compartir",
+    "CopyId": "Copiar identificación",
+    "Moderate": "Moderado",
+    "Manage": "Administrar",
+    "avatar": "avatar",
+    "banner": "bandera",
+    "Online": "En línea",
+    "Idle": "Inactivo",
+    "DND": "No molestar",
+    "LastActive": "Último activo",
+    "Message": "Mensaje",
+    "EditProfile": "Editar perfil",
+    "Edit": "Editar",
+    "AddFriend": "Solicitar Amigo",
+    "Restrict": "Restringir",
+    "Block": "Bloquear",
+    "restrict": "restringir",
+    "unrestrict": "sin restricciones",
+    "Unrestrict": "sin restricciones",
+    "restricted": "restringido",
+    "unrestricted": "irrestricto",
+    "block": "bloquear",
+    "unblock": "desatascar",
+    "Unblock": "Desatascar",
+    "blocked": "obstruido",
+    "unblocked": "desbloqueado",
+    "fanflair": "fanflair",
+    "Joined": "Unido",
+    "Born": "Nacido",
+    "Founded": "Fundado",
+    "Since": "Desde",
+    "ExternalLinks": "Enlaces externos",
+    "Awards": "Premios",
+    "Registration": "Registro",
+    "AwardedOn": "Otorgado el",
+    "Caught": "Atrapó",
+    "bugs": "insectos",
+    "bug": "bicho",
+    "Views": "Vistas",
+    "Reads": "Lee",
+    "Likes": "Gustos",
+    "Followers": "Seguidores",
+    "Following": "Siguiente",
+    "Shares": "Acciones",
+    "Advertisement": "Anuncio",
+    "ProvidedBy": "Proporcionado por",
+    "Sponsor": "Patrocinador",
+    "About": "Acerca de",
+    "Characters": "Personajes",
+    "PinToProfile": "Fijar al perfil",
+    "UnpinFromProfile": "Desanclar del perfil",
+    "pinned": "Fijado",
+    "unpinned": "desabrochado",
+    "TogglePreview": "Alternar vista previa",
+    "Bold": "Atrevido",
+    "Italic": "Itálico",
+    "Underline": "Subrayar",
+    "Strikethrough": "Tachado",
+    "Heading": "Título",
+    "Link": "Enlace",
+    "Image": "Imagen",
+    "Code": "Código",
+    "Quote": "Cita",
+    "List": "Lista",
+    "Mention": "Mencionar",
+    "Verified": "Verificado",
+    "Table": "Mesa",
+    "Grid": "Red",
+    "Save": "Ahorrar",
+    "Saved": "Guardado",
+    "OpenEditor": "Abrir editor",
+    "CloseEditor": "Cerrar editor",
+    "Close": "Cerca",
+    "MoveToTrash": "Mover a la papelera",
+    "Restore": "Restaurar",
+    "DeletePermanently": "Eliminar permanentemente",
+    "Restored": "Restaurado",
+    "restore": "restaurar",
+    "move": "mover",
+    "Move": "Mover",
+    "Moved": "Emocionado",
+    "toTrash": "tirar a la basura",
+    "deleted": "eliminado",
+    "delete": "borrar",
+    "Delete": "Borrar"
+  },
+  "time": {
+    "hour1": "1 hora",
+    "hour4": "4 horas",
+    "hour8": "8 horas",
+    "hour24": "24 Horas"
+  },
+  "defaults": {
+    "noCharacterAbout": "Este personaje no tiene una descripción general.",
+    "noTemplateAbout": "Esta plantilla no tiene descripción.",
+    "noUserAbout": "Este usuario no tiene una descripción general.",
+    "noFriendView": "como amigo para ver su perfil.",
+    "noFanflair": "Los Fanflairs aún no están disponibles.",
+    "onlyYou": "Sólo visible para ti",
+    "onlyFriends": "Sólo visible para tus amigos",
+    "hideAds": "Suscríbete a Premium para ocultar esto.",
+    "failedToSaveProfile": "No se pudo guardar tu perfil",
+    "savedYourProfile": "Tu perfil ha sido guardado"
   },
   "components": {
+    "menus": {
+      "context": {
+        "viewInStudio": "Ver en estudio",
+        "chatComingSoon": "Chat (próximamente)",
+        "messageComingSoon": "Mensaje (próximamente)",
+        "addToCollection": "Añadir a la colección",
+        "newCollection": "Nueva colección"
+      }
+    },
+    "toasts": {
+      "notInterested": "ya no veras",
+      "interested": "veras",
+      "copiedId": "ID copiado al portapapeles",
+      "failedCopiedId": "No se pudo copiar la identificación al portapapeles",
+      "copiedLink": "Enlace copiado al portapapeles",
+      "failedCopiedLink": "No se pudo copiar el enlace al portapapeles"
+    },
+    "badges": {
+      "verifiedComment": "Este perfil es gestionado por sus propietarios de propiedad intelectual o personas autorizadas.",
+      "unofficialCommentPart1": "Este perfil está administrado por fanáticos bajo uso legítimo y puede contener información inexacta.",
+      "unofficialCommentPart2": "La propiedad intelectual pertenece a:",
+      "officialName": "Cuenta oficial",
+      "staffName": "Personal de perfil abierto",
+      "partnerName": "Programa de socios",
+      "verifiedName": "Verificado",
+      "premiumName": "De primera calidad",
+      "unofficialName": "Gestionado por la comunidad",
+      "limitedName": "Perfil privado"
+    },
+    "awards": {
+      "contributorName": "Contribuyente",
+      "entomologistName": "Entomólogo",
+      "precursorName": "Precursor"
+    },
+    "cards": {
+      "isBlocked": "Usuario bloqueado",
+      "isSensitive": "Contenido sensible",
+      "isMature": "Contenido para adultos",
+      "clickToReveal": "Haga clic para revelar",
+      "limited": "Este personaje está disponible para ti a través de permisos o amistad."
+    },
     "dropdown": {
       "selectOption": "Seleccionar opción",
-      "selectOrType": "Seleccione o escriba..."
+      "selectOrType": "Seleccione o escriba...",
+      "loadingDataset": "Cargando...",
+      "noMatchingOptions": "No hay opciones coincidentes"
     },
     "modals": {
       "close": "Cerca",
+      "cancel": "Cancelar",
+      "save": "Ahorrar",
       "captchaHeader": "¿Eres un robot?",
       "limit": {
-        "subtext": "no podrá:",
+        "subtextTopOne": "no podrá:",
+        "subtextTopTwo": "podrá:",
         "messagesTitle": "Enviarte mensajes privados.",
         "messagesSubtext": "Las conversaciones existentes aún se pueden leer.",
         "subtextTwo": "todavía puede ser capaz de:"
       },
       "block": {
-        "title": "Bloquear",
         "rowOneTitleStaff": "Interactuar con su cuenta o publicaciones.",
         "rowOneTitle": "Ver o interactuar con su cuenta o publicaciones.",
         "rowOneSubtext": "Esto eliminará u ocultará las interacciones existentes.",
@@ -96,7 +310,6 @@
         "result": "tu bloqueaste"
       },
       "restrict": {
-        "title": "Restringir",
         "rowOneTitle": "Comenta tus publicaciones.",
         "rowOneSubtext": "Esto no eliminará los comentarios existentes.",
         "rowThreeTitle": "Enviarte solicitudes de amistad.",
@@ -108,6 +321,35 @@
         "notEnough": "¿No es suficiente? ¡Intenta bloquear en su lugar!",
         "result": "Tu restringiste"
       },
+      "trash": {
+        "rowOneTitle": "Se eliminará automáticamente en 30 días.",
+        "rowOneSubtext": "Puedes restaurarlo desde tu papelera hasta entonces.",
+        "toTrash": "tirar a la basura"
+      },
+      "delete": {
+        "rowOneTitle": "Esta acción es permanente y no se puede deshacer.",
+        "rowOneSubtext": "El soporte de OpenProfile no podrá recuperar esto."
+      },
+      "report": {
+        "title": "Informe",
+        "rowTitle": "Los informes deben ser honestos, precisos, libres de prejuicios o distorsiones y elaborados de buena fe.",
+        "footer": "Las violaciones de propiedad intelectual y los informes técnicos no son anónimos.",
+        "type": "Tipo de informe",
+        "placeholder": "¿Qué tipo de informe estás presentando?",
+        "description": "Describe tu informe con la mayor cantidad de detalles posible para que podamos abordar el problema adecuadamente.",
+        "submit": "Enviar informe",
+        "result": "Gracias por el informe",
+        "abuse": "Abuso y acoso",
+        "spam": "Spam y comportamiento engañoso",
+        "inappropriate": "Contenido inapropiado",
+        "dmca": "Violaciones de propiedad intelectual",
+        "misuse": "Uso indebido de la plataforma",
+        "safety": "Privacidad y seguridad",
+        "impersonation": "Interpretación",
+        "ai": "Contenido generado por IA",
+        "bug": "Errores técnicos y errores",
+        "other": "Otro"
+      },
       "mute": {
         "title": "Silenciar",
         "subtext": "No recibirás una notificación cuando",
@@ -118,6 +360,21 @@
         "rowThreeTitle": "Te envía mensajes privados.",
         "rowThreeSubtext": "Seguirás recibiendo notificaciones de chats grupales compartidos.",
         "result": "tu silenciaste"
+      },
+      "notifications": {
+        "title": "Administrar notificaciones",
+        "subtext": "Recibirás una notificación cuando",
+        "rowOneTitle": "Obtiene una actualización o cambio de publicación.",
+        "rowOneTitleUser": "Publica contenido nuevo.",
+        "rowOneSubtext": "Esto no cambia la forma en que aparece en tu feed.",
+        "rowTwoTitle": "Tiene colaboradores asignados o revocados.",
+        "rowTwoSubtext": "Esto sólo aplica para colaboradores hechos públicos por el propietario.",
+        "rowThreeTitle": "Recibe nuevas interacciones.",
+        "rowThreeSubtext": "No recibirás notificaciones de usuarios silenciados.",
+        "rowFourTitle": "Recibe nueva actividad de comentarios.",
+        "rowFourSubtext": "No recibirás notificaciones de usuarios silenciados o bloqueados.",
+        "result": "Tus preferencias han sido guardadas",
+        "error": "No se pudieron guardar tus preferencias"
       },
       "share": {
         "title": "Compartir",
@@ -150,10 +407,24 @@
       "update": "Su página se actualizará automáticamente en",
       "marquee": "TEMPORALMENTE NO DISPONIBLE"
     },
-    "home": {
-      "title": "Página de ejemplo",
-      "body": "Para editar esta página, visite ./src/frontend/main/pages/Home.tsx",
-      "button": "Haz clic en mí"
+    "maintenance": {
+      "marquee": "En mantenimiento"
+    },
+    "userProfile": {
+      "searchCharacters": "Nombre, franquicias, temáticas...",
+      "end": "¡Has llegado al final!",
+      "noCharactersFound": "No se encontraron caracteres.",
+      "endSub": "para no perderte nunca una nueva publicación."
+    },
+    "datasets": {
+      "notFound": "No se encontraron conjuntos de datos.",
+      "searchDatasets": "Nombre, descripción, entradas de datos..."
+    },
+    "templates": {
+      "notFound": "No se encontraron plantillas."
+    },
+    "blocks": {
+      "notFound": "No se encontraron bloques."
     }
   }
 }
