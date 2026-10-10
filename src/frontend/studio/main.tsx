@@ -42,6 +42,7 @@ import Trash from "./pages/Trash.js"
 import Template from "./pages/Template.js"
 import Block from "./pages/Block.js"
 
+import Unavailable from "../_common/pages/Unavailable.js"
 import NotFound from "../_common/pages/NotFound.js"
 import Maintenance from "../_common/pages/Maintenance.js"
 
@@ -145,11 +146,10 @@ async function bootstrap() {
                                         <Route path="/datasets" element={<Datasets />} />
                                         <Route path="/block/:blockId" element={<Block />} />
                                         <Route path="/trash" element={<Trash />} />
+
+                                        <Route path="/503" element={<Unavailable />} />
                                         <Route path="/404" element={<NotFound />} />
-                                        <Route
-                                            path="*"
-                                            element={<Navigate to="/404" replace />}
-                                        />
+                                        <Route path="*" element={<Navigate to="/404" replace />}/>
                                     </Route>
                                 </Routes>
                             </ModalProvider>

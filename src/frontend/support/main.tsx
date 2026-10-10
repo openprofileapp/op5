@@ -33,6 +33,7 @@ import ToastContainer from "../_common/components/ToastContainer.js"
 import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
 import Messages from "../_common/components/Messages.js"
 
+import Unavailable from "../_common/pages/Unavailable.js"
 import Maintenance from "../_common/pages/Maintenance.js"
 
 import Article from "./pages/Article.js"
@@ -120,6 +121,7 @@ async function bootstrap() {
                                     <Route path="/"element={<Index />} />
                                     <Route path="/en-us/article/*" element={<Article />} />
 
+                                    <Route path="/503" element={<Unavailable />} />
                                     <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>
                             </ModalProvider>
