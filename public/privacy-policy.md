@@ -1,8 +1,6 @@
 ---
 title: Privacy Policy
-author: [OpenProfile]({SHORTLINK}/9534968913312158)
-date: 2024-07-22
-updated: 2026-01-02
+updated: 2026-01-02T00:00:00Z
 ---
 
 ## 1. Introduction

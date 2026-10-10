@@ -1,8 +1,6 @@
 ---
 title: Branding Guidelines
-author: [OpenProfile]({SHORTLINK}/9534968913312158)
-date: 2026-01-15
-updated: 2026-01-15
+updated: 2026-01-15T00:00:00Z
 ---
 
 # How to use and refer to OpenProfile's brand (branding guidelines)
@@ -58,10 +56,3 @@ When using OpenProfile branding assets:
 - Do not imply endorsement, partnership, or official affiliation unless explicitly authorized
 
 Commercial use, resale, or use as part of a product or service offering OpenProfile itself (or competing with it) is not permitted. If you are unsure whether a specific use is appropriate, contact OpenProfile Support at `support@openprofile.app`
-
-## Credits and Honorable Mentions
-- OpenProfile (1-5) and Alice was created and developed by [AvatarKage]({SHORTLINK}/5719552362357773)
-- The branding logo was designed by [AvatarKage]({SHORTLINK}/5719552362357773)
-- Alexandria was designed Mohamed Gaber and Julieta Ulanovsky
-- On OpenProfile 5, Alice chibi was concepted by [AzuraSkyey](https://op5.to/8986001119807525) then designed by [AvatarKage]({SHORTLINK}/5719552362357773)
-- On OpenProfile 4, Alice was [originally illustrated](https://www.instagram.com/p/CjIB-7SoQxD) by [Chloella](https://www.instagram.com/chloella0)

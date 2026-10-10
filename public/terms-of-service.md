@@ -1,6 +1,6 @@
 ---
 title: Terms of Service
-updated: 2026-01-15
+updated: 2026-01-15T00:00:00Z
 ---
 
 Also includes these articles as part of the terms:
