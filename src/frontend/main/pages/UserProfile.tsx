@@ -1109,6 +1109,16 @@ export default function UserProfile() {
                         <div className={`${isContentLoading ? "skeleton" : ""} bg-base-100 border border-base-300 rounded-lg z-1`}>
                             {!isContentLoading && (
                                 <>
+                                    {tabs.length === 0 && (
+                                        <div className="text-sub flex flex-col gap-8 items-center justify-center w-full h-128">
+                                            <div className="font-nerdfont leading-none text-6xl">
+                                                
+                                            </div>
+
+                                            This profile is a ghost town...
+                                        </div>
+                                    )}
+
                                     {tabs.length > 1 && (
                                         <div className="tabs tabs-border">
                                             {/* DEVELOPER NEEDED: Later on add universes, collections, titles, and collaborations */}
