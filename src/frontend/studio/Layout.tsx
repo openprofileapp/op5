@@ -4,6 +4,7 @@ import { Link, Outlet } from "react-router-dom";
 
 import { apiBaseUrl, authBaseUrl, cdnBaseUrl, mainBaseUrl } from "../_common/scripts/domains.js";
 import React from "react";
+import BannerContainer from "../_common/components/BannerContainer.js";
 import LoginModal from "../_common/components/modals/LoginModal.js";
 import MfaModal from "../_common/components/modals/MfaModal.js";
 
@@ -116,6 +117,10 @@ export default function Layout() {
     
     return (
         <>
+            <header className="sticky top-0 z-9999 w-full">
+                <BannerContainer />
+            </header>
+
             <LoginModal />
             <MfaModal />
 
