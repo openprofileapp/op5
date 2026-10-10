@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ArticleItem } from "../../../_common/types/article.type.js";
 import { cdnBaseUrl, mainBaseUrl, supportBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
+import Footer from "../../_common/components/Footer.js";
 
 export default function ArticleIndex() {
     const { ready: isTranslationReady } = useTranslation();
@@ -136,197 +137,201 @@ export default function ArticleIndex() {
     const cardClass = "card rounded border border-base-300 bg-base-100 hover:bg-base-300/1 cursor-pointer";
 
     return (
-        <div className="min-h-screen bg-base-200">
-            <nav className="navbar sticky top-0 z-50 border-b border-base-300 bg-base-100 px-6">
-                <Link to={supportBaseUrl}>
-                    <img
-                        alt="OpenProfile wordmark"
-                        className="h-6 w-auto"
-                        src={`${cdnBaseUrl}${window.config.metadata.assets.wordmark}`}
-                    />
-                </Link>
-
-                <div className="ml-auto text-sm">
-                    <Link
-                        to={mainBaseUrl}
-                        className="flex h-8 items-center gap-2"
-                    >
-                        Leave Support
-                        <span className="font-nerdfont text-base">
-                            
-                        </span>
-                    </Link>
-                </div>
-            </nav>
-
-            <main className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-16 pt-16 sm:pt-24">
-                <header className="mb-8 text-center">
-                    <h1 className="mb-3 text-3xl font-bold sm:text-4xl">
-                        How can we help you?
-                    </h1>
-
-                    <p className="text-base-content/60">
-                        Search our support articles or reach out.
-                    </p>
-                </header>
-
-                <form
-                    onSubmit={(event) => event.preventDefault()}
-                    className="w-full"
-                >
-                    <label className="input w-full">
-                        <span className="font-nerdfont mr-1 text-base">
-                            
-                        </span>
-
-                        <input
-                            type="search"
-                            placeholder="Describe what you are trying to resolve?"
-                            value={search}
-                            onChange={(event) =>
-                                setSearch(event.target.value)
-                            }
+        <>
+            <div className="min-h-screen bg-base-200">
+                <nav className="navbar sticky top-0 z-50 border-b border-base-300 bg-base-100 px-6">
+                    <Link to={supportBaseUrl}>
+                        <img
+                            alt="OpenProfile wordmark"
+                            className="h-6 w-auto"
+                            src={`${cdnBaseUrl}${window.config.metadata.assets.wordmark}`}
                         />
+                    </Link>
 
-                        {search && (
-                            <button
-                                type="button"
-                                className="h-4 w-4 cursor-pointer bg-base-100 font-nerdfont text-base leading-none"
-                                onClick={() => setSearch("")}
-                                aria-label="Clear search"
-                            >
-                                
-                            </button>
-                        )}
-                    </label>
-                </form>
+                    <div className="ml-auto text-sm">
+                        <Link
+                            to={mainBaseUrl}
+                            className="flex h-8 items-center gap-2"
+                        >
+                            Leave Support
+                            <span className="font-nerdfont text-base">
+                                
+                            </span>
+                        </Link>
+                    </div>
+                </nav>
 
-                <section
-                    className="mt-8 w-full"
-                    aria-live="polite"
-                    aria-busy={isLoading}
-                >
-                    {isLoading ? (
-                        <div className="space-y-3">
-                            {[1, 2, 3].map((item) => (
-                                <div
-                                    key={item}
-                                    className="skeleton h-20 w-full rounded-box"
-                                />
-                            ))}
-                        </div>
-                    ) : !query ? (
-                        <div className="mx-auto mt-8 max-w-4xl">
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                <div className={cardClass}>
-                                    <div 
-                                        className="card-body items-center text-center tooltip cursor-default opacity-50"
-                                        data-tip="Coming Soon"
-                                    >
-                                        <div className="font-nerdfont leading-none text-4xl">
-                                            
-                                        </div>
+                <main className="mx-auto flex w-full max-w-3xl flex-col px-4 pb-16 pt-16 sm:pt-24">
+                    <header className="mb-8 text-center">
+                        <h1 className="mb-3 text-3xl font-bold sm:text-4xl">
+                            How can we help you?
+                        </h1>
 
-                                        <div className="mt-2 text-base font-bold">
-                                            Ask Alice
+                        <p className="text-base-content/60">
+                            Search our support articles or reach out.
+                        </p>
+                    </header>
 
-                                            <p className="text-sm text-sub font-normal mt-1">
-                                                Support assistant
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                    <form
+                        onSubmit={(event) => event.preventDefault()}
+                        className="w-full"
+                    >
+                        <label className="input w-full">
+                            <span className="font-nerdfont mr-1 text-base">
+                                
+                            </span>
 
-                                <a
-                                    href={window.config.metadata.urls.discord.main as unknown as string}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={cardClass}
+                            <input
+                                type="search"
+                                placeholder="Describe what you are trying to resolve?"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                            />
+
+                            {search && (
+                                <button
+                                    type="button"
+                                    className="h-4 w-4 cursor-pointer bg-base-100 font-nerdfont text-base leading-none"
+                                    onClick={() => setSearch("")}
+                                    aria-label="Clear search"
                                 >
-                                    <div className="card-body items-center text-center tooltip">
-                                        <div className="font-nerdfont leading-none text-4xl">
-                                            
-                                        </div>
+                                    
+                                </button>
+                            )}
+                        </label>
+                    </form>
 
-                                        <div className="mt-2 text-base font-bold">
-                                            Join our Discord
-
-                                            <p className="text-sm text-sub font-normal mt-1">
-                                                Community support
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
-
-                                <a
-                                    href={`mailto:${window.config.metadata.contact.support}`}
-                                    className={cardClass}
-                                >
-                                    <div className="card-body items-center text-center tooltip">
-                                        <div className="font-nerdfont leading-none text-4xl">
-                                            󰇮
-                                        </div>
-
-                                        <div className="mt-2 text-base font-bold">
-                                            Contact Us
-
-                                            <p className="text-sm text-sub font-normal mt-1">
-                                                Email
-                                            </p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    ) : filteredArticles.length > 0 ? (
-                        <>
-                            <p className="mb-4 text-sm text-base-content/60">
-                                {filteredArticles.length}{" "}
-                                {filteredArticles.length === 1
-                                    ? "result"
-                                    : "results"}
-                            </p>
-
+                    <section
+                        className="mt-8 w-full"
+                        aria-live="polite"
+                        aria-busy={isLoading}
+                    >
+                        {isLoading ? (
                             <div className="space-y-3">
-                                {filteredArticles.map((article) => (
-                                    <Link
-                                        key={article.slug}
-                                        to={`/en-us/article/${article.slug}`}
-                                        className={cardClass}
-                                    >
-                                        <div className="card-body flex-row items-center justify-between gap-4 p-5">
-                                            <div>
-                                                <h2 className="card-title text-base">
-                                                    {article.title}
-                                                </h2>
-
-                                                {article.group && (
-                                                    <div className="mt-2 text-sub text-xs">
-                                                        {article.group}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <span className="font-nerdfont text-base leading-none">
-                                                
-                                            </span>
-                                        </div>
-                                    </Link>
+                                {[1, 2, 3].map((item) => (
+                                    <div
+                                        key={item}
+                                        className="skeleton h-20 w-full rounded-box"
+                                    />
                                 ))}
                             </div>
-                        </>
-                    ) : (
-                        <div className="py-8 text-center">
-                            <h2 className="text-lg font-semibold">
-                                No articles found
-                            </h2>
-                            <p className="mt-2 text-sm text-base-content/60">
-                                Try different wording or check your spelling.
-                            </p>
-                        </div>
-                    )}
-                </section>
-            </main>
-        </div>
+                        ) : !query ? (
+                            <div className="mx-auto mt-8 max-w-4xl">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                    <div className={cardClass}>
+                                        <div 
+                                            className="card-body items-center text-center tooltip cursor-default opacity-50"
+                                            data-tip="Coming Soon"
+                                        >
+                                            <div className="font-nerdfont leading-none text-4xl">
+                                                
+                                            </div>
+
+                                            <div className="mt-2 text-base font-bold">
+                                                Ask Alice
+
+                                                <p className="text-sm text-sub font-normal mt-1">
+                                                    Support assistant
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a
+                                        href={window.config.metadata.urls.discord.main as unknown as string}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={cardClass}
+                                    >
+                                        <div className="card-body items-center text-center tooltip">
+                                            <div className="font-nerdfont leading-none text-4xl">
+                                                
+                                            </div>
+
+                                            <div className="mt-2 text-base font-bold">
+                                                Join our Discord
+
+                                                <p className="text-sm text-sub font-normal mt-1">
+                                                    Community support
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href={`mailto:${window.config.metadata.contact.support}`}
+                                        className={cardClass}
+                                    >
+                                        <div className="card-body items-center text-center tooltip">
+                                            <div className="font-nerdfont leading-none text-4xl">
+                                                󰇮
+                                            </div>
+
+                                            <div className="mt-2 text-base font-bold">
+                                                Contact Us
+
+                                                <p className="text-sm text-sub font-normal mt-1">
+                                                    Email
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        ) : filteredArticles.length > 0 ? (
+                            <>
+                                <p className="mb-4 text-sm text-base-content/60">
+                                    {filteredArticles.length}{" "}
+                                    {filteredArticles.length === 1
+                                        ? "result"
+                                        : "results"}
+                                </p>
+
+                                <div className="space-y-3">
+                                    {filteredArticles.map((article) => (
+                                        <Link
+                                            key={article.slug}
+                                            to={`/en-us/article/${article.slug}`}
+                                            className={cardClass}
+                                        >
+                                            <div className="card-body flex-row items-center justify-between gap-4 p-5">
+                                                <div>
+                                                    <h2 className="card-title text-base">
+                                                        {article.title}
+                                                    </h2>
+
+                                                    {article.group && (
+                                                        <div className="mt-2 text-sub text-xs">
+                                                            {article.group}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <span className="font-nerdfont text-base leading-none">
+                                                    
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-8 text-center">
+                                <h2 className="text-lg font-semibold">
+                                    No articles found
+                                </h2>
+                                <p className="mt-2 text-sm text-base-content/60">
+                                    Try different wording or check your spelling.
+                                </p>
+                            </div>
+                        )}
+                    </section>
+                </main>
+            </div>
+
+            <Footer />
+        </>
     );
 }
