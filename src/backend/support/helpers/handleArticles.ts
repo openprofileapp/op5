@@ -220,7 +220,7 @@ function compareVersions(a: string, b: string) {
     );
 }
 
-export async function getLatestChangelog(): Promise<Article | null> {
+export async function getLatestChangelog(): Promise<ArticleMetadata | null> {
     const changelogDirectory = path.join(
         articlesDir,
         "change-logs",
@@ -229,12 +229,9 @@ export async function getLatestChangelog(): Promise<Article | null> {
     let entries;
 
     try {
-        entries = await fs.readdir(
-            changelogDirectory,
-            {
-                withFileTypes: true,
-            },
-        );
+        entries = await fs.readdir(changelogDirectory, {
+            withFileTypes: true,
+        });
     } catch (error) {
         if (
             error &&
@@ -254,39 +251,11 @@ export async function getLatestChangelog(): Promise<Article | null> {
                 entry.isFile() &&
                 entry.name.toLowerCase().endsWith(".md"),
         )
-        .map((entry) => {
-            const filename = entry.name.replace(
-                /\.md$/i,
-                "",
-            );
-
-            const version = parseVersion(filename);
-
-            if (!version) {
-                return null;
-            }
-
-            return {
-                filename: entry.name,
-                version,
-            };
-        })
-        .filter(
-            (
-                changelog,
-            ): changelog is {
-                filename: string;
-                version: {
-                    major: number;
-                    minor: number;
-                    patch: number;
-                };
-            } => changelog !== null,
-        )
         .sort((a, b) =>
-            b.version.major - a.version.major ||
-            b.version.minor - a.version.minor ||
-            b.version.patch - a.version.patch
+            b.name.localeCompare(a.name, undefined, {
+                numeric: true,
+                sensitivity: "base",
+            }),
         );
 
     const latest = changelogs[0];
@@ -295,7 +264,8 @@ export async function getLatestChangelog(): Promise<Article | null> {
         return null;
     }
 
-    return getArticle(
-        `change-logs/${latest.filename.replace(/\.md$/i, "")}`,
-    );
+    const filePath = path.join(changelogDirectory, latest.name);
+    const content = await fs.readFile(filePath, "utf8");
+
+    return getMetadata(content);
 }
