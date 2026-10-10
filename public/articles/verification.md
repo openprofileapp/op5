@@ -1,6 +1,6 @@
 ---
 title: Verification
-author: [AvatarKage](https://op5.to/5719552362357773)
+author: [AvatarKage]({SHORTLINK}/5719552362357773)
 date: 2026-01-13
 updated: 2026-01-13
 ---
