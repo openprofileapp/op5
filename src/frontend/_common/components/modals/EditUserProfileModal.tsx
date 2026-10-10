@@ -231,7 +231,7 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
 
     const bannerUrl = useObjectURL(banner);
 
-    const isPremium = window.session.permissions.array.includes("PREMIUM_ACCESS");
+    const isPremium = window.session?.permissions?.array?.includes("PREMIUM_ACCESS");
 
     const resetState = () => {
         setData(null);

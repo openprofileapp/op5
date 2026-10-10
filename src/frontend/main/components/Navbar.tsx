@@ -232,7 +232,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
         month: "long",
     }).format(new Date()).toLowerCase();
 
-    const hasPremium = window.session.permissions.array.includes("PREMIUM_ACCESS");
+    const hasPremium = window.session?.permissions.array.includes("PREMIUM_ACCESS");
 
     const isFreeThisMonth = (theme: (typeof themes)[number]) =>
         theme?.freeMonth?.toLowerCase() === monthName;

@@ -166,7 +166,7 @@ export function applyTheme(id: string) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         theme?.freeMonth !== monthName &&
-        !window.session.permissions.array.includes("PREMIUM_ACCESS")
+        !window.session?.permissions.array.includes("PREMIUM_ACCESS")
     ) {
         toast.show(
             "You premium to use this theme",

@@ -1255,7 +1255,7 @@ export function ContextMenuBuilder({
         report: (props: Props = {}): ReactNode => 
             window.session.userId
             && !isOwner
-            && !window.session.permissions.array.includes("MODERATE_ACCOUNTS") 
+            && !window.session?.permissions.array.includes("MODERATE_ACCOUNTS") 
         && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
@@ -1341,7 +1341,7 @@ export function ContextMenuBuilder({
 
         moderate: (props: Props = {}): ReactNode => 
             !isOwner
-            && window.session.permissions.array.includes("MODERATE_ACCOUNTS") 
+            && window.session?.permissions.array.includes("MODERATE_ACCOUNTS") 
         && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
@@ -1372,7 +1372,7 @@ export function ContextMenuBuilder({
 
         manage: (props: Props = {}): ReactNode => 
             !isOwner
-            && window.session.permissions.array.includes("MANAGE_ACCOUNTS") 
+            && window.session?.permissions.array.includes("MANAGE_ACCOUNTS") 
         && (
             <li
                 className={props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
