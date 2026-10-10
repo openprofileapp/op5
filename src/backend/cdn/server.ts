@@ -12,6 +12,7 @@ import { corsMiddleware } from "../_common/middlewares/cors.middleware.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
 import cropRoutes from "./routes/crop.routes.js";
+import commonRoutes from "../_common/routes/common.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -43,6 +44,7 @@ Routes
 ———————————————————————————————————————————————————————————————— 
 */
 
+app.use("/", commonRoutes);
 app.use("/health", healthRoute);
 app.use("/crop", cropRoutes);
 
