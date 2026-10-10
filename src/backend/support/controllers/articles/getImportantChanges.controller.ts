@@ -10,8 +10,6 @@ export const getImportantChangesController = async (req: Request, res: Response)
     try {
         const article = await getLatestChangelog();
 
-        // DEVELOPER NEEDED: Add ToS and Privacy Policy at a later time
-
         if (!article) {
             return res.status(404).json({
                 error: "No changelog found",
