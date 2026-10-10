@@ -46,6 +46,89 @@ const fullVersion = stage === "release"
             ? `${semver}-${stage}`
             : `${semver}-${stage}-${build}`;
 
+const domains = {
+    stable: {
+        gateway: isProduction
+            ? "gateway.prod.openprofile.app"
+            : "gateway.dev.openprofile.app",
+        websocket: isProduction
+            ? "ws.prod.openprofile.app"
+            : "ws.dev.openprofile.app",
+        main: isProduction
+            ? "prod.openprofile.app"
+            : "dev.openprofile.app",
+        studio: isProduction
+            ? "studio.prod.openprofile.app"
+            : "studio.dev.openprofile.app",
+        status: isProduction
+            ? "status.prod.openprofile.app"
+            : "status.dev.openprofile.app",
+        auth: isProduction
+            ? "auth.prod.openprofile.app"
+            : "auth.dev.openprofile.app",
+        api: isProduction
+            ? "api.prod.openprofile.app"
+            : "api.dev.openprofile.app",
+        cdn: isProduction
+            ? "cdn.prod.openprofile.app"
+            : "cdn.dev.openprofile.app",
+        support: isProduction
+            ? "support.prod.openprofile.app"
+            : "support.dev.openprofile.app",
+        main_nightly: isProduction
+            ? "nightly.prod.openprofile.app"
+            : "nightly.dev.openprofile.app",
+        shortlink: isProduction
+            ? "prod.op5.to"
+            : "dev.op5.to",
+        discord_api: isProduction
+            ? "discord-api.prod.openprofile.app"
+            : "discord-api.dev.openprofile.app",
+        console: isProduction
+            ? "console.prod.openprofile.app"
+            : "console.dev.openprofile.app",
+    },
+
+    nightly: {
+        gateway: isProduction
+            ? "gateway.nightly.prod.openprofile.app"
+            : "gateway.nightly.dev.openprofile.app",
+        websocket: isProduction
+            ? "ws.nightly.prod.openprofile.app"
+            : "ws.nightly.dev.openprofile.app",
+        main: isProduction
+            ? "nightly.prod.openprofile.app"
+            : "nightly.dev.openprofile.app",
+        studio: isProduction
+            ? "studio.nightly.prod.openprofile.app"
+            : "studio.nightly.dev.openprofile.app",
+        status: isProduction
+            ? "status.nightly.prod.openprofile.app"
+            : "status.nightly.dev.openprofile.app",
+        auth: isProduction
+            ? "auth.nightly.prod.openprofile.app"
+            : "auth.nightly.dev.openprofile.app",
+        api: isProduction
+            ? "api.nightly.prod.openprofile.app"
+            : "api.nightly.dev.openprofile.app",
+        cdn: isProduction
+            ? "cdn.nightly.prod.openprofile.app"
+            : "cdn.nightly.dev.openprofile.app",
+        support: isProduction
+            ? "support.nightly.prod.openprofile.app"
+            : "support.nightly.dev.openprofile.app",
+        shortlink: isProduction
+            ? "nightly.prod.op5.to"
+            : "nightly.dev.op5.to",
+        discord_api: isProduction
+            ? "discord-api.nightly.prod.openprofile.app"
+            : "discord-api.nightly.dev.openprofile.app",
+        console: isProduction
+            ? "console.nightly.prod.openprofile.app"
+            : "console.nightly.dev.openprofile.app",
+    },
+}
+
 /* 
 ————————————————————————————————————————————————————————————————
 FULL CONFIG
@@ -79,7 +162,8 @@ export const config = {
             cdn: false,
             support: false,
             discord_api: false,
-            console: false
+            console: false,
+            websocket: false
         }
     },
 
@@ -175,6 +259,7 @@ export const config = {
     // The maximum memory before the server restarts (###M/G)
     memory: {
         proxy: isProduction ? "100M" : "1G",
+        websocket: isProduction ? "150M" : "1G",
         main: isProduction ? "350M" : "1G",
         status: isProduction ? "100M" : "1G",
         auth: isProduction ? "300M" : "1G",
@@ -190,6 +275,7 @@ export const config = {
     ports: {
         // proxy is fixed at 443
         // gateway is fixed at 444
+        websocket: 10520,
         main: 10521,
         studio: 10522,
         status: 10523,
@@ -204,13 +290,14 @@ export const config = {
             studio: 39552,
             status: 39553,
             support: 39554,
-            console: 39555
+            console: 39555,
         }
     },
 
     // IP addresses assigned to each server
     ips: {
         gateway: !isNightly ? "127.0.0.0" : "127.0.0.0",
+        websocket: !isNightly ? "127.0.0.0" : "127.0.0.0",
         main: !isNightly ? "127.0.0.0" : "127.0.0.0",
         studio: !isNightly ? "127.0.0.0" : "127.0.0.0",
         status: !isNightly ? "127.0.0.0" : "127.0.0.0",
@@ -224,99 +311,8 @@ export const config = {
     },
 
     // Domains assigned to each server
-    domains: {
-        gateway: isProduction
-            ? isNightly
-                ? "nightly.gateway.prod.openprofile.app"
-                : "gateway.prod.openprofile.app"
-            : isNightly
-                ? "nightly.gateway.dev.openprofile.app"
-                : "gateway.dev.openprofile.app",
-
-        main: isProduction
-            ? isNightly
-                ? "nightly.prod.openprofile.app"
-                : "prod.openprofile.app"
-            : isNightly
-                ? "nightly.dev.openprofile.app"
-                : "dev.openprofile.app",
-
-        studio: isProduction
-            ? isNightly
-                ? "nightly.studio.prod.openprofile.app"
-                : "studio.prod.openprofile.app"
-            : isNightly
-                ? "nightly.studio.dev.openprofile.app"
-                : "studio.dev.openprofile.app",
-
-        status: isProduction
-            ? isNightly
-                ? "nightly.status.prod.openprofile.app"
-                : "status.prod.openprofile.app"
-            : isNightly
-                ? "nightly.status.dev.openprofile.app"
-                : "status.dev.openprofile.app",
-
-        auth: isProduction
-            ? isNightly
-                ? "nightly.auth.prod.openprofile.app"
-                : "auth.prod.openprofile.app"
-            : isNightly
-                ? "nightly.auth.dev.openprofile.app"
-                : "auth.dev.openprofile.app",
-
-        api: isProduction
-            ? isNightly
-                ? "nightly.api.prod.openprofile.app"
-                : "api.prod.openprofile.app"
-            : isNightly
-                ? "nightly.api.dev.openprofile.app"
-                : "api.dev.openprofile.app",
-
-        cdn: isProduction
-            ? isNightly
-                ? "nightly.cdn.prod.openprofile.app"
-                : "cdn.prod.openprofile.app"
-            : isNightly
-                ? "nightly.cdn.dev.openprofile.app"
-                : "cdn.dev.openprofile.app",
-
-        support: isProduction
-            ? isNightly
-                ? "nightly.support.prod.openprofile.app"
-                : "support.prod.openprofile.app"
-            : isNightly
-                ? "nightly.support.dev.openprofile.app"
-                : "support.dev.openprofile.app",
-
-        nightly: isProduction
-            ? "nightly.prod.openprofile.app"
-            : "nightly.dev.openprofile.app",
-
-        shortlink: isProduction
-            ? isNightly
-                ? "nightly.prod.op5.to"
-                : "prod.op5.to"
-            : isNightly
-                ? "nightly.dev.op5.to"
-                : "dev.op5.to",
-
-        discord_api: isProduction
-            ? isNightly
-                ? "nightly.discord-api.prod.openprofile.app"
-                : "discord-api.prod.openprofile.app"
-            : isNightly
-                ? "nightly.discord-api.dev.openprofile.app"
-                : "discord-api.dev.openprofile.app",
-
-        console: isProduction
-            ? isNightly
-                ? "nightly.console.prod.openprofile.app"
-                : "console.prod.openprofile.app"
-            : isNightly
-                ? "nightly.console.dev.openprofile.app"
-                : "console.dev.openprofile.app",
-    },
+    rawDomains: domains,
+    domains: domains[isNightly ? "nightly" : "stable"],
 
     // Third-party applications
     integrations: {
