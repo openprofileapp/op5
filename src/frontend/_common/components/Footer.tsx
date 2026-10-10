@@ -19,6 +19,7 @@ export default function Footer() {
                                 <Link className="link-hover" to={`${mainBaseUrl}/terms`}>Terms of Service</Link>
                                 <Link className="link-hover" to={`${mainBaseUrl}/privacy`}>Privacy Policy</Link>
                                 <Link className="link-hover" to={`${supportBaseUrl}`}>Support</Link>
+                                <Link className="link-hover" to={`${mainBaseUrl}/credits`}>Credits</Link>
                             </div>
 
                             <p className="text-xs opacity-65">

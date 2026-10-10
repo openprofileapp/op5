@@ -55,6 +55,10 @@ const markdownRoutes = [
     {
         paths: ["/privacy", "/privacy-policy"],
         fileName: "privacy-policy"
+    },
+    {
+        paths: ["/credits"],
+        fileName: "credits"
     }
 ];
 

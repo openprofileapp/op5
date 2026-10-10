@@ -13,5 +13,6 @@ commonRoutes.use("/terms-of-service.md", express.static(path.join(config.folders
 commonRoutes.use("/privacy-policy.md", express.static(path.join(config.folders.public, "/privacy-policy.md")));
 commonRoutes.use("/branding-guidelines.md", express.static(path.join(config.folders.public, "/branding-guidelines.md")));
 commonRoutes.use("/license.md", express.static(path.join(config.folders.public, "/license.md")));
+commonRoutes.use("/credits.md", express.static(path.join(config.folders.public, "/credits.md")));
 
 export default commonRoutes;
