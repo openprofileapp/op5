@@ -33,6 +33,7 @@ import Partners from "./pages/account/Partners.js"
 import Premium from "./pages/Premium.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
+import MarkdownFile from "./pages/MarkdownFile.js"
 
 import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
@@ -40,6 +41,22 @@ import Unavailable from "../_common/pages/Unavailable.js"
 import Maintenance from "../_common/pages/Maintenance.js"
 
 import UserProfile from "./pages/UserProfile.js"
+import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
+
+const markdownRoutes = [
+    {
+        paths: ["/tos", "/terms", "/terms-of-service"],
+        fileName: "terms-of-service"
+    },
+    {
+        paths: ["/brand-guidelines"],
+        fileName: "brand-guidelines"
+    },
+    {
+        paths: ["/privacy", "/privacy-policy"],
+        fileName: "privacy-policy"
+    }
+];
 
 // eslint-disable-next-line react-refresh/only-export-components
 function RootLayout() {
@@ -74,6 +91,13 @@ const router = createBrowserRouter([
 
             { path: "/user/:id", element: <UserProfile /> },
 
+            ...markdownRoutes.flatMap(({ paths, fileName }) =>
+                paths.map(path => ({
+                    path,
+                    element: <MarkdownFile fileName={fileName} />,
+                }))
+            ),
+
             { path: "/503", element: <Unavailable /> },
             { path: "/404", element: <NotFound /> },
             { path: "*", element: <Navigate to="/404" replace /> },
@@ -84,6 +108,7 @@ const router = createBrowserRouter([
 async function bootstrap() {
     if (!window.config.maintenance.isEnabled) {
         await verifySession();
+        await getImportantChanges();
 
         if (!cookie.get("theme")) {
             cookie.set("theme", "dark");
