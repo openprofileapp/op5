@@ -344,13 +344,26 @@ export default function Navbar({ isBannerPage = false }: Props) {
                         className="flex flex-1 flex-col w-84"
                     >
                         <label className="input w-full">
-                            <span className="font-nerdfont text-base mr-1"></span>
+                            <span className="font-nerdfont text-base mr-1">
+                                
+                            </span>
+
                             <input 
                                 type="search" 
                                 placeholder="Characters, franchises, topics..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
+
+                            {query && (
+                                <button
+                                    type="button"
+                                    className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
+                                    onClick={() => setQuery("")}
+                                >
+                                    
+                                </button>
+                            )}
                         </label>
                     </form>
 

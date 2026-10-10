@@ -214,6 +214,16 @@ export default function Trash() {
                                     handleSearchChange(e.target.value)
                                 }
                             />
+
+                            {query && (
+                                <button
+                                    type="button"
+                                    className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
+                                    onClick={() => handleSearchChange("")}
+                                >
+                                    
+                                </button>
+                            )}
                         </label>
                     </fieldset>
 

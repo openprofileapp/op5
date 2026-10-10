@@ -236,13 +236,26 @@ export default function Blocks() {
                     <fieldset className="fieldset flex-1">
                         <legend className="fieldset-legend">{t("words.Search")}</legend>
                         <label className="input w-full">
-                            <span className="font-nerdfont text-base mr-1"></span>
+                            <span className="font-nerdfont text-base mr-1">
+                                
+                            </span>
+
                             <input
                                 type="search"
                                 placeholder={t("pages.userProfile.searchCharacters")}
                                 value={query}
                                 onChange={(e) => handleSearchChange(e.target.value)}
                             />
+
+                            {query && (
+                                <button
+                                    type="button"
+                                    className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
+                                    onClick={() => handleSearchChange("")}
+                                >
+                                    
+                                </button>
+                            )}
                         </label>
                     </fieldset>
                 </div>

@@ -327,6 +327,16 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                                             setSearchQuery(e.target.value)
                                         }
                                     />
+
+                                    {searchQuery && (
+                                        <button
+                                            type="button"
+                                            className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
+                                            onClick={() => setSearchQuery("")}
+                                        >
+                                            
+                                        </button>
+                                    )}
                                 </label>
                             </fieldset>
 
