@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { Logger } from "kage-library/client";
-
-import WsClient from "./websocket.js";
+import WsClient from "../../_common/scripts/websocket.js";
 import PresenceTracker from "../../_common/scripts/presence.js";
 
-export const log = new Logger({
-    useNerdFonts: window.config.useNerdFonts
-});
-
-window.ws = new WsClient(`wss://${window.config.domains.main}`);
+window.ws = new WsClient(`wss://${window.config.domains.websocket}`);
 
 // @ts-ignore
 const tracker = new PresenceTracker(window.ws.ws);
