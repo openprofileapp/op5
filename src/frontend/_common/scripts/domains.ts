@@ -61,3 +61,8 @@ export const nightlyBaseUrl = [
     protocal,
     window.config.domains.nightly
 ].join("");
+
+export const shortlinkBaseUrl = [
+    protocal,
+    window.config.domains.shortlink
+].join("");
