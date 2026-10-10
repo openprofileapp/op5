@@ -33,7 +33,11 @@ db.accounts.transaction(q => {
             d.permissions = PlatformPermissionsService.encode(["SUPER_ADMIN"]);
         }
 
-        if (d.id === "8057185762390040" || d.id === "3912544802938547") {
+        if (
+            d.id === "8057185762390040" 
+            || d.id === "3912544802938547"
+            || d.id === "1844584278027570"
+        ) {
             d.permissions = PlatformPermissionsService.getRole("staff").value;
         }
 
