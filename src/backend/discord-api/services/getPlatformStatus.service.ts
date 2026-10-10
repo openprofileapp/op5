@@ -62,6 +62,7 @@ export default async function getPlatformStatusService() {
             case d.support.replaceAll("nightly.", ""): return "Support Portal";
             case d.console.replaceAll("nightly.", ""): return "Console";
             case d.gateway.replaceAll("nightly.", ""): return "Gateway";
+            case d.websocket.replaceAll("nightly.", ""): return "Websocket";
             case d.shortlink.replaceAll("nightly.", ""): return "Shortlink";
             case d.discord_api.replaceAll("nightly.", ""): return "Discord Notifications";
             default: return "Unknown";

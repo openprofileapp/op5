@@ -23,6 +23,17 @@ module.exports = {
       }
     },
     {
+      name: "websocket",
+      script: "./dist/src/backend/websocket/server.js",
+      interpreter: "node",
+      autorestart: true,
+      max_memory_restart: "350M",
+      env: {
+        NODE_OPTIONS: "--no-warnings",
+        FORCE_COLOR: "1"
+      }
+    },
+    {
       name: "main",
       script: "./dist/src/backend/main/server.js",
       interpreter: "node",

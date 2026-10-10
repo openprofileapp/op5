@@ -486,7 +486,7 @@ export const updateUsers = async (req: Request, res: Response) => {
 
             if (updatedPresence) {
                 await wc.callAPI(
-                    `https://${config.domains.main}/websocket`,
+                    `https://${config.domains.websocket}/websocket`,
                     {
                         method: "POST",
                         auth: `ApiSecret ${getEnv("API_SECRET")}`,

@@ -2,8 +2,6 @@ import https from "https";
 import express, { Router } from "express";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
-import { WebSocket, WebSocketServer } from "ws";
-import { IncomingMessage } from "http";
 
 import { config } from "../../../app.config.js";
 import { log } from "./instances.js";
@@ -77,54 +75,6 @@ server.listen(port, "0.0.0.0", () => {
 
 process.once("SIGTERM", () => terminateApp(log));
 process.once("SIGINT", () => terminateApp(log));
-
-/* 
-————————————————————————————————————————————————————————————————
-Websocket
-———————————————————————————————————————————————————————————————— 
-*/
-
-const connectedClients = new Map<string, WebSocket>();
-
-const wss = new WebSocketServer({ server });
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
-    const clientId = crypto.randomUUID();
-
-    ws.id = clientId;
-
-    log.ws.info("Client connected:", ws.id);
-
-    connectedClients.set(clientId, ws);
-
-    ws.on("message", (message: WebSocket.RawData) => {
-        let data;
-
-        try {
-            data = JSON.parse(message.toString());
-        } catch {
-            log.ws.error("Invalid JSON").save();
-            return;
-        }
-
-        log.ws.info(`Received from ${ws.id}:`, data);
-
-        if (data.status === "ready") {
-            ws.send(JSON.stringify({ message: "connected" }));
-        }
-    });
-
-    ws.on("close", () => {
-        connectedClients.delete(clientId);
-        log.ws.info("Client disconnected:", ws.id);
-    });
-
-    ws.on("error", () => {
-        log.ws.error("Client crashed:", ws.id).save();
-        connectedClients.delete(clientId);
-    });
-});
 
 /* 
 ————————————————————————————————————————————————————————————————

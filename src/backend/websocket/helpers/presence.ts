@@ -1,7 +1,7 @@
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
-import { connectedClients, idleTimers, isUserIdle } from "../../main/server.js";
-import { wc } from "../instances.js";
+import { connectedClients, idleTimers, isUserIdle } from "../server.js";
+import { wc } from "../../_common/instances.js";
 
 function clearIdleTimer(sessionId: string) {
     if (idleTimers.has(sessionId)) {

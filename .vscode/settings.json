@@ -15,6 +15,7 @@
     "ws": "connection",
     "graphics": "images",
     "console": "admin",
+    "websocket": "connection",
   },
   "material-icon-theme.files.associations": {
     "*.config.ts": "settings",
