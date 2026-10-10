@@ -13,6 +13,7 @@ import { verifySession } from "../_common/scripts/session.js"
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
 import { applyTheme, fonts } from "../_common/scripts/themes.js"
 import { cookie } from "../_common/scripts/cookies.js";
+import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -52,6 +53,7 @@ function RootLayout() {
 async function bootstrap() {
     if (!window.config.maintenance.isEnabled) {
         await verifySession();
+        await getImportantChanges();
 
         if (!cookie.get("theme")) {
             cookie.set("theme", "dark");

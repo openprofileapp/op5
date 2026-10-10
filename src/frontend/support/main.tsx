@@ -16,6 +16,7 @@ import { verifySession } from "../_common/scripts/session.js"
 import { banner } from "../_common/scripts/banner.js"
 import { applyTheme, fonts } from "../_common/scripts/themes.js"
 import { cookie } from "../_common/scripts/cookies.js";
+import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
 
 import "../_common/styles/tailwind.css";
 import "../_common/styles/app.css"
@@ -27,6 +28,7 @@ style.textContent = fonts;
 
 document.head.appendChild(style);
 
+import BannerContainer from "../_common/components/BannerContainer.js"
 import ToastContainer from "../_common/components/ToastContainer.js"
 import CaptchaPortal from "../_common/components/modals/CaptchaPortal.js"
 import Messages from "../_common/components/Messages.js"
@@ -39,6 +41,7 @@ import Article from "./pages/Article.js"
 async function bootstrap() {
     if (!window.config.maintenance.isEnabled) {
         await verifySession();
+        await getImportantChanges();
 
         if (!cookie.get("theme")) {
             cookie.set("theme", "dark");
@@ -103,6 +106,10 @@ async function bootstrap() {
                             <Maintenance />
                         ) : (
                             <ModalProvider>
+                                <header className="sticky top-0 z-9999 w-full">
+                                    <BannerContainer />
+                                </header>
+
                                 <ToastContainer />
                                 <CaptchaPortal
                                     siteKey={window.config.integrations.hcaptcha}
