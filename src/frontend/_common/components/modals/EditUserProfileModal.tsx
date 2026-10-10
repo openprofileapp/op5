@@ -11,7 +11,7 @@ import { useObjectURL } from "../../hooks/useObjectURL.hook.js";
 import ColorInput from "../ColorInput.js";
 import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
 import UserCard from "../../../main/components/UserCard.js";
-import { apiBaseUrl, cdnBaseUrl } from "../../scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl, supportBaseUrl } from "../../scripts/domains.js";
 import ExternalLink from "../ExternalLink.js";
 import { GetLinkType } from "../../../../_common/types/link.type.js";
 import { VisibilityType } from "../../../../_common/types/visibility.type.js";
@@ -879,6 +879,16 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                                             }
                                         />
                                     </div>
+
+                                    {data.type !== "user" && (
+                                        <a
+                                            className="btn btn-accent mt-1"
+                                            href={`${supportBaseUrl}/en-us/article/verification`}
+                                            target="_blank"
+                                        >
+                                            Request Verification
+                                        </a>
+                                    )}
 
                                     <div className="flex flex-col">
                                         <label className="label flex gap-2">
