@@ -116,16 +116,14 @@ export default function AssetCarousel({
                             </div>
                         </div>
 
-                        {/* DEVELOPER NEEDED: Replace CDN url with gateway check and config values */}
                         {!isLoading && assets.map((d) => (
-                            <div key = {d.id} className="flex-shrink-0">
-                                {assetType === "character" && (
-                                    <CharacterCard
-                                        data={d}
-                                        isHomeScreen={true}
-                                    />
-                                )}
-                            </div>
+                            assetType === "character" && (
+                                <CharacterCard
+                                    key={d.id}
+                                    data={d}
+                                    isHomeScreen={true}
+                                />
+                            )
                         ))}
 
                         {assetType === "character" && isLoading && (
