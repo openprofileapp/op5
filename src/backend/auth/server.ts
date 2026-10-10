@@ -23,6 +23,7 @@ import logoutRoute from "./routes/logout.route.js";
 import connectRoute from "./routes/connection/connect.route.js";
 import disconnectRoute from "./routes/connection/disconnect.route.js";
 import checkRoute from "./routes/check.route.js";
+import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -92,6 +93,14 @@ process.once("SIGINT", () => terminateApp(log, db));
 Scheduled events
 ———————————————————————————————————————————————————————————————— 
 */
+
+// Run once on server start
+const result = db.accounts.query(
+    "UPDATE sessions SET isConnected = 0, lastConnectedDate = ? WHERE isConnected = 1",
+    [new Date().toISOString()]
+);
+
+assertDbSuccess(result);
 
 // Run everyday at midnight
 cron.schedule("0 0 * * *", () => {

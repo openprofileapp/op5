@@ -32,6 +32,7 @@ import templateRoutes from "./routes/template.routes.js";
 import blockRoutes from "./routes/block.routes.js";
 import articleRoutes from "./routes/article.routes.js";
 import checkRoute from "./routes/check.route.js";
+import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -213,6 +214,14 @@ process.once("SIGINT", () => terminateApp(log, db));
 Scheduled events
 ———————————————————————————————————————————————————————————————— 
 */
+
+// Run once on server start
+const result = db.users.query(
+    "UPDATE users SET isOnline = 0, lastActive = ? WHERE isOnline = 1",
+    [new Date().toISOString()]
+);
+
+assertDbSuccess(result);
 
 // Run everyday at midnight
 cron.schedule("0 0 * * *", () => {
