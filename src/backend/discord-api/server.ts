@@ -17,6 +17,8 @@ import healthRoute from "../_common/routes/health.route.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import getPlatformStatusService from "./services/getPlatformStatus.service.js";
 import commonRoutes from "../_common/routes/common.routes.js";
+import registerSlashCommands from "./hooks/registerSlashCommands.hook.js";
+import rolesRoute from "./routes/roles.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -54,9 +56,15 @@ app.use("/", commonRoutes);
 app.use("/v1", v1);
 
 v1.use(
-    "/", 
+    "/notifications", 
     rateLimitMiddleware(240), 
     notificationRoutes
+);
+
+v1.use(
+    "/roles", 
+    rateLimitMiddleware(240), 
+    rolesRoute
 );
 
 /* 
@@ -73,6 +81,10 @@ discord.once(Events.ClientReady, async (client) => {
 
     log.discord.info(`Client logged in as ${client.user.tag}`);
 
+    // Register hooks
+    await registerSlashCommands();
+
+    // Handle presence
     const activities =
         config.integrations.discord.presence.assistant.activity.text;
 
