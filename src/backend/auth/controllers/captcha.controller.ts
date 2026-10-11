@@ -5,6 +5,7 @@ import { AdvancedError } from "kage-library";
 import { log } from "../instances.js";
 import { i18n, wc } from "../../_common/instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
+import { config } from "../../../../app.config.js";
 
 type Hcaptcha = {
     success: boolean;
@@ -16,6 +17,12 @@ type Hcaptcha = {
 export const captchaController = async (req: Request, res: Response) => {
     try {
         const { token } = req.body;
+
+        if (!config.isProduction) {
+            return res.status(200).json({ 
+                ok: true
+            });
+        }
 
         if (!token) {
             throw new AdvancedError({ code: 400, message: "Invalid token" });
@@ -38,9 +45,13 @@ export const captchaController = async (req: Request, res: Response) => {
         );
 
         if (result.success) {
-            return res.status(200).json({ ok: result.success });
+            return res.status(200).json({ 
+                ok: result.success 
+            });
         } else {
-            return res.status(400).json({ ok: result.success });
+            return res.status(400).json({ 
+                ok: result.success 
+            });
         }
     } catch(error) {
         if (error instanceof AdvancedError) {
