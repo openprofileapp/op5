@@ -1,4 +1,3 @@
-import { banner } from "./banner.js";
 import { usePresenceStore } from "../stores/presenceStore.js";
 import { log } from "./logger.js";
 
@@ -8,7 +7,6 @@ export default class WsClient<TSend = unknown> {
 
     private cooldownMap = new Map<string, number>();
     private cooldownMs = 5000;
-    private seen503Bypass = false;
 
     constructor(url: string) {
         if (!url) {
@@ -53,27 +51,6 @@ export default class WsClient<TSend = unknown> {
                 setTimeout(() => {
                     this.cooldownMap.delete(rawData);
                 }, this.cooldownMs);
-
-                if (
-                    data.action === "DISPLAY_503" && 
-                    window.location.pathname !== "/503"
-                ) {
-                    window.location.replace("/503");
-                }
-
-                if (
-                    data.action === "DISPLAY_503_BYPASS" &&
-                    !this.seen503Bypass
-                ) {
-                    this.seen503Bypass = true;
-
-                    banner.show(
-                        "Your permissions bypass the maximum connected user limit. OpenProfile may run slower than normal.",
-                        {
-                            type: "warning"
-                        }
-                    );
-                }
 
                 log.ws.info("Received from server:", data);
             } catch (error) {
