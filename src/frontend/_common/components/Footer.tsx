@@ -14,21 +14,58 @@ export default function Footer() {
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
 
-                        <div className="flex flex-col gap-2 text-sm">
-                            <div className="flex flex-row gap-5">
-                                <Link className="link-hover" to={`${mainBaseUrl}/terms`}>Terms of Service</Link>
-                                <Link className="link-hover" to={`${mainBaseUrl}/privacy`}>Privacy Policy</Link>
-                                <Link className="link-hover" to={`${supportBaseUrl}`}>Support</Link>
-                                <Link className="link-hover" to={`${mainBaseUrl}/credits`}>Credits</Link>
+                        <div className="flex flex-col gap-6 text-sm">
+                            <div className="grid grid-cols-3 gap-x-12 gap-y-6">
+                                <div className="flex flex-col gap-2.5">
+                                    <span className="font-semibold text-base mb-1">
+                                        Legal
+                                    </span>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/terms`}>
+                                        Terms of Service
+                                    </Link>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/privacy`}>
+                                        Privacy Policy
+                                    </Link>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/brand`}>
+                                        Brand Guidelines
+                                    </Link>
+                                </div>
+
+                                <div className="flex flex-col gap-2.5">
+                                    <span className="font-semibold text-base mb-1">
+                                        Platform
+                                    </span>
+
+                                    <Link className="link-hover text-sub" to={supportBaseUrl}>
+                                        Support
+                                    </Link>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/premium`}>
+                                        Premium
+                                    </Link>
+                                </div>
+
+                                <div className="flex flex-col gap-2.5">
+                                    <span className="font-semibold text-base mb-1">
+                                        Other
+                                    </span>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/credits`}>
+                                        Credits
+                                    </Link>
+                                </div>
                             </div>
 
-                            <p className="text-xs opacity-65">
+                            <p className="text-xs text-sub">
                                 {window.config.metadata.legal.license.text}
                             </p>
                         </div>
 
-                        <div className="flex flex-col items-start md:items-end gap-3">
-                            <div className="text-sm font-bold">
+                        <div className="flex flex-col items-start md:items-end self-start justify-start gap-3">
+                            <div className="text-base font-bold">
                                 OpenProfile on Socials
                             </div>
 
