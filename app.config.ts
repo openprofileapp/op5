@@ -349,7 +349,7 @@ export const config = {
                 status: "online", // online | idle | dnd | invisible
                 activity: {
                     type: "Playing", // Playing | Streaming | Listening | Watching | Competing
-                    text: fullVersion,
+                    text: `v${fullVersion}`,
                 }
             },
             modules: {
