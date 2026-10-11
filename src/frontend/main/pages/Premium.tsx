@@ -45,11 +45,7 @@ export default function Premium() {
                             <ul className="mt-6 flex flex-col gap-3 text-sm">
                                 <li>
                                     <span className="inline-block w-3 text-center text-base leading-none font-nerdfont text-success mr-2"></span>
-                                    <span>Unlimited projects</span>
-                                </li>
-                                <li>
-                                    <span className="inline-block w-3 text-center text-base leading-none font-nerdfont text-success mr-2"></span>
-                                    <span>Unlimited profiles</span>
+                                    <span>Unlimited characters</span>
                                 </li>
                                 <li>
                                     <span className="inline-block w-3 text-center text-base leading-none font-nerdfont text-success mr-2"></span>
