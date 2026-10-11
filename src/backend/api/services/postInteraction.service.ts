@@ -89,7 +89,7 @@ async function postInteractionEvent(
         likes: "USE_INTERACTIONS",
         reads: "READ",
         restricts: "USE_INTERACTIONS",
-        shares: "USE_INTERACTIONS",
+        shares: "VIEW",
         views: "VIEW"
     };
 
