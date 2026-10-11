@@ -23,7 +23,7 @@ QUICK CONFIG
 ———————————————————————————————————————————————————————————————— 
 */
 
-// Disables Vite, unsafe SSL, and dev domains
+// Disables Vite, unsafe SSL, dev domains, and CAPTCHA
 const isProduction = false;
 
 // Enable nightly mode
@@ -327,7 +327,7 @@ export const config = {
             x: "eUQweG5FWjdDMFV2NUhTTUFwSDE6MTpjaQ",
             facebook: "835575549270309",
             reddit: "",
-            discord: "895502984363003946",
+            discord: isNightly ? "1265629411491971072" : "895502984363003946",
             github: "Ov23liCcfxitn4zDGE7c"
         },
         discord: {
@@ -363,6 +363,9 @@ export const config = {
                 commands: "907182663775948841",
                 commandsDev: "1514196888138678392",
                 logs: "1207075758082629692"
+            },
+            roles: {
+                premium: "1135278048099434567"
             }
         }
     },
@@ -396,7 +399,10 @@ export const config = {
             api: resolve(dir, "src", "backend", "api", "databases", "sql")
         },
         public: resolve(dir, "public"),
-        commands: resolve(dir, "src", "integrations", "discord", "commands")
+        commands: {
+            api: resolve(dir, "src", "backend", "discord-api", "commands"),
+            integrations: resolve(dir, "src", "integrations", "discord", "commands")
+        }
     }
 } as const;
 
