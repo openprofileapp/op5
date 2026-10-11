@@ -9,6 +9,7 @@ import { formatNumber } from "kage-library/client";
 import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
 import Badges from "../Badges.js";
 import { GetAssetType } from "../../../../_common/types/asset.type.js";
+import { useInteractions } from "../../hooks/useInteractions.hook.js";
 
 export interface ShareModalRef {
     open: (data: GetAssetType) => void;
@@ -121,6 +122,7 @@ const truncateByLines = (text: string, maxLines: number, charsPerLine: number = 
 
 const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
     const { ready: isTranslationReady, t } = useTranslation();
+    const { handleShareInteraction } = useInteractions();
 
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const cardRef = useRef<HTMLDivElement | null>(null);
@@ -130,6 +132,11 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloadingType, setDownloadingType] = useState<"single" | "all" | null>(null);
     const [selectedPreset, setSelectedPreset] = useState<AspectRatioOption>("square");
+
+    const [isShared, setIsShared] = useState(false);
+    const [isShareInteractionLoading, setIsShareInteractionLoading] = useState(false);
+    const [lastShareDate, setLastShareDate] = useState("");
+    const [shareCount, setShareCount] = useState(0);
 
     const resetState = () => {
         setData(undefined);
@@ -178,6 +185,18 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
     };
 
+    const callHandleShareInteraction = async () => {
+        await handleShareInteraction(
+            data,
+            isShareInteractionLoading,
+            lastShareDate,
+            setIsShared,
+            setIsShareInteractionLoading,
+            setLastShareDate,
+            setShareCount
+        );
+    }
+
     const copyToClipboard = async () => {
         try {
             handleClose();
@@ -187,6 +206,8 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
             toast.show(t("components.modals.share.copied"), {
                 type: "success",
             });
+
+            await callHandleShareInteraction();
         } catch {
             toast.show("Failed to copy link", { type: "error" });
         }
@@ -219,6 +240,8 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
             link.click();
 
             toast.show(`Downloaded ${currentPreset.label} image`, { type: "success" });
+
+            await callHandleShareInteraction();
         } catch (err) {
             console.error(err);
 
@@ -263,6 +286,8 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
             URL.revokeObjectURL(zipUrl);
 
             toast.show("Downloaded all images", { type: "success" });
+
+            await callHandleShareInteraction();
         } catch (err) {
             console.error(err);
 
@@ -541,6 +566,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                     target="_blank"
                                     rel="noreferrer"
                                     className="flex flex-col w-full items-center gap-1 p-2 bg-base-200 hover:bg-base-300 rounded text-sm"
+                                    onClick={callHandleShareInteraction}
                                 >
                                     <span className="font-nerdfont text-lg">
                                         
@@ -553,6 +579,7 @@ const ShareModal = forwardRef<ShareModalRef>((_, ref) => {
                                     target="_blank"
                                     rel="noreferrer"
                                     className="flex flex-col w-full items-center gap-1 p-2 bg-base-200 hover:bg-base-300 rounded text-sm"
+                                    onClick={callHandleShareInteraction}
                                 >
                                     <span className="font-nerdfont text-lg">
                                         
