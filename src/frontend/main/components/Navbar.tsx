@@ -397,7 +397,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                 </button>
                             )}
 
-                            <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
+                            <button className="hidden cursor-pointer tooltip tooltip-bottom tooltip-accent">
                                 <span className="font-nerdfont text-xl">󰍡</span>
                                 <div className="tooltip-content">
                                     <div className="font-bold">Messages</div>
