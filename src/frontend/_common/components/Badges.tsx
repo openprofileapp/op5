@@ -27,8 +27,7 @@ const order: Record<BadgeNameType, number> = {
     PARTNER: 4,
     VERIFIED: 5,
     PREMIUM: 6,
-    UNOFFICIAL: 7,
-    LIMITED: 8,
+    LIMITED: 7,
 };
 
 function BadgeItem({
@@ -64,15 +63,6 @@ function BadgeItem({
                             <div className="text-xs text-sub">
                                 {assetType !== "USER" && badge.type === "VERIFIED" ? (
                                     t("components.badges.verifiedComment")
-                                ) : assetType !== "USER" && badge.type === "UNOFFICIAL" ? (
-                                    <>
-                                        {t("components.badges.unofficialCommentPart1")}
-                                        <br />
-                                        <br />
-                                        {t("components.badges.unofficialCommentPart2")}
-                                        <br />
-                                        <strong>{badge.comment}</strong>
-                                    </>
                                 ) : (
                                     badge.comment
                                 )}
@@ -135,8 +125,7 @@ export default function Badges({
         case "CHARACTER":
         case "UNIVERSE":
             allowed.push(
-                "VERIFIED", 
-                "UNOFFICIAL"
+                "VERIFIED"
             );
             break;
     }
@@ -217,22 +206,6 @@ export default function Badges({
             name: t("components.badges.premiumName"),
             icon: <span className={`${largeIcons ? "text-xl" : "text-lg"} font-nerdfont leading-none text-[var(--color-premium)]`}></span>,
             graphic: `${cdnBaseUrl}/graphics/premium.png`,
-        },
-        UNOFFICIAL: {
-            name: t("components.badges.unofficialName"),
-            icon: (
-                <a
-                    className={`${largeIcons ? "text-lg" : "text-base"} font-nerdfont leading-none text-sub`}
-                    href={`${supportBaseUrl}/${window?.session?.locale ?? "en"}/article/fair-use`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                    }}
-                >
-                    
-                </a>
-            )
         },
         LIMITED: {
             name: t("components.badges.limitedName"),

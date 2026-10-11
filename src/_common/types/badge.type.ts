@@ -4,7 +4,6 @@ export type BadgeNameType =
     | "PREMIUM"
     | "PROMOTED"
     | "STAFF"
-    | "UNOFFICIAL"
     | "VERIFIED"
     | "LIMITED"
 ;

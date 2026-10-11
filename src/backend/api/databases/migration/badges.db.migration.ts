@@ -10,7 +10,6 @@ const allowed: readonly BadgeNameType[] = [
     "PREMIUM",
     "PROMOTED",
     "STAFF",
-    "UNOFFICIAL",
     "VERIFIED",
     "LIMITED"
 ];
