@@ -577,7 +577,7 @@ export default function UserProfile() {
             )}
 
             <div style={{backgroundColor: data?.isAuraEnabled ? hexToRgba(data?.auraPrimary, 0.05) : "transparent"}}>
-                { data?.status && ( 
+                {data?.status && ( 
                     <div className="relative top-5 left-42 w-317">
                         <div className="absolute glass bg-[#00000085] rounded-full h-4 w-4 top-6 left-25.5 z-1" />
                         <div className="absolute glass bg-[#00000085] rounded-full h-3 w-3 top-10 left-23 z-1" />
@@ -591,11 +591,17 @@ export default function UserProfile() {
                 )}
                     
                 <div className="hero">
-                    <Banner
-                        className="mask-graident absolute top-[64px] w-full object-cover h-96"
-                        src={`${cdnBaseUrl}${data?.banner}`}
-                        alt={t("words.banner")}
-                    />
+                    {isLoading ? (
+                        <div
+                            className="skeleton mask-graident absolute top-[64px] w-full object-cover h-96"
+                        />
+                    ) : (
+                        <Banner
+                            className="mask-graident absolute top-[64px] w-full object-cover h-96"
+                            src={`${cdnBaseUrl}${data?.banner}`}
+                            alt={t("words.banner")}
+                        />
+                    )}
                 </div>
 
                 <div className="px-0 py-8 md:px-25 md:py-20">
@@ -647,279 +653,326 @@ export default function UserProfile() {
                                 ].filter(Boolean))}
 
                                 <div className="relative flex flex-col items-center py-2 z-2">
-                                    {(
-                                        data?.fanflair === "true" &&
-                                        (data?.id === "5719552362357773" ||
-                                        data?.id === "8986001119807525" ||
-                                        data?.id === "5019646586243236")
-                                    ) && (
-                                        // DEVELOPER NEEDED: Disable id override and add fanflairs
-                                        <div 
-                                            className="absolute z-1 top-[-6px] cursor-pointer"
-                                                onClick={() => {
-                                                document.getElementById("avatar")?.click();
-                                            }}
-                                        >
-                                            <Tooltip
-                                                position="right"
-                                                content={
-                                                    <div className="tooltip-content bg-base-200 text-base-content border border-base-300 rounded shadow-2xl flex flex-col max-w-[300px] text-center p-1">
-                                                        <div className="flex flex-col p-1 gap-3">
-                                                            <div className="flex justify-center w-full">
-                                                                <img
-                                                                    className="h-32 w-32 object-contain"
-                                                                    src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
-                                                                    alt=""
-                                                                />
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <div className="font-bold text-sm">
-                                                                    Cyeletal Crystals
-                                                                </div>
+                                    {isLoading ? (
+                                        <div className="flex flex-col items-center w-full py-2">
+                                            <div className="skeleton rounded-full h-32 w-32" />
 
-                                                                <hr />
-                                                                
-                                                                <div className="text-xs text-sub">
-                                                                    From <strong>J9 Studios</strong>
-                                                                    <br/>
-                                                                    <br/>
-                                                                    {t("defaults.noFanflair")}
+                                            <div className="skeleton h-6 w-40 rounded mt-5" />
+                                            <div className="skeleton h-4 w-28 rounded mt-2" />
+
+                                            {window.session.userId && (
+                                                <div className="flex w-full gap-2 mt-4">
+                                                    <div className="skeleton h-8 flex-1 rounded" />
+                                                    <div className="skeleton h-8 flex-1 rounded" />
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-col gap-2 w-full mt-4">
+                                                <div className="skeleton h-4 w-full rounded" />
+                                                <div className="skeleton h-4 w-5/6 rounded" />
+                                                <div className="skeleton h-4 w-2/3 rounded" />
+                                            </div>
+
+                                            <div className="flex flex-col gap-3 w-full mt-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="skeleton h-4 w-4 rounded" />
+                                                    <div className="skeleton h-4 w-24 rounded" />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="skeleton h-4 w-4 rounded" />
+                                                    <div className="skeleton h-4 w-28 rounded" />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="skeleton h-4 w-4 rounded" />
+                                                    <div className="skeleton h-4 w-36 rounded" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {(
+                                                data?.fanflair === "true" &&
+                                                (data?.id === "5719552362357773" ||
+                                                data?.id === "8986001119807525" ||
+                                                data?.id === "5019646586243236")
+                                            ) && (
+                                                // DEVELOPER NEEDED: Disable id override and add fanflairs
+                                                <div 
+                                                    className="absolute z-1 top-[-6px] cursor-pointer"
+                                                        onClick={() => {
+                                                        document.getElementById("avatar")?.click();
+                                                    }}
+                                                >
+                                                    <Tooltip
+                                                        position="right"
+                                                        content={
+                                                            <div className="tooltip-content bg-base-200 text-base-content border border-base-300 rounded shadow-2xl flex flex-col max-w-[300px] text-center p-1">
+                                                                <div className="flex flex-col p-1 gap-3">
+                                                                    <div className="flex justify-center w-full">
+                                                                        <img
+                                                                            className="h-32 w-32 object-contain"
+                                                                            src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                                            alt=""
+                                                                        />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <div className="font-bold text-sm">
+                                                                            Cyeletal Crystals
+                                                                        </div>
+
+                                                                        <hr />
+                                                                        
+                                                                        <div className="text-xs text-sub">
+                                                                            From <strong>J9 Studios</strong>
+                                                                            <br/>
+                                                                            <br/>
+                                                                            {t("defaults.noFanflair")}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                        }
+                                                    >
+                                                        <img
+                                                            className="h-38 w-38 object-contain"
+                                                            src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
+                                                            alt={t("words.fanflair")}
+                                                        />
+                                                    </Tooltip>
+                                                </div>
+                                            )}
+
+                                            <div className="relative group pointer-events-auto">
+                                                {isLoading ? (
+                                                    <div
+                                                        className="skeleton rounded-full h-32 w-32 object-cover"
+                                                    />
+                                                ) : (
+                                                    <>
+                                                        <Avatar
+                                                            className="rounded-full h-32 w-32 object-cover"
+                                                            id={"avatar"}
+                                                            src={data?.avatar ? `${cdnBaseUrl}${data?.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                                                            alt={t("words.avatar")}
+                                                        />
+
+                                                        {data?.animatedAvatar && (
+                                                            <Avatar
+                                                                className="absolute rounded-full top-0 h-32 w-32 object-cover"
+                                                                id={"avatar"}
+                                                                src={`${cdnBaseUrl}${data?.animatedAvatar}`}
+                                                                alt={t("words.avatar")}
+                                                            />
+                                                        )}
+                                                    </>
+                                                )}
+        
+                                                <Presence 
+                                                    data={data}
+                                                    largeIcons={true}
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center justify-center w-full mt-5 gap-2">
+                                                <h1 className="truncate text-xl font-bold text-center">
+                                                    {data?.displayName || primaryUsername || data?.id}
+                                                </h1>
+
+                                                <Badges 
+                                                    data={data as GetAssetType} 
+                                                    assetType="USER" 
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center justify-center gap-2 w-full">
+                                                <div className="truncate text-sm text-center text-sub">
+                                                    @{primaryUsername}{data?.pronouns ? ` • ${data?.pronouns}` : ""}
+                                                </div>
+                                            </div>
+
+                                            {window.session.userId && (
+                                                <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
+                                                    {window.session.userId === data?.id && (
+                                                        <button
+                                                            className={buttonClassList}
+                                                            onClick={async () => {
+                                                                await editUserProfileModal.open(data, () => {
+                                                                    setRefetchData(true);
+                                                                });
+                                                            }}
+                                                        >
+                                                            <span className={buttonTextClassList}>
+                                                                
+                                                            </span>
+                                                            
+                                                            {t("words.EditProfile")}
+                                                        </button>
+                                                    )}
+
+                                                    {window.session.userId !== data?.id 
+                                                        && (data && data?.visibility !== "friends" && "isFriends" in data && !data.isFriends) 
+                                                    && (
+                                                        <button
+                                                            className={buttonClassList}
+                                                            onClick={async () => {
+                                                                await handleFollowInteraction(
+                                                                    data,
+                                                                    isFollowing,
+                                                                    isFollowInteractionLoading,
+                                                                    setIsFollowing,
+                                                                    setIsFollowInteractionLoading,
+                                                                    setFollowCount
+                                                                );
+                                                            }}
+                                                        >
+                                                            <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
+                                                                {isFollowing ? "" : ""}
+                                                            </span>
+                                                            {isFollowing ? t("words.Unfollow") : t("words.Follow")}
+                                                        </button>
+                                                    )}
+
+                                                    {data?.visibility === "friends" && !data?.isFriends && data?.sendMessages === "private" && (
+                                                        <button
+                                                            className={buttonClassList}
+                                                            onClick={() => { 
+                                                                // friendModal.open(data);
+                                                                // If friend, display modal to unfrend, else add a friend or cancel
+                                                                toast.show(
+                                                                    "DEVELOPER NEEDED: Add friend modal", 
+                                                                    { type: "warning" }
+                                                                );
+                                                            }}
+                                                        >
+                                                            <span className={buttonTextClassList}>
+                                                                
+                                                            </span>
+
+                                                            {t("words.AddFriend")}
+                                                        </button>
+                                                    )}
+
+                                                    {
+                                                        window.session.userId !== data?.id
+                                                        && !isHidden 
+                                                        && !isBlocked
+                                                        && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
+                                                        (data?.sendMessages === "friends" && data?.isFriends) ||
+                                                        (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
+                                                    && (
+                                                        <button
+                                                            className={`${buttonClassList} tooltip tooltip-accent pointer-events-auto`}
+                                                            data-tip={t("words.ComingSoon")}
+                                                            disabled={true}
+                                                        >
+                                                            <span className={buttonTextClassList}>
+                                                                󰍡
+                                                            </span>
+                                                            {t("words.Message")}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {data?.about && (
+                                                <p className="text-sm w-full mt-4">
+                                                    {data?.about}
+                                                </p>
+                                            )}
+
+                                            <div className="flex flex-col gap-3 w-full mt-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-nerdfont leading-none text-base">󰃭</div>
+                                                    <div 
+                                                        className="text-sm tooltip"
+                                                        data-tip={`${t("words.Joined")} ${formatLongRelative(data?.createdDate)}`}
+                                                    >
+                                                        {formatShortRelative(data?.createdDate)}
+                                                    </div>
+                                                </div>
+
+                                                {
+                                                    (
+                                                        data?.birthDate && data?.type === "user" ||
+                                                        data?.birthDate && data?.type === "author"
+                                                    )
+                                                && (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="font-nerdfont leading-none text-base">󰃫</div>
+                                                        <div 
+                                                            className="text-sm tooltip"
+                                                            data-tip={`${t("words.Born")} ${formatLongRelative(data?.birthDate)}`}
+                                                        >
+                                                            {formatShortRelative(data?.birthDate)}
                                                         </div>
+
+                                                        {data?.birthDateVisibility === "friends" && (
+                                                            <div 
+                                                                className="tooltip"
+                                                                data-tip={t("defaults.onlyFriends")}
+                                                            >
+                                                                <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                                    
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {data?.birthDateVisibility === "private" && (
+                                                            <div 
+                                                                className="tooltip"
+                                                                data-tip={t("defaults.onlyYou")}
+                                                            >
+                                                                <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                                    
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                }
-                                            >
-                                                <img
-                                                    className="h-38 w-38 object-contain"
-                                                    src={`${cdnBaseUrl}/uploads/942ba7b3-f359-4b06-8189-2223950b246c.png`}
-                                                    alt={t("words.fanflair")}
-                                                />
-                                            </Tooltip>
-                                        </div>
+                                                )}
+
+                                                {data?.foundedDate && data?.type === "publisher" && (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="font-nerdfont leading-none text-base"></div>
+                                                        <div 
+                                                            className="text-sm tooltip"
+                                                            data-tip={`${t("words.Founded")} ${formatLongRelative(data?.foundedDate)}`}
+                                                        >
+                                                            {formatShortRelative(data?.foundedDate)}
+                                                        </div>
+
+                                                        {data?.foundedDateVisibility === "friends" && (
+                                                            <div 
+                                                                className="tooltip"
+                                                                data-tip={t("defaults.onlyFriends")}
+                                                            >
+                                                                <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                                    
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {data?.foundedDateVisibility === "private" && (
+                                                            <div 
+                                                                className="tooltip"
+                                                                data-tip={t("defaults.onlyYou")}
+                                                            >
+                                                                <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
+                                                                    
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                
+                                                {data?.location && (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="font-nerdfont leading-none text-base"></div>
+                                                        <div className="text-sm">{data?.location}</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
                                     )}
-
-                                    <div className="relative group pointer-events-auto">
-                                            <Avatar
-                                                className="rounded-full h-32 w-32 object-cover"
-                                                id={"avatar"}
-                                                src={data?.avatar ? `${cdnBaseUrl}${data?.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
-                                                alt={t("words.avatar")}
-                                            />
-
-                                            {data?.animatedAvatar && (
-                                                <Avatar
-                                                    className="absolute rounded-full top-0 h-32 w-32 object-cover"
-                                                    id={"avatar"}
-                                                    src={`${cdnBaseUrl}${data?.animatedAvatar}`}
-                                                    alt={t("words.avatar")}
-                                                />
-                                            )}
-
-                                        <Presence 
-                                            data={data}
-                                            largeIcons={true}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-center w-full mt-5 gap-2">
-                                        <h1 className="truncate text-xl font-bold text-center">
-                                            {data?.displayName || primaryUsername || data?.id}
-                                        </h1>
-
-                                        <Badges 
-                                            data={data as GetAssetType} 
-                                            assetType="USER" 
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-center gap-2 w-full">
-                                        <div className="truncate text-sm text-center text-sub">
-                                            @{primaryUsername}{data?.pronouns ? ` • ${data?.pronouns}` : ""}
-                                        </div>
-                                    </div>
-
-                                    {window.session.userId && (
-                                        <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
-                                            {window.session.userId === data?.id && (
-                                                <button
-                                                    className={buttonClassList}
-                                                    onClick={async () => {
-                                                        await editUserProfileModal.open(data, () => {
-                                                            setRefetchData(true);
-                                                        });
-                                                    }}
-                                                >
-                                                    <span className={buttonTextClassList}>
-                                                        
-                                                    </span>
-                                                    
-                                                    {t("words.EditProfile")}
-                                                </button>
-                                            )}
-
-                                            {window.session.userId !== data?.id 
-                                                && (data && data?.visibility !== "friends" && "isFriends" in data && !data.isFriends) 
-                                            && (
-                                                <button
-                                                    className={buttonClassList}
-                                                    onClick={async () => {
-                                                        await handleFollowInteraction(
-                                                            data,
-                                                            isFollowing,
-                                                            isFollowInteractionLoading,
-                                                            setIsFollowing,
-                                                            setIsFollowInteractionLoading,
-                                                            setFollowCount
-                                                        );
-                                                    }}
-                                                >
-                                                    <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
-                                                        {isFollowing ? "" : ""}
-                                                    </span>
-                                                    {isFollowing ? t("words.Unfollow") : t("words.Follow")}
-                                                </button>
-                                            )}
-
-                                            {data?.visibility === "friends" && !data?.isFriends && data?.sendMessages === "private" && (
-                                                <button
-                                                    className={buttonClassList}
-                                                    onClick={() => { 
-                                                        // friendModal.open(data);
-                                                        // If friend, display modal to unfrend, else add a friend or cancel
-                                                        toast.show(
-                                                            "DEVELOPER NEEDED: Add friend modal", 
-                                                            { type: "warning" }
-                                                        );
-                                                    }}
-                                                >
-                                                    <span className={buttonTextClassList}>
-                                                        
-                                                    </span>
-
-                                                    {t("words.AddFriend")}
-                                                </button>
-                                            )}
-
-                                            {
-                                                window.session.userId !== data?.id
-                                                && !isHidden 
-                                                && !isBlocked
-                                                && ((data?.sendMessages === "followers" && data?.interactions?.follows?.hasInteracted) ||
-                                                (data?.sendMessages === "friends" && data?.isFriends) ||
-                                                (data?.sendMessages !== "followers" && data?.sendMessages !== "friends" && data?.sendMessages !== "private"))
-                                            && (
-                                                <button
-                                                    className={`${buttonClassList} tooltip tooltip-accent pointer-events-auto`}
-                                                    data-tip={t("words.ComingSoon")}
-                                                    disabled={true}
-                                                >
-                                                    <span className={buttonTextClassList}>
-                                                        󰍡
-                                                    </span>
-                                                    {t("words.Message")}
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {data?.about && (
-                                        <p className="text-sm w-full mt-4">
-                                            {data?.about}
-                                        </p>
-                                    )}
-
-                                    <div className="flex flex-col gap-3 w-full mt-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="font-nerdfont leading-none text-base">󰃭</div>
-                                            <div 
-                                                className="text-sm tooltip"
-                                                data-tip={`${t("words.Joined")} ${formatLongRelative(data?.createdDate)}`}
-                                            >
-                                                {formatShortRelative(data?.createdDate)}
-                                            </div>
-                                        </div>
-
-                                        {
-                                            (
-                                                data?.birthDate && data?.type === "user" ||
-                                                data?.birthDate && data?.type === "author"
-                                            )
-                                        && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="font-nerdfont leading-none text-base">󰃫</div>
-                                                <div 
-                                                    className="text-sm tooltip"
-                                                    data-tip={`${t("words.Born")} ${formatLongRelative(data?.birthDate)}`}
-                                                >
-                                                    {formatShortRelative(data?.birthDate)}
-                                                </div>
-
-                                                {data?.birthDateVisibility === "friends" && (
-                                                    <div 
-                                                        className="tooltip"
-                                                        data-tip={t("defaults.onlyFriends")}
-                                                    >
-                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
-                                                            
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                {data?.birthDateVisibility === "private" && (
-                                                    <div 
-                                                        className="tooltip"
-                                                        data-tip={t("defaults.onlyYou")}
-                                                    >
-                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
-                                                            
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {data?.foundedDate && data?.type === "publisher" && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="font-nerdfont leading-none text-base"></div>
-                                                <div 
-                                                    className="text-sm tooltip"
-                                                    data-tip={`${t("words.Founded")} ${formatLongRelative(data?.foundedDate)}`}
-                                                >
-                                                    {formatShortRelative(data?.foundedDate)}
-                                                </div>
-
-                                                {data?.foundedDateVisibility === "friends" && (
-                                                    <div 
-                                                        className="tooltip"
-                                                        data-tip={t("defaults.onlyFriends")}
-                                                    >
-                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
-                                                            
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                {data?.foundedDateVisibility === "private" && (
-                                                    <div 
-                                                        className="tooltip"
-                                                        data-tip={t("defaults.onlyYou")}
-                                                    >
-                                                        <span className="font-nerdfont leading-none text-sub text-sm cursor-default">
-                                                            
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        
-                                        {data?.location && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="font-nerdfont leading-none text-base"></div>
-                                                <div className="text-sm">{data?.location}</div>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
 
