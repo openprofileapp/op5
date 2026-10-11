@@ -12,6 +12,7 @@ import { log } from "../instances.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 import createNotificationBody from "../../../_common/helpers/createNotificationBody.js";
 import whatIs from "./whatIs.service.js";
+import { UserType } from "../../../_common/types/user.type.js";
 
 webPush.setVapidDetails(
     `https://${config.domains.main}`,
@@ -48,8 +49,19 @@ export default async function sendPushNotificationService(
     // DEVELOPER NEEDED: Log push notifications to an audit log and clear it every hour.
     // If the payload matches the one in the audit, do not send it.
 
+    const userResult = db.users.query<UserType>(
+        "SELECT * FROM users WHERE id = ?",
+        [userId]
+    );
+
+    assertDbSuccess(userResult);
+
+    if (userResult.rowCount > 0 && userResult.rows[0].presence === "dnd") {
+        return;
+    }
+
     const result = db.users.query<WebPushType>(
-        `SELECT * FROM webpush WHERE userId = ?`,
+        "SELECT * FROM webpush WHERE userId = ?",
         [userId]
     );
 
