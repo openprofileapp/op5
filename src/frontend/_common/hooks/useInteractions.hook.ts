@@ -307,6 +307,59 @@ export const useInteractions = () => {
         }
     };
 
+    const handleShareInteraction = async (
+        data: GetAssetType,
+        isShareInteractionLoading: boolean,
+        lastShareDate: string,
+        setIsShared: Dispatch<SetStateAction<boolean>>,
+        setIsShareInteractionLoading: (loading: boolean) => void,
+        setLastShareDate: Dispatch<SetStateAction<string>>,
+        setShareCount: Dispatch<SetStateAction<number>>
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isShareInteractionLoading) return false;
+
+        setIsShareInteractionLoading(true);
+
+        try {
+            const response = await postInteraction(data.id, "shares");
+
+            if (response.ok) {
+                setIsShared(true);
+
+                let shouldIncrementCount = false;
+
+                if (!lastShareDate) {
+                    shouldIncrementCount = true;
+                } else {
+                    const lastInteraction = DateTime.fromISO(lastShareDate, { zone: "utc" }).toLocal();
+                    const now = DateTime.local();
+
+                    const diffInHours = now.diff(lastInteraction, "hours").hours;
+                    const isLoggedUser = Boolean(window.session?.userId);
+
+                    const requiredHours = isLoggedUser ? 1 : 24;
+
+                    if (diffInHours >= requiredHours) {
+                        shouldIncrementCount = true;
+                    }
+                }
+
+                if (shouldIncrementCount) {
+                    setShareCount(prev => prev + 1);
+                    setLastShareDate(DateTime.now().toUTC().toISO());
+
+                    return true;
+                }
+
+                return false;
+            } else {
+                return false;
+            }
+        } finally {
+            setIsShareInteractionLoading(false);
+        }
+    };
+
     return {
         handleDismissInteraction,
         handleViewInteraction,
@@ -314,6 +367,7 @@ export const useInteractions = () => {
         handleLikeInteraction,
         handleHideInteraction,
         handleRestrictInteraction,
-        handleBlockInteraction
+        handleBlockInteraction,
+        handleShareInteraction
     };
 };
