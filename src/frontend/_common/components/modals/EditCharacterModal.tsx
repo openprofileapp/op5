@@ -21,6 +21,7 @@ import TagInput from "../TagInput.js";
 import { GetDraftCharacterItemType } from "../../../../_common/types/characters/character.type.js";
 import CharacterCard from "../CharacterCard.js";
 import { GetMediaType } from "../../../../_common/types/media.type.js";
+import { useModals } from "../../hooks/ModalContext.hook.js";
 
 export interface EditCharacterModalRef {
     open: (
@@ -188,6 +189,8 @@ function SortableMediaItem({
 
 const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
+    const { publishModal, unpublishModal } = useModals();
+    
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
     const onSaveRef = useRef<((updatedData: GetDraftCharacterItemType) => void) | null>(null);
@@ -453,6 +456,26 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
         } catch (error) {
             console.error(`Failed to save profile:`, error);
         }
+    };
+
+    const handlePublish = () => {
+        if (!data) return;
+
+        publishModal.open(
+            // @ts-ignore
+            data,
+            { type: "character" }
+        );
+    };
+
+    const handleUnpublish = () => {
+        if (!data) return;
+
+        unpublishModal.open(
+            // @ts-ignore
+            data,
+            { type: "character" }
+        );
     };
 
     if (!isTranslationReady || !data) return null;
@@ -1021,31 +1044,60 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                     const hasChanges = Object.keys(getChangedData(data, initialData as GetDraftCharacterItemType)).length > 0;
 
                     return (
-                        <div className="flex items-center gap-2 sm:gap-3 flex-row w-full pt-4 z-10 shrink-0">
-                            <button
-                                type="button"
-                                className="btn btn-neutral flex-1"
-                                onClick={handleClose}
-                            >
-                                {t("words.Close")}
-                            </button>
+                        <>
+                            <div className="flex items-center gap-2 sm:gap-3 flex-row w-full pt-4 z-10 shrink-0">
+                                <button
+                                    type="button"
+                                    disabled={hasChanges}
+                                    className="btn btn-success flex-1"
+                                    onClick={() => {
+                                        handlePublish();
+                                    }}
+                                >
+                                    Publish {hasChanges ? "(save changes first)" : ""}
+                                </button>
 
-                            <button
-                                type="button"
-                                className={`btn flex-3 flex items-center justify-center border rounded gap-2 transition-colors ${
-                                    !hasChanges 
-                                        ? "bg-base-200 border-base-300 cursor-not-allowed opacity-60" 
-                                        : "bg-success border-success text-white cursor-pointer"
-                                }`}
-                                onClick={handleSave}
-                                disabled={isSaving || !hasChanges}
-                            >
-                                <span className={`font-nerdfont leading-none ${isSaving ? "loading w-6 h-6" : ""}`}>
-                                    {!isSaving && (!hasChanges ? "" : "󰆓")}
-                                </span>
-                                {!isSaving && (hasChanges ? t("words.Save") : t("words.Saved"))}
-                            </button>
-                        </div>
+                                {/* @ts-ignore */}
+                                {data?.isPublished && (
+                                    <button
+                                        type="button"
+                                        disabled={hasChanges}
+                                        className="btn bg-base-300 flex-1"
+                                        onClick={() => {
+                                            handleUnpublish();
+                                        }}
+                                    >
+                                        Unpublish {hasChanges ? "(save changes first)" : ""}
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2 sm:gap-3 flex-row w-full pt-4 z-10 shrink-0">
+                                <button
+                                    type="button"
+                                    className="btn btn-neutral flex-1"
+                                    onClick={handleClose}
+                                >
+                                    {t("words.Close")}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={`btn flex-3 flex items-center justify-center border rounded gap-2 transition-colors ${
+                                        !hasChanges 
+                                            ? "bg-base-200 border-base-300 cursor-not-allowed opacity-60" 
+                                            : "bg-success border-success text-white cursor-pointer"
+                                    }`}
+                                    onClick={handleSave}
+                                    disabled={isSaving || !hasChanges}
+                                >
+                                    <span className={`font-nerdfont leading-none ${isSaving ? "loading w-6 h-6" : ""}`}>
+                                        {!isSaving && (!hasChanges ? "" : "󰆓")}
+                                    </span>
+                                    {!isSaving && (hasChanges ? t("words.Save") : t("words.Saved"))}
+                                </button>
+                            </div>
+                        </>
                     );
                 })()}
             </div>

@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import { updateDatasetUses } from "../../../../helpers/manageUses.js";
 
 export const deleteFields = async (req: Request, res: Response) => {
     try {
@@ -45,7 +46,12 @@ export const deleteFields = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteResult = db.characters.query(`DELETE FROM draft_fields WHERE fieldId = ?`, [fieldId]);
+        updateDatasetUses(assetId as string, fieldId as string, null);
+
+        const deleteResult = db.characters.query(
+            "DELETE FROM draft_fields WHERE fieldId = ? AND assetId = ?",
+            [fieldId, assetId]
+        );
 
         assertDbSuccess(deleteResult);
 

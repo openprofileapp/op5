@@ -21,10 +21,7 @@ export interface EditTemplateModalRef {
 
 const EditTemplateModal = forwardRef<EditTemplateModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
-    const { 
-        publishModal,
-        unpublishModal
-    } = useModals();
+    const { publishModal, unpublishModal } = useModals();
     
     const dialogRef = useRef<HTMLDialogElement | null>(null);
     const onSaveRef = useRef<((updatedData: GetTemplateItemType) => void) | null>(null);

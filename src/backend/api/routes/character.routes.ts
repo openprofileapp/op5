@@ -25,6 +25,8 @@ import { restoreCharacter } from "../controllers/characters/restore.controller.j
 import { trashCharacter } from "../controllers/characters/trash.controller.js";
 import { deleteCharacter } from "../controllers/characters/delete.controller.js";
 import { updateCharacters } from "../controllers/characters/updateCharacters.controller.js";
+import { publishCharacterController } from "../controllers/characters/publishCharacter.controller.js";
+import { unpublishCharacterController } from "../controllers/characters/unpublishCharacter.controller.js";
 
 const characterRoutes = Router();
 
@@ -42,6 +44,8 @@ characterRoutes.get("/recommended/:tag", getRecommendedTaggedPublishedCharacters
 characterRoutes.get("/restore/:id", restoreCharacter);
 characterRoutes.get("/trash/:id", trashCharacter);
 characterRoutes.delete("/delete/:id", deleteCharacter);
+characterRoutes.get("/publish/:id", publishCharacterController);
+characterRoutes.get("/unpublish/:id", unpublishCharacterController);
 characterRoutes.post("/update/:id", updateCharacters);
 
 characterRoutes.post("/insert/:assetId/categories", insertCategories);

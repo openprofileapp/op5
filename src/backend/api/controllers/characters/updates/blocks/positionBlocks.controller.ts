@@ -58,7 +58,7 @@ export const positionBlocks = async (req: Request, res: Response) => {
             });
         }
 
-        validBlocks.forEach((block, position) => {
+        validBlocks.forEach((block, position) => {            
             const updateResult = db.characters.query(
                 "UPDATE draft_blocks SET position = ? WHERE assetId = ? AND blockId = ?",
                 [

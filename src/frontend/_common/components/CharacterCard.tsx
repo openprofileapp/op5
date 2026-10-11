@@ -437,6 +437,14 @@ export default function CharacterCard({
                 }}
             >
                 <div className="absolute inset-0 group">
+                    {/* @ts-ignore */}
+                    {data.isPublished && (
+                        <span className="absolute top-3 left-3 z-2 font-bold text-xs text-sub bg-base-100 border border-base-300 rounded px-2 py-1">
+                            <span className="font-nerdfont leading-none mr-1.5"></span>
+                            PUBLISHED
+                        </span>
+                    )}
+                    
                     <img
                         className={avatarClassList}
                         src={data.avatar ? `${cdnBaseUrl}${data.avatar}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}

@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import { updateBlockUses } from "../../../../helpers/manageUses.js";
 
 export const deleteBlock = async (req: Request, res: Response) => {
     try {
@@ -45,26 +46,94 @@ export const deleteBlock = async (req: Request, res: Response) => {
             });
         }
 
-        const deleteResult = db.characters.query(
-            "DELETE FROM draft_fields WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
-        );
+        db.characters.transaction(q => {
+            const updateDatasetsResult = q(
+                `
+                UPDATE draft_datasets
+                SET uses = MAX(
+                    uses - (
+                        SELECT COUNT(*)
+                        FROM draft_fields f
+                        WHERE f.rowId IN (
+                            SELECT r.rowId
+                            FROM draft_rows r
+                            WHERE r.blockId = ?
+                        )
+                        AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                    ),
+                    0
+                )
+                WHERE id IN (
+                    SELECT json_extract(f.options, '$.dataset')
+                    FROM draft_fields f
+                    WHERE f.rowId IN (
+                        SELECT r.rowId
+                        FROM draft_rows r
+                        WHERE r.blockId = ?
+                    )
+                    AND json_extract(f.options, '$.dataset') IS NOT NULL
+                )
+                `,
+                [blockId, blockId]
+            );
 
-        assertDbSuccess(deleteResult);
+            assertDbSuccess(updateDatasetsResult);
 
-        const deleteRowsResult = db.characters.query(
-            "DELETE FROM draft_rows WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
-        );
+            const deleteFieldsResult = q(
+                `
+                DELETE FROM draft_fields
+                WHERE rowId IN (
+                    SELECT rowId
+                    FROM draft_rows
+                    WHERE blockId IN (
+                        SELECT blockId
+                        FROM draft_blocks
+                        WHERE assetId = ?
+                            AND blockId = ?
+                    )
+                )
+                `,
+                [assetId, blockId]
+            );
 
-        assertDbSuccess(deleteRowsResult);
+            assertDbSuccess(deleteFieldsResult);
 
-        const deleteBlockResult = db.characters.query(
-            "DELETE FROM draft_blocks WHERE assetId = ? AND blockId = ?",
-            [assetId, blockId]
-        );
-        
-        assertDbSuccess(deleteBlockResult);
+            const deleteRowsResult = q(
+                `DELETE FROM draft_rows
+                WHERE blockId IN (
+                    SELECT blockId
+                    FROM draft_blocks
+                    WHERE assetId = ?
+                    AND blockId = ?
+                )`,
+                [assetId, blockId]
+            );
+
+            assertDbSuccess(deleteRowsResult);
+
+            const getBlockResult = q(
+                `SELECT sourceBlockId
+                FROM draft_blocks
+                WHERE assetId = ?
+                AND blockId = ?`,
+                [assetId, blockId]
+            );
+
+            assertDbSuccess(getBlockResult);
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            updateBlockUses(getBlockResult?.rows?.[0]?.sourceBlockId as string, "remove");
+
+            const deleteBlocksResult = q(
+                `DELETE FROM draft_blocks
+                WHERE assetId = ?
+                AND blockId = ?`,
+                [assetId, blockId]
+            );
+
+            assertDbSuccess(deleteBlocksResult);
+        });
 
         return res.status(200).json({
             ok: true,

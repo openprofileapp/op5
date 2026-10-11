@@ -12,7 +12,7 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 export const positionFields = async (req: Request, res: Response) => {
     try {
         const { assetId } = req.params;
-        const { data } = req.body;
+        const { rowId, data } = req.body;
 
         await assertBearer(req);
         assertAccount(req.session);
@@ -49,8 +49,8 @@ export const positionFields = async (req: Request, res: Response) => {
         data.forEach((item, position) => {
             if (item && typeof item.fieldId === "string") {
                 const updateResult = db.characters.query(
-                    "UPDATE draft_fields SET position = ? WHERE fieldId = ?",
-                    [position, item.fieldId]
+                    "UPDATE draft_fields SET position = ?, rowId = ? WHERE fieldId = ?",
+                    [position, rowId, item.fieldId]
                 );
                 assertDbSuccess(updateResult);
             }

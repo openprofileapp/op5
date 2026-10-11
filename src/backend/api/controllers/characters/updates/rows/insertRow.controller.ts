@@ -11,7 +11,7 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 
 export const insertRows = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
+        const { assertId } = req.params;
         const { rowId, blockId, position } = req.body;
 
         await assertBearer(req);
@@ -20,7 +20,7 @@ export const insertRows = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+            [assertId]
         );
 
         assertDbSuccess(getResult);
@@ -57,14 +57,14 @@ export const insertRows = async (req: Request, res: Response) => {
 
         const insertResult = db.characters.query(
             `INSERT INTO draft_rows (
-                assetId,
+                assertId,
                 rowId, 
                 blockId, 
                 position, 
                 createdBy
             ) VALUES (?, ?, ?, ?, ?)`,
             [
-                assetId,
+                assertId,
                 rowId,
                 blockId,
                 targetPosition,

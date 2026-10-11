@@ -11,8 +11,8 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 
 export const insertFields = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
-        const { fieldId, rowId, type, label, placeholder, dataset, guide, position } = req.body;
+        const { assertId } = req.params;
+        const { fieldId, rowId, type, label, placeholder, options, guide, position } = req.body;
 
         await assertBearer(req);
         assertAccount(req.session);
@@ -20,7 +20,7 @@ export const insertFields = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+            [assertId]
         );
 
         assertDbSuccess(getResult);
@@ -46,7 +46,35 @@ export const insertFields = async (req: Request, res: Response) => {
             });
         }
 
-        const countResult = db.characters.query<{ count: number }>(
+        if (fieldId === "display-name") {
+            throw new AdvancedError({
+                code: 400,
+                message: `The ID "${fieldId}" is reserved`
+            });
+        }
+
+        const getFieldIdResult = db.characters.query(
+            "SELECT * FROM draft_fields WHERE fieldId = ? AND assertId = ?",
+            [fieldId, assertId]
+        );
+
+        assertDbSuccess(getFieldIdResult);
+
+        if (typeof fieldId !== "string" || !/^[a-z-0-9]+$/.test(fieldId)) {
+            throw new AdvancedError({
+                code: 400,
+                message: i18n.t("responses.invalidFieldId")
+            });
+        }
+
+        if (getFieldIdResult.rowCount !== 0) {
+            throw new AdvancedError({
+                code: 404,
+                message: `A field with ID "${fieldId}" already exists`
+            });
+        }
+
+        const countResult = db.characters.query(
             "SELECT 1 FROM draft_fields WHERE rowId = ?",
             [rowId]
         );
@@ -64,25 +92,25 @@ export const insertFields = async (req: Request, res: Response) => {
 
         const insertResult = db.characters.query(
             `INSERT INTO draft_fields (
-                assetId,
+                assertId,
                 fieldId, 
                 rowId, 
                 type, 
                 label, 
                 placeholder, 
-                dataset, 
+                options, 
                 guide, 
                 position, 
                 createdBy
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                assetId,
+                assertId,
                 fieldId,
                 rowId,
                 type ?? "text",
                 label ?? "",
                 placeholder ?? "",
-                dataset ?? "",
+                JSON.stringify(options ?? []),
                 guide ?? "",
                 targetPosition,
                 req.session.userId
@@ -90,6 +118,17 @@ export const insertFields = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(insertResult);
+
+        if (options?.dataset) {
+            const updateResult = db.characters.query(
+                `UPDATE draft_datasets
+                SET uses = uses + 1
+                WHERE id = ?`,
+                [options?.dataset]
+            );
+
+            assertDbSuccess(updateResult);
+        }
 
         return res.status(201).json({ ok: true });
     } catch (error) {

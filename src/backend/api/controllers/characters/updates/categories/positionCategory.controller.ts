@@ -11,7 +11,7 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 
 export const positionCategories = async (req: Request, res: Response) => {
     try {
-        const { assetId } = req.params;
+        const { assertId } = req.params;
         const { data } = req.body;
 
         await assertBearer(req); 
@@ -20,7 +20,7 @@ export const positionCategories = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assetId]
+            [assertId]
         );
 
         assertDbSuccess(getResult);
@@ -49,8 +49,8 @@ export const positionCategories = async (req: Request, res: Response) => {
         data.forEach((item, position) => {
             if (item && typeof item.categoryId === "string") {
                 const updateResult = db.characters.query(
-                    "UPDATE draft_categories SET position = ? WHERE assetId = ? AND categoryId = ?",
-                    [position, assetId, item.categoryId]
+                    "UPDATE draft_categories SET position = ? WHERE assertId = ? AND categoryId = ?",
+                    [position, assertId, item.categoryId]
                 );
                 assertDbSuccess(updateResult);
             }
