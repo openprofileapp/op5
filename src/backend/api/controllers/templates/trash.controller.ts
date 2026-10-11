@@ -39,6 +39,20 @@ export const trashTemplete = async (req: Request, res: Response) => {
             });
         }
 
+        const getPublishedResult = db.templates.query<TemplateType>(
+            "SELECT * FROM published WHERE id = ? LIMIT 1",
+            [id]
+        );
+
+        assertDbSuccess(getPublishedResult);
+
+        if (getPublishedResult.rowCount !== 0) {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: "You cannot move a published template to trash"
+            });
+        }
+
         const postResult = db.templates.query<TemplateType>(
             "UPDATE drafts SET isDeleted = 1 WHERE id = ? LIMIT 1",
             [id]

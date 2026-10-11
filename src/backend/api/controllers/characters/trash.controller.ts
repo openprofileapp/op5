@@ -6,7 +6,7 @@ import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertPlatformPermissions } from "../../../_common/asserts/platformPermissions.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../../databases/db.js";
-import { DraftCharacterType } from "../../../../_common/types/characters/character.type.js";
+import { DraftCharacterType, PublishedCharacterType } from "../../../../_common/types/characters/character.type.js";
 import { i18n } from "../../../_common/instances.js";
 import { log } from "../../instances.js";
 
@@ -36,6 +36,20 @@ export const trashCharacter = async (req: Request, res: Response) => {
             throw new AdvancedError({
                 code: 401,
                 message: i18n.t("responses.unauthorized")
+            });
+        }
+
+        const getPublishedResult = db.characters.query<PublishedCharacterType>(
+            "SELECT * FROM published WHERE id = ? LIMIT 1",
+            [id]
+        );
+
+        assertDbSuccess(getPublishedResult);
+
+        if (getPublishedResult.rowCount !== 0) {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: "You cannot move a published character to trash"
             });
         }
 
