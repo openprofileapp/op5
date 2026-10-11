@@ -331,7 +331,7 @@ export function ContextMenuBuilder({
     const friendTextClassList = `${flexClassList} w-4 h-6 text-base font-nerdfont leading-none shrink-0`;
     const tooltipClassList =  "tooltip tooltip-top tooltip-accent";
     const quickActionClassList = `${flexClassList} flex-1 w-full h-full`;
-    const subMenuClassList = `absolute ${isSubMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover:block`;
+    const subMenuClassList = `absolute ${isSubMenuFlipped ? "right-[calc(100%+12px)]" : "left-[calc(100%-4px)]"} top-[-8px] dropdown menu w-fit min-w-54 rounded-box bg-base-100 shadow-sm cursor-default overflow-visible hidden group-hover/submenu:block`;
     const subMenuMarginClassList = `absolute ${isSubMenuFlipped ? "right-full" : "left-full"} h-full opacity-0 cursor-default`;
     const imageIconClassList = "rounded-full translate-x-[2px] w-5 h-5 aspect-square shrink-0 object-cover";
 
@@ -831,7 +831,7 @@ export function ContextMenuBuilder({
 
         collections: (props: Props = {}): ReactNode => !isHidden && window.session.userId && (
             <li
-                className={`relative group ${props.isQuickAction ? "hidden" : ""}`}
+                className={`group/submenu ${props.isQuickAction ? "hidden" : ""}`}
                 onMouseEnter={(e) => {
                     checkSubMenuPosition(e);
 
@@ -1036,7 +1036,7 @@ export function ContextMenuBuilder({
         mute: (props: Props = {}): ReactNode => isFollowing && (
             !isMuted ? (
                 <li
-                    className={`relative group ${props.isQuickAction ? "hidden" : ""}`}
+                    className={`group/submenu ${props.isQuickAction ? "hidden" : ""}`}
                     onMouseEnter={(e) => {
                         checkSubMenuPosition(e);
                     }}
