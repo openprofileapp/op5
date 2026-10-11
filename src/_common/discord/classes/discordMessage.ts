@@ -7,7 +7,6 @@ import {
     Message,
 } from "discord.js";
 
-import { config } from "../../../../app.config.js";
 import { Logger } from "kage-library";
 
 export default class DiscordMessage {
@@ -18,7 +17,7 @@ export default class DiscordMessage {
     constructor(
         discord: Client,
         log: Logger,
-        guildId: string = config.integrations.discord.guild.id,
+        guildId: string,
     ) {
         this.discord = discord;
         this.log = log;
@@ -48,14 +47,16 @@ export default class DiscordMessage {
             const guild = await this.discord.guilds.fetch(this.guildId);
 
             if (!guild) {
-                this.log.discord.error(`Guild "${this.guildId}" not found`);
+                this.log.discord.error(`Guild "${this.guildId}" not found`).save();
+
                 return null;
             }
 
             const channel = await guild.channels.fetch(channelId);
 
             if (!channel) {
-                this.log.discord.error(`Channel "${channelId}" not found`);
+                this.log.discord.error(`Channel "${channelId}" not found`).save();
+
                 return null;
             }
 
@@ -68,10 +69,12 @@ export default class DiscordMessage {
                 return await channel.send(content);
             }
 
-            this.log.discord.error("Invalid channel type for sending messages");
+            this.log.discord.error("Invalid channel type for sending messages").save();
+
             return null;
         } catch (error) {
-            this.log.discord.error(error);
+            this.log.discord.error(error).save();
+            
             return null;
         }
     }
