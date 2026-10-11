@@ -46,7 +46,7 @@ export default async function registerSlashCommands() {
     const commandsCollection = new Collection<string, Command>();
     const commandsArray: any[] = [];
 
-    const commandFiles = getCommandFiles(config.folders.commands);
+    const commandFiles = getCommandFiles(config.folders.commands.integrations);
 
     for (const commandPath of commandFiles) {
         try {
@@ -83,10 +83,14 @@ export default async function registerSlashCommands() {
 
     try {
         await rest.put(
-            Routes.applicationGuildCommands(
-                getEnv("INTEGRATION_DISCORD_CLIENT_ID") as string,
-                config.integrations.discord.guild.id
-            ),
+            config.isProduction
+                ? Routes.applicationCommands(
+                    getEnv("INTEGRATION_DISCORD_CLIENT_ID") as string
+                )
+                : Routes.applicationGuildCommands(
+                    getEnv("INTEGRATION_DISCORD_CLIENT_ID") as string,
+                    config.integrations.discord.guild.id
+                ),
             { body: commandsArray }
         );
 
