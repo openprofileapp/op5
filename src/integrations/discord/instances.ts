@@ -8,6 +8,7 @@ import {
 
 import { config } from "../../../app.config.js"
 import DiscordMessage from "../../_common/discord/classes/discordMessage.js";
+import DiscordRoles from "../../_common/discord/classes/discordRoles.js";
 
 export const log = new Logger({
     path: "/logs/discord",
@@ -33,6 +34,12 @@ export const discord = new Client({
 });
 
 export const discordMessage = new DiscordMessage(
+    discord, 
+    log,
+    config.integrations.discord.guild.id
+);
+
+export const discordRoles = new DiscordRoles(
     discord, 
     log,
     config.integrations.discord.guild.id

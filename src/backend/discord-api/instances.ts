@@ -8,6 +8,7 @@ import {
 
 import { config } from "../../../app.config.js"
 import DiscordMessage from "../../_common/discord/classes/discordMessage.js";
+import DiscordRoles from "../../_common/discord/classes/discordRoles.js";
 
 export const log = new Logger({
     path: "/logs/discord-api",
@@ -24,11 +25,18 @@ export const wc = new WebClient({
 
 export const discord = new Client({ 
     intents: [
-        GatewayIntentBits.Guilds
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers
     ]
 });
 
 export const discordMessage = new DiscordMessage(
+    discord, 
+    log,
+    config.integrations.discord.guild.id
+);
+
+export const discordRoles = new DiscordRoles(
     discord, 
     log,
     config.integrations.discord.guild.id
