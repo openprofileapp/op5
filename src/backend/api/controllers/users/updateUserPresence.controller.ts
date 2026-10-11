@@ -8,12 +8,14 @@ import { i18n } from "../../../_common/instances.js";
 import { db } from "../../databases/db.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { assertApiSecret } from "../../../_common/asserts/apiSecret.assert.js";
+import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 
 export const updateUserPresence = async (req: Request, res: Response) => {
     try {
         const { userId, type } = req.params;
         
         assertApiSecret(req);
+        assertNotNull(userId);
 
         const allowedTypes = ["online", "idle", "dnd", "offline"];
 
