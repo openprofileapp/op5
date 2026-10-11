@@ -122,7 +122,7 @@ async function bootstrap() {
             cookie.set("theme", "dark");
         }
 
-        applyTheme(cookie.get("theme") ?? "dark");
+        await applyTheme(cookie.get("theme") ?? "dark");
 
         if (!cookie.get("locale")) {
             cookie.set(

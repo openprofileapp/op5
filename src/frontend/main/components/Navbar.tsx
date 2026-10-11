@@ -647,8 +647,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                         <ThemeOption
                                             theme={theme}
                                             selected={currentTheme.id === theme.id}
-                                            onSelect={() => {
-                                                applyTheme(theme.id);
+                                            onSelect={async () => {
+                                                await applyTheme(theme.id);
                                                 setCurrentTheme(theme);
                                             }}
                                         />
@@ -668,8 +668,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                         <ThemeOption
                                             theme={theme}
                                             selected={currentTheme.id === theme.id}
-                                            onSelect={() => {
-                                                applyTheme(theme.id);
+                                            onSelect={async () => {
+                                                await applyTheme(theme.id);
                                                 setCurrentTheme(theme);
                                             }}
                                         />
@@ -692,8 +692,8 @@ export default function Navbar({ isBannerPage = false }: Props) {
                                             theme={theme}
                                             selected={currentTheme.id === theme.id}
                                             disabled={!hasPremium}
-                                            onSelect={() => {
-                                                applyTheme(theme.id);
+                                            onSelect={async () => {
+                                                await applyTheme(theme.id);
                                                 setCurrentTheme(theme);
                                             }}
                                         />

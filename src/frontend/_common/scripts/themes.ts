@@ -1,7 +1,7 @@
 import i18n from "../i18n.js";
 import { banner } from "./banner.js";
 import { cookie } from "./cookies.js";
-import { cdnBaseUrl } from "./domains.js";
+import { apiBaseUrl, cdnBaseUrl } from "./domains.js";
 import { toast } from "./toast.js";
 
 let themeBannerId: number | null = null;
@@ -151,7 +151,7 @@ export type ThemesType = (typeof themes)[number];
 export type ThemesIdType = ThemesType["id"];
 export type ThemesNameType = ThemesType["name"];
 
-export function applyTheme(id: string) {
+export async function applyTheme(id: string) {
     const theme = themes.find(theme => theme.id === id);
     const root = document.documentElement;
 
@@ -213,5 +213,34 @@ export function applyTheme(id: string) {
     } else {
         banner.hide(themeBannerId as number);
         themeBannerId = null;
+    }
+
+    if (window.session?.userId) {
+        try {
+            const response = await fetch(`${apiBaseUrl}/v3/users/update/${window.session.userId}`, {
+                credentials: "include", 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" }, 
+                body: JSON.stringify({ 
+                    data: {
+                        theme: theme?.id
+                    }
+                })
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                toast.show(
+                    "Failed to save theme to profile",
+                    {
+                        subtext: `${responseData.id || ""}${responseData.id ? ": " : ""}${responseData.message}`,
+                        type: "error",
+                    }
+                );
+            }
+        } catch (error) {
+            console.error(`Failed to save theme to profile:`, error);
+        }
     }
 }
