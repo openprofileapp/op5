@@ -142,6 +142,11 @@ export const discordLoginController = async (req: Request, res: Response) => {
                     });
                 }
 
+                await wc.callAPI(
+                    `https://${config.domains.discord_api}/v1/roles/${externalResponse.id}/add/${config.integrations.discord.roles.premium}`,
+                    { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+                );
+
                 return res.redirect(
                     // DEVELOPER NEEDED: hasCompletedOnboarding
                     `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
