@@ -221,6 +221,39 @@ export default async function validateSession(
 
     let action;
 
+    // If invite is valid, save as cookie
+    if (inviteCode !== row.inviteCode) {
+        const inviteData: InviteType = await wc.callAPI(
+            `https://${config.domains.api}/v3/invites/code/${inviteCode}`,
+            { auth: `Bearer ${accessToken}` }
+        );
+
+        if (
+            inviteData.code &&
+            (!inviteData?.isSuspended && inviteData?.isUnlimited ||
+            !inviteData?.isSuspended && inviteData?.usesLeft > 0)
+        ) {
+            res.cookie("inviteCode", inviteCode, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+                domain: `.${url.domain}`,
+                path: "/",
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+            });
+        }
+    } else {
+        // Refesh the cookie so it doesn't expire
+        res.cookie("inviteCode", inviteCode, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: `.${url.domain}`,
+            path: "/",
+            maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+        });
+    }
+
     if (!row.isConnected && (sessionsResult.rowCount >= config.limits.softConnectedSessions)) {
         const result = db.accounts.query<UserAccountType>(
             "SELECT permissions FROM users WHERE id = ? LIMIT 1",
@@ -628,39 +661,6 @@ export default async function validateSession(
             domain: `.${url.domain}`,
             path: "/",
             maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
-        });
-    }
-
-    // If invite is valid, save as cookie
-    if (inviteCode !== row.inviteCode) {
-        const inviteData: InviteType = await wc.callAPI(
-            `https://${config.domains.api}/v3/invites/code/${inviteCode}`,
-            { auth: `Bearer ${accessToken}` }
-        );
-
-        if (
-            inviteData.code &&
-            (!inviteData?.isSuspended && inviteData?.isUnlimited ||
-            !inviteData?.isSuspended && inviteData?.usesLeft > 0)
-        ) {
-            res.cookie("inviteCode", inviteCode, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-                domain: `.${url.domain}`,
-                path: "/",
-                maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-            });
-        }
-    } else {
-        // Refesh the cookie so it doesn't expire
-        res.cookie("inviteCode", inviteCode, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            domain: `.${url.domain}`,
-            path: "/",
-            maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
         });
     }
 
