@@ -24,6 +24,7 @@ import connectRoute from "./routes/connection/connect.route.js";
 import disconnectRoute from "./routes/connection/disconnect.route.js";
 import checkRoute from "./routes/check.route.js";
 import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
+import integrationRoute from "./routes/integration.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -72,6 +73,13 @@ router.use(
     checkRoute
 );
 
+router.use(
+    "/integration", 
+    validateSessionMiddleware,
+    rateLimitMiddleware(240), 
+    integrationRoute
+);
+
 /* 
 ————————————————————————————————————————————————————————————————
 Start server
@@ -101,6 +109,66 @@ const result = db.accounts.query(
 );
 
 assertDbSuccess(result);
+
+const body = [
+    {
+        key: "accountage",
+        name: "Account Age",
+        description: "Account must be minimum days old",
+        type: 2,
+    },
+    {
+        key: "followercount",
+        name: "Followers",
+        description: "Must have enough followers",
+        type: 2,
+    },
+    {
+        key: "likecount",
+        name: "Likes",
+        description: "Must have enough likes",
+        type: 2,
+    },
+    {
+        key: "readcount",
+        name: "Reads",
+        description: "Must have enough reads",
+        type: 2,
+    },
+    {
+        key: "isverified",
+        name: "Verified",
+        description: "Must be verified",
+        type: 7,
+    }
+];
+
+async function registerDiscordMetadata() {
+    try {
+        const response = await fetch(
+            `https://discord.com/api/v10/applications/${getEnv("INTEGRATION_DISCORD_CLIENT_ID")}/role-connections/metadata`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bot ${getEnv("INTEGRATION_DISCORD_BOT_TOKEN")}`,
+                },
+                body: JSON.stringify(body),
+            }
+        );
+
+        if (!response.ok) {
+            log.discord.error(response).save();
+            return;
+        }
+
+        log.discord.info("Linked roles metadata registered");
+    } catch (error) {
+        log.discord.error(error).save();
+    }
+}
+
+registerDiscordMetadata();
 
 // Run everyday at midnight
 cron.schedule("0 0 * * *", () => {

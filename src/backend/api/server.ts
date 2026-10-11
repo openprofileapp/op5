@@ -33,6 +33,7 @@ import blockRoutes from "./routes/block.routes.js";
 import articleRoutes from "./routes/article.routes.js";
 import checkRoute from "./routes/check.route.js";
 import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
+import integrationRoute from "./routes/integration.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -191,6 +192,12 @@ v3.use(
     "/check", 
     rateLimitMiddleware(240), 
     checkRoute
+);
+
+v3.use(
+    "/integrations", 
+    rateLimitMiddleware(240), 
+    integrationRoute
 );
 
 /* 
