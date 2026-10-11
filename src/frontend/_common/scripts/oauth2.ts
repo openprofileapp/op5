@@ -1,3 +1,4 @@
+import { authBaseUrl } from "./domains.js";
 import { verifyCaptcha } from "./verifyCaptcha.js";
 
 export async function loginWithGoogle(token: string) {
@@ -5,7 +6,7 @@ export async function loginWithGoogle(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.google;
-    const redirect_uri = `https://${window.config.domains.auth}/login/google`;
+    const redirect_uri = `${authBaseUrl}/login/google`;
     const scope = "openid email profile";
 
     const url =
@@ -25,7 +26,7 @@ export async function loginWithMicrosoft(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.microsoft;
-    const redirect_uri = `https://${window.config.domains.auth}/login/microsoft`;
+    const redirect_uri = `${authBaseUrl}/login/microsoft`;
     const scope = "openid profile email User.Read";
 
     const url =
@@ -45,7 +46,7 @@ export async function loginWithApple(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.apple;
-    const redirect_uri = `https://${window.config.domains.auth}/login/apple`;
+    const redirect_uri = `${authBaseUrl}/login/apple`;
     const scope = "name email";
 
     const url =
@@ -66,7 +67,7 @@ export async function loginWithX(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.x;
-    const redirect_uri = `https://${window.config.domains.auth}/login/x`;
+    const redirect_uri = `${authBaseUrl}/login/x`;
     const scope = "users.read users.email tweet.read offline.access";
     const state = crypto.randomUUID();
     const verifier = crypto.randomUUID() + crypto.randomUUID();
@@ -105,7 +106,7 @@ export async function loginWithFacebook(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.facebook;
-    const redirect_uri = `https://${window.config.domains.auth}/login/facebook`;
+    const redirect_uri = `${authBaseUrl}/login/facebook`;
     const scope = "email,public_profile";
 
     const url =
@@ -125,7 +126,7 @@ export async function loginWithReddit(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.reddit;
-    const redirect_uri = `https://${window.config.domains.auth}/login/reddit`;
+    const redirect_uri = `${authBaseUrl}/login/reddit`;
     const scope = "identity";
     const state = crypto.randomUUID();
 
@@ -148,7 +149,7 @@ export async function loginWithDiscord(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.discord;
-    const redirect_uri = `https://${window.config.domains.auth}/login/discord`;
+    const redirect_uri = `${authBaseUrl}/login/discord`;
     const scope = "identify email";
 
     const url =
@@ -168,7 +169,7 @@ export async function loginWithGitHub(token: string) {
     if (!isCaptchaValid) return { ok: false };
 
     const client_id = window.config.integrations.oauth2.github;
-    const redirect_uri = `https://${window.config.domains.auth}/login/github`;
+    const redirect_uri = `${authBaseUrl}/login/github`;
     const scope = "read:user user:email";
 
     const url =
