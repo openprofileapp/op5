@@ -78,6 +78,7 @@ export default function UserProfile() {
     const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
     const { editUserProfileModal } = useModals();
+    const { handleViewInteraction } = useInteractions();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const query = searchParams.get("query") || "";
@@ -132,6 +133,11 @@ export default function UserProfile() {
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
+
+    const [isViewed, setIsViewed] = useState<boolean>(false);
+    const [isViewInteractionLoading, setIsViewInteractionLoading] = useState<boolean>(false);
+    const [lastViewDate, setLastViewDate] = useState<string>("");
+    const [viewCount, setViewCount] = useState<string>(0);
 
     useUnsavedChangesWarning(isEditingAbout);
 
@@ -296,6 +302,18 @@ export default function UserProfile() {
                 setIsHidden(data?.interactions?.hides?.hasInteracted || false);
                 setIsRestricted(data?.interactions?.restricts?.hasInteracted || false);
                 setIsBlocked(data?.interactions?.blocks?.hasInteracted || false);
+
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                await handleViewInteraction(
+                    data,
+                    isViewInteractionLoading,
+                    lastViewDate,
+                    setIsViewed,
+                    setIsViewInteractionLoading,
+                    setLastViewDate,
+                    setViewCount
+                );
             } catch (err) {
                 console.error(err);
             } finally {
@@ -305,6 +323,7 @@ export default function UserProfile() {
         };
 
         if (id) fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, navigate, refetchData]);
 
      useEffect(() => {
