@@ -126,7 +126,7 @@ async function bootstrap() {
 
             const data = await response.json()
 
-            window.session.user = data.items[0];
+            window.session.user = data?.items?.[0];
 
             setupWebPushNotifications();
         }
