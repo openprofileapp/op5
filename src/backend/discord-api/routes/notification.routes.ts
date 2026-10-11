@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { newAccountController } from "../controllers/newAccount.controller.js";
+import { newAccountController } from "../controllers/notifications/newAccount.controller.js";
 
 const notificationRoutes = Router();
 

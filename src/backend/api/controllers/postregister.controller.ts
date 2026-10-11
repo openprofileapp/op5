@@ -163,7 +163,7 @@ export const postregisterController = async (req: Request, res: Response) => {
         );
 
         await wc.callAPI(
-            `https://${config.domains.discord_api}/v1/accounts/new`,
+            `https://${config.domains.discord_api}/v1/notifications/accounts/new`,
             {
                 method: "POST",
                 auth: `ApiSecret ${getEnv("API_SECRET")}`,
