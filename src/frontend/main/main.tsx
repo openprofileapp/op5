@@ -49,7 +49,7 @@ const markdownRoutes = [
         fileName: "terms-of-service"
     },
     {
-        paths: ["/brand-guidelines"],
+        paths: ["/brand", "/brand-guidelines"],
         fileName: "brand-guidelines"
     },
     {

@@ -1,9 +1,9 @@
 ---
-title: Branding Guidelines
+title: Brand Guidelines
 updated: 2026-01-15T00:00:00Z
 ---
 
-# How to use and refer to OpenProfile's brand (branding guidelines)
+# How to use and refer to OpenProfile's brand (brand guidelines)
 OpenProfile™ is proclaimed as the most advanced character profile template in the world and aims to cover every aspect of character creation through a transparent, source-available (coming soon) application that is free for everyone. Created by writers for writers, it seeks to make personal and commercial productions less painful through thoroughly organized profiles, as well as a public database for marketing purposes where fans can follow characters for updates and more.
 
 The name OpenProfile comes from a combination of the words:
