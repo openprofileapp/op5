@@ -44,11 +44,24 @@ async function bootstrap() {
         await verifySession();
         await getImportantChanges();
 
-        if (!cookie.get("theme")) {
-            cookie.set("theme", "dark");
+        if (window.session?.userId) {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
+                { credentials: "include" }
+            );
+
+            const data = await response.json()
+
+            window.session.user = data.items[0];
         }
 
-        await applyTheme(cookie.get("theme") ?? "dark");
+        if (!cookie.get("theme")) {
+            cookie.set("theme", window.session?.user?.theme || "dark");
+        }
+
+        await applyTheme(
+            window.session?.user?.theme || cookie.get("theme") || "dark"
+        );
 
         if (!cookie.get("locale")) {
             cookie.set(
@@ -84,17 +97,6 @@ async function bootstrap() {
                     }
                 );
             }
-        }
-
-        if (window.session?.userId) {
-            const response = await fetch(
-                `${apiBaseUrl}/v3/users?id=${window.session?.userId}`,
-                { credentials: "include" }
-            );
-
-            const data = await response.json()
-
-            window.session.user = data.items[0];
         }
     }
 
