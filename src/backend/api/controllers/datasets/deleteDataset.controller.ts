@@ -39,6 +39,20 @@ export const deleteDatasetController = async (req: Request, res: Response) => {
             });
         }
 
+        const getPublishedResult = db.templates.query<DatasetItemType>(
+            "SELECT * FROM published_datasets WHERE id = ? LIMIT 1",
+            [id]
+        );
+
+        assertDbSuccess(getPublishedResult);
+
+        if (getPublishedResult.rowCount !== 0) {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: "You cannot delete a published dataset"
+            });
+        }
+
         const deleteResult = db.templates.query(
             "DELETE FROM draft_datasets WHERE id = ? LIMIT 1", 
             [id]

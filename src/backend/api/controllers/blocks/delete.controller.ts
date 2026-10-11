@@ -8,6 +8,7 @@ import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js
 import { db } from "../../databases/db.js";
 import { i18n } from "../../../_common/instances.js";
 import { log } from "../../instances.js";
+import { BlockItemType } from "../../../../_common/types/blocks/block.type.js";
 
 export const deleteBlocks = async (req: Request, res: Response) => {
     try {
@@ -37,6 +38,20 @@ export const deleteBlocks = async (req: Request, res: Response) => {
             throw new AdvancedError({
                 code: 401,
                 message: i18n.t("responses.unauthorized")
+            });
+        }
+
+        const getPublishedResult = db.blocks.query<BlockItemType>(
+            "SELECT * FROM published WHERE blockId = ? LIMIT 1",
+            [blockId]
+        );
+
+        assertDbSuccess(getPublishedResult);
+
+        if (getPublishedResult.rowCount !== 0) {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: "You cannot delete a published block"
             });
         }
 
