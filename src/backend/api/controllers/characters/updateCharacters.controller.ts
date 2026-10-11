@@ -13,6 +13,7 @@ import whatIs from "../../services/whatIs.service.js";
 import uploadFile from "../../../_common/helpers/uploadFile.js";
 import { DraftCharacterType } from "../../../../_common/types/characters/character.type.js";
 import { MediaType } from "../../../../_common/types/media.type.js";
+import { InterestsService } from "../../services/interests.service.js";
 
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
 const VALID_SEND_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
@@ -188,11 +189,9 @@ export const updateCharacters = async (req: Request, res: Response) => {
                     });
                 }
 
-                const isValid =
-                    parsedTags.length > 0 &&
-                    parsedTags.every(
-                        (t) => t.length >= 3 && t.length <= 24 && TAG_REGEX.test(t)
-                    );
+                const isValid = parsedTags.every(
+                    (t) => t.length >= 3 && t.length <= 24 && TAG_REGEX.test(t)
+                );
 
                 if (!isValid) {
                     throw new AdvancedError({
@@ -375,6 +374,23 @@ export const updateCharacters = async (req: Request, res: Response) => {
             );
 
             assertDbSuccess(insertResult);
+        }
+
+        const interests = new InterestsService(currentCharacter.ownerId);
+
+        const oldTags = new Set(JSON.parse(currentCharacter.tags as string));
+        const newTags = new Set(data.tags);
+
+        for (const tag of newTags) {
+            if (!oldTags.has(tag as string)) {
+                interests.update(tag as string, 10);
+            }
+        }
+
+        for (const tag of oldTags) {
+            if (!newTags.has(tag)) {
+                interests.update(tag as string, -10);
+            }
         }
 
         return res.status(200).json({

@@ -15,6 +15,7 @@ import { LinkType } from "../../../../_common/types/link.type.js";
 import { UsernameType } from "../../../../_common/types/username.type.js";
 import { config } from "../../../../../app.config.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
+import { InterestsService } from "../../services/interests.service.js";
 
 const VALID_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
@@ -312,11 +313,9 @@ export const updateUsers = async (req: Request, res: Response) => {
                     });
                 }
 
-                const isValid =
-                    parsedTags.length > 0 &&
-                    parsedTags.every(
-                        (t) => t.length >= 3 && t.length <= 24 && TAG_REGEX.test(t)
-                    );
+                const isValid = parsedTags.every(
+                    (t) => t.length >= 3 && t.length <= 24 && TAG_REGEX.test(t)
+                );
 
                 if (!isValid) {
                     throw new AdvancedError({
@@ -694,6 +693,23 @@ export const updateUsers = async (req: Request, res: Response) => {
 
                     assertDbSuccess(insertResult);
                 }
+            }
+        }
+
+        const interests = new InterestsService(userId);
+
+        const oldTags = new Set(JSON.parse(currentUser.tags as string));
+        const newTags = new Set(data.tags);
+
+        for (const tag of newTags) {
+            if (!oldTags.has(tag as string)) {
+                interests.update(tag as string, 20);
+            }
+        }
+
+        for (const tag of oldTags) {
+            if (!newTags.has(tag)) {
+                interests.update(tag as string, -20);
             }
         }
 
