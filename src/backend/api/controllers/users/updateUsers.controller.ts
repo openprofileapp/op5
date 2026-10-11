@@ -81,6 +81,7 @@ export const updateUsers = async (req: Request, res: Response) => {
             "foundedDate",
             "foundedDateVisibility",
             "location",
+            "theme",
             "isAuraEnabled",
             "auraType",
             "auraPrimary",
