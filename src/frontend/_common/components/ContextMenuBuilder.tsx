@@ -726,8 +726,9 @@ export function ContextMenuBuilder({
             </li>
         ),
 
-        follow: (props: Props = {}): ReactNode => Boolean(setIsFollowing) 
-            && (data.visibility !== "friends" && "isFriends" in data && !data.isFriends)
+        follow: (props: Props = {}): ReactNode => Boolean(setIsFollowing)
+            // @ts-ignore
+            && (data.visibility !== "friends" && !data.isFriends)
             && !isHidden 
             && window.session.userId 
             && !isOwner 
