@@ -259,7 +259,7 @@ export default function Navbar({ isBannerPage = false }: Props) {
             <CreateProjectModal />
 
             <div className={`
-                    sticky top-0 z-9999 hidden md:flex navbar items-center gap-4 px-16
+                    sticky top-0 z-99 hidden md:flex navbar items-center gap-4 px-16
                     ${
                         scrolled
                             ? "bg-base-100 shadow-sm border-b border-base-300"
