@@ -77,7 +77,7 @@ export const publishBlockController = async (req: Request, res: Response) => {
                 data.about,
                 data.tags,
                 data.source,
-                Date.now().toString(),
+                new Date().toISOString(),
                 data.createdDate
             ]
         );
