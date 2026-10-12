@@ -52,8 +52,13 @@ export default function getPublishedCharactersService({
 
     const userInterestArray = interests?.items || [];
 
-    const idClause = id ? "AND published.id = ?" : "";
-    const idParams = id ? [id] : [];
+    const idClause = id
+        ? "AND (published.id = ? OR published.slug = ?)"
+        : "";
+
+    const idParams = id
+        ? [id, id]
+        : [];
 
     const ownerIdClause = ownerId ? "AND published.ownerId = ?" : "";
     const ownerIdParams = ownerId ? [ownerId] : [];
