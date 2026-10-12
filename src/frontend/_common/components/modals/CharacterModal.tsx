@@ -425,6 +425,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                 type="button"
                                 className="btn btn-accent flex-2"
                                 to={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                                onClick={handleClose}
                             >
                                 Edit Content
                             </Link>
@@ -434,6 +435,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             type="button"
                             className="btn btn-accent flex-3"
                             to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                            onClick={handleClose}
                         >
                             Read
                         </Link>
