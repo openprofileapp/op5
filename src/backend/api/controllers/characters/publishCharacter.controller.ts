@@ -229,16 +229,19 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                 `INSERT INTO published_categories (
                     assetId,
                     categoryId,
+                    types,
                     label,
                     position
-                ) VALUES (?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(categoryId) DO UPDATE SET
                     assetId = excluded.assetId,
+                    types = excluded.types,
                     label = excluded.label,
                     position = excluded.position`,
                 [
                     category.assetId,
                     category.categoryId,
+                    category.types,
                     category.label ?? null,
                     category.position ?? 0
                 ]
