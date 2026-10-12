@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
 import { GetTemplateCategoryItemType } from "../../../_common/types/template/category.type.js";
 import { GetTemplateBlockItemType } from "../../../_common/types/template/block.type.js";
-import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl, mainBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
 import { GetTemplateFieldItemType } from "../../../_common/types/template/field.type.js";
 import TemplateField from "../../_common/components/TemplateField.js";
@@ -586,22 +586,35 @@ export default function Read() {
                             ${isFocusMode ? "bg-transparent border-transparent" : "bg-base-100 border-base-300"}
                         `}
                     >
-                        <label
-                            htmlFor="my-drawer"
-                            aria-label="Open sidebar"
-                            className={`
-                                btn btn-square btn-ghost hover:border-base-100 hover:bg-base-100
-                                ${isFocusMode ? "cursor-default" : ""}
-                            `}
-                        >
-                            <span className="flex h-8 w-4 items-center justify-center leading-none">
-                                {!isFocusMode && (
+                        <div className="flex gap-2">
+                                <label 
+                                htmlFor="my-drawer" 
+                                aria-label="open sidebar" 
+                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                            >
+                                <span className="flex h-8 w-4 leading-none items-center justify-center">
                                     <span className="font-nerdfont text-xl is-drawer-close:hidden">
                                         
                                     </span>
-                                )}
-                            </span>
-                        </label>
+                                </span>
+                            </label>
+
+                            <Link
+                                type="button"
+                                aria-label="toggle preview mode"
+                                to={`${mainBaseUrl}/user/${template?.owner.primaryUsername || template?.owner.username || template?.owner.id}#characters`}
+                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                            >
+                                <span 
+                                    className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-right"
+                                    data-tip="Exit"
+                                >
+                                    <span className="font-nerdfont leading-none text-xl">
+                                        
+                                    </span>
+                                </span>
+                            </Link>
+                        </div>
                     
                         <div className="flex-1 px-4 text-center">
                             {!isFocusMode && (

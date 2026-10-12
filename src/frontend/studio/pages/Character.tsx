@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef, ReactNode, CSSProperties } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -2025,17 +2025,35 @@ export default function Character() {
 
                     <div className="drawer-content border-l border-base-300">
                         <nav className="navbar sticky top-0 z-10 border-b border-base-300 w-full bg-base-100 flex items-center justify-between px-4">
-                            <label 
-                                htmlFor="my-drawer" 
-                                aria-label="open sidebar" 
-                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
-                            >
-                                <span className="flex h-8 w-4 leading-none items-center justify-center">
-                                    <span className="font-nerdfont text-xl is-drawer-close:hidden">
-                                        
+                            <div className="flex gap-2">
+                                 <label 
+                                    htmlFor="my-drawer" 
+                                    aria-label="open sidebar" 
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span className="flex h-8 w-4 leading-none items-center justify-center">
+                                        <span className="font-nerdfont text-xl is-drawer-close:hidden">
+                                            
+                                        </span>
                                     </span>
-                                </span>
-                            </label>
+                                </label>
+
+                                <Link
+                                    type="button"
+                                    aria-label="toggle preview mode"
+                                    to={`${studioBaseUrl}/content`}
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span 
+                                        className="flex h-8 w-4 font-normal items-center justify-center tooltip tooltip-accent tooltip-right"
+                                        data-tip="Exit"
+                                    >
+                                        <span className="font-nerdfont leading-none text-xl">
+                                            
+                                        </span>
+                                    </span>
+                                </Link>
+                            </div>
                             
                             <div className="px-4 text-center flex-1">
                                 <span className="font-medium">
