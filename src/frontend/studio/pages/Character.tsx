@@ -44,7 +44,7 @@ import { GetTemplateRowItemType, TemplateRowItemType } from "../../../_common/ty
 import { NewFieldType } from "../components/modals/NewFieldModal.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
 import Metadata from "../../_common/components/Metadata.js";
-import TemplateField from "../components/TemplateField.js";
+import TemplateField from "../../_common/components/TemplateField.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/character/value.type.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";
@@ -1998,7 +1998,7 @@ export default function Character() {
     return (
         <>
             <Metadata 
-                title={`${template?.displayName} Template`}
+                title={template?.displayName || template?.id}
                 allowIndex={false}
             />
 
@@ -2039,7 +2039,7 @@ export default function Character() {
                             
                             <div className="px-4 text-center flex-1">
                                 <span className="font-medium">
-                                    {template?.displayName || template?.id} Template
+                                    {template?.displayName || template?.id}
                                 </span>
 
                                 <div className="text-sub text-xs">
@@ -2235,6 +2235,7 @@ export default function Character() {
                                                                                 onChange={handleUpdateBlock}
                                                                                 onDelete={onDelete}
                                                                                 isEditing={isEditing}
+                                                                                isCharacter={true}
                                                                             />
                                                                             
                                                                             <SortableItem key={block.blockId} id={`block:${block.blockId}`} disabled={isPreview || !isEditing}>
@@ -2412,6 +2413,7 @@ export default function Character() {
                                                                                     onChange={() => {}}
                                                                                     onDelete={onDelete}
                                                                                     isEditing={isEditing}
+                                                                                    isCharacter={true}
                                                                                 />
                                                                             )}
 
@@ -2494,7 +2496,8 @@ export default function Character() {
                                                                                                                                 onFieldChange={handleUpdateField}
                                                                                                                                 onDelete={onDelete}
                                                                                                                                 resolveDynamicValues={resolveDynamicValues} 
-                                                                                                                                isBlockAsset={false}                                                                                                                            />
+                                                                                                                                isBlockAsset={false}
+                                                                                                                                isCharacter={true}                                                                                                                          />
                                                                                                                         </div>
                                                                                                                     );
                                                                                                                 }}
@@ -2676,6 +2679,7 @@ export default function Character() {
                                                                 onChange={handleUpdateCategory}
                                                                 onDelete={onDelete}
                                                                 isEditing={isEditing}
+                                                                isCharacter={true}
                                                             />
                                                             
                                                             <SortableItem key={category.categoryId} id={`category:${category.categoryId}`} disabled={isPreview || !isEditing}>

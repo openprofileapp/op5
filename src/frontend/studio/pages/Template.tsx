@@ -44,7 +44,7 @@ import { GetTemplateRowItemType, TemplateRowItemType } from "../../../_common/ty
 import { NewFieldType } from "../components/modals/NewFieldModal.js";
 import { FieldNameType } from "../../../_common/types/field.type.js";
 import Metadata from "../../_common/components/Metadata.js";
-import TemplateField from "../components/TemplateField.js";
+import TemplateField from "../../_common/components/TemplateField.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { GetTemplateValueType, TemplateValueType } from "../../../_common/types/template/value.type.js";
 import { ValueOptionsType } from "../../../_common/types/value.type.js";

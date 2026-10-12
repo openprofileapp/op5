@@ -47,7 +47,7 @@ import { ValueOptionsType } from "../../../_common/types/value.type.js";
 import Metadata from "../../_common/components/Metadata.js";
 import downloadOp5 from "../../_common/scripts/download.js";
 import TemplateContextMenu from "../components/TemplateContextMenu.js";
-import TemplateField from "../components/TemplateField.js";
+import TemplateField from "../../_common/components/TemplateField.js";
 
 export interface FieldDropZoneProps {
     id: string;
