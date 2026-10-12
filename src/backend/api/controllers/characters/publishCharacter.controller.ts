@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import { AdvancedError } from "kage-library";
 
 import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
@@ -8,6 +9,7 @@ import { i18n } from "../../../_common/instances.js";
 import { log } from "../../instances.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../../databases/db.js";
+
 import { MediaType } from "../../../../_common/types/media.type.js";
 import { DraftCharacterType } from "../../../../_common/types/characters/character.type.js";
 import { DraftCharacterCategoryItemType } from "../../../../_common/types/characters/category.type.js";
@@ -15,6 +17,10 @@ import { DraftCharacterBlockItemType } from "../../../../_common/types/character
 import { DraftCharacterRowItemType } from "../../../../_common/types/characters/row.type.js";
 import { DraftCharacterFieldItemType } from "../../../../_common/types/characters/field.type.js";
 import { DraftCharacterValueType } from "../../../../_common/types/characters/value.type.js";
+
+type CharacterContentMediaType = MediaType & {
+    fieldId: string;
+};
 
 export const publishCharacterController = async (req: Request, res: Response) => {
     try {
@@ -47,6 +53,73 @@ export const publishCharacterController = async (req: Request, res: Response) =>
             });
         }
 
+        const sourceCategories = db.characters.query<DraftCharacterCategoryItemType>(
+            `SELECT *
+             FROM draft_categories
+             WHERE assetId = ?
+             ORDER BY position ASC`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceCategories);
+
+        const sourceBlocks = db.characters.query<DraftCharacterBlockItemType>(
+            `SELECT *
+             FROM draft_blocks
+             WHERE assetId = ?
+             ORDER BY position ASC`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceBlocks);
+
+        const sourceRows = db.characters.query<DraftCharacterRowItemType>(
+            `SELECT *
+             FROM draft_rows
+             WHERE assetId = ?
+             ORDER BY position ASC`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceRows);
+
+        const sourceFields = db.characters.query<DraftCharacterFieldItemType>(
+            `SELECT *
+             FROM draft_fields
+             WHERE assetId = ?
+             ORDER BY position ASC`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceFields);
+
+        const sourceValues = db.characters.query<DraftCharacterValueType>(
+            `SELECT *
+             FROM draft_values
+             WHERE assetId = ?`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceValues);
+
+        const sourceMediaOverview = db.media.query<MediaType>(
+            `SELECT *
+             FROM draft_overview
+             WHERE assetId = ?`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceMediaOverview);
+
+        const sourceMediaContent = db.media.query<CharacterContentMediaType>(
+            `SELECT *
+             FROM draft_content
+             WHERE assetId = ?`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceMediaContent);
+
         const insertCharacterResult = db.characters.query(
             `INSERT INTO published (
                 algorithmScore,
@@ -73,7 +146,10 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                 isScheduled,
                 updatedDate,
                 createdDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )
             ON CONFLICT(id) DO UPDATE SET
                 algorithmScore = excluded.algorithmScore,
                 ownerId = excluded.ownerId,
@@ -128,60 +204,45 @@ export const publishCharacterController = async (req: Request, res: Response) =>
 
         assertDbSuccess(insertCharacterResult);
 
-        const sourceCategories = db.characters.query<DraftCharacterCategoryItemType>(
-            `SELECT *
-            FROM draft_categories
-            WHERE assetId = ?
-            ORDER BY position ASC`,
-            [data.id]
-        );
+        const publishedTables = [
+            "published_values",
+            "published_fields",
+            "published_rows",
+            "published_blocks",
+            "published_categories"
+        ] as const;
 
-        assertDbSuccess(sourceCategories);
+        for (const table of publishedTables) {
+            const result = db.characters.query(
+                `DELETE FROM ${table} WHERE assetId = ?`,
+                [data.id]
+            );
+
+            assertDbSuccess(result);
+        }
 
         sourceCategories.rows.forEach(category => {
             const result = db.characters.query(
                 `INSERT INTO published_categories (
                     assetId,
                     categoryId,
-                    types,
                     label,
-                    position,
-                    createdBy,
-                    updatedDate,
-                    createdDate
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    position
+                ) VALUES (?, ?, ?, ?)
                 ON CONFLICT(categoryId) DO UPDATE SET
                     assetId = excluded.assetId,
-                    types = excluded.types,
                     label = excluded.label,
-                    position = excluded.position,
-                    createdBy = excluded.createdBy,
-                    updatedDate = excluded.updatedDate,
-                    createdDate = excluded.createdDate`,
+                    position = excluded.position`,
                 [
                     category.assetId,
                     category.categoryId,
-                    category.types,
-                    category.label,
-                    category.position,
-                    category.createdBy,
-                    category.updatedDate,
-                    category.createdDate
+                    category.label ?? null,
+                    category.position ?? 0
                 ]
             );
 
             assertDbSuccess(result);
         });
-
-        const sourceBlocks = db.characters.query<DraftCharacterBlockItemType>(
-            `SELECT *
-            FROM draft_blocks
-            WHERE assetId = ?
-            ORDER BY position ASC`,
-            [data.id]
-        );
-
-        assertDbSuccess(sourceBlocks);
 
         sourceBlocks.rows.forEach(block => {
             const result = db.characters.query(
@@ -189,56 +250,31 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     assetId,
                     blockId,
                     categoryId,
-                    sourceBlockId,
-                    isSourceBlockConnected,
                     icon,
                     label,
                     description,
-                    position,
-                    createdBy,
-                    updatedDate,
-                    createdDate
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    position
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(blockId) DO UPDATE SET
                     assetId = excluded.assetId,
                     categoryId = excluded.categoryId,
-                    sourceBlockId = excluded.sourceBlockId,
-                    isSourceBlockConnected = excluded.isSourceBlockConnected,
                     icon = excluded.icon,
                     label = excluded.label,
                     description = excluded.description,
-                    position = excluded.position,
-                    createdBy = excluded.createdBy,
-                    updatedDate = excluded.updatedDate,
-                    createdDate = excluded.createdDate`,
+                    position = excluded.position`,
                 [
                     block.assetId,
                     block.blockId,
                     block.categoryId,
-                    block.sourceBlockId,
-                    block.isSourceBlockConnected,
-                    block.icon,
-                    block.label,
-                    block.description,
-                    block.position,
-                    block.createdBy,
-                    block.updatedDate,
-                    block.createdDate
+                    block.icon ?? null,
+                    block.label ?? null,
+                    block.description ?? null,
+                    block.position ?? 0
                 ]
             );
 
             assertDbSuccess(result);
         });
-
-        const sourceRows = db.characters.query<DraftCharacterRowItemType>(
-            `SELECT *
-            FROM draft_rows
-            WHERE assetId = ?
-            ORDER BY position ASC`,
-            [data.id]
-        );
-
-        assertDbSuccess(sourceRows);
 
         sourceRows.rows.forEach(row => {
             const result = db.characters.query(
@@ -246,38 +282,22 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     assetId,
                     blockId,
                     rowId,
-                    position,
-                    createdBy,
-                    createdDate
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    position
+                ) VALUES (?, ?, ?, ?)
                 ON CONFLICT(rowId) DO UPDATE SET
                     assetId = excluded.assetId,
                     blockId = excluded.blockId,
-                    position = excluded.position,
-                    createdBy = excluded.createdBy,
-                    createdDate = excluded.createdDate`,
+                    position = excluded.position`,
                 [
                     row.assetId,
                     row.blockId,
                     row.rowId,
-                    row.position,
-                    row.createdBy,
-                    row.createdDate
+                    row.position ?? 0
                 ]
             );
 
             assertDbSuccess(result);
         });
-
-        const sourceFields = db.characters.query<DraftCharacterFieldItemType>(
-            `SELECT *
-            FROM draft_fields
-            WHERE assetId = ?
-            ORDER BY position ASC`,
-            [data.id]
-        );
-
-        assertDbSuccess(sourceFields);
 
         sourceFields.rows.forEach(field => {
             const result = db.characters.query(
@@ -288,86 +308,61 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     flex,
                     type,
                     label,
-                    placeholder,
-                    options,
-                    position,
-                    createdBy,
-                    createdDate
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    position
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(assetId, rowId, fieldId) DO UPDATE SET
                     flex = excluded.flex,
                     type = excluded.type,
                     label = excluded.label,
-                    placeholder = excluded.placeholder,
-                    options = excluded.options,
-                    position = excluded.position,
-                    createdBy = excluded.createdBy,
-                    createdDate = excluded.createdDate`,
+                    position = excluded.position`,
                 [
                     field.assetId,
                     field.rowId,
                     field.fieldId,
-                    field.flex,
+                    field.flex ?? 1,
                     field.type ?? "text",
-                    field.label ?? "",
-                    field.placeholder ?? "",
-                    field.options,
-                    field.position,
-                    field.createdBy,
-                    field.createdDate
+                    field.label ?? null,
+                    field.position ?? 0
                 ]
             );
 
             assertDbSuccess(result);
         });
 
-        const sourceValues = db.characters.query<DraftCharacterValueType>(
-            `SELECT * FROM 
-                draft_values 
-                WHERE assetId = ?`,
-            [data.id]
-        );
-
-        assertDbSuccess(sourceValues);
-
         sourceValues.rows.forEach(value => {
-            const insertResult = db.characters.query(
+            const result = db.characters.query(
                 `INSERT INTO published_values (
                     assetId,
                     fieldId,
-                    authorId,
-                    content,
-                    date
-                ) VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT (assetId, fieldId) DO UPDATE SET
-                    authorId = excluded.authorId,
-                    content = excluded.content,
-                    date = excluded.date`,
+                    content
+                ) VALUES (?, ?, ?)
+                ON CONFLICT(assetId, fieldId) DO UPDATE SET
+                    content = excluded.content`,
                 [
                     value.assetId,
                     value.fieldId,
-                    value.authorId,
-                    value.content,
-                    value.date
+                    value.content ?? null
                 ]
             );
 
-            assertDbSuccess(insertResult);
+            assertDbSuccess(result);
         });
 
-        const sourceMediaOverview = db.media.query<MediaType>(
-            `SELECT * FROM draft_overview WHERE assetId = ?`,
+        const deleteMediaOverview = db.media.query(
+            `DELETE FROM published_overview
+             WHERE assetId = ?`,
             [data.id]
         );
 
-        assertDbSuccess(sourceMediaOverview);
+        assertDbSuccess(deleteMediaOverview);
 
-        const deleteResult = db.media.query(
-            `DELETE FROM published_overview WHERE assetId = ?`,
+        const deleteMediaContent = db.media.query(
+            `DELETE FROM published_content
+             WHERE assetId = ?`,
             [data.id]
         );
 
-        assertDbSuccess(deleteResult);
+        assertDbSuccess(deleteMediaContent);
 
         sourceMediaOverview.rows.forEach(media => {
             const result = db.media.query(
@@ -381,7 +376,7 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     addedBy,
                     date
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (assetId, url) DO UPDATE SET
+                ON CONFLICT(assetId, url) DO UPDATE SET
                     description = excluded.description,
                     credit = excluded.credit,
                     position = excluded.position,
@@ -391,9 +386,9 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                 [
                     data.id,
                     media.url,
-                    media.description,
-                    media.credit,
-                    media.position,
+                    media.description ?? null,
+                    media.credit ?? null,
+                    media.position ?? 0,
                     media.visibility,
                     media.addedBy,
                     media.date
@@ -403,17 +398,8 @@ export const publishCharacterController = async (req: Request, res: Response) =>
             assertDbSuccess(result);
         });
 
-        const sourceMediaContent = db.media.query<MediaType>(
-            `SELECT * FROM 
-                draft_content 
-                WHERE assetId = ?`,
-            [data.id]
-        );
-
-        assertDbSuccess(sourceMediaContent);
-
         sourceMediaContent.rows.forEach(media => {
-            const insertResult = db.media.query(
+            const result = db.media.query(
                 `INSERT INTO published_content (
                     assetId,
                     fieldId,
@@ -423,7 +409,7 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     addedBy,
                     date
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (assetId, fieldId) DO UPDATE SET
+                ON CONFLICT(assetId, fieldId) DO UPDATE SET
                     url = excluded.url,
                     description = excluded.description,
                     credit = excluded.credit,
@@ -431,28 +417,36 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     date = excluded.date`,
                 [
                     data.id,
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     media.fieldId,
                     media.url,
-                    media.description,
-                    media.credit,
+                    media.description ?? null,
+                    media.credit ?? null,
                     media.addedBy,
                     media.date
                 ]
             );
 
-            assertDbSuccess(insertResult);
+            assertDbSuccess(result);
         });
 
-        return res.status(201).json({ ok: true });
+        return res.status(201).json({
+            ok: true
+        });
+
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
-            return res.status(error.code).json({ id: error.id, message: error.message });
+
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
         } else {
             log.unknown.error(error).save();
-            return res.status(500).json({ message: i18n.t("responses.unknown") });
+
+            return res.status(500).json({
+                message: i18n.t("responses.unknown")
+            });
         }
     }
 };
