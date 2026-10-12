@@ -41,7 +41,6 @@ export const getPublishedBlockDataController = async (req: Request, res: Respons
                                                     'isLocked', f.isLocked,
                                                     'position', f.position,
                                                     'createdBy', f.createdBy,
-                                                    'updatedDate', f.updatedDate,
                                                     'createdDate', f.createdDate,
                                                     'value', CASE 
                                                         WHEN f.type = 'media' THEN (
