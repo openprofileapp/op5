@@ -24,6 +24,8 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const [data, setData] = useState<GetPublishedCharacterItemType>();
     const [loading, setLoading] = useState(true);
 
+    const isStudio = window.location.hostname.includes(window.config.domains.studio);
+
     const resetState = () => {
         setData(undefined);
         setLoading(true);
@@ -141,7 +143,9 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         {loading ? (
                                             <div className="skeleton rounded-full h-4 w-24"></div>
                                         ) : (
-                                            "Last Updated"
+                                            <>
+                                                {isStudio ? "Last Edited" : "Last Updated"}
+                                            </>
                                         )}
                                     </span>
                                     {loading ? (
