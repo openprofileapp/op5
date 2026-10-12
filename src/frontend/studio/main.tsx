@@ -39,6 +39,7 @@ import Blocks from "./pages/Blocks.js"
 import Datasets from "./pages/Datasets.js"
 import Trash from "./pages/Trash.js"
 
+import Character from "./pages/Character.js"
 import Template from "./pages/Template.js"
 import Block from "./pages/Block.js"
 
@@ -130,6 +131,11 @@ async function bootstrap() {
                                 <Messages />
 
                                 <Routes>
+                                    <Route
+                                        path="/character/:assetId/:categoryId?/:blockId?"
+                                        element={<Character />}
+                                    />
+
                                     <Route
                                         path="/template/:templateId/:categoryId?/:blockId?"
                                         element={<Template />}
