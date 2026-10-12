@@ -274,6 +274,20 @@ export default function TemplateField({
                         loadedDataset = parsedData;
                         break;
                     }
+
+                    if (
+                        parsedData &&
+                        typeof parsedData === "object" &&
+                        !Array.isArray(parsedData)
+                    ) {
+                        loadedDataset = parsedData as DropdownOptionsType;
+                        break;
+                    }
+
+                    if (Array.isArray(parsedData)) {
+                        loadedDataset = parsedData;
+                        break;
+                    }
                 }
 
                 if (

@@ -214,7 +214,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                             field.type ?? "text",
                             field.label ?? "",
                             field.placeholder ?? "",
-                            JSON.stringify(field.options ?? []),
+                            field.options ?? '[]',
                             field.guide ?? "",
                             field.position,
                             req.session.userId
