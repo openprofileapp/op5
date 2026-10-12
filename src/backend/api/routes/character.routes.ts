@@ -27,11 +27,20 @@ import { deleteCharacter } from "../controllers/characters/delete.controller.js"
 import { updateCharacters } from "../controllers/characters/updateCharacters.controller.js";
 import { publishCharacterController } from "../controllers/characters/publishCharacter.controller.js";
 import { unpublishCharacterController } from "../controllers/characters/unpublishCharacter.controller.js";
+import { updateCategories } from "../controllers/characters/updates/categories/updateCategory.controller.js";
+import { updateBlocks } from "../controllers/characters/updates/blocks/updateBlocks.controller.js";
+import { updateFields } from "../controllers/characters/updates/fields/updateField.controller.js";
+import { updateValue } from "../controllers/characters/updates/updateValue.controller.js";
+import { getPublishedCharacterDataController } from "../controllers/characters/getPublishedCharacterData.controller.js";
+import { getDraftCharacterDataController } from "../controllers/characters/getDraftCharacterData.controller.js";
 
 const characterRoutes = Router();
 
 characterRoutes.get("/", getPublishedCharacters);
 characterRoutes.get("/drafts", getDraftCharacters);
+
+characterRoutes.get("/:id/data", getPublishedCharacterDataController);
+characterRoutes.get("/drafts/:id/data", getDraftCharacterDataController);
 
 characterRoutes.get("/trending", getTrendingPublishedCharacters);
 characterRoutes.get("/popular", getPopularPublishedCharacters);
@@ -48,20 +57,24 @@ characterRoutes.get("/publish/:id", publishCharacterController);
 characterRoutes.get("/unpublish/:id", unpublishCharacterController);
 characterRoutes.post("/update/:id", updateCharacters);
 
-characterRoutes.post("/insert/:assetId/categories", insertCategories);
-characterRoutes.post("/update/:assetId/categories/positions", positionCategories);
-characterRoutes.post("/delete/:assetId/categories/:categoryId", deleteCategories);
+characterRoutes.post("/:assetId/categories/insert", insertCategories);
+characterRoutes.post("/:assetId/categories/update", updateCategories);
+characterRoutes.post("/:assetId/categories/update/positions", positionCategories);
+characterRoutes.delete("/:assetId/categories/delete/:categoryId", deleteCategories);
 
-characterRoutes.post("/insert/:assetId/blocks", insertBlock);
-characterRoutes.post("/update/:assetId/blocks/positions", positionBlocks);
-characterRoutes.post("/delete/:assetId/blocks/:assetId", deleteBlock);
+characterRoutes.post("/:assetId/blocks/insert", insertBlock);
+characterRoutes.post("/:assetId/blocks/update", updateBlocks);
+characterRoutes.post("/:assetId/blocks/update/positions", positionBlocks);
+characterRoutes.delete("/:assetId/blocks/delete/:blockId", deleteBlock);
 
-characterRoutes.post("/insert/:assetId/rows", insertRows);
-characterRoutes.post("/update/:assetId/rows/positions", positionRows);
-characterRoutes.post("/delete/:assetId/rows/:rowId", deleteRows);
+characterRoutes.post("/:assetId/rows/insert", insertRows);
+characterRoutes.post("/:assetId/rows/update/positions", positionRows);
+characterRoutes.delete("/:assetId/rows/delete/:rowId", deleteRows);
 
-characterRoutes.post("/insert/:assetId/fields", insertFields);
-characterRoutes.post("/update/:assetId/fields/positions", positionFields);
-characterRoutes.post("/delete/:assetId/fields/:fieldId", deleteFields);
+characterRoutes.post("/:assetId/fields/insert", insertFields);
+characterRoutes.post("/:assetId/fields/update", updateFields);
+characterRoutes.post("/:assetId/fields/update/positions", positionFields);
+characterRoutes.post("/:assetId/fields/update/value", updateValue);
+characterRoutes.delete("/:assetId/fields/delete/:fieldId", deleteFields);
 
 export default characterRoutes;
