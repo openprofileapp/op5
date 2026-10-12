@@ -57,8 +57,8 @@ export default function getDraftCharactersService({
 
     const verifiedClause = sortBy === "verified" ? "AND verifiedBadges.id IS NOT NULL" : "";
 
-    const recentClause = sortBy === "recent" ? "AND drafts.updatedDate >= ?" : "";
-    const recentParams = sortBy === "recent" ? [DateTime.now().minus({ days: 30 }).toISO()] : [];
+    const recentClause = "";
+    const recentParams: string[] = [];
 
     const trendingParams = sortBy === "trending" 
         ? Array(5).fill(DateTime.now().minus({ hours: 24 }).toISO()) 

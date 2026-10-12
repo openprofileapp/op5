@@ -15,7 +15,7 @@ export default function Content() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const query = searchParams.get("q") || "";
-    const sortBy = searchParams.get("sortBy") || "popularDesc";
+    const sortBy = searchParams.get("sortBy") || "recent";
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
     const [pageCount, setPageCount] = useState(0);
@@ -137,6 +137,7 @@ export default function Content() {
                         <TypeableDropdownInput
                             value={sortBy}
                             options={[
+                                { id: "recent", name: "Recently Edited" },
                                 { id: "popularDesc", name: "Most Popular" },
                                 { id: "popularAsc", name: "Least Popular" },
                                 { id: "newest", name: "Newest First" },
