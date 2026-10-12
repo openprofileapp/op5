@@ -84,8 +84,8 @@ export const updateFields = async (req: Request, res: Response) => {
 
                 if (originalFieldId !== value) {
                     const getFieldIdResult = db.blocks.query(
-                        "SELECT * FROM draft_fields WHERE fieldId = ?",
-                        [value]
+                        "SELECT * FROM draft_fields WHERE fieldId = ? AND blockId = ?",
+                        [value, blockId]
                     );
 
                     assertDbSuccess(getFieldIdResult);

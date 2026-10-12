@@ -61,8 +61,8 @@ export const insertFields = async (req: Request, res: Response) => {
         }
 
         const getFieldIdResult = db.blocks.query(
-            "SELECT * FROM draft_fields WHERE fieldId = ?",
-            [fieldId]
+            "SELECT * FROM draft_fields WHERE fieldId = ? AND blockId = ?",
+            [fieldId, blockId]
         );
 
         assertDbSuccess(getFieldIdResult);
