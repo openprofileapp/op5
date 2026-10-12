@@ -7,12 +7,9 @@ import { BlockItemType } from "../../../_common/types/blocks/block.type.js";
 import { GetRowItemType } from "../../../_common/types/blocks/row.type.js";
 import { apiBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { toast } from "../../_common/scripts/toast.js";
-import {
-    GetFieldItemType,
-    FieldItemType
-} from "../../../_common/types/blocks/field.type.js";
+import { GetFieldItemType, FieldItemType } from "../../../_common/types/blocks/field.type.js";
 import { GetValueType } from "../../../_common/types/blocks/value.type.js";
-import TemplateField from "../components/TemplateField.js";
+import TemplateField from "../../_common/components/TemplateField.js";
 
 interface Props {
     blockId: string;
@@ -32,60 +29,102 @@ export default function BlockPreview({
     const valuesMapRef = useRef<{ [fieldId: string]: string }>({});
 
     useEffect(() => {
-        const fetchBlock = async () => {
-            try {
-                const response = await fetch(
-                    `${apiBaseUrl}/v3/blocks/drafts?id=${blockId}`,
-                    { credentials: "include" }
-                );
-
-                const data = await response.json();
-
-                if (!response.ok || !data?.items?.[0]) {
-                    return;
-                }
-
-                setBlock(data.items[0]);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        if (blockId) {
-            fetchBlock();
+        if (!blockId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setBlock(undefined);
+            setBlockData([]);
+            setIsLoading(false);
+            return;
         }
-    }, [blockId]);
 
-    useEffect(() => {
-        const fetchBlockData = async () => {
+        const controller = new AbortController();
+
+        const fetchBlock = async () => {
+            setIsLoading(true);
+            setBlock(undefined);
+            setBlockData([]);
+
             try {
-                const response = await fetch(
-                    `${apiBaseUrl}/v3/blocks/drafts/${blockId}/data`,
-                    { credentials: "include" }
-                );
+                const sources = [
+                    {
+                        info: `${apiBaseUrl}/v3/blocks/drafts?id=${encodeURIComponent(blockId)}`,
+                        data: `${apiBaseUrl}/v3/blocks/drafts/${encodeURIComponent(blockId)}/data`
+                    },
+                    {
+                        info: `${apiBaseUrl}/v3/blocks?id=${encodeURIComponent(blockId)}`,
+                        data: `${apiBaseUrl}/v3/blocks/${encodeURIComponent(blockId)}/data`
+                    }
+                ];
 
-                const json = await response.json();
-
-                if (!response.ok) {
-                    toast.show("Failed to load block", {
-                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
-                        type: "error",
+                for (const source of sources) {
+                    const infoResponse = await fetch(source.info, {
+                        credentials: "include",
+                        signal: controller.signal
                     });
 
+                    if (!infoResponse.ok) {
+                        continue;
+                    }
+
+                    const infoJson = await infoResponse.json();
+                    const blockInfo = infoJson?.items?.[0];
+
+                    if (!blockInfo) {
+                        continue;
+                    }
+
+                    const dataResponse = await fetch(source.data, {
+                        credentials: "include",
+                        signal: controller.signal
+                    });
+
+                    if (!dataResponse.ok) {
+                        continue;
+                    }
+
+                    const dataJson = await dataResponse.json();
+
+                    if (!Array.isArray(dataJson) || dataJson.length === 0) {
+                        continue;
+                    }
+
+                    if (!controller.signal.aborted) {
+                        setBlock(blockInfo);
+                        setBlockData(dataJson);
+                    }
+
                     return;
                 }
 
-                setBlockData(json || []);
+                if (!controller.signal.aborted) {
+                    toast.show("Failed to load block", {
+                        subtext: "No draft or published block data found.",
+                        type: "error"
+                    });
+                }
             } catch (err) {
+                if (controller.signal.aborted) return;
+
                 console.error(err);
+
+                toast.show("Failed to load block", {
+                    subtext: err instanceof Error
+                        ? err.message
+                        : "An unexpected error occurred.",
+                    type: "error"
+                });
             } finally {
-                setIsLoading(false);
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
             }
         };
 
-        if (blockId) {
-            fetchBlockData();
-        }
+        fetchBlock();
+
+        return () => {
+            controller.abort();
+        };
     }, [blockId]);
 
     useEffect(() => {
