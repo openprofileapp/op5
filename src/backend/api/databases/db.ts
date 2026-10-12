@@ -185,6 +185,11 @@ db.characters.transaction(q => {
         const result = q(`${config.folders.sql.api}/characters/drafts/draft_values.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
+
+    if (!q("SELECT * FROM history LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/characters/drafts/history.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
 });
 
 db.media.transaction(q => {
