@@ -148,7 +148,7 @@ export default function getPublishedCharactersService({
         : "";
 
     const queryParams = trimmedQuery 
-        ? [...Array(5).fill(queryTerm)] 
+        ? [...Array(6).fill(queryTerm)] 
         : [];
 
     const trimmedTag = tag?.trim();
