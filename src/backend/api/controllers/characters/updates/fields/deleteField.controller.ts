@@ -9,6 +9,7 @@ import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 import { updateDatasetUses } from "../../../../helpers/manageUses.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const deleteFields = async (req: Request, res: Response) => {
     try {
@@ -54,6 +55,8 @@ export const deleteFields = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(deleteResult);
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({ ok: true });
     } catch (error) {

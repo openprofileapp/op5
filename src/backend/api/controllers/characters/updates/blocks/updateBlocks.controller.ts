@@ -12,6 +12,7 @@ import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
 import uploadFile from "../../../../../_common/helpers/uploadFile.js";
 import { config } from "../../../../../../../app.config.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const updateBlocks = async (req: Request, res: Response) => {
     try {
@@ -133,6 +134,8 @@ export const updateBlocks = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(result);
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({
             ok: true,

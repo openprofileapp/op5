@@ -12,10 +12,11 @@ import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.ass
 import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
 import { updateDatasetUses } from "../../../../helpers/manageUses.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const updateFields = async (req: Request, res: Response) => {
     try {
-        const { assertId } = req.params;
+        const { assetId } = req.params;
         const { originalFieldId, data } = req.body;
 
         await assertBearer(req);
@@ -24,7 +25,7 @@ export const updateFields = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assertId]
+            [assetId]
         );
 
         assertDbSuccess(getResult);
@@ -86,8 +87,8 @@ export const updateFields = async (req: Request, res: Response) => {
 
                 if (originalFieldId !== value) {
                     const getFieldIdResult = db.characters.query(
-                        "SELECT * FROM draft_fields WHERE fieldId = ? AND assertId = ?",
-                        [value, assertId]
+                        "SELECT * FROM draft_fields WHERE fieldId = ? AND assetId = ?",
+                        [value, assetId]
                     );
 
                     assertDbSuccess(getFieldIdResult);
@@ -117,7 +118,7 @@ export const updateFields = async (req: Request, res: Response) => {
 
             if (key === "options") {
                 // @ts-ignore
-                updateDatasetUses(assertId, originalFieldId, value?.dataset ?? null);
+                updateDatasetUses(assetId, originalFieldId, value?.dataset ?? null);
 
                 value = JSON.stringify(value ?? [])
             }
@@ -160,15 +161,17 @@ export const updateFields = async (req: Request, res: Response) => {
         updates.push("updatedDate = ?");
         values.push(new Date().toISOString());
 
-        values.push(assertId);
+        values.push(assetId);
         values.push(originalFieldId);
 
         const result = db.characters.query(
-            `UPDATE draft_fields SET ${updates.join(", ")} WHERE assertId = ? AND fieldId = ?`,
+            `UPDATE draft_fields SET ${updates.join(", ")} WHERE assetId = ? AND fieldId = ?`,
             values
         );
 
         assertDbSuccess(result);
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({
             ok: true,

@@ -8,10 +8,11 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const insertFields = async (req: Request, res: Response) => {
     try {
-        const { assertId } = req.params;
+        const { assetId } = req.params;
         const { fieldId, rowId, type, label, placeholder, options, guide, position } = req.body;
 
         await assertBearer(req);
@@ -20,7 +21,7 @@ export const insertFields = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assertId]
+            [assetId]
         );
 
         assertDbSuccess(getResult);
@@ -54,8 +55,8 @@ export const insertFields = async (req: Request, res: Response) => {
         }
 
         const getFieldIdResult = db.characters.query(
-            "SELECT * FROM draft_fields WHERE fieldId = ? AND assertId = ?",
-            [fieldId, assertId]
+            "SELECT * FROM draft_fields WHERE fieldId = ? AND assetId = ?",
+            [fieldId, assetId]
         );
 
         assertDbSuccess(getFieldIdResult);
@@ -92,7 +93,7 @@ export const insertFields = async (req: Request, res: Response) => {
 
         const insertResult = db.characters.query(
             `INSERT INTO draft_fields (
-                assertId,
+                assetId,
                 fieldId, 
                 rowId, 
                 type, 
@@ -104,7 +105,7 @@ export const insertFields = async (req: Request, res: Response) => {
                 createdBy
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                assertId,
+                assetId,
                 fieldId,
                 rowId,
                 type ?? "text",
@@ -129,6 +130,8 @@ export const insertFields = async (req: Request, res: Response) => {
 
             assertDbSuccess(updateResult);
         }
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(201).json({ ok: true });
     } catch (error) {

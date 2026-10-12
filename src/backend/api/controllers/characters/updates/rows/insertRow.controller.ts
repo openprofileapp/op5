@@ -8,10 +8,11 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const insertRows = async (req: Request, res: Response) => {
     try {
-        const { assertId } = req.params;
+        const { assetId } = req.params;
         const { rowId, blockId, position } = req.body;
 
         await assertBearer(req);
@@ -20,7 +21,7 @@ export const insertRows = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assertId]
+            [assetId]
         );
 
         assertDbSuccess(getResult);
@@ -57,14 +58,14 @@ export const insertRows = async (req: Request, res: Response) => {
 
         const insertResult = db.characters.query(
             `INSERT INTO draft_rows (
-                assertId,
+                assetId,
                 rowId, 
                 blockId, 
                 position, 
                 createdBy
             ) VALUES (?, ?, ?, ?, ?)`,
             [
-                assertId,
+                assetId,
                 rowId,
                 blockId,
                 targetPosition,
@@ -73,6 +74,8 @@ export const insertRows = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(insertResult);
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(201).json({ ok: true });
     } catch (error) {

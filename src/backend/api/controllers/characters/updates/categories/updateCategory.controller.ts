@@ -9,6 +9,7 @@ import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
 import { i18n } from "../../../../../_common/instances.js";
 import { log } from "../../../../instances.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const updateCategories = async (req: Request, res: Response) => {
     try {
@@ -100,10 +101,11 @@ export const updateCategories = async (req: Request, res: Response) => {
 
         assertDbSuccess(result);
 
+        updateCharacterLastEditedDate(assetId as string);
+
         return res.status(200).json({
             ok: true,
         });
-
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();

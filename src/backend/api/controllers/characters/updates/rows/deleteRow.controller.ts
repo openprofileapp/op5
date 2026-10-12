@@ -8,6 +8,7 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const deleteRows = async (req: Request, res: Response) => {
     try {
@@ -84,6 +85,8 @@ export const deleteRows = async (req: Request, res: Response) => {
 
             assertDbSuccess(deleteRowResult);
         });
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({ ok: true });
     } catch (error) {

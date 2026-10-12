@@ -16,6 +16,7 @@ import { ValueType } from "../../../../../../_common/types/blocks/value.type.js"
 import { MediaType } from "../../../../../../_common/types/media.type.js";
 import { config } from "../../../../../../../app.config.js";
 import { updateBlockUses } from "../../../../helpers/manageUses.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const insertBlock = async (req: Request, res: Response) => {
     try {
@@ -307,6 +308,8 @@ export const insertBlock = async (req: Request, res: Response) => {
 
             updateBlockUses(sourceBlockId, "add");
         }
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(201).json({
             ok: true,

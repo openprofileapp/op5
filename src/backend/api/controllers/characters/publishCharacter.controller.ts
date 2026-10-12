@@ -17,6 +17,7 @@ import { DraftCharacterBlockItemType } from "../../../../_common/types/character
 import { DraftCharacterRowItemType } from "../../../../_common/types/characters/row.type.js";
 import { DraftCharacterFieldItemType } from "../../../../_common/types/characters/field.type.js";
 import { DraftCharacterValueType } from "../../../../_common/types/characters/value.type.js";
+import updateCharacterLastEditedDate from "../../helpers/updateCharacterLastUpdatedDate.js";
 
 type CharacterContentMediaType = MediaType & {
     fieldId: string;
@@ -120,6 +121,8 @@ export const publishCharacterController = async (req: Request, res: Response) =>
 
         assertDbSuccess(sourceMediaContent);
 
+        const updatedDate = updateCharacterLastEditedDate(id as string);
+
         const insertCharacterResult = db.characters.query(
             `INSERT INTO published (
                 algorithmScore,
@@ -197,7 +200,7 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                 data.readVisibility ?? "default",
                 data.sendComments ?? "default",
                 data.isScheduled ?? 0,
-                new Date().toISOString(),
+                updatedDate,
                 data.createdDate
             ]
         );

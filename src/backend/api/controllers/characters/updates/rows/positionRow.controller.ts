@@ -8,10 +8,11 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const positionRows = async (req: Request, res: Response) => {
     try {
-        const { assertId } = req.params;
+        const { assetId } = req.params;
         const { data } = req.body;
 
         await assertBearer(req);
@@ -20,7 +21,7 @@ export const positionRows = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assertId]
+            [assetId]
         );
 
         assertDbSuccess(getResult);
@@ -55,6 +56,8 @@ export const positionRows = async (req: Request, res: Response) => {
                 assertDbSuccess(updateResult);
             }
         });
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({ ok: true });
     } catch (error) {

@@ -8,10 +8,11 @@ import { assertPlatformPermissions } from "../../../../../_common/asserts/platfo
 import { i18n } from "../../../../../_common/instances.js";
 import { db } from "../../../../databases/db.js";
 import { assertDbSuccess } from "../../../../../../_common/asserts/dbSuccess.assert.js";
+import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const positionCategories = async (req: Request, res: Response) => {
     try {
-        const { assertId } = req.params;
+        const { assetId } = req.params;
         const { data } = req.body;
 
         await assertBearer(req); 
@@ -20,7 +21,7 @@ export const positionCategories = async (req: Request, res: Response) => {
 
         const getResult = db.characters.query(
             "SELECT * FROM drafts WHERE id = ?",
-            [assertId]
+            [assetId]
         );
 
         assertDbSuccess(getResult);
@@ -49,12 +50,14 @@ export const positionCategories = async (req: Request, res: Response) => {
         data.forEach((item, position) => {
             if (item && typeof item.categoryId === "string") {
                 const updateResult = db.characters.query(
-                    "UPDATE draft_categories SET position = ? WHERE assertId = ? AND categoryId = ?",
-                    [position, assertId, item.categoryId]
+                    "UPDATE draft_categories SET position = ? WHERE assetId = ? AND categoryId = ?",
+                    [position, assetId, item.categoryId]
                 );
                 assertDbSuccess(updateResult);
             }
         });
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(200).json({ ok: true });
     } catch (error) {

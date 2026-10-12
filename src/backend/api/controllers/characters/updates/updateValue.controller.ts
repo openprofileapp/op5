@@ -14,6 +14,7 @@ import { log } from "../../../instances.js";
 import { FieldNameType } from "../../../../../_common/types/field.type.js";
 import uploadFile from "../../../../_common/helpers/uploadFile.js";
 import { ValueOptionsType } from "../../../../../_common/types/value.type.js";
+import updateCharacterLastEditedDate from "../../../helpers/updateCharacterLastUpdatedDate.js";
 
 export const updateValue = async (req: Request, res: Response) => {
     try {
@@ -274,6 +275,8 @@ export const updateValue = async (req: Request, res: Response) => {
 
             assertDbSuccess(cleanupResult);
         });
+
+        updateCharacterLastEditedDate(assetId as string);
 
         return res.status(201).json({ ok: true });
     } catch (error) {
