@@ -47,6 +47,7 @@ export type GetPublishedCharacterItemType = Omit<
     isCharacterInAnyCollections: boolean;
     media?: GetMediaType[];
     isPinned?: boolean;
+    isReadable?: boolean;
 };
 
 export type GetPublishedCharacterType = {

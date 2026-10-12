@@ -262,6 +262,53 @@ export default function getPublishedCharactersService({
         }
     }
 
+    const readVisibilityParams = [];
+
+    const hasDelegatedAccounts = Array.isArray(delegatedAccounts) && delegatedAccounts.length > 0;
+
+    let hasDirectReadPermission = false;
+
+    if (getAs && id) {
+        hasDirectReadPermission = AssetPermissionsService.can(getAs, "READ", id);
+    }
+
+    let isReadUnlistedAllowed = getFrom === "profile";
+
+    if (internalPermissionsBypass) {
+        hasDirectReadPermission = true;
+        isReadUnlistedAllowed = true;
+    }
+
+    const readVisibilityCondition = `(
+        published.ownerId = ? OR
+        (published.readVisibility = 'public') OR
+        (published.readVisibility = 'registered' AND ? = 1) OR
+        (published.readVisibility = 'followers' AND follows.source IS NOT NULL) OR
+        (published.readVisibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
+        (published.readVisibility = 'unlisted' AND (${isReadUnlistedAllowed ? '1 = 1' : 'published.ownerId = ?'})) OR
+        (
+            published.readVisibility = 'private' AND 
+            (
+                ${hasDirectReadPermission ? '1 = 1' : '1 = 0'} OR
+                ${hasDelegatedAccounts ? 'published.ownerId IN (' + delegatedAccounts!.map(() => '?').join(',') + ')' : '1 = 0'}
+            )
+        )
+    )`;
+
+    readVisibilityParams.push(getAs);
+
+    readVisibilityParams.push(
+        getAs && !getAs.includes(".") && !getAs.includes(":") ? 1 : 0
+    );
+
+    if (!isReadUnlistedAllowed) {
+        readVisibilityParams.push(getAs);
+    }
+
+    if (hasDelegatedAccounts) {
+        readVisibilityParams.push(...delegatedAccounts!);
+    }
+
     const interactionTables: InteractionNameType[] = [
         "follows",
         "likes",
@@ -366,6 +413,10 @@ export default function getPublishedCharactersService({
         `
             SELECT 
                 published.*,
+                CASE WHEN ${readVisibilityCondition} AND EXISTS (
+                    SELECT 1 FROM published_categories
+                    WHERE assetId = published.id
+                ) THEN 1 ELSE 0 END AS isReadable,
                 ${checkCollectionClause}
                 json_object(
                     'id', users.id,
@@ -446,6 +497,7 @@ export default function getPublishedCharactersService({
             LIMIT ? OFFSET ?
         `,
         [
+            ...readVisibilityParams,
             ...checkCollectionParams,
             ...interactionParams,
             ...notificationsParams,
@@ -540,6 +592,7 @@ export default function getPublishedCharactersService({
             tags: parseJson(row.tags),
             interactions: parseJson(row.interactions),
             notifications: parseJson(row.notifications),
+            isReadable: Boolean(row.isReadable),
             ...(getAs !== undefined && { isCharacterInAnyCollections: Boolean(row.isCharacterInAnyCollections) })
         };
 

@@ -6,15 +6,33 @@ import { assertDbSuccess } from '../../../../_common/asserts/dbSuccess.assert.js
 import { AdvancedError } from 'kage-library';
 import { log } from '../../instances.js';
 import { i18n } from '../../../_common/instances.js';
-import { assertAccount } from '../../../_common/asserts/account.assert.js';
 import { GetPublishedCharacterCategoryItemType } from '../../../../_common/types/characters/category.type.js';
+import getPublishedCharactersService from '../../services/getPublishedCharacters.service.js';
 
 export const getPublishedCharacterDataController = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
         await assertBearer(req);
-        assertAccount(req.session);
+
+        const character = getPublishedCharactersService({
+            id: id as string,
+            getAs: req.session?.userId || req.ip
+        })
+
+        if (character.items.length === 0) {
+            throw new AdvancedError({
+                code: 401,
+                message: i18n.t("responses.unauthorized")
+            });
+        }
+
+        if (!character.items[0].isReadable) {
+            throw new AdvancedError({
+                code: 401,
+                message: i18n.t("responses.unauthorized")
+            });
+        }
 
         const result = db.characters.query<Record<string, unknown>>(
             `SELECT

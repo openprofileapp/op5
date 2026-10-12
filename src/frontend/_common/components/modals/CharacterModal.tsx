@@ -438,14 +438,18 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     </Link>
                                 </>
                             ) : (
-                                <Link
-                                    type="button"
-                                    className="btn btn-accent flex-3"
-                                    to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
-                                    onClick={handleClose}
-                                >
-                                    Read
-                                </Link>
+                                <>
+                                    {data.isReadable && (
+                                        <Link
+                                            type="button"
+                                            className="btn btn-accent flex-3"
+                                            to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                                            onClick={handleClose}
+                                        >
+                                            Read
+                                        </Link>
+                                    )}
+                                </>
                             )}
                         </>
                     )}
