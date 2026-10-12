@@ -47,30 +47,12 @@ export const deleteCategories = async (req: Request, res: Response) => {
             });
         }
 
-        db.characters.transaction(q => {
-            const updateDatasetsResult = q(
-                `
-                UPDATE draft_datasets
-                SET uses = MAX(
-                    uses - (
-                        SELECT COUNT(*)
-                        FROM draft_fields f
-                        WHERE f.rowId IN (
-                            SELECT r.rowId
-                            FROM draft_rows r
-                            WHERE r.blockId IN (
-                                SELECT b.blockId
-                                FROM draft_blocks b
-                                WHERE b.assetId = ?
-                                    AND b.categoryId = ?
-                            )
-                        )
-                        AND json_extract(f.options, '$.dataset') = draft_datasets.id
-                    ),
-                    0
-                )
-                WHERE id IN (
-                    SELECT json_extract(f.options, '$.dataset')
+        const updateDatasetsResult = db.templates.query(
+            `
+            UPDATE draft_datasets
+            SET uses = MAX(
+                uses - (
+                    SELECT COUNT(*)
                     FROM draft_fields f
                     WHERE f.rowId IN (
                         SELECT r.rowId
@@ -78,23 +60,41 @@ export const deleteCategories = async (req: Request, res: Response) => {
                         WHERE r.blockId IN (
                             SELECT b.blockId
                             FROM draft_blocks b
-                            WHERE b.assetId = ?
+                            WHERE b.templateId = ?
                                 AND b.categoryId = ?
                         )
                     )
-                    AND json_extract(f.options, '$.dataset') IS NOT NULL
+                    AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                ),
+                0
+            )
+            WHERE id IN (
+                SELECT json_extract(f.options, '$.dataset')
+                FROM draft_fields f
+                WHERE f.rowId IN (
+                    SELECT r.rowId
+                    FROM draft_rows r
+                    WHERE r.blockId IN (
+                        SELECT b.blockId
+                        FROM draft_blocks b
+                        WHERE b.templateId = ?
+                            AND b.categoryId = ?
+                    )
                 )
-                `,
-                [
-                    assetId,
-                    categoryId,
-                    assetId,
-                    categoryId
-                ]
-            );
+                AND json_extract(f.options, '$.dataset') IS NOT NULL
+            )
+            `,
+            [
+                assetId,
+                categoryId,
+                assetId,
+                categoryId
+            ]
+        );
 
-            assertDbSuccess(updateDatasetsResult);
+        assertDbSuccess(updateDatasetsResult);
 
+        db.characters.transaction(q => {
             const deleteFieldsResult = q(
                 `
                 DELETE FROM draft_fields

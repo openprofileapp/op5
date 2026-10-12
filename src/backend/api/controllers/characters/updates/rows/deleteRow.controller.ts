@@ -46,31 +46,31 @@ export const deleteRows = async (req: Request, res: Response) => {
             });
         }
 
-       db.characters.transaction(q => {
-            const updateDatasetsResult = q(
-                `
-                UPDATE draft_datasets
-                SET uses = MAX(
-                    uses - (
-                        SELECT COUNT(*)
-                        FROM draft_fields f
-                        WHERE f.rowId = ?
-                            AND json_extract(f.options, '$.dataset') = draft_datasets.id
-                    ),
-                    0
-                )
-                WHERE id IN (
-                    SELECT json_extract(f.options, '$.dataset')
+        const updateDatasetsResult = db.templates.query(
+            `
+            UPDATE draft_datasets
+            SET uses = MAX(
+                uses - (
+                    SELECT COUNT(*)
                     FROM draft_fields f
                     WHERE f.rowId = ?
-                        AND json_extract(f.options, '$.dataset') IS NOT NULL
-                )
-                `,
-                [rowId, rowId]
-            );
+                        AND json_extract(f.options, '$.dataset') = draft_datasets.id
+                ),
+                0
+            )
+            WHERE id IN (
+                SELECT json_extract(f.options, '$.dataset')
+                FROM draft_fields f
+                WHERE f.rowId = ?
+                    AND json_extract(f.options, '$.dataset') IS NOT NULL
+            )
+            `,
+            [rowId, rowId]
+        );
 
-            assertDbSuccess(updateDatasetsResult);
+        assertDbSuccess(updateDatasetsResult);
 
+        db.characters.transaction(q => {
             const deleteFieldResult = q(
                 "DELETE FROM draft_fields WHERE rowId = ?",
                 [rowId]
