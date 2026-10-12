@@ -45,6 +45,7 @@ interface Props {
         text: string
     ) => string;
     isBlockAsset: boolean;
+    isCharacter: boolean;
     isCategoriesLoading: boolean;
     datasetCategories: string[];
 }
@@ -65,6 +66,7 @@ export default function TemplateContextMenu({
     onDelete,
     resolveDynamicValues,
     isBlockAsset = false,
+    isCharacter = false,
     isCategoriesLoading = false,
     datasetCategories
 }: Props) {
@@ -561,7 +563,8 @@ export default function TemplateContextMenu({
                                     type: type,
                                     skipCountdown: (type !== "field" && type !== "row" ? false : true),
                                     onDelete,
-                                    isBlockAsset
+                                    isBlockAsset,
+                                    isCharacter
                                 }
                             )
                         }}
