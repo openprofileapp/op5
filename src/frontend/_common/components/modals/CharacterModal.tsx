@@ -239,7 +239,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-1">
-                                    <span className="text-sm leading-relaxed">
+                                    <span className="text-sm leading-relaxed whitespace-pre-wrap">
                                         {data.about || t("defaults.noCharacterAbout")}
                                     </span>
                                 </div>
