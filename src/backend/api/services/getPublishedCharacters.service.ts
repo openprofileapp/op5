@@ -46,8 +46,8 @@ export default function getPublishedCharactersService({
 }: Props): GetPublishedCharacterType {    
     let interests;
 
-    if (getAs) {
-        interests = getInterestsService(getAs); 
+    if (getAs && !getAs.includes(".") && !getAs.includes(":")) {
+        interests = getInterestsService(getAs);
     }
 
     const userInterestArray = interests?.items || [];
@@ -233,7 +233,7 @@ export default function getPublishedCharactersService({
 
         visibilityCondition = `(
             (published.visibility = 'public') OR
-            (published.visibility = 'registered' AND ? IS NOT NULL) OR
+            (published.visibility = 'registered' AND ? = 1) OR
             (published.visibility = 'followers' AND follows.source IS NOT NULL) OR
             (published.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
             (published.visibility = 'unlisted' AND (${isUnlistedAllowed ? '1 = 1' : 'published.ownerId = ?'})) OR
@@ -247,7 +247,9 @@ export default function getPublishedCharactersService({
             )
         )`;
 
-        visibilityParams.push(getAs); 
+        visibilityParams.push(
+            getAs && !getAs.includes(".") && !getAs.includes(":") ? 1 : 0
+        );
 
         if (!isUnlistedAllowed) {
             visibilityParams.push(getAs);

@@ -60,8 +60,8 @@ export default function getUsersService({
         id = idResult.rows[0].userId;
     }
 
-    if (getAs) {
-        interests = getInterestsService(getAs); 
+    if (getAs && !getAs.includes(".") && !getAs.includes(":")) {
+        interests = getInterestsService(getAs);
     }
 
     const userInterestArray = interests?.items || [];
@@ -240,7 +240,7 @@ export default function getUsersService({
 
         visibilityCondition = `(
             (users.visibility = 'public') OR
-            (users.visibility = 'registered' AND ? IS NOT NULL) OR
+            (users.visibility = 'registered' AND ? = 1) OR
             (users.visibility = 'friends' AND users.areFriendRequestsEnabled = 1) OR
             (
                 users.visibility = 'following' AND 
@@ -262,7 +262,12 @@ export default function getUsersService({
             )
         )`;
 
-        visibilityParams.push(getAs);
+        visibilityParams.push(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            getAs && !getAs.includes(".") && !getAs.includes(":") ? 1 : 0
+        );
+
         visibilityParams.push(getAs);
 
         if (hasDelegatedAccounts) {
