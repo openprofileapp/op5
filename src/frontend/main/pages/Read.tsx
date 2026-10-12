@@ -799,14 +799,18 @@ export default function Read() {
                                                                 key={block.blockId}
                                                                 className="mb-10 min-w-0"
                                                             >
-                                                                <h2 className="mb-2 text-xl font-semibold text-center">
-                                                                    {block.label || block.blockId}
-                                                                </h2>
+                                                                {category.blocks.items.length > 1 && (
+                                                                    <>
+                                                                        <h2 className="mb-2 text-xl font-semibold text-center">
+                                                                            {block.label || block.blockId}
+                                                                        </h2>
 
-                                                                {block.description && (
-                                                                    <p className="mb-6 text-sm text-sub text-center">
-                                                                        {block.description}
-                                                                    </p>
+                                                                        {block.description && (
+                                                                            <p className="mb-6 text-sm text-sub text-center">
+                                                                                {block.description}
+                                                                            </p>
+                                                                        )}
+                                                                    </>
                                                                 )}
 
                                                                 {renderRows(
