@@ -66,13 +66,17 @@ app.use(
     )
 );
 
-app.use(
-    "/profile",
-    createRedirect(
-        `https://${config.domains.main}/character`, 
-        "/profile"
-    )
-);
+app.use("/profile", (req, res) => {
+    return res.redirect(302, 
+        `https://${config.domains.main}/search?q=${encodeURIComponent(req.path.replace(/^\/+/, ""))}`
+    );
+});
+
+app.use("/character", (req, res) => {
+    return res.redirect(302, 
+        `https://${config.domains.main}/search?q=${encodeURIComponent(req.path.replace(/^\/+/, ""))}`
+    );
+});
 
 app.use("/health", healthRoute);
 
