@@ -34,6 +34,7 @@ export interface InteractionOptions {
         type: InteractionOptions["type"]
     ) => void;
     isBlockAsset: boolean;
+    isCharacter: boolean;
 }
 
 export interface DeleteModalRef {
@@ -132,16 +133,16 @@ const DeleteModal = forwardRef<DeleteModalRef>((_, ref) => {
                 return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/datasets/delete/${id}`;
 
             case "category":
-                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/categories/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : options.isCharacter ? "characters" : "templates"}/${options.assetId}/categories/delete/${id}`;
 
             case "block":
-                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/blocks/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : options.isCharacter ? "characters" : "templates"}/${options.assetId}/blocks/delete/${id}`;
 
             case "row":
-                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/rows/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : options.isCharacter ? "characters" : "templates"}/${options.assetId}/rows/delete/${id}`;
 
             case "field":
-                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : "templates"}/${options.assetId}/fields/delete/${id}`;
+                return `${apiBaseUrl}/v3/${options.isBlockAsset ? "blocks" : options.isCharacter ? "characters" : "templates"}/${options.assetId}/fields/delete/${id}`;
 
             case "character":
             default:
