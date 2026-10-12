@@ -115,12 +115,22 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
         return [];
     }, [value, multiple]);
 
+    const optionLabels = useMemo(() => {
+        const map = new Map<DropdownOptionValue, string>();
+
+        for (const opt of normalizedOptions) {
+            map.set(opt.id, opt.name);
+            map.set(opt.name, opt.name);
+        }
+
+        return map;
+    }, [normalizedOptions]);
+
     const getLabel = useCallback(
         (val: DropdownOptionValue) => {
-            const matched = normalizedOptions.find((opt) => opt.id === val || opt.name === val);
-            return matched ? matched.name : String(val || "");
+            return optionLabels.get(val) ?? String(val ?? "");
         },
-        [normalizedOptions]
+        [optionLabels]
     );
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -251,39 +261,44 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
     }, [isServerSideFiltering, typeable, normalizedOptions, inputValue]);
 
     const groupedFilteredOptions = useMemo(() => {
+        const groups = new Map<string, NormalizedOption[]>();
+
         const uncategorized: NormalizedOption[] = [];
-        const categorized: NormalizedOption[] = [];
 
-        filteredOptions.forEach((opt) => {
-            if (opt.category) {
-                categorized.push(opt);
-            } else {
+        for (const opt of filteredOptions) {
+            if (!opt.category) {
                 uncategorized.push(opt);
+                continue;
             }
-        });
 
-        const groups: { category?: string; options: NormalizedOption[] }[] = [];
+            const categoryOptions = groups.get(opt.category);
+
+            if (categoryOptions) {
+                categoryOptions.push(opt);
+            } else {
+                groups.set(opt.category, [opt]);
+            }
+        }
+
+        const result: {
+            category?: string;
+            options: NormalizedOption[];
+        }[] = [];
 
         if (uncategorized.length > 0) {
-            groups.push({
-                category: undefined,
-                options: uncategorized,
+            result.push({
+                options: uncategorized
             });
         }
 
-        categorized.forEach((opt) => {
-            const lastGroup = groups[groups.length - 1];
-            if (lastGroup && lastGroup.category === opt.category) {
-                lastGroup.options.push(opt);
-            } else {
-                groups.push({
-                    category: opt.category,
-                    options: [opt],
-                });
-            }
-        });
+        for (const [category, options] of groups) {
+            result.push({
+                category,
+                options
+            });
+        }
 
-        return groups;
+        return result;
     }, [filteredOptions]);
 
     useEffect(() => {
