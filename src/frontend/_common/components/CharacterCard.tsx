@@ -355,7 +355,11 @@ export default function CharacterCard({
                             (props) => contextMenuBuilder.view(props),
                             (props) => contextMenuBuilder.read(props),
                             (props) => contextMenuBuilder.chat(props),
-                            (props) => contextMenuBuilder.share(props)
+                            // @ts-ignore
+                            ...(!isStudio || data.isPublished
+                                // @ts-ignore
+                                ? [(props) => contextMenuBuilder.share(props)]
+                                : [])
                         ]),
                     isHomeScreen && 
                         contextMenuBuilder.dismiss(),
@@ -398,7 +402,9 @@ export default function CharacterCard({
                     isStudio && contextMenuBuilder.trash(),
                     (Boolean(window.session.user?.isDeveloper) || !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR")) && 
                         contextMenuBuilder.separator(),
-                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") && 
+                    !window.session.user?.flags?.includes("QUICK_ACTIONS_BAR") &&
+                        // @ts-ignore
+                        ((isStudio && data.isPublished) || !isStudio) &&
                         contextMenuBuilder.share(),
                     contextMenuBuilder.copyId()
                 ].filter(Boolean))
