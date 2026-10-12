@@ -4,6 +4,7 @@ import { GetDraftCharacterBlockType, GetPublishedCharacterBlockType } from "./bl
 export type PublishedCharacterCategoryItemType = {
     assetId: string;
     categoryId: string;
+    types: CategoryIdType[];
     label?: string;
     position: number;
 }
