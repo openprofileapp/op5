@@ -19,6 +19,7 @@ export const getPublishedCharacterDataController = async (req: Request, res: Res
         const result = db.characters.query<Record<string, unknown>>(
             `SELECT
                 c.categoryId,
+                c.types,
                 c.label,
                 c.position,
                 (
