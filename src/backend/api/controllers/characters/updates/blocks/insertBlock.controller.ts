@@ -21,9 +21,18 @@ import updateCharacterLastEditedDate from "../../../../helpers/updateCharacterLa
 export const insertBlock = async (req: Request, res: Response) => {
     try {
         const { assetId } = req.params;
-        const { blockId, categoryId, sourceBlockId, icon, label, description, position } = req.body;
 
-        await assertBearer(req); 
+        const {
+            blockId,
+            categoryId,
+            sourceBlockId,
+            icon,
+            label,
+            description,
+            position
+        } = req.body;
+
+        await assertBearer(req);
         assertAccount(req.session);
         assertPlatformPermissions(req.session, "WRITE");
 
@@ -48,7 +57,12 @@ export const insertBlock = async (req: Request, res: Response) => {
             });
         }
 
-        if (!blockId || typeof blockId !== "string" || !categoryId || typeof categoryId !== "string") {
+        if (
+            !blockId ||
+            typeof blockId !== "string" ||
+            !categoryId ||
+            typeof categoryId !== "string"
+        ) {
             throw new AdvancedError({
                 code: 400,
                 message: i18n.t("responses.malformedRequest")
@@ -69,43 +83,49 @@ export const insertBlock = async (req: Request, res: Response) => {
             });
         }
 
-        const targetPosition = 
-            typeof position === "number" 
-                ? position 
+        const targetPosition =
+            typeof position === "number"
+                ? position
                 : countResult.rowCount;
 
         let finalIcon = icon;
 
         if (icon) {
-            if (typeof icon === "string" && icon.startsWith("data:")) {
+            if (
+                typeof icon === "string" &&
+                icon.startsWith("data:")
+            ) {
                 const uploadedIcon = await uploadFile({
                     folder: `media/${blockId}`,
-                    fileInput: icon,
+                    fileInput: icon
                 });
 
                 if (!uploadedIcon?.path) {
                     throw new AdvancedError({
                         code: 500,
-                        message: i18n.t("responses.unknown"),
+                        message: i18n.t("responses.unknown")
                     });
                 }
 
                 finalIcon = uploadedIcon.path;
             }
 
-            finalIcon = finalIcon?.replace(`https://${config.domains.cdn}`, "")
+            finalIcon = finalIcon?.replace(
+                `https://${config.domains.cdn}`,
+                ""
+            );
         }
 
         const insertResult = db.characters.query(
             `INSERT INTO draft_blocks (
-                assetId, 
-                blockId, 
-                categoryId, 
-                sourceBlockId, 
-                icon, 
-                label, 
-                description, 
-                position, 
+                assetId,
+                blockId,
+                categoryId,
+                sourceBlockId,
+                icon,
+                label,
+                description,
+                position,
                 createdBy
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -124,10 +144,15 @@ export const insertBlock = async (req: Request, res: Response) => {
         assertDbSuccess(insertResult);
 
         if (sourceBlockId) {
-            let isDraftBlock: boolean = true;
+            const fieldIdMap = new Map<string, string>();
+
+            let isDraftBlock = true;
 
             const getBlock = db.blocks.query<BlockItemType>(
-                `SELECT 1 FROM drafts WHERE blockId = ? AND ownerId = ?`,
+                `SELECT 1
+                FROM drafts
+                WHERE blockId = ?
+                AND ownerId = ?`,
                 [sourceBlockId, req.session.userId]
             );
 
@@ -135,7 +160,7 @@ export const insertBlock = async (req: Request, res: Response) => {
 
             if (getBlock.rowCount === 0) {
                 isDraftBlock = false;
-            } 
+            }
 
             const sourceRows = db.blocks.query<RowItemType>(
                 `SELECT *
@@ -147,7 +172,7 @@ export const insertBlock = async (req: Request, res: Response) => {
 
             assertDbSuccess(sourceRows);
 
-            sourceRows.rows.forEach(row => {
+            sourceRows.rows.forEach((row) => {
                 const newRowId = snowflake.gen();
 
                 const insertRow = db.characters.query(
@@ -180,17 +205,26 @@ export const insertBlock = async (req: Request, res: Response) => {
 
                 assertDbSuccess(sourceFields);
 
-                sourceFields.rows.forEach(field => {
+                sourceFields.rows.forEach((field) => {
+                    const originalFieldId = field.fieldId;
+
                     const getFieldIdResult = db.characters.query(
-                        "SELECT * FROM draft_fields WHERE fieldId = ? AND assetId = ?",
-                        [field.fieldId, assetId]
+                        `SELECT 1
+                        FROM draft_fields
+                        WHERE fieldId = ?
+                        AND assetId = ?`,
+                        [originalFieldId, assetId]
                     );
 
                     assertDbSuccess(getFieldIdResult);
 
+                    let newFieldId = originalFieldId;
+
                     if (getFieldIdResult.rowCount !== 0) {
-                        field.fieldId = `${field.fieldId}-${snowflake.gen()}`
+                        newFieldId = `${originalFieldId}-${snowflake.gen()}`;
                     }
+
+                    fieldIdMap.set(originalFieldId, newFieldId);
 
                     const insertField = db.characters.query(
                         `INSERT INTO draft_fields (
@@ -209,12 +243,12 @@ export const insertBlock = async (req: Request, res: Response) => {
                         [
                             assetId,
                             newRowId,
-                            field.fieldId,
+                            newFieldId,
                             field.flex,
                             field.type ?? "text",
                             field.label ?? "",
                             field.placeholder ?? "",
-                            field.options ?? '[]',
+                            field.options ?? "[]",
                             field.guide ?? "",
                             field.position,
                             req.session.userId
@@ -228,7 +262,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                             `UPDATE draft_datasets
                             SET uses = uses + 1
                             WHERE id = ?`,
-                            [field.options?.dataset]
+                            [field.options.dataset]
                         );
 
                         assertDbSuccess(updateResult);
@@ -237,16 +271,20 @@ export const insertBlock = async (req: Request, res: Response) => {
             });
 
             const sourceValues = db.blocks.query<ValueType>(
-                `SELECT * FROM 
-                    ${isDraftBlock ? "draft" : "published"}_values 
-                    WHERE blockId = ?`,
+                `SELECT *
+                FROM ${isDraftBlock ? "draft" : "published"}_values
+                WHERE blockId = ?`,
                 [sourceBlockId]
             );
 
             assertDbSuccess(sourceValues);
 
-            sourceValues.rows.forEach(value => {
-                const insertResult = db.characters.query(
+            sourceValues.rows.forEach((value) => {
+                const targetFieldId = fieldIdMap.get(value.fieldId);
+
+                if (!targetFieldId) return;
+
+                const insertValue = db.characters.query(
                     `INSERT INTO draft_values (
                         assetId,
                         fieldId,
@@ -258,26 +296,32 @@ export const insertBlock = async (req: Request, res: Response) => {
                         content = excluded.content`,
                     [
                         assetId,
-                        value.fieldId,
+                        targetFieldId,
                         req.session.userId,
                         value.content
                     ]
                 );
 
-                assertDbSuccess(insertResult);
+                assertDbSuccess(insertValue);
             });
 
             const sourceMedia = db.media.query<MediaType>(
-                `SELECT * FROM 
-                    ${isDraftBlock ? "draft" : "published"}_content 
-                    WHERE assetId = ?`,
+                `SELECT *
+                FROM ${isDraftBlock ? "draft" : "published"}_content
+                WHERE assetId = ?`,
                 [sourceBlockId]
             );
 
             assertDbSuccess(sourceMedia);
 
-            sourceMedia.rows.forEach(media => {
-                const insertResult = db.characters.query(
+            sourceMedia.rows.forEach((media) => {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                const targetFieldId = fieldIdMap.get(media.fieldId);
+
+                if (!targetFieldId) return;
+
+                const insertMedia = db.characters.query(
                     `INSERT INTO draft_content (
                         assetId,
                         fieldId,
@@ -293,9 +337,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                         addedBy = excluded.addedBy`,
                     [
                         assetId,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        media.fieldId,
+                        targetFieldId,
                         media.url,
                         media.description,
                         media.credit,
@@ -303,7 +345,7 @@ export const insertBlock = async (req: Request, res: Response) => {
                     ]
                 );
 
-                assertDbSuccess(insertResult);
+                assertDbSuccess(insertMedia);
             });
 
             updateBlockUses(sourceBlockId, "add");
@@ -312,20 +354,22 @@ export const insertBlock = async (req: Request, res: Response) => {
         updateCharacterLastEditedDate(assetId as string);
 
         return res.status(201).json({
-            ok: true,
+            ok: true
         });
     } catch (error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
+
             return res.status(error.code).json({
                 id: error.id,
                 message: error.message
             });
-        } else {
-            log.unknown.error(error).save();
-            return res.status(500).json({
-                message: i18n.t("responses.unknown"),
-            });
         }
+
+        log.unknown.error(error).save();
+
+        return res.status(500).json({
+            message: i18n.t("responses.unknown")
+        });
     }
 };
