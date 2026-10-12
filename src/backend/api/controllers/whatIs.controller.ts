@@ -15,7 +15,11 @@ export const whatIsController = async (req: Request, res: Response) => {
         await assertBearer(req);
         assertNotNull(id);
 
-        const whatIsData = whatIs(id as string);
+        const whatIsData = whatIs(
+            id as string,
+            false,
+            req.session.userId || req.ip
+        );
 
         res.status(200).json({
             ...whatIsData

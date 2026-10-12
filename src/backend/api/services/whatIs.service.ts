@@ -81,7 +81,11 @@ function formatReturnData(
  * ```
  */
 export default function whatIs(
-    id: string
+    id: string,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    internalPermissionsBypass?: boolean = true,
+    getAs?: string
 ): WhatIsType {
     assertNotNull(id);
 
@@ -95,7 +99,8 @@ export default function whatIs(
     if (userResult.rowCount !== 0) {
         const getResult = getUsersService({
             idOrUsername: id,
-            internalPermissionsBypass: true
+            internalPermissionsBypass,
+            getAs: internalPermissionsBypass ? "" : getAs
         });
 
         const data = getResult.items[0];
@@ -106,8 +111,8 @@ export default function whatIs(
     }
 
     const characterResult = db.characters.query<PublishedCharacterType>(
-        "SELECT * FROM drafts WHERE id = ?", 
-        [id]
+        "SELECT * FROM drafts WHERE id = ? OR slug = ?",
+        [id, id]
     );
 
     assertDbSuccess(characterResult);
@@ -115,7 +120,8 @@ export default function whatIs(
     if (characterResult.rowCount !== 0) {
         const getResult = getPublishedCharactersService({
             id,
-            internalPermissionsBypass: true
+            internalPermissionsBypass,
+            getAs: internalPermissionsBypass ? "" : getAs
         });
 
         const data = getResult.items[0];
@@ -135,7 +141,8 @@ export default function whatIs(
     if (collectionResult.rowCount !== 0) {
         const getResult = getCollectionsService({
             id,
-            internalPermissionsBypass: true
+            internalPermissionsBypass,
+            getAs: internalPermissionsBypass ? "" : getAs
         });
 
         const data = getResult.items[0];
