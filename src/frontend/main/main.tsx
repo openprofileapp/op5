@@ -42,6 +42,7 @@ import Maintenance from "../_common/pages/Maintenance.js"
 
 import UserProfile from "./pages/UserProfile.js"
 import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
+import Read from "./pages/Read.js"
 
 const markdownRoutes = [
     {
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
             { path: "/account/partners", element: <Partners /> },
 
             { path: "/user/:id", element: <UserProfile /> },
+            { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
 
             ...markdownRoutes.flatMap(({ paths, fileName }) =>
                 paths.map(path => ({

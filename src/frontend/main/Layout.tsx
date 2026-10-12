@@ -11,7 +11,8 @@ import BannerContainer from "../_common/components/BannerContainer.js"
 const execludedPaths = [
     "/404",
     "/503",
-    "/account/library"
+    "/account/library",
+    "/read"
 ];
 
 function HeaderWrapper() {
