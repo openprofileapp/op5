@@ -138,7 +138,8 @@ export default function getPublishedCharactersService({
 
     const queryClause = trimmedQuery 
         ? `AND (
-            published.displayName LIKE ? 
+            published.id LIKE ? 
+            OR published.displayName LIKE ? 
             OR published.about LIKE ? 
             OR published.tags LIKE ?
             OR users.displayName LIKE ?

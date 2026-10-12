@@ -90,7 +90,8 @@ export default function getDraftCharactersService({
 
     const queryClause = trimmedQuery 
         ? `AND (
-            drafts.displayName LIKE ? 
+            drafts.id LIKE ? 
+            OR drafts.displayName LIKE ? 
             OR drafts.about LIKE ? 
             OR drafts.tags LIKE ?
             OR users.displayName LIKE ?
