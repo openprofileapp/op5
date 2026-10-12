@@ -14,6 +14,7 @@ import uploadFile from "../../../_common/helpers/uploadFile.js";
 import { DraftCharacterType } from "../../../../_common/types/characters/character.type.js";
 import { MediaType } from "../../../../_common/types/media.type.js";
 import { InterestsService } from "../../services/interests.service.js";
+import updateCharacterLastEditedDate from "../../helpers/updateCharacterLastUpdatedDate.js";
 
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
 const VALID_SEND_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
@@ -392,6 +393,8 @@ export const updateCharacters = async (req: Request, res: Response) => {
                 interests.update(tag as string, -10);
             }
         }
+
+        updateCharacterLastEditedDate(id as string);
 
         return res.status(200).json({
             ok: true,
