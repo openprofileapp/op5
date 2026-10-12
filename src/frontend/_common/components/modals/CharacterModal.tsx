@@ -25,6 +25,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const [loading, setLoading] = useState(true);
 
     const isStudio = window.location.hostname.includes(window.config.domains.studio);
+    const isTrash = /(^|\/)trash(\/|$)/.test(window.location.pathname);
 
     const resetState = () => {
         setData(undefined);
@@ -411,38 +412,42 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                         Close
                     </button>
 
-                    {window.location.hostname.startsWith(window.config.domains.studio) ? (
+                    {!isTrash && (
                         <>
-                            <div
-                                type="button"
-                                className="btn btn-accent flex-1"
-                                onClick={async () => {
-                                    await editCharacterModal.open(data as unknown as DraftCharacterType, () => {
-                                        window.location.reload();
-                                    });
-                                }}
-                            >
-                                Edit Overview
-                            </div>
+                            {isStudio ? (
+                                <>
+                                    <div
+                                        type="button"
+                                        className="btn btn-accent flex-1"
+                                        onClick={async () => {
+                                            await editCharacterModal.open(data as unknown as DraftCharacterType, () => {
+                                                window.location.reload();
+                                            });
+                                        }}
+                                    >
+                                        Edit Overview
+                                    </div>
 
-                            <Link
-                                type="button"
-                                className="btn btn-accent flex-2"
-                                to={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
-                                onClick={handleClose}
-                            >
-                                Edit Content
-                            </Link>
+                                    <Link
+                                        type="button"
+                                        className="btn btn-accent flex-2"
+                                        to={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                                        onClick={handleClose}
+                                    >
+                                        Edit Content
+                                    </Link>
+                                </>
+                            ) : (
+                                <Link
+                                    type="button"
+                                    className="btn btn-accent flex-3"
+                                    to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
+                                    onClick={handleClose}
+                                >
+                                    Read
+                                </Link>
+                            )}
                         </>
-                    ) : (
-                        <Link
-                            type="button"
-                            className="btn btn-accent flex-3"
-                            to={`${mainBaseUrl}/read/${data.id}${formatDisplayNameToUrl(data?.displayName as string)}`}
-                            onClick={handleClose}
-                        >
-                            Read
-                        </Link>
                     )}
                 </div>
             </div>
