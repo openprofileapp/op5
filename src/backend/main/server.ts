@@ -16,6 +16,7 @@ import commonRoutes from "../_common/routes/common.routes.js";
 import rateLimitMiddleware from "../_common/middlewares/rateLimit.middleware.js";
 import healthRoute from "../_common/routes/health.route.js";
 import createRedirect from "./helpers/createRedirect.js";
+import redirectRoute from "./routes/redirect.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -66,19 +67,10 @@ app.use(
     )
 );
 
-app.use("/profile", (req, res) => {
-    return res.redirect(302, 
-        `https://${config.domains.main}/search?q=${encodeURIComponent(req.path.replace(/^\/+/, ""))}`
-    );
-});
-
-app.use("/character", (req, res) => {
-    return res.redirect(302, 
-        `https://${config.domains.main}/search?q=${encodeURIComponent(req.path.replace(/^\/+/, ""))}`
-    );
-});
-
 app.use("/health", healthRoute);
+
+app.use("/profile", redirectRoute);
+app.use("/character", redirectRoute);
 
 app.use("/", router);
 

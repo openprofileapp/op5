@@ -77,9 +77,10 @@ export default function UserProfile() {
     const { id } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
     const navigate = useNavigate();
-    const { editUserProfileModal } = useModals();
+    const { editUserProfileModal, characterModal } = useModals();
     const { handleViewInteraction } = useInteractions();
     const [searchParams, setSearchParams] = useSearchParams();
+    const viewCharacterId = searchParams.get("view");
 
     const query = searchParams.get("query") || "";
     const sortBy = searchParams.get("sortBy") || "popularDesc";
@@ -369,6 +370,55 @@ export default function UserProfile() {
         };
     }, [tabs, defaultTab]);
 
+    useEffect(() => {
+        if (!viewCharacterId || !data?.id) return;
+
+        const openCharacter = async () => {
+            try {
+                let character = characters.find(
+                    (item) => String(item.id) === viewCharacterId
+                );
+
+                if (!character) {
+                    const res = await fetch(
+                        `${apiBaseUrl}/v3/characters?id=${viewCharacterId}&includeMedia=true`, 
+                        { credentials: "include" }
+                    );
+
+                    if (!res.ok) {
+                        console.error(
+                            `Failed to fetch character ${viewCharacterId}:`,
+                            res.status
+                        );
+                        return;
+                    }
+
+                    const json = await res.json();
+
+                    character = json?.item ?? json?.items?.[0] ?? json;
+
+                    if (!character?.id) {
+                        console.error("Character not found:", json);
+                        return;
+                    }
+                }
+
+                characterModal.open(character as GetPublishedCharacterItemType);
+
+                const params = new URLSearchParams(window.location.search);
+                params.delete("view");
+
+                history.replaceState(null,"",
+                    `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`
+                );
+            } catch (error) {
+                console.error("Failed to open character modal:", error);
+            }
+        };
+
+        openCharacter();
+    }, [characterModal, characters, data?.id, setSearchParams, viewCharacterId]);
+
     const contextMenuBuilder = ContextMenuBuilder({
         data: data!,
         isContextMenuOpen,
@@ -460,7 +510,8 @@ export default function UserProfile() {
         setActiveTab(tab);
     };
 
-    const Banner = data?.banner ? ZoomableMedia : "div";
+    // const Banner = data?.banner ? ZoomableMedia : "div";
+    const Banner = data?.banner ? "img" : "div";
     const Avatar = (data?.avatar || data?.animatedAvatar) ? ZoomableMedia : "img";
 
     const buttonClassList = "flex flex-1 gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
