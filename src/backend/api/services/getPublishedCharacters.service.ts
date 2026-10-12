@@ -141,6 +141,7 @@ export default function getPublishedCharactersService({
             published.id LIKE ? 
             OR published.displayName LIKE ? 
             OR published.about LIKE ? 
+            OR published.slug LIKE ? 
             OR published.tags LIKE ?
             OR users.displayName LIKE ?
             OR usernames.username LIKE ?
@@ -148,7 +149,7 @@ export default function getPublishedCharactersService({
         : "";
 
     const queryParams = trimmedQuery 
-        ? [...Array(6).fill(queryTerm)] 
+        ? [...Array(7).fill(queryTerm)] 
         : [];
 
     const trimmedTag = tag?.trim();
