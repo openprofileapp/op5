@@ -96,7 +96,7 @@ export default function Read() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [isDocumentView, setIsDocumentView] = useState<boolean>(true);
-    const [isFocusMode, setIsFocusMode] = useState(false);
+    const [isFocusMode, setIsFocusMode] = useState(true);
 
     const [template, setTemplate] = useState<GetTemplateItemType>();
     const [templateData, setTemplateData] = useState<GetTemplateCategoryItemType[]>([]);
@@ -157,7 +157,7 @@ export default function Read() {
                 const json = await response.json();
 
                 if (!response.ok) {
-                    toast.show("Failed to load template", {
+                    toast.show("Failed to load character", {
                         subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
                         type: "error",
                     });
@@ -555,6 +555,12 @@ export default function Read() {
 
     if (!isTranslationReady) return null;
 
+    if (isLoading) return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-100">
+            <span className="loading loading-spinner loading-lg" />
+        </div>
+    );
+
     return (
         <>
             <Metadata
@@ -587,17 +593,19 @@ export default function Read() {
                         `}
                     >
                         <div className="flex gap-2">
+                            {!isFocusMode && (
                                 <label 
-                                htmlFor="my-drawer" 
-                                aria-label="open sidebar" 
-                                className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
-                            >
-                                <span className="flex h-8 w-4 leading-none items-center justify-center">
-                                    <span className="font-nerdfont text-xl is-drawer-close:hidden">
-                                        
+                                    htmlFor="my-drawer" 
+                                    aria-label="open sidebar" 
+                                    className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
+                                >
+                                    <span className="flex h-8 w-4 leading-none items-center justify-center">
+                                        <span className="font-nerdfont text-xl is-drawer-close:hidden">
+                                            
+                                        </span>
                                     </span>
-                                </span>
-                            </label>
+                                </label>
+                            )}
 
                             <Link
                                 type="button"
@@ -785,8 +793,12 @@ export default function Read() {
                             ) : (
                                 <div className="w-full min-w-0 p-2 md:p-4">
                                     {documentCategories.length === 0 ? (
-                                        <div className="py-12 text-center text-sm text-sub">
-                                            No categories available.
+                                        <div className="text-sub flex flex-col gap-8 items-center justify-center w-full h-128">
+                                            <div className="font-nerdfont leading-none text-6xl">
+                                                
+                                            </div>
+
+                                            This profile is a ghost town...
                                         </div>
                                     ) : (
                                         <article className="w-full min-w-0 py-8">
