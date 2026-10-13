@@ -798,7 +798,7 @@ export default function Read() {
                                                 
                                             </div>
 
-                                            This profile is a ghost town...
+                                            Nothing to see here...
                                         </div>
                                     ) : (
                                         <article className="w-full min-w-0 py-8">

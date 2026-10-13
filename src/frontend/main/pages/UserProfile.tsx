@@ -1238,7 +1238,7 @@ export default function UserProfile() {
                                                 
                                             </div>
 
-                                            This profile is a ghost town...
+                                            Nothing to see here...
                                         </div>
                                     )}
 
