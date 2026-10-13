@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS draft_fields (
     rowId TEXT NOT NULL,
     fieldId TEXT NOT NULL,
     flex INTEGER NOT NULL DEFAULT 1,
-    type TEXT,
+    type TEXT NOT NULL,
     label TEXT,
     placeholder TEXT,
     options TEXT,
