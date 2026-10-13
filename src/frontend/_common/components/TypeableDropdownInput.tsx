@@ -649,7 +649,7 @@ export const TypeableDropdownInput: React.FC<TypeableDropdownInputProps> = ({
                             </div>
                             <form
                                 method="dialog"
-                                className="modal-backdrop z-[2147483646] fixed inset-0 bg-black/50"
+                                className="modal-backdrop z-[2147483646] fixed inset-0 bg-base-100/50"
                                 onClick={handleClose}
                             >
                                 <button type="button">close</button>

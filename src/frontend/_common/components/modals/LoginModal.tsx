@@ -118,7 +118,7 @@ export default function LoginModal() {
                 <div className="pt-2 flex gap-2 flex-row relative">
                     {/* X */}
                     <button 
-                        className="btn flex-1 bg-black font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
+                        className="btn flex-1 bg-base-100 font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
                         data-tip="X"
                         onClick={async () => {
                             try {

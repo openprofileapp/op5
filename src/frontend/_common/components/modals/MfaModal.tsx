@@ -428,7 +428,7 @@ export default function MfaModal() {
 
                                         {/* X */}
                                         <button 
-                                            className="btn bg-black font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
+                                            className="btn bg-base-100 font-normal text-white border-[var(--color-base-300)] tooltip tooltip-top" 
                                             data-tip="X"
                                             onClick={async () => {
                                                 try {

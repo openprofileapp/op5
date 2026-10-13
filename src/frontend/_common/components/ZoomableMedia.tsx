@@ -180,8 +180,8 @@ export default function ZoomableMedia({
                     }}
                     className={`modal max-w-none max-h-none w-screen h-screen m-0 p-0 border-none outline-none overflow-hidden select-none cursor-pointer transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                         isAnimating 
-                            ? "opacity-100 bg-black/90 backdrop:bg-black/90" 
-                            : "opacity-0 bg-black/0 backdrop:bg-black/0"
+                            ? "opacity-100 bg-base-100/90 backdrop:bg-base-100/90" 
+                            : "opacity-0 bg-base-100/0 backdrop:bg-base-100/0"
                     }`}
                     onClick={closeModal}
                 >
@@ -216,7 +216,7 @@ export default function ZoomableMedia({
 
                         {hasMetadata && (
                             <div 
-                                className="z-99999 mt-4 px-6 py-3 bg-black/80 backdrop-blur-md rounded-md max-w-2xl w-full text-center border border-white/10 pointer-events-auto"
+                                className="z-99999 mt-4 px-6 py-3 bg-base-100/80 backdrop-blur-md rounded-md max-w-2xl w-full text-center border border-white/10 pointer-events-auto"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {description && (

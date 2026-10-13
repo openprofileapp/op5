@@ -163,9 +163,9 @@ export default function CropModal({
             : undefined;
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[9999] bg-base-100/70 flex items-center justify-center p-6">
             <div className="w-[80vw] h-[90vh] max-w-5xl max-h-[95vh] bg-base-200 border border-base-300 rounded-xl p-6 flex flex-col justify-between shadow-2xl overflow-hidden">
-                <div className="relative flex-1 w-full overflow-hidden rounded bg-black">
+                <div className="relative flex-1 w-full overflow-hidden rounded bg-base-100">
                     <Cropper
                         ref={cropperRef}
                         src={image}
