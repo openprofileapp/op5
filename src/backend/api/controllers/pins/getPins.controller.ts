@@ -27,7 +27,7 @@ export const getPins = async (req: Request, res: Response) => {
         assertDbSuccess(result);
 
         const characterPromises = result.rows.map(row => 
-            getPublishedCharactersService({ id: row.assetId })
+            getPublishedCharactersService({ id: row.assetId, includeMedia: true })
         );
 
         const characterResults = await Promise.all(characterPromises);
