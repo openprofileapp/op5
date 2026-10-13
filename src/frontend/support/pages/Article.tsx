@@ -105,7 +105,7 @@ export default function Article() {
     const { feedbackModal } = useModals();
     const navigate = useNavigate();
 
-    const [drawerOpen, setDrawerOpen] = useState(true);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(!window.matchMedia("(max-width: 768px)").matches);
 
     const [isPositiveFeedbackLoading, setIsPositiveFeedbackLoading] = useState<boolean>(false);
     const [isNegativeFeedbackLoading, setIsNegativeFeedbackLoading] = useState<boolean>(false);

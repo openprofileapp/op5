@@ -93,7 +93,7 @@ export default function Read() {
 
     assetId = assetId?.replace(/-.*/, "");
 
-    const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(!window.matchMedia("(max-width: 768px)").matches);
     const [isLoading, setIsLoading] = useState(true);
     const [isDocumentView, setIsDocumentView] = useState<boolean>(true);
     const [isFocusMode, setIsFocusMode] = useState(true);

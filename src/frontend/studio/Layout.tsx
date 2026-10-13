@@ -12,7 +12,7 @@ export default function Layout() {
     const { t, ready: isTranslationReady } = useTranslation();
 
     const contentDetailsRef = useRef(null);
-    const [drawerOpen, setDrawerOpen] = useState(true);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(!window.matchMedia("(max-width: 768px)").matches);
 
     const [isLoading, setIsLoading] = useState(true);
     
@@ -128,8 +128,8 @@ export default function Layout() {
                 <input 
                     id="my-drawer" 
                     type="checkbox" 
-                    checked={drawerOpen}
-                    onChange={(e) => setDrawerOpen(e.target.checked)}
+                    checked={isDrawerOpen}
+                    onChange={(e) => setIsDrawerOpen(e.target.checked)}
                     className="drawer-toggle" 
                 />
                 <div className="drawer-content border-l border-base-300">

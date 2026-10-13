@@ -142,7 +142,7 @@ export default function Character() {
     
     const [searchQuery, setSearchQuery] = useState("");
 
-    const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(!window.matchMedia("(max-width: 768px)").matches);
     const [isPreview, setIsPreview] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [lastToast, setLastToast] = useState<number>(0);
