@@ -43,12 +43,13 @@ const index = {
 
     REVIEW_CHANGES: 19n, // Accept or deny value and media edits for publishing, and restore them from an auto-save or backup    
     MANAGE_PUBLICATIONS: 20n, // Manage overview including badges, links, pins, update-log, and publication state; if the user is premium, they can also apply auras and set animated avatars
-    MANAGE_PROMOTIONS: 21n, // Manage promotions using the admin set budget
-    MANAGE_BACKUPS: 22n, // Manage backups and auto-saves of asset (cannot delete auto-saves for data-loss prevention reasons)
+    MANAGE_LEGAL: 21n, // Manage confidentiality settings and license
+    MANAGE_PROMOTIONS: 22n, // Manage promotions using the admin set budget
+    MANAGE_BACKUPS: 23n, // Manage backups and auto-saves of asset (cannot delete auto-saves for data-loss prevention reasons)
   
-    MANAGE_MODERATORS: 23n, // Assign or revoke the following permissions: "AUDIT_ACCESS", "MANAGE_COMMENTS", "MANAGE_ACCESS", "MANAGE_AUTOMOD"
+    MANAGE_MODERATORS: 24n, // Assign or revoke the following permissions: "AUDIT_ACCESS", "MANAGE_COMMENTS", "MANAGE_ACCESS", "MANAGE_AUTOMOD"
   
-    ADMIN: 24n, // Grants all current and future permissions (except "FEATURE_AS_OWNER", must be manually toggled); complete control over the asset, but can't assign or revoke the following permissions: "ADMIN"
+    ADMIN: 25n, // Grants all current and future permissions (except "FEATURE_AS_OWNER", must be manually toggled); complete control over the asset, but can't assign or revoke the following permissions: "ADMIN"
 } as const;
 
 const roles = {
