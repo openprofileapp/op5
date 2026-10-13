@@ -54,6 +54,13 @@ export const publishCharacterController = async (req: Request, res: Response) =>
             });
         }
 
+        if (data.isConfidential) {
+            throw new AdvancedError({
+                code: 401,
+                message: "You cannot publish a confidential character."
+            });
+        }
+
         const sourceCategories = db.characters.query<DraftCharacterCategoryItemType>(
             `SELECT *
              FROM draft_categories

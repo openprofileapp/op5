@@ -1046,16 +1046,18 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                     return (
                         <>
                             <div className="flex items-center gap-2 sm:gap-3 flex-row w-full pt-4 z-10 shrink-0">
-                                <button
-                                    type="button"
-                                    disabled={hasChanges}
-                                    className="btn btn-success flex-1"
-                                    onClick={() => {
-                                        handlePublish();
-                                    }}
-                                >
-                                    Publish {hasChanges ? "(save changes first)" : ""}
-                                </button>
+                                {!data.isConfidential && (
+                                    <button
+                                        type="button"
+                                        disabled={hasChanges}
+                                        className="btn btn-success flex-1"
+                                        onClick={() => {
+                                            handlePublish();
+                                        }}
+                                    >
+                                        Publish {hasChanges ? "(save changes first)" : ""}
+                                    </button>
+                                )}
 
                                 {/* @ts-ignore */}
                                 {data?.isPublished && (
