@@ -281,6 +281,21 @@ export default function Home() {
                         </div>
                     </div>
 
+                    {
+                        trendingCharacters?.length === 0 &&
+                        popularCharacters?.length === 0 &&
+                        recentCharacters?.length === 0 && 
+                        (
+                            <div className="text-sub flex flex-col gap-8 items-center justify-center w-full h-128">
+                                <div className="font-nerdfont leading-none text-6xl">
+                                    
+                                </div>
+
+                                Nothing to see here...
+                            </div>
+                        )
+                    }
+
                     <AssetCarousel 
                         name={"Trending"} 
                         assetType={"character"} 
@@ -307,6 +322,20 @@ export default function Home() {
                 </>
             ) : (
                 <>
+                    {
+                        recentlyUpdatedCharacters?.length === 0 &&
+                        recommendedCharacters?.length === 0 &&
+                        (
+                            <div className="text-sub flex flex-col gap-8 items-center justify-center w-full h-128">
+                                <div className="font-nerdfont leading-none text-6xl">
+                                    
+                                </div>
+
+                                Nothing to see here...
+                            </div>
+                        )
+                    }
+
                     <AssetCarousel 
                         name={"Recently Updated"} 
                         assetType={"character"} 
