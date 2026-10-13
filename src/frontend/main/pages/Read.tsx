@@ -541,7 +541,7 @@ export default function Read() {
                             className="flex min-h-16 gap-3"
                         >
                             <div className="min-h-[44px] w-full min-w-0 flex-1">
-                                <div className="flex min-h-[44px] w-full min-w-0 gap-3">
+                                <div className="flex flex-col min-h-[44px] w-full min-w-0 md:gap-3 md:flex-row">
                                     {fields.map((field) =>
                                         renderField(field, row.rowId)
                                     )}
@@ -610,7 +610,7 @@ export default function Read() {
                             <Link
                                 type="button"
                                 aria-label="toggle preview mode"
-                                to={`${mainBaseUrl}/user/${template?.owner.primaryUsername || template?.owner.username || template?.owner.id}#characters`}
+                                to={`${mainBaseUrl}/user/${template?.owner.primaryUsername || template?.owner.username || template?.owner.id}?view=${template?.id}#characters`}
                                 className="btn btn-square btn-ghost hover:bg-base-100 hover:border-base-100"
                             >
                                 <span 

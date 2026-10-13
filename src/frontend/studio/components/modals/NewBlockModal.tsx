@@ -636,7 +636,7 @@ const NewBlockModal = forwardRef<NewBlockModalRef, object>((_, ref) => {
                             </div>
 
                             {!optionsRef.current?.skipSelect && (
-                                <aside className="w-240 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black min-h-0">
+                                <aside className="w-240 shrink-0 border-l border-base-300 p-6 flex flex-col bg-base-100 min-h-0">
                                     <div className="shrink-0 mb-4">
                                         <h3 className="text-2xl font-bold capitalize">
                                             Preview

@@ -120,9 +120,9 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                     )}
                 </div>
 
-                <div className="relative pt-4 z-2 flex flex-col md:flex-row gap-6 w-full flex-1 min-h-0 overflow-hidden">
-                    <div className="flex flex-col justify-between w-full md:flex-1 order-2 md:order-1 gap-4 border-t md:border-t-0 md:border-r border-base-300 pt-4 md:pt-18 md:pr-4 min-h-0 overflow-hidden">
-                        <div className="flex flex-col gap-4 w-full overflow-y-auto scrollbar pr-1 flex-1 min-h-0 pb-2">
+                <div className="relative pt-4 z-2 flex flex-col md:flex-row gap-6 w-full flex-1 min-h-0 overflow-y-auto md:overflow-hidden scrollbar">
+                    <div className="flex flex-col justify-between w-full md:flex-1 order-2 md:order-1 gap-4 border-t md:border-t-0 md:border-r border-base-300 pt-4 md:pt-18 md:pr-4 shrink-0 md:shrink min-h-0 overflow-visible md:overflow-hidden">
+                        <div className="flex flex-col gap-4 w-full overflow-visible md:overflow-y-auto scrollbar pr-1 flex-1 min-h-0 pb-2">
                             <div className="grid grid-cols-1 gap-2.5 text-xs">
                                 <div className="flex flex-col">
                                     <span className="font-bold text-sub uppercase tracking-wider">
@@ -201,7 +201,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-1 text-xs border-t border-base-300 pt-2 shrink-0 max-h-[35%] overflow-y-auto scrollbar">
+                        <div className="flex flex-col gap-1 text-xs border-t border-base-300 pt-2 shrink-0 max-h-none md:max-h-[35%] overflow-visible md:overflow-y-auto scrollbar">
                             <span className="text-xs uppercase text-sub tracking-wider font-bold block">
                                 {loading ? (
                                     <div className="skeleton rounded-full h-4 w-24"></div>
@@ -219,7 +219,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col w-full md:flex-[2.7] order-1 md:order-2 flex-1 min-h-0 overflow-visible relative">
+                    <div className="flex flex-col w-full md:flex-[2.7] order-1 md:order-2 flex-none md:flex-1 min-h-0 overflow-visible relative">
                         {loading ? (
                             <div className="skeleton z-30 my-1 mt-3 mb-2 rounded-full pb-2 flex items-center gap-2 w-64 h-7 overflow-visible shrink-0 relative"></div>
                         ) : (
@@ -236,7 +236,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             </div>
                         )}
 
-                        <div className="flex flex-col gap-4 overflow-y-auto scrollbar pr-2 pb-2 flex-1 min-h-0">
+                        <div className="flex flex-col gap-4 overflow-visible md:overflow-y-auto scrollbar pr-2 pb-2 flex-1 min-h-0">
                             {loading ? (
                                 <div className="flex flex-col gap-1">
                                     <div className="skeleton rounded-full h-4 w-[95%]"></div>

@@ -1293,7 +1293,7 @@ export default function Block() {
                                                                             items={visibleFields.map((f) => `field:${f.fieldId}`)}
                                                                             strategy={rectSortingStrategy}
                                                                         >
-                                                                            <div className="flex w-full gap-3 min-w-0 min-h-[44px]">
+                                                                            <div className="flex flex-col md:flex-row w-full md:gap-3 min-w-0 min-h-[44px]">
                                                                                 {/* @ts-ignore */}
                                                                                 {visibleFields.map(field => {
                                                                                     const rawContent = field.value?.content || "";

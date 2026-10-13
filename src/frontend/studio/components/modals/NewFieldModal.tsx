@@ -399,11 +399,11 @@ const NewFieldModal = forwardRef<NewFieldModalRef>((_, ref) => {
                     </div>
                 )}
 
-                <div className="flex-1 overflow-y-hidden pr-1">
+                <div className="flex-1 overflow-y-auto md:overflow-y-hidden pr-1">
                     {screen === "menu" && (
                         <div
                             className={`grid gap-2 ${
-                                index.length > 5 ? "grid-cols-2" : "grid-cols-1"
+                                index.length > 5 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
                             }`}
                         >
                             {index.map((item, idx) => (
@@ -443,7 +443,7 @@ const NewFieldModal = forwardRef<NewFieldModalRef>((_, ref) => {
                     )}
 
                     {screen === "configure" && (
-                        <div className="flex flex-row flex-1 min-w-0 min-h-0">
+                        <div className="flex flex-col flex-1 min-w-0 min-h-0 md:flex-row">
                             <div className="flex flex-col flex-1 min-w-0 min-h-0 p-6">
                                 <div className="mb-6">
                                     <h3 className="font-nerdfont text-center text-6xl mb-4">
@@ -457,7 +457,7 @@ const NewFieldModal = forwardRef<NewFieldModalRef>((_, ref) => {
 
                                 <div className="flex flex-col gap-6 py-4 w-full">
                                     <div className="flex flex-col gap-4">
-                                        <fieldset className="fieldset w-full max-h-90 overflow-y-auto scrollbar-none">
+                                        <fieldset className="fieldset w-full max-h-90 md:overflow-y-auto scrollbar-none">
                                             <div className="flex flex-col gap-1 mt-1">
                                                 <label className="label">
                                                     Label
@@ -853,7 +853,7 @@ const NewFieldModal = forwardRef<NewFieldModalRef>((_, ref) => {
 
                             <aside 
                                 className={`
-                                    w-170 shrink-0 border-l border-base-300 p-6 flex flex-col bg-black min-h-0
+                                    w-170 shrink-0 border-l border-base-300 p-6 flex flex-col bg-base-100 min-h-0
                                     ${(
                                         type === "button"
                                         || type === "separator"

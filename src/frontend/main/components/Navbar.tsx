@@ -12,7 +12,7 @@ import { toast } from "../../_common/scripts/toast.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
 import CreateAssetModal from "../../_common/components/modals/CreateAssetModal.js";
 
-import { apiBaseUrl, authBaseUrl, cdnBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, authBaseUrl, cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { recommendedTags } from "../../_common/scripts/tags.js";
 import { ThemesType, applyTheme, themes } from "../../_common/scripts/themes.js";
 import ThemeOption from "../../_common/components/ThemeOption.js";
@@ -27,6 +27,27 @@ export default function Navbar({ isBannerPage = false }: Props) {
     const config = window.config;
 
     const { t, ready: isTranslationReady } = useTranslation();
+
+    const { pathname } = useLocation();
+
+const isActive = (url: string): boolean => {
+    const target = new URL(url, window.location.origin);
+
+    if (target.origin !== window.location.origin) {
+        return false;
+    }
+
+    const normalize = (path: string) =>
+        path.replace(/\/+$/, "") || "/";
+
+    const currentPath = normalize(pathname);
+    const targetPath = normalize(target.pathname);
+
+    return targetPath === "/"
+        ? currentPath === "/"
+        : currentPath === targetPath ||
+          currentPath.startsWith(`${targetPath}/`);
+};
 
     const [scrolled, setScrolled] = useState(false);
     const [user, setUser] = useState<GetUserItemType | null>();
@@ -768,30 +789,44 @@ export default function Navbar({ isBannerPage = false }: Props) {
             </div>
 
             <div className="dock md:hidden border-t border-base-300 z-999">
-                <button className="dock-active">
-                    <div className="text-xl font-nerdfont text-white"></div>
-                    <span className="dock-label text-white">Home</span>
-                </button>
+                <Link 
+                    to={`${mainBaseUrl}`} 
+                    className={isActive("/") ? "text-accent" : ""}
+                >
+                    <div className="text-xl font-nerdfont"></div>
+                    <span className="dock-label">Home</span>
+                </Link>
 
-                <button>
+                <Link 
+                    to={`${studioBaseUrl}/dashboard`}
+                    className={isActive(`${studioBaseUrl}/dashboard`) ? "text-accent" : ""}
+                >
                     <div className="text-xl font-nerdfont">󰕮</div>
                     <span className="dock-label">Dashboard</span>
-                </button>
+                </Link>
 
-                <button className="bg-accent rounded-4xl" onClick={()=>document.getElementById("create-asset").showModal()}>
+                <button
+                    className="bg-accent rounded-4xl"
+                    onClick={() =>
+                        (document.getElementById("create-asset") as HTMLDialogElement | null)?.showModal()
+                    }
+                >
                     <div className="text-xl font-nerdfont"></div>
                     <span className="dock-label">Create</span>
                 </button>
-                
+
                 <button>
                     <div className="text-xl font-nerdfont">󰂚</div>
                     <span className="dock-label">Notifications</span>
                 </button>
-                
-                <button>
+
+                <Link 
+                    to={`${mainBaseUrl}/user/${window.session?.user?.usernames?.find(username => username?.isPrimary)?.username ?? window.session?.userId}`}
+                    className={isActive(`${mainBaseUrl}/user/${window.session?.user?.usernames?.find(username => username?.isPrimary)?.username ?? window.session?.userId}`) ? "text-accent" : ""}
+                >
                     <div className="text-xl font-nerdfont"></div>
                     <span className="dock-label">My Profile</span>
-                </button>
+                </Link>
             </div>
 
             {/* DELETE THIS */}
