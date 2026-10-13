@@ -282,6 +282,9 @@ export default function Home() {
                     </div>
 
                     {
+                        !isLoadingTrendingCharacters &&
+                        !isLoadingPopularCharacters &&
+                        !isLoadingRecentCharacters &&
                         trendingCharacters?.length === 0 &&
                         popularCharacters?.length === 0 &&
                         recentCharacters?.length === 0 && 
@@ -323,6 +326,8 @@ export default function Home() {
             ) : (
                 <>
                     {
+                        !isLoadingRecentlyUpdatedCharacters &&
+                        !isLoadingRecommendedCharacters &&
                         recentlyUpdatedCharacters?.length === 0 &&
                         recommendedCharacters?.length === 0 &&
                         (
