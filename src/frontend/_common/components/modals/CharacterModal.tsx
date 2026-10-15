@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState, useRef, useImperativeHandle, forwardRef } from "react";
+import { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../scripts/domains.js";
@@ -23,6 +23,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
 
     const [data, setData] = useState<GetPublishedCharacterItemType>();
     const [loading, setLoading] = useState(true);
+    const [updatedDate, setUpdatedDate] = useState<string>();
 
     const isStudio = window.location.hostname.includes(window.config.domains.studio);
     const isTrash = /(^|\/)trash(\/|$)/.test(window.location.pathname);
@@ -36,6 +37,8 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
         open: (data: GetPublishedCharacterItemType) => {
             setData(data);
             setLoading(false);
+
+            setUpdatedDate(formatShortRelative(data?.updatedDate));
 
             setTimeout(() => {
                 dialogRef.current?.showModal();
@@ -53,6 +56,14 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
 
         resetState();
     };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setUpdatedDate(formatShortRelative(data?.updatedDate));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [data?.updatedDate]);
 
     if (!isTranslationReady || !data) return null;
 
@@ -152,7 +163,9 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                     {loading ? (
                                         <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
                                     ) : (
-                                        formatShortRelative(data.updatedDate)
+                                        <>
+                                            {updatedDate}
+                                        </>
                                     )}
                                 </div>
                             </div>
