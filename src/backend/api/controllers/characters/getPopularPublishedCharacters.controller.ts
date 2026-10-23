@@ -19,7 +19,8 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
             id,
             owner, 
             ref,
-            includeMedia
+            includeMedia,
+            includeChangelogs
         } = req.query;
 
         const characters = getPublishedCharactersService({
@@ -29,7 +30,8 @@ export const getPopularPublishedCharacters = async (req: Request, res: Response)
             limit: config.limits.assetsPerPage, 
             getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType,
-            includeMedia: includeMedia === "true" ? true : false
+            includeMedia: includeMedia === "true" ? true : false,
+            includeChangelogs: includeChangelogs === "true" ? true : false
         })
 
         res.status(200).json(characters);

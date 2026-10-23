@@ -16,14 +16,78 @@ export interface CharacterModalRef {
     close: () => void;
 }
 
+interface ChangeLogEntryProps {
+    item: {
+        _id: string;
+        date: string | Date;
+        text: string;
+    };
+    index: number;
+    isLast: boolean;
+}
+
+function ChangeLogEntry({
+    item,
+    index,
+    isLast,
+}: ChangeLogEntryProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [date, setDate] = useState(formatShortRelative(item.date));
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDate(formatShortRelative(item.date));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [item.date]);
+
+    return (
+        <div
+            className={`
+                w-full border border-base-300
+                transition-colors
+                ${index % 2 === 0 ? "bg-base-200" : "bg-[#151515]"}
+                ${index === 0 ? "rounded-t" : ""}
+                ${isLast ? "rounded-b" : ""}
+            `}
+        >
+            <button
+                type="button"
+                className="w-full flex items-center gap-3 p-3 text-left cursor-pointer"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                aria-expanded={isExpanded}
+            >
+                <span className="font-nerdfont leading-none text-center text-sm w-4">
+                    {isExpanded ? "" : ""}
+                </span>
+
+                <span className="text-sm text-sub">
+                    {date}
+                </span>
+            </button>
+
+            {isExpanded && (
+                <div className="px-3 pb-3">
+                    <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {item.text}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
     const { editCharacterModal } = useModals();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
     const [data, setData] = useState<GetPublishedCharacterItemType>();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
     const [updatedDate, setUpdatedDate] = useState<string>();
+
+    const [showChangeLogs, setShowChangeLogs] = useState<boolean>(false);
 
     const isStudio = window.location.hostname.includes(window.config.domains.studio);
     const isTrash = /(^|\/)trash(\/|$)/.test(window.location.pathname);
@@ -31,6 +95,7 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
     const resetState = () => {
         setData(undefined);
         setLoading(true);
+        setShowChangeLogs(false);
     };
 
     useImperativeHandle(ref, () => ({
@@ -161,11 +226,27 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                                         )}
                                     </span>
                                     {loading ? (
-                                        <div className="skeleton rounded-full h-4 w-36 mt-1"></div>
+                                        <div className="skeleton rounded-full h-4 w-36 mt-2"></div>
                                     ) : (
-                                        <>
-                                            {updatedDate}
-                                        </>
+                                        <div className="flex flex-col gap-2">
+                                            {updatedDate} 
+
+                                            {data?.changelogs?.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    className="flex items-center gap-1.5 w-fit cursor-pointer"
+                                                    onClick={() => setShowChangeLogs(!showChangeLogs)}
+                                                >
+                                                    <span className="font-nerdfont leading-none text-sm">
+                                                        󰈙
+                                                    </span>
+
+                                                    <span className="underline">
+                                                        {showChangeLogs ? "Hide Change Logs" : "Show Change Logs"}
+                                                    </span>
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -249,170 +330,194 @@ const CharacterModal = forwardRef<CharacterModalRef>((_, ref) => {
                             </div>
                         )}
 
-                        <div className="flex flex-col gap-4 overflow-visible md:overflow-y-auto scrollbar pr-2 pb-2 flex-1 min-h-0">
-                            {loading ? (
-                                <div className="flex flex-col gap-1">
-                                    <div className="skeleton rounded-full h-4 w-[95%]"></div>
-                                    <div className="skeleton rounded-full h-4 w-[85%]"></div>
+                        {showChangeLogs ? (
+                            <div className="relative z-2 flex flex-col flex-1 min-h-0 overflow-hidden pt-4">
+                                <div className="flex-1 min-h-0 overflow-y-auto scrollbar pr-2 pb-2">
+                                    <div className="flex flex-col">
+                                        {data.changelogs
+                                            ?.slice()
+                                            .sort(
+                                                (a, b) =>
+                                                    new Date(b.date).getTime() -
+                                                    new Date(a.date).getTime()
+                                            )
+                                            .map((item, index, array) => (
+                                                <ChangeLogEntry
+                                                    key={item._id}
+                                                    item={item}
+                                                    index={index}
+                                                    isLast={index === array.length - 1}
+                                                />
+                                            ))}
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-sm leading-relaxed whitespace-pre-wrap">
-                                        {data.about || t("defaults.noCharacterAbout")}
-                                    </span>
-                                </div>
-                            )}
-      
-                            {/* DEVELOPER NEEDED: Make it so that if the credit is an id, to fetch 
-                            the user on the backend and replace credit with (display name, username, 
-                            and id JSON) where it can be made into a clickable link */}
-                            {(loading || (data.media && data.media.length > 0)) && (
-                                <div className="flex flex-col gap-2 mt-2">
-                                    <span className="text-xs font-bold text-sub uppercase tracking-wider">
-                                        {loading ? (
-                                            <div className="skeleton rounded-full h-4 w-24"></div>
-                                        ) : (
-                                            "Media"
-                                        )}
-                                    </span>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 pb-2">
-                                        {loading ? (
-                                            <>
-                                                <div className="skeleton rounded h-36 w-full"/>
-                                                <div className="skeleton rounded h-36 w-full"/>
-                                                <div className="skeleton rounded h-36 w-full"/>
-                                            </>
-                                        ) : (
-                                            data.media
-                                                ?.slice()
-                                                .map((item, index) => (
-                                                    <ZoomableMedia 
-                                                        key={index}
-                                                        src={item.url ? `${cdnBaseUrl}${item.url}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
-                                                        className="w-full h-full aspect-square rounded object-cover"
-                                                        alt={item.description || "Media"}
-                                                        description={item.description}
-                                                        credit={item.credit}
-                                                    />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-4 overflow-visible md:overflow-y-auto scrollbar pr-2 pb-2 flex-1 min-h-0">
+                                {loading ? (
+                                    <div className="flex flex-col gap-1">
+                                        <div className="skeleton rounded-full h-4 w-[95%]"></div>
+                                        <div className="skeleton rounded-full h-4 w-[85%]"></div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-sm leading-relaxed whitespace-pre-wrap">
+                                            {data.about || t("defaults.noCharacterAbout")}
+                                        </span>
+                                    </div>
+                                )}
+        
+                                {/* DEVELOPER NEEDED: Make it so that if the credit is an id, to fetch 
+                                the user on the backend and replace credit with (display name, username, 
+                                and id JSON) where it can be made into a clickable link */}
+                                {(loading || (data.media && data.media.length > 0)) && (
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <span className="text-xs font-bold text-sub uppercase tracking-wider">
+                                            {loading ? (
+                                                <div className="skeleton rounded-full h-4 w-24"></div>
+                                            ) : (
+                                                "Media"
+                                            )}
+                                        </span>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 pb-2">
+                                            {loading ? (
+                                                <>
+                                                    <div className="skeleton rounded h-36 w-full"/>
+                                                    <div className="skeleton rounded h-36 w-full"/>
+                                                    <div className="skeleton rounded h-36 w-full"/>
+                                                </>
+                                            ) : (
+                                                data.media
+                                                    ?.slice()
+                                                    .map((item, index) => (
+                                                        <ZoomableMedia 
+                                                            key={index}
+                                                            src={item.url ? `${cdnBaseUrl}${item.url}` : `${cdnBaseUrl}${window.config.metadata.assets.noImage}`}
+                                                            className="w-full h-full aspect-square rounded object-cover"
+                                                            alt={item.description || "Media"}
+                                                            description={item.description}
+                                                            credit={item.credit}
+                                                        />
+                                                    ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(loading || (data.tags && data.tags.length > 0)) && (
+                                    <div className="flex flex-col gap-2 mt-1">
+                                        <span className="text-xs font-bold text-sub uppercase tracking-wider">
+                                            {loading ? (
+                                                <div className="skeleton rounded-full h-4 w-24"></div>
+                                            ) : (
+                                                "Tags"
+                                            )}
+                                        </span>
+
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {loading ? (
+                                                <>
+                                                    <div className="skeleton rounded-full h-6 w-28"/>
+                                                    <div className="skeleton rounded-full h-6 w-36"/>
+                                                    <div className="skeleton rounded-full h-6 w-24"/>
+                                                </>
+                                            ) : (
+                                                data.tags.map((tag) => (
+                                                    <Link
+                                                        to={`${mainBaseUrl}/browse/${encodeURIComponent(tag)}`}
+                                                        onClick={handleClose}
+                                                    >
+                                                        <div className="flex gap-2 items-center justify-center rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300">
+                                                            <span className="font-nerdfont leading-none"></span>
+
+                                                            <span className="mb-0.5 hover:underline">{tag}</span>
+                                                        </div>
+                                                    </Link>
                                                 ))
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {(loading || (data.tags && data.tags.length > 0)) && (
-                                <div className="flex flex-col gap-2 mt-1">
-                                    <span className="text-xs font-bold text-sub uppercase tracking-wider">
-                                        {loading ? (
-                                            <div className="skeleton rounded-full h-4 w-24"></div>
-                                        ) : (
-                                            "Tags"
-                                        )}
-                                    </span>
+                                {!loading && (
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <span className="text-xs font-bold text-sub uppercase tracking-wider">
+                                            Statistics
+                                        </span>
 
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {loading ? (
-                                            <>
-                                                <div className="skeleton rounded-full h-6 w-28"/>
-                                                <div className="skeleton rounded-full h-6 w-36"/>
-                                                <div className="skeleton rounded-full h-6 w-24"/>
-                                            </>
-                                        ) : (
-                                            data.tags.map((tag) => (
-                                                <Link
-                                                    to={`${mainBaseUrl}/browse/${encodeURIComponent(tag)}`}
-                                                    onClick={handleClose}
+                                        <div className="flex flex-row flex-wrap gap-x-8 gap-y-2 justify-start text-sm w-full">
+                                            <div className="flex items-center">
+                                                <span 
+                                                    className={`font-nerdfont text-base ${data.interactions?.views?.hasInteracted ? "text-accent" : ""}`}
                                                 >
-                                                    <div className="flex gap-2 items-center justify-center rounded-full bg-base-100 text-xs px-3 py-1 border border-base-300">
-                                                        <span className="font-nerdfont leading-none"></span>
+                                                    󰈈
+                                                </span>
+                                                <span className="text-xs ml-2 font-medium">
+                                                    {formatNumber(data.interactions?.views?.count || 0).short}
+                                                    {" "}
+                                                    {data.interactions?.views?.count === 1 ? "View" : "Views"}
+                                                </span>
+                                            </div>
 
-                                                        <span className="mb-0.5 hover:underline">{tag}</span>
-                                                    </div>
-                                                </Link>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                                            <div className="flex items-center">
+                                                <span className={`font-nerdfont text-base ${data.interactions?.reads?.hasInteracted ? "text-accent" : ""}`}>
+                                                    
+                                                </span>
+                                                <span className="text-xs ml-2 font-medium">
+                                                    {formatNumber(data.interactions?.reads?.count || 0).short}
+                                                    {" "}
+                                                    {data.interactions?.reads?.count === 1 ? "Read" : "Reads"}
+                                                </span>
+                                            </div>
 
-                            {!loading && (
-                                <div className="flex flex-col gap-2 mt-2">
-                                    <span className="text-xs font-bold text-sub uppercase tracking-wider">
-                                        Statistics
-                                    </span>
+                                            <div className="flex items-center">
+                                                <span className={`font-nerdfont text-base ${data.interactions?.follows?.hasInteracted ? "text-accent" : ""}`}>
+                                                    
+                                                </span>
+                                                <span className="text-xs ml-2 font-medium">
+                                                    {formatNumber(data.interactions?.follows?.count || 0).short}
+                                                    {" "}
+                                                    {data.interactions?.follows?.count === 1 ? "Follower" : "Followers"}
+                                                </span>
+                                            </div>
 
-                                    <div className="flex flex-row flex-wrap gap-x-8 gap-y-2 justify-start text-sm w-full">
-                                        <div className="flex items-center">
-                                            <span 
-                                                className={`font-nerdfont text-base ${data.interactions?.views?.hasInteracted ? "text-accent" : ""}`}
-                                            >
-                                                󰈈
-                                            </span>
-                                            <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(data.interactions?.views?.count || 0).short}
-                                                {" "}
-                                                {data.interactions?.views?.count === 1 ? "View" : "Views"}
-                                            </span>
-                                        </div>
+                                            <div className="flex items-center">
+                                                <span className={`font-nerdfont text-base ${data.interactions?.likes?.hasInteracted ? "text-accent" : ""}`}>
+                                                    
+                                                </span>
+                                                <span className="text-xs ml-2 font-medium">
+                                                    {formatNumber(data.interactions?.likes?.count || 0).short}
+                                                    {" "}
+                                                    {data.interactions?.likes?.count === 1 ? "Like" : "Likes"}
+                                                </span>
+                                            </div>
 
-                                        <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${data.interactions?.reads?.hasInteracted ? "text-accent" : ""}`}>
-                                                
-                                            </span>
-                                            <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(data.interactions?.reads?.count || 0).short}
-                                                {" "}
-                                                {data.interactions?.reads?.count === 1 ? "Read" : "Reads"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${data.interactions?.follows?.hasInteracted ? "text-accent" : ""}`}>
-                                                
-                                            </span>
-                                            <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(data.interactions?.follows?.count || 0).short}
-                                                {" "}
-                                                {data.interactions?.follows?.count === 1 ? "Follower" : "Followers"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center">
-                                            <span className={`font-nerdfont text-base ${data.interactions?.likes?.hasInteracted ? "text-accent" : ""}`}>
-                                                
-                                            </span>
-                                            <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(data.interactions?.likes?.count || 0).short}
-                                                {" "}
-                                                {data.interactions?.likes?.count === 1 ? "Like" : "Likes"}
-                                            </span>
-                                        </div>
-
-                                        <div className="hidden flex items-center">
-                                            <span className={`font-nerdfont text-base ${data.interactions?.shares?.hasInteracted ? "text-accent" : ""}`}>
-                                                󰒗
-                                            </span>
-                                            <span className="text-xs ml-2 font-medium">
-                                                {formatNumber(data.interactions?.shares?.count || 0).short}
-                                                {" "}
-                                                {data.interactions?.shares?.count === 1 ? "Share" : "Shares"}
-                                            </span>
+                                            <div className="hidden flex items-center">
+                                                <span className={`font-nerdfont text-base ${data.interactions?.shares?.hasInteracted ? "text-accent" : ""}`}>
+                                                    󰒗
+                                                </span>
+                                                <span className="text-xs ml-2 font-medium">
+                                                    {formatNumber(data.interactions?.shares?.count || 0).short}
+                                                    {" "}
+                                                    {data.interactions?.shares?.count === 1 ? "Share" : "Shares"}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {(!loading && Boolean(window.session.user?.isDeveloper)) && (
-                                <div className="flex text-xs flex-col mt-1">
-                                    <span className="text-sub font-bold uppercase tracking-wider">
-                                        Developer View
-                                    </span>
-                                    <div className="mt-1">
-                                        <span>Algorithm Score:</span> {data.algorithmScore.toFixed(0)}
+                                {(!loading && Boolean(window.session.user?.isDeveloper)) && (
+                                    <div className="flex text-xs flex-col mt-1">
+                                        <span className="text-sub font-bold uppercase tracking-wider">
+                                            Developer View
+                                        </span>
+                                        <div className="mt-1">
+                                            <span>Algorithm Score:</span> {data.algorithmScore.toFixed(0)}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+                            </div>
                             )}
-                        </div>
                     </div>
                 </div>
 

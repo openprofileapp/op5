@@ -95,7 +95,7 @@ export default function Trash() {
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/characters/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&isTrash=true`,
+                `${apiBaseUrl}/v3/characters/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&includeChangelogs=true&isTrash=true`,
                 { credentials: "include" }
             );
 
@@ -124,7 +124,7 @@ export default function Trash() {
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/templates/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&isTrash=true`,
+                `${apiBaseUrl}/v3/templates/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&includeChangelogs=true&isTrash=true`,
                 { credentials: "include" }
             );
 

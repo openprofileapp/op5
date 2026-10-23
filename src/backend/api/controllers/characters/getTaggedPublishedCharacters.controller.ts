@@ -21,7 +21,8 @@ export const getTaggedPublishedCharacters = async (req: Request, res: Response) 
             sortBy,
             page, 
             limit = config.limits.assetsPerPage,
-            includeMedia
+            includeMedia,
+            includeChangelogs
         } = req.query;
 
         const { tag } = req.params;
@@ -39,7 +40,8 @@ export const getTaggedPublishedCharacters = async (req: Request, res: Response) 
             limit: limit as number, 
             tag: tag as string, 
             getAs: req.session.userId,
-            includeMedia: includeMedia === "true" ? true : false
+            includeMedia: includeMedia === "true" ? true : false,
+            includeChangelogs: includeChangelogs === "true" ? true : false
         })
 
         res.status(200).json({

@@ -21,6 +21,7 @@ type Props = {
     getAs?: string;
     includeInteractionItems?: boolean;
     includeMedia?: boolean;
+    includeChangelogs?: boolean;
     isTrash?: boolean;
     internalPermissionsBypass?: boolean;
 };
@@ -36,6 +37,7 @@ export default function getDraftCharactersService({
     getAs,
     includeInteractionItems = false,
     includeMedia = false,
+    includeChangelogs = false,
     isTrash = false,
     internalPermissionsBypass = false
 }: Props): GetDraftCharacterType {    
@@ -243,6 +245,29 @@ export default function getDraftCharactersService({
             ) AS media
         `
         : "NULL AS media";
+
+    const changelogsSelectSql = includeChangelogs
+        ? `
+            COALESCE(
+                (
+                    SELECT json_group_array(
+                        json_object(
+                            'text', m.text,
+                            'addedBy', m.addedBy,
+                            'date', m.date
+                        )
+                    )
+                    FROM (
+                        SELECT *
+                        FROM changelogs.drafts
+                        WHERE assetId = drafts.id
+                        ORDER BY date DESC
+                    ) m
+                ),
+                json('[]')
+            ) AS changelogs
+        `
+        : "NULL AS changelogs";
         
     const notificationsParams: (string | undefined)[] = [];
 
@@ -320,6 +345,7 @@ export default function getDraftCharactersService({
                     ${interactionFieldsSql}
                 ) AS interactions,
                 ${mediaSelectSql},
+                ${changelogsSelectSql},
                 ${notificationsSelectSql}
             FROM main.drafts
             LEFT JOIN users.users 
@@ -452,6 +478,12 @@ export default function getDraftCharactersService({
             formattedRow.media = parseJson(row.media) || [];
         } else {
             delete formattedRow.media;
+        }
+
+        if (includeChangelogs) {
+            formattedRow.changelogs = parseJson(row.changelogs) || [];
+        } else {
+            delete formattedRow.changelogs;
         }
 
         return formattedRow as GetDraftCharacterItemType;

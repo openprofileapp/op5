@@ -227,7 +227,7 @@ export default function UserProfile() {
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/characters?owner=${data.id}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true`, 
+                `${apiBaseUrl}/v3/characters?owner=${data.id}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&includeChangelogs=true`, 
                 { credentials: "include" }
             );
 
@@ -381,7 +381,7 @@ export default function UserProfile() {
 
                 if (!character) {
                     const res = await fetch(
-                        `${apiBaseUrl}/v3/characters?id=${viewCharacterId}&includeMedia=true`, 
+                        `${apiBaseUrl}/v3/characters?id=${viewCharacterId}&includeMedia=true&includeChangelogs=true`, 
                         { credentials: "include" }
                     );
 

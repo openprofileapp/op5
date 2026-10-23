@@ -70,7 +70,7 @@ export default function Content() {
 
         try {
             const res = await fetch(
-                `${apiBaseUrl}/v3/characters/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true`,
+                `${apiBaseUrl}/v3/characters/drafts?owner=${window.session.userId}&q=${encodeURIComponent(query)}&sortBy=${sortBy}&page=${currentPage}&includeMedia=true&includeChangelogs=true`,
                 { credentials: "include" }
             );
 

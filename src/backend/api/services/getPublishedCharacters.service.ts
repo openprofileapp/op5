@@ -24,6 +24,7 @@ type Props = {
     delegatedAccounts?: string[];
     includeInteractionItems?: boolean;
     includeMedia?: boolean;
+    includeChangelogs?: boolean;
     internalPermissionsBypass?: boolean;
     isAdult?: boolean;
 };
@@ -41,6 +42,7 @@ export default function getPublishedCharactersService({
     delegatedAccounts,
     includeInteractionItems = false,
     includeMedia = false,
+    includeChangelogs = false,
     internalPermissionsBypass = false,
     isAdult = false
 }: Props): GetPublishedCharacterType {    
@@ -385,6 +387,29 @@ export default function getPublishedCharactersService({
         `
         : "NULL AS media";
 
+    const changelogsSelectSql = includeChangelogs
+        ? `
+            COALESCE(
+                (
+                    SELECT json_group_array(
+                        json_object(
+                            'text', m.text,
+                            'addedBy', m.addedBy,
+                            'date', m.date
+                        )
+                    )
+                    FROM (
+                        SELECT *
+                        FROM changelogs.published
+                        WHERE assetId = published.id
+                        ORDER BY date DESC
+                    ) m
+                ),
+                json('[]')
+            ) AS changelogs
+        `
+        : "NULL AS changelogs";
+
     const notificationsParams: (string | undefined)[] = [];
 
     const notificationsSelectSql = `
@@ -465,6 +490,7 @@ export default function getPublishedCharactersService({
                     ${interactionFieldsSql}
                 ) AS interactions,
                 ${mediaSelectSql},
+                ${changelogsSelectSql},
                 ${notificationsSelectSql}
             FROM main.published
             LEFT JOIN users.users 
@@ -607,6 +633,12 @@ export default function getPublishedCharactersService({
             formattedRow.media = parseJson(row.media) || [];
         } else {
             delete formattedRow.media;
+        }
+
+        if (includeChangelogs) {
+            formattedRow.changelogs = parseJson(row.changelogs) || [];
+        } else {
+            delete formattedRow.changelogs;
         }
 
         return formattedRow as GetPublishedCharacterItemType;

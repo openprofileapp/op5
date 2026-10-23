@@ -24,7 +24,8 @@ export const getPublishedCharacters = async (req: Request, res: Response) => {
             limit = config.limits.assetsPerPage,
             q: query,
             ref,
-            includeMedia
+            includeMedia,
+            includeChangelogs
         } = req.query;
 
         const offset = 
@@ -42,7 +43,8 @@ export const getPublishedCharacters = async (req: Request, res: Response) => {
             getAs: req.session.userId || req.ip,
             getFrom: ref as GetFromType,
             delegatedAccounts: req.session?.delegatedAccounts,
-            includeMedia: includeMedia === "true" ? true : false
+            includeMedia: includeMedia === "true" ? true : false,
+            includeChangelogs: includeChangelogs === "true" ? true : false
         })
 
         res.status(200).json({

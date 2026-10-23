@@ -1,4 +1,5 @@
 import { GetBadgeType } from "../badge.type.js";
+import { ChangelogType } from "../changelogs.type.js";
 import { GetInteractionCollection } from "../interaction.type.js";
 import { GetLinkType } from "../link.type.js";
 import { GetMediaType } from "../media.type.js";
@@ -46,6 +47,7 @@ export type GetPublishedCharacterItemType = Omit<
     notifications: GetNotificationCollection;
     isCharacterInAnyCollections: boolean;
     media?: GetMediaType[];
+    changelogs?: ChangelogType[];
     isPinned?: boolean;
     isReadable?: boolean;
 };
@@ -98,6 +100,7 @@ export type GetDraftCharacterItemType = Omit<
     notifications: GetNotificationCollection;
     isCharacterInAnyCollections: boolean;
     media?: GetMediaType[];
+    changelogs?: ChangelogType[];
     isPinned?: boolean;
 };
 

@@ -18,6 +18,7 @@ import { DraftCharacterRowItemType } from "../../../../_common/types/characters/
 import { DraftCharacterFieldItemType } from "../../../../_common/types/characters/field.type.js";
 import { DraftCharacterValueType } from "../../../../_common/types/characters/value.type.js";
 import updateCharacterLastEditedDate from "../../helpers/updateCharacterLastUpdatedDate.js";
+import { ChangelogType } from "../../../../_common/types/changelogs.type.js";
 
 type CharacterContentMediaType = MediaType & {
     fieldId: string;
@@ -127,6 +128,15 @@ export const publishCharacterController = async (req: Request, res: Response) =>
         );
 
         assertDbSuccess(sourceMediaContent);
+
+        const sourceChangelogs = db.changelogs.query<ChangelogType>(
+            `SELECT *
+             FROM drafts
+             WHERE assetId = ?`,
+            [data.id]
+        );
+
+        assertDbSuccess(sourceChangelogs);
 
         const updatedDate = updateCharacterLastEditedDate(id as string);
 
@@ -436,6 +446,27 @@ export const publishCharacterController = async (req: Request, res: Response) =>
                     media.credit ?? null,
                     media.addedBy,
                     media.date
+                ]
+            );
+
+            assertDbSuccess(result);
+        });
+
+        sourceChangelogs.rows.forEach(changelog => {
+            const result = db.changelogs.query(
+                `INSERT INTO published (
+                    assetId,
+                    text,
+                    addedBy,
+                    date
+                ) VALUES (?, ?, ?, ?)
+                ON CONFLICT(assetId, addedBy, date) DO UPDATE SET
+                    text = excluded.text`,
+                [
+                    data.id,
+                    changelog.text,
+                    changelog.addedBy,
+                    changelog.date
                 ]
             );
 

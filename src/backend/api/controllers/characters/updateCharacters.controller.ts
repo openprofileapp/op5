@@ -15,6 +15,7 @@ import { DraftCharacterType } from "../../../../_common/types/characters/charact
 import { MediaType } from "../../../../_common/types/media.type.js";
 import { InterestsService } from "../../services/interests.service.js";
 import updateCharacterLastEditedDate from "../../helpers/updateCharacterLastUpdatedDate.js";
+import { ChangelogType } from "../../../../_common/types/changelogs.type.js";
 
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
 const VALID_SEND_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
@@ -78,7 +79,8 @@ export const updateCharacters = async (req: Request, res: Response) => {
             "visibility",
             "readVisibility",
             "sendComments",
-            "media"
+            "media",
+            "changelogs"
         ]);
 
         let uploadedAvatar;
@@ -109,6 +111,7 @@ export const updateCharacters = async (req: Request, res: Response) => {
         const updates: string[] = [];
         const values: unknown[] = [];
         let media: MediaType[] | undefined;
+        let changelogs: ChangelogType[] | undefined;
 
         // eslint-disable-next-line prefer-const
         for (let [key, value] of Object.entries(data)) {
@@ -125,6 +128,18 @@ export const updateCharacters = async (req: Request, res: Response) => {
                 }
 
                 media = value;
+                continue;
+            }
+
+            if (key === "changelogs") {
+                if (!Array.isArray(value)) {
+                    throw new AdvancedError({
+                        code: 400,
+                        message: i18n.t("responses.malformedRequest")
+                    });
+                }
+
+                changelogs = value;
                 continue;
             }
 
@@ -275,7 +290,7 @@ export const updateCharacters = async (req: Request, res: Response) => {
             values.push(typeof value === "boolean" ? (value ? 1 : 0) : value);
         }
 
-        if (updates.length === 0 && !media) {
+        if (updates.length === 0 && !media && !changelogs) {
             throw new AdvancedError({
                 code: 400,
                 message: i18n.t("responses.malformedRequest")
@@ -375,6 +390,77 @@ export const updateCharacters = async (req: Request, res: Response) => {
             );
 
             assertDbSuccess(insertResult);
+        }
+
+        if (changelogs) {
+            const validChangelogs = changelogs.filter(
+                (m): m is ChangelogType =>
+                    Boolean(m && typeof m.text === "string" && typeof m.date === "string")
+            );
+
+            const result = db.changelogs.query<ChangelogType>(
+                "SELECT * FROM drafts WHERE assetId = ?",
+                [id]
+            );
+
+            assertDbSuccess(result);
+
+            const existingChangelogs = result.rows ?? [];
+
+            const existingMap = new Map(
+                existingChangelogs.map(item => [item.date, item])
+            );
+
+            const incomingMap = new Map(
+                validChangelogs.map(item => [item.date, item])
+            );
+
+            for (const existing of existingChangelogs) {
+                if (!incomingMap.has(existing.date)) {
+                    const deleteResult = db.changelogs.query(
+                        `DELETE FROM drafts
+                        WHERE assetId = ? AND addedBy = ? AND date = ? LIMIT 1`,
+                        [id, existing.addedBy, existing.date]
+                    );
+
+                    assertDbSuccess(deleteResult);
+                }
+            }
+
+            for (const incoming of incomingMap.values()) {
+                const existing = existingMap.get(incoming.date);
+
+                if (!existing) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    const insertResult = db.changelogs.query(
+                        `INSERT INTO drafts (assetId, text, addedBy, date)
+                        VALUES (?, ?, ?, ?)`,
+                        [
+                            id,
+                            incoming.text,
+                            req.session.userId,
+                            incoming.date
+                        ]
+                    );
+
+                    assertDbSuccess(insertResult);
+                } else if (existing.text !== incoming.text) {
+                    const updateResult = db.changelogs.query(
+                        `UPDATE drafts
+                        SET text = ?
+                        WHERE assetId = ? AND addedBy = ? AND date = ?`,
+                        [
+                            incoming.text,
+                            id,
+                            existing.addedBy,
+                            existing.date
+                        ]
+                    );
+
+                    assertDbSuccess(updateResult);
+                }
+            }
         }
 
         const interests = new InterestsService(currentCharacter.ownerId);

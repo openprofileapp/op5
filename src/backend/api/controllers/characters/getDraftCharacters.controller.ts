@@ -27,6 +27,7 @@ export const getDraftCharacters = async (req: Request, res: Response) => {
             limit = config.limits.assetsPerPage,
             q: query,
             includeMedia,
+            includeChangelogs,
             isTrash
         } = req.query;
 
@@ -46,6 +47,7 @@ export const getDraftCharacters = async (req: Request, res: Response) => {
             query: query as string,
             getAs: req.session.userId || req.ip,
             includeMedia: includeMedia === "true",
+            includeChangelogs: includeChangelogs === "true" ? true : false,
             isTrash: isTrash === "true"
         });
 

@@ -97,6 +97,13 @@ export const unpublishCharacterController = async (req: Request, res: Response) 
 
         assertDbSuccess(deleteMediaContentResult);
 
+        const deleteChangelogsResult = db.changelogs.query(
+            "DELETE FROM published WHERE assetId = ?",
+            [id]
+        );
+
+        assertDbSuccess(deleteChangelogsResult);
+
         return res.status(201).json({ ok: true });
     } catch (error) {
         if (error instanceof AdvancedError) {

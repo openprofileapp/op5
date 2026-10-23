@@ -25,7 +25,8 @@ const paths = {
     advertisements: "data/databases/advertisements.sqlite",
     templates: "data/databases/templates.sqlite",
     blocks: "data/databases/blocks.sqlite",
-    articles: "data/databases/articles.sqlite"
+    articles: "data/databases/articles.sqlite",
+    changelogs: "data/databases/changelogs.sqlite"
 }
 
 export const db = {
@@ -45,7 +46,8 @@ export const db = {
     advertisements: new Database(paths.advertisements),
     templates: new Database(paths.templates),
     blocks: new Database(paths.blocks),
-    articles: new Database(paths.articles)
+    articles: new Database(paths.articles),
+    changelogs: new Database(paths.changelogs)
 };
 
 db.audits.transaction(q => {
@@ -530,6 +532,18 @@ db.articles.transaction(q => {
     };
 });
 
+db.changelogs.transaction(q => {
+    if (!q("SELECT * FROM drafts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/changelogs/drafts.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM published LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/changelogs/published.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+});
+
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
@@ -537,6 +551,7 @@ db.characters.query(`ATTACH DATABASE '${paths.media}' AS media`);
 db.characters.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
 db.characters.query(`ATTACH DATABASE '${paths.notifications}' AS notifications`);
 db.characters.query(`ATTACH DATABASE '${paths.links}' AS links`);
+db.characters.query(`ATTACH DATABASE '${paths.changelogs}' AS changelogs`);
 
 db.users.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.users.query(`ATTACH DATABASE '${paths.awards}' AS awards`);

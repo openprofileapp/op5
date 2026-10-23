@@ -30,7 +30,7 @@ async function fetchData<T>(
     if (query) params.set("q", query);
     params.set("page", page.toString());
 
-    const res = await fetch(`${apiBaseUrl}/v3/${endpoint}?${params.toString()}&includeMedia=true`, {
+    const res = await fetch(`${apiBaseUrl}/v3/${endpoint}?${params.toString()}&includeMedia=true&includeChangelogs=true`, {
         credentials: "include",
     });
     const data = await res.json();

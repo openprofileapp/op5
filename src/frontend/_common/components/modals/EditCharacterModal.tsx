@@ -22,6 +22,7 @@ import { GetDraftCharacterItemType } from "../../../../_common/types/characters/
 import CharacterCard from "../CharacterCard.js";
 import { GetMediaType } from "../../../../_common/types/media.type.js";
 import { useModals } from "../../hooks/ModalContext.hook.js";
+import { formatShortRelative } from "../../scripts/time.js";
 
 export interface EditCharacterModalRef {
     open: (
@@ -32,6 +33,12 @@ export interface EditCharacterModalRef {
 }
 
 type MediaItem = NonNullable<GetDraftCharacterItemType["media"]>[number] & { _id: string };
+
+type ChangeLogItem = {
+    _id: string;
+    date: string;
+    text: string;
+};
 
 interface SortableMediaItemProps {
     item: MediaItem;
@@ -187,6 +194,87 @@ function SortableMediaItem({
     );
 }
 
+interface ChangeLogEntryProps {
+    item: ChangeLogItem;
+    index: number;
+    isLast: boolean;
+    onChange: (id: string, update: Partial<ChangeLogItem>) => void;
+    onDelete: (id: string) => void;
+}
+
+function ChangeLogEntry({
+    item,
+    index,
+    isLast,
+    onChange,
+    onDelete,
+}: ChangeLogEntryProps) {
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const [date, setDate] = useState<string>(formatShortRelative(item.date));
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDate(formatShortRelative(item.date));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [item.date]);
+
+    return (
+        <div
+            className={`
+                w-full border border-base-300
+                transition-colors
+                ${index % 2 === 0 ? "bg-base-200" : "bg-[#151515]"}
+                ${index === 0 ? "rounded-t" : ""}
+                ${isLast ? "rounded-b" : ""}
+            `}
+        >
+            <div className="flex items-center gap-3 p-3">
+                <button
+                    type="button"
+                    className="flex-1 flex items-center h-8 gap-3 text-left min-w-0 cursor-pointer"
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                >
+                    <span className="font-nerdfont leading-none text-center text-sm w-4">
+                        {isExpanded ? "" : ""}
+                    </span>
+
+                    <span className="text-sm text-sub">
+                        {date}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    className="text-error w-8 cursor-pointer shrink-0"
+                    onClick={() => onDelete(item._id)}
+                    aria-label="Delete change log entry"
+                >
+                    <span className="font-nerdfont text-lg leading-none">
+                        
+                    </span>
+                </button>
+            </div>
+
+            {isExpanded && (
+                <div className="px-3 pb-3 flex flex-col gap-3">
+                    <textarea
+                        className="textarea w-full resize-none min-h-42"
+                        placeholder="Describe what's new so readers can quickly navigate changes. It is recommended to add a changelog everytime you update your character."
+                        value={item.text}
+                        onChange={(e) =>
+                            onChange(item._id, {
+                                text: e.target.value,
+                            })
+                        }
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
 const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
     const { publishModal, unpublishModal } = useModals();
@@ -238,8 +326,13 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                     ...m,
                     _id: (m as MediaItem)._id || `media-${Date.now()}-${i}`,
                 })) as GetMediaType[];
-            } else {
-                cloned.links = [];
+            }
+
+            if (cloned.changelogs) {
+                cloned.changelogs = cloned.changelogs.map((item, i) => ({
+                    ...item,
+                    _id: `changelog-${item.date}-${i}`,
+                })) as GetDraftCharacterItemType["changelogs"];
             }
 
             setData(cloned);
@@ -366,6 +459,54 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
             return {
                 ...prev,
                 media: (prev.media as MediaItem[]).filter(
+                    (item) => item._id !== id
+                ),
+            };
+        });
+    };
+
+    const changelogs: ChangeLogItem[] = 
+        (data?.changelogs as ChangeLogItem[]) || [];
+
+    const handleChangeLogUpdate = (
+        id: string,
+        update: Partial<ChangeLogItem>
+    ) => {
+        setData((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                changelogs: ((prev.changelogs as ChangeLogItem[]) || []).map(
+                    (item) =>
+                        item._id === id
+                            ? { ...item, ...update }
+                            : item
+                ),
+            };
+        });
+    };
+
+    const handleAddChangeLog = () => {
+        const newEntry: ChangeLogItem = {
+            _id: `change-${Date.now()}`,
+            date: new Date().toISOString(),
+            text: "",
+        };
+
+        handleFieldChange("changelogs", [
+            newEntry,
+            ...changelogs,
+        ] as GetDraftCharacterItemType["changelogs"]);
+    };
+
+    const handleDeleteChangeLog = (id: string) => {
+        setData((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                changelogs: ((prev.changelogs as unknown as ChangeLogItem[]) || []).filter(
                     (item) => item._id !== id
                 ),
             };
@@ -552,6 +693,16 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                                 onClick={() => setActiveTab("media")}
                             >
                                 Media
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`tab bg-base-200 flex-1 ${
+                                    activeTab === "changes" ? "tab-active" : ""
+                                }`}
+                                onClick={() => setActiveTab("changes")}
+                            >
+                                Changes
                             </button>
 
                             <button
@@ -883,6 +1034,39 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                                                 </span>
                                             </button>
                                         )}
+                                    </div>
+                                </fieldset>
+                            )}
+
+                            {activeTab === "changes" && (
+                                <fieldset className="fieldset w-full">
+                                    <div className="flex flex-col">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddChangeLog}
+                                            className="
+                                                mb-3 cursor-pointer
+                                                border-2 border-dashed border-base-300
+                                                rounded flex items-center justify-center
+                                                py-3 transition-colors
+                                                text-sm opacity-70 hover:opacity-100
+                                            "
+                                        >
+                                            <span className="font-nerdfont text-lg">
+                                                
+                                            </span>
+                                        </button>
+
+                                        {changelogs.map((item, index) => (
+                                            <ChangeLogEntry
+                                                key={item._id}
+                                                item={item}
+                                                index={index}
+                                                isLast={index === changelogs.length - 1}
+                                                onChange={handleChangeLogUpdate}
+                                                onDelete={handleDeleteChangeLog}
+                                            />
+                                        ))}
                                     </div>
                                 </fieldset>
                             )}

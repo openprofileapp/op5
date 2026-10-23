@@ -19,7 +19,8 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             owner, 
             page, 
             limit = config.limits.assetsPerPage,
-            includeMedia
+            includeMedia,
+            includeChangelogs
         } = req.query;
 
         const offset = 
@@ -35,7 +36,8 @@ export const getRecentFollowingPublishedCharacters = async (req: Request, res: R
             limit: limit as number, 
             getAs: req.session.userId || req.ip,
             getFrom: "home",
-            includeMedia: includeMedia === "true" ? true : false
+            includeMedia: includeMedia === "true" ? true : false,
+            includeChangelogs: includeChangelogs === "true" ? true : false
         })
 
         res.status(200).json({
