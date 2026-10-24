@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
@@ -81,6 +81,7 @@ export default function UserProfile() {
     const { handleViewInteraction } = useInteractions();
     const [searchParams, setSearchParams] = useSearchParams();
     const viewCharacterId = searchParams.get("view");
+    const openingCharacterRef = useRef<string | null>(null);
 
     const query = searchParams.get("query") || "";
     const sortBy = searchParams.get("sortBy") || "popularDesc";
@@ -135,10 +136,15 @@ export default function UserProfile() {
     const [isBlockInteractionLoading, setIsBlockInteractionLoading] = useState<boolean>(false);
     const [isBlockRevealed, setIsBlockRevealed] = useState<boolean>(false);
 
-    const [isViewed, setIsViewed] = useState<boolean>(false);
-    const [isViewInteractionLoading, setIsViewInteractionLoading] = useState<boolean>(false);
-    const [lastViewDate, setLastViewDate] = useState<string>("");
-    const [viewCount, setViewCount] = useState<string>(0);
+    const [isUserViewed, setIsUserViewed] = useState(false);
+    const [isViewUserInteractionLoading, setIsViewUserInteractionLoading] = useState(false);
+    const [lastViewUserDate, setLastViewUserDate] = useState("");
+    const [viewUserCount, setViewUserCount] = useState(0);
+
+    const [isCharacterViewed, setIsCharacterViewed] = useState(false);
+    const [isViewCharacterInteractionLoading, setIsViewCharacterInteractionLoading] = useState(false);
+    const [lastViewCharacterDate, setLastViewCharacterDate] = useState("");
+    const [viewCharacterCount, setViewCharacterCount] = useState(0);
 
     useUnsavedChangesWarning(isEditingAbout);
 
@@ -308,12 +314,12 @@ export default function UserProfile() {
                 // @ts-ignore
                 await handleViewInteraction(
                     data,
-                    isViewInteractionLoading,
-                    lastViewDate,
-                    setIsViewed,
-                    setIsViewInteractionLoading,
-                    setLastViewDate,
-                    setViewCount
+                    isViewUserInteractionLoading,
+                    lastViewUserDate,
+                    setIsUserViewed,
+                    setIsViewUserInteractionLoading,
+                    setLastViewUserDate,
+                    setViewUserCount
                 );
             } catch (err) {
                 console.error(err);
@@ -373,6 +379,10 @@ export default function UserProfile() {
     useEffect(() => {
         if (!viewCharacterId || !data?.id) return;
 
+        if (openingCharacterRef.current === viewCharacterId) return;
+
+        openingCharacterRef.current = viewCharacterId;
+
         const openCharacter = async () => {
             try {
                 let character = characters.find(
@@ -381,43 +391,54 @@ export default function UserProfile() {
 
                 if (!character) {
                     const res = await fetch(
-                        `${apiBaseUrl}/v3/characters?id=${viewCharacterId}&includeMedia=true&includeChangelogs=true`, 
+                        `${apiBaseUrl}/v3/characters?id=${viewCharacterId}&includeMedia=true&includeChangelogs=true`,
                         { credentials: "include" }
                     );
 
                     if (!res.ok) {
-                        console.error(
-                            `Failed to fetch character ${viewCharacterId}:`,
-                            res.status
+                        throw new Error(
+                            `Failed to fetch character ${viewCharacterId}: ${res.status}`
                         );
-                        return;
                     }
 
                     const json = await res.json();
 
                     character = json?.item ?? json?.items?.[0] ?? json;
+                }
 
-                    if (!character?.id) {
-                        console.error("Character not found:", json);
-                        return;
-                    }
+                if (!character?.id) {
+                    throw new Error(`Character not found: ${viewCharacterId}`);
                 }
 
                 characterModal.open(character as GetPublishedCharacterItemType);
 
-                const params = new URLSearchParams(window.location.search);
-                params.delete("view");
-
-                history.replaceState(null,"",
-                    `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`
+                await handleViewInteraction(
+                    character,
+                    isViewCharacterInteractionLoading,
+                    lastViewCharacterDate,
+                    setIsCharacterViewed,
+                    setIsViewCharacterInteractionLoading,
+                    setLastViewCharacterDate,
+                    setViewCharacterCount
                 );
+
+                setSearchParams((prev) => {
+                    const params = new URLSearchParams(prev);
+                    params.delete("view");
+                    return params;
+                }, { replace: true });
+
             } catch (error) {
                 console.error("Failed to open character modal:", error);
+            } finally {
+                if (openingCharacterRef.current === viewCharacterId) {
+                    openingCharacterRef.current = null;
+                }
             }
         };
 
-        openCharacter();
-    }, [characterModal, characters, data?.id, setSearchParams, viewCharacterId]);
+        void openCharacter();
+    }, [characterModal, characters, data?.id, handleViewInteraction, isViewCharacterInteractionLoading, lastViewCharacterDate, setSearchParams, viewCharacterId]);
 
     const contextMenuBuilder = ContextMenuBuilder({
         data: data!,
