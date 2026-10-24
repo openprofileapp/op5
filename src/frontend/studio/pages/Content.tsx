@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -9,10 +9,15 @@ import { Pagination } from "../../main/components/Pagination.js";
 import CharacterCard from "../../_common/components/CharacterCard.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 
 export default function Content() {
     const { t, ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { characterModal } = useModals();
+
+    const viewCharacterId = searchParams.get("view");
+    const openingCharacterRef = useRef<string | null>(null);
 
     const query = searchParams.get("q") || "";
     const sortBy = searchParams.get("sortBy") || "recent";
@@ -22,6 +27,61 @@ export default function Content() {
 
     const [characters, setCharacters] = useState<GetDraftCharacterItemType[]>([]);
     const [areCharactersLoading, setAreCharactersLoading] = useState(true);
+
+    useEffect(() => {
+        if (!viewCharacterId) return;
+
+        if (openingCharacterRef.current === viewCharacterId) return;
+
+        openingCharacterRef.current = viewCharacterId;
+
+        const openCharacter = async () => {
+            try {
+                let character = characters.find(
+                    (item) => String(item.id) === viewCharacterId
+                );
+
+                if (!character) {
+                    const res = await fetch(
+                        `${apiBaseUrl}/v3/characters/drafts?id=${encodeURIComponent(viewCharacterId)}&includeMedia=true&includeChangelogs=true`,
+                        { credentials: "include" }
+                    );
+
+                    if (!res.ok) {
+                        throw new Error(
+                            `Failed to fetch draft character ${viewCharacterId}: ${res.status}`
+                        );
+                    }
+
+                    const json = await res.json();
+
+                    character = json?.item ?? json?.items?.[0] ?? json;
+                }
+
+                if (!character?.id) {
+                    throw new Error(
+                        `Draft character not found: ${viewCharacterId}`
+                    );
+                }
+
+                characterModal.open(character as GetDraftCharacterItemType);
+
+                setSearchParams((prev) => {
+                    const params = new URLSearchParams(prev);
+                    params.delete("view");
+                    return params;
+                }, { replace: true });
+            } catch (error) {
+                console.error("Failed to open draft character modal:", error);
+            } finally {
+                if (openingCharacterRef.current === viewCharacterId) {
+                    openingCharacterRef.current = null;
+                }
+            }
+        };
+
+        void openCharacter();
+    }, [viewCharacterId, characters, characterModal, setSearchParams]);
 
     const handleSearchChange = (newQuery: string) => {
         setSearchParams(
