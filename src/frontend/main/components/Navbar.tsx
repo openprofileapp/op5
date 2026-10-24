@@ -370,7 +370,7 @@ export default function Navbar() {
                             <hr></hr>
                             <Link className="link-hover" to="/account/dashboard">Dashboard</Link>
                             <Link className="link-hover" to="/account/library">My library</Link>
-                            <Link className="link-hover" to="/account/partners">Partner Stats</Link>
+                            <Link className="link-hover" to="/account/partner">Partner Stats</Link>
                         </ul>
                     </div>
                 </div>

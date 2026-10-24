@@ -358,7 +358,7 @@ export default function NavbarUser() {
                         <li>
                             <Link
                                 className="flex items-center justify-between gap-4"
-                                to={`/account/partners`}
+                                to={`/account/partner`}
                                 onClick={closeContextMenu}
                             >
                                 Partner Stats
