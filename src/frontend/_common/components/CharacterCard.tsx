@@ -18,7 +18,6 @@ type Props = {
     isPinVisible?: boolean;
     doesUnpinDismiss?: boolean;
     setRefetchPins?: Dispatch<SetStateAction<boolean>>;
-    displayNotification?: boolean;
     isHomeScreen?: boolean;
     isUserProfile?: boolean;
     isStudio?: boolean;
@@ -32,7 +31,6 @@ export default function CharacterCard({
     doesUnpinDismiss = false,
     setRefetchPins,
     isPreview = false,
-    displayNotification = false,
     isHomeScreen = false,
     isUserProfile = false,
     isStudio = false,
@@ -52,7 +50,6 @@ export default function CharacterCard({
 
     const [data, setData] = useState<GetPublishedCharacterItemType>(rawData);
 
-    const [hasNotification] = useState<boolean>(displayNotification);
     const [hasSeenNotification, setHasSeenNotification] = useState<boolean>(false);
 
     const [isSensitive] = useState<boolean>(Boolean(data.isSensitive));
@@ -174,6 +171,13 @@ export default function CharacterCard({
         };
 
     const avatarClassList = "mask-graident absolute z-1 top-0 left-0 rounded-t-lg h-[221px] w-full object-cover";
+
+    const hasNotification = (
+        data.owner?.id !== window.session?.userId &&
+        Boolean(data.interactions?.follows?.hasInteracted) &&
+        new Date(data.updatedDate).getTime() >
+            new Date(data.interactions?.views?.latestDate || 0).getTime()
+    );
 
     return (
         <div
@@ -305,7 +309,10 @@ export default function CharacterCard({
             )}
             
             {(hasNotification && !hasSeenNotification) && (
-                <div className="absolute top-[-5px] right-[-5px] bg-accent h-5 w-5 rounded-full z-11" />
+                <>
+                    <div className="absolute top-[-5px] right-[-5px] bg-accent h-5 w-5 rounded-full z-11" />
+                    <div className="absolute top-[-5px] right-[-5px] bg-accent h-5 w-5 rounded-full z-11 animate-ping" />
+                </>
             )}
 
             <div className="absolute top-[7px] left-[14px] z-2 flex items-center gap-4">
