@@ -385,24 +385,21 @@ export default function UserProfile() {
     }, [data?.id, fetchCharacters]);
 
     useEffect(() => {
-        if (tabs.length <= 1) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setActiveTab(defaultTab);
-            
-            return;
-        }
+        if (tabs.length === 0) return;
 
         const updateTab = () => {
-            const hashTab = window.location.hash.replace("#", "");
-            const isTabValid = tabs.some((tab) => tab.id === hashTab);
-            setActiveTab(isTabValid ? hashTab : defaultTab);
+            const path = window.location.pathname.replace(/\/+$/, "");
+            const pathTab = path.split("/").pop() || "";
+            const isTabValid = tabs.some((tab) => tab.id === pathTab);
+
+            setActiveTab(isTabValid ? pathTab : defaultTab);
         };
 
-        window.addEventListener("hashchange", updateTab);
+        window.addEventListener("popstate", updateTab);
         updateTab();
 
         return () => {
-            window.removeEventListener("hashchange", updateTab);
+            window.removeEventListener("popstate", updateTab);
         };
     }, [tabs, defaultTab]);
 
@@ -553,11 +550,23 @@ export default function UserProfile() {
             return;
         }
 
-        const search = window.location.search;
-        const hash = tab === defaultTab ? "" : `#${tab}`;
-        const newUrl = `${window.location.pathname}${hash}${search}`;
+        const currentPath = window.location.pathname.replace(/\/+$/, "");
+        const pathParts = currentPath.split("/");
+        const currentLastPart = pathParts[pathParts.length - 1];
 
-        history.replaceState(null, "", newUrl);
+        const isCurrentTab = tabs.some((item) => item.id === currentLastPart);
+
+        const basePath = isCurrentTab
+            ? pathParts.slice(0, -1).join("/")
+            : currentPath;
+
+        const newPath = tab === defaultTab
+            ? basePath
+            : `${basePath}/${tab}`;
+
+        const search = window.location.search;
+
+        navigate(`${newPath}${search}`, { replace: true });
         setActiveTab(tab);
     };
 

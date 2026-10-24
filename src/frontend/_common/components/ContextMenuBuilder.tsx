@@ -444,7 +444,7 @@ export function ContextMenuBuilder({
             >
                 <a 
                     className={`justify-between ${props.isQuickAction && quickActionClassList}`}
-                    href={`${studioBaseUrl}/character/${data.id}${formatDisplayNameToUrl(data.displayName || "")}`}
+                    href={`${studioBaseUrl}/content?view=${data.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >

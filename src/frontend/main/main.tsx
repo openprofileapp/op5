@@ -98,7 +98,7 @@ const router = createBrowserRouter([
             { path: "/account/library", element: <ComingSoon /> },
             { path: "/account/partners", element: <Partners /> },
 
-            { path: "/user/:id", element: <UserProfile /> },
+            { path: "/user/:id/:tab?", element: <UserProfile /> },
             { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
 
             ...markdownRoutes.flatMap(({ paths, fileName }) =>

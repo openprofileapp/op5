@@ -30,8 +30,8 @@ export const redirectController = async (req: Request, res: Response) => {
             config.domains.main +
             "/user/" +
             (ownerWhatIs.primaryUsername || ownerWhatIs.id) +
-            `?view=${encodeURIComponent(characterId)}` +
-            "#characters"
+            "/characters" +
+            `?view=${encodeURIComponent(characterId)}`
         );
     } catch(error) {
         if (error instanceof AdvancedError) {
