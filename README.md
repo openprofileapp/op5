@@ -10,4 +10,7 @@ To start the server, update "domains" in `app.config.ts` and generate valid SSL 
 `npm run translate` to translate `/public/locales`<br>
 `npm run update` to update all modules<br>
 `npm run build` to compile `/src` to `/dist`<br>
-`npm run clean` to delete `/dist` and `/logs`
+`npm run clean` to delete `/dist` and `/logs`<br><br>
+
+You may need to install Rust for the following:<br>
+`npm run dev:app` to develop offline desktop app in `/src-tauri`<br>
