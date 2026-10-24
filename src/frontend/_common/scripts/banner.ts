@@ -3,6 +3,7 @@ type BannerNameType =
     | "success"
     | "error"
     | "warning"
+    | "premium"
 ;
 
 export interface BannerButton {
