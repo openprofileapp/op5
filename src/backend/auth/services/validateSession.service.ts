@@ -234,7 +234,7 @@ export default async function validateSession(
             !inviteData?.isSuspended && inviteData?.usesLeft > 0)
         ) {
             res.cookie("inviteCode", inviteCode, {
-                httpOnly: true,
+                httpOnly: false,
                 secure: true,
                 sameSite: "none",
                 domain: `.${url.domain}`,
@@ -245,7 +245,7 @@ export default async function validateSession(
     } else {
         // Refesh the cookie so it doesn't expire
         res.cookie("inviteCode", inviteCode, {
-            httpOnly: true,
+            httpOnly: false,
             secure: true,
             sameSite: "none",
             domain: `.${url.domain}`,
