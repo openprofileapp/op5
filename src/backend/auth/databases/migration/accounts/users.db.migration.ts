@@ -10,13 +10,15 @@ db.accounts.transaction(q => {
     if (!result.success) return log.db.error(result.error).save();
 
     for (const d of result.rows) {
+        const oldPermissions = d.permissions;
+
         d.permissions = PlatformPermissionsService.getRole("premium").value;
 
-        if (d.permissions === "1475740088846717550655") {
+        if (oldPermissions === "1475740088846717550655") {
             d.permissions = PlatformPermissionsService.getRole("partner").value;
         }
 
-        if (d.permissions === "295159727130459242527") {
+        if (oldPermissions === "295159727130459242527") {
             const permissions = [
                 ...PlatformPermissionsService.getRole("staff").array,
                 ...PlatformPermissionsService.getRole("moderator").array,
@@ -25,7 +27,7 @@ db.accounts.transaction(q => {
             d.permissions = PlatformPermissionsService.encode(permissions);
         }
 
-        if (d.permissions === "36028797018963968") {
+        if (oldPermissions === "36028797018963968") {
             d.permissions = PlatformPermissionsService.getRole("admin").value;
         }
 
