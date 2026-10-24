@@ -107,7 +107,7 @@ export default function Navbar() {
     useEffect(() => {
         if (!isSearchEditingRef.current) return;
 
-        const trimmed = query.trim();
+        const trimmed = query
 
         if (trimmed && pathname !== "/search") return;
 
@@ -293,8 +293,6 @@ export default function Navbar() {
                             )}
                         </label>
                     </form>
-
-                    {/* While typing, first navigate to /search, then add ?q= after 300ms. On clear, return to the previous page. */}
 
                     {window.session?.userId && (
                         <>
