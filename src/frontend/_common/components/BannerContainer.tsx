@@ -10,6 +10,7 @@ export default function BannerContainer() {
         success: "bg-success text-success-content border-success",
         warning: "bg-warning text-warning-content border-warning",
         error: "bg-error text-error-content border-error",
+        premium: "bg-premium text-[#1a1a1a] border-premium"
     };
 
     useEffect(() => {
@@ -54,7 +55,7 @@ export default function BannerContainer() {
 
                                 <div className="flex items-center justify-center gap-3 text-center">
                                     <div className="flex flex-col text-center">
-                                        <span className="font-medium text-sm text-white leading-snug">
+                                        <span className={`font-medium text-sm ${b.type === "premium" ? "text-[#1a1a1a]" : "text-white"} leading-snug`}>
                                             {b.message}
                                         </span>
                                         {b.subtext && (
@@ -67,7 +68,7 @@ export default function BannerContainer() {
                                     {b.button && isTop && (
                                         <button
                                             onClick={b.button.onClick}
-                                            className="btn btn-outline border-white text-white hover:bg-transparent hover:border-white px-6 h-9"
+                                            className={`btn btn-outline ${b.type === "premium" ? "border-[#1a1a1a] text-[#1a1a1a] hover:border-[#1a1a1a]" : "border-white text-white hover:border-white"} hover:bg-transparent px-6 h-9`}
                                         >
                                             {b.button.label}
                                         </button>
