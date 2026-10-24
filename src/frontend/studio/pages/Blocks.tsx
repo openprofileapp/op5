@@ -8,7 +8,7 @@ import { formatNumber } from "kage-library/client";
 
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
-import { Pagination } from "../../main/components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { BlockItemType } from "../../../_common/types/blocks/block.type.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";

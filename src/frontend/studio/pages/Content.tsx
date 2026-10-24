@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { GetDraftCharacterItemType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
-import { Pagination } from "../../main/components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import CharacterCard from "../../_common/components/CharacterCard.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";

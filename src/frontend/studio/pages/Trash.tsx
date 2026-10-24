@@ -9,7 +9,7 @@ import Metadata from "../../_common/components/Metadata.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import CharacterCard from "../../_common/components/CharacterCard.js";
-import { Pagination } from "../../main/components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import TemplateCard from "../../_common/components/TemplateCard.js";
 
 type TabType = "characters" | "templates";

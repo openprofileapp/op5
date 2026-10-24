@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
-import { Pagination } from "../../main/components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 import { DatasetItemType, GetDatasetItemType } from "../../../_common/types/template/dataset.type.js";
 import { DropdownOptionsType } from "../../../_common/types/dropdown.type.js";

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 import Metadata from "../../_common/components/Metadata.js";
-import { Pagination } from "../../main/components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
 import { GetTemplateItemType } from "../../../_common/types/template/template.type.js";
 import TemplateCard from "../../_common/components/TemplateCard.js";

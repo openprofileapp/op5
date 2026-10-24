@@ -7,7 +7,7 @@ import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCar
 import ProjectCard from "../components/ProjectCard.js";
 import UserCard from "../components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
-import { Pagination } from "../components/Pagination.js";
+import { Pagination } from "../../_common/components/Pagination.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
 import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
