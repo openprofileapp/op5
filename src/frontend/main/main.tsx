@@ -122,6 +122,11 @@ async function bootstrap() {
         await verifySession();
         await getImportantChanges();
 
+        const url = new URL(window.location.href);
+        url.searchParams.delete("invite");
+
+        window.history.replaceState(window.history.state, "", url);
+
         if (window.session?.userId) {
             const response = await fetch(
                 `${apiBaseUrl}/v3/users?id=${window.session.userId}`,
@@ -204,11 +209,6 @@ async function bootstrap() {
             && cookie.get("inviteCode") 
             && !window.session?.userId
         ) {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("invite");
-
-            window.history.replaceState(window.history.state, "", url);
-
             const inviteRes = await fetch(
                 `${apiBaseUrl}/v3/invites/code/${cookie.get("inviteCode")}`,
                 { credentials: "include" }
