@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
-import { createBrowserRouter, Navigate, RouterProvider, Outlet } from "react-router-dom"
+import { createBrowserRouter, Navigate, RouterProvider, Outlet, Link } from "react-router-dom"
 import { HelmetProvider } from "react-helmet-async"
 import { I18nextProvider } from "react-i18next"
 
@@ -8,7 +8,7 @@ import i18n from "../_common/i18n.js"
 import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
-import { apiBaseUrl } from "../_common/scripts/domains.js"
+import { apiBaseUrl, mainBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
 import { verifySession } from "../_common/scripts/session.js"
 import { applyTheme, fonts } from "../_common/scripts/themes.js"
@@ -43,6 +43,8 @@ import Maintenance from "../_common/pages/Maintenance.js"
 import UserProfile from "./pages/UserProfile.js"
 import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
 import Read from "./pages/Read.js"
+import { WhatIsType } from "../../_common/types/whatIs.type.js"
+import { InviteType } from "../../_common/types/invite.type.js"
 
 const markdownRoutes = [
     {
@@ -96,7 +98,7 @@ const router = createBrowserRouter([
 
             { path: "/account/onboarding", element: <Onboarding /> },
             { path: "/account/library", element: <ComingSoon /> },
-            { path: "/account/partners", element: <Partners /> },
+            { path: "/account/partner", element: <Partners /> },
 
             { path: "/user/:id/:tab?", element: <UserProfile /> },
             { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
@@ -192,6 +194,66 @@ async function bootstrap() {
                         onClick: () => {
                             localStorage.setItem("hasSeenBetaBanner", "true");
                         } 
+                    }
+                }
+            );
+        }
+
+        if (
+            !localStorage.getItem("hasSeenInviteBanner") 
+            && cookie.get("inviteCode") 
+            && !window.session?.userId
+        ) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("invite");
+
+            window.history.replaceState(window.history.state, "", url);
+
+            const inviteRes = await fetch(
+                `${apiBaseUrl}/v3/invites/code/${cookie.get("inviteCode")}`,
+                { credentials: "include" }
+            );
+
+            if (!inviteRes.ok) {
+                throw new Error(`Failed to fetch invite: ${inviteRes.status}`);
+            }
+
+            const inviteResponse: InviteType = await inviteRes.json();
+
+            const whoIsRes = await fetch(
+                `${apiBaseUrl}/v3/whatis/${inviteResponse.ownerId}`,
+                { credentials: "include" }
+            );
+
+            if (!whoIsRes.ok) {
+                throw new Error(`Failed to fetch owner info: ${whoIsRes.status}`);
+            }
+
+            const whoIsResponse: WhatIsType = await whoIsRes.json();
+
+            banner.show(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                <>
+                    {whoIsResponse.displayName || whoIsResponse.primaryUsername || whoIsResponse.id} invited you to join OpenProfile with a gift of 30 days{" "}
+                    <Link to={`${mainBaseUrl}/premium`} className="underline">
+                        premium
+                    </Link>
+                    !
+                </>,
+                {
+                    type: "premium",
+                    button: {
+                        label: "Register",
+                        onClick: () => {
+                            const dialog = document.getElementById("login") as HTMLDialogElement | null;
+                            dialog?.showModal();
+                        }
+                    },
+                    closeAction: {
+                        onClick: () => {
+                            localStorage.setItem("hasSeenInviteBanner", "true");
+                        }
                     }
                 }
             );
