@@ -83,9 +83,12 @@ export default function UserProfile() {
     const viewCharacterId = searchParams.get("view");
     const openingCharacterRef = useRef<string | null>(null);
 
-    const query = searchParams.get("query") || "";
+    const query = searchParams.get("q") || "";
     const sortBy = searchParams.get("sortBy") || "popularDesc";
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
+
+    const [searchQuery, setSearchQuery] = useState(query);
+    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { handleFollowInteraction } = useInteractions();
 
@@ -171,16 +174,43 @@ export default function UserProfile() {
     const defaultTab = tabs[0]?.id || "about";
 
     const handleSearchChange = (newQuery: string) => {
-        setSearchParams((prev) => {
-            if (newQuery) {
-                prev.set("query", newQuery);
-            } else {
-                prev.delete("query");
-            }
-            prev.delete("page");
-            return prev;
-        }, { replace: true });
+        setSearchQuery(newQuery);
+
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        searchTimeoutRef.current = setTimeout(() => {
+            setSearchParams((prev) => {
+                const params = new URLSearchParams(prev);
+
+                if (newQuery.trim()) {
+                    params.set("q", newQuery.trim());
+                } else {
+                    params.delete("q");
+                }
+
+                params.delete("page");
+
+                return params;
+            }, { replace: true });
+
+            searchTimeoutRef.current = null;
+        }, 300);
     };
+
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSearchQuery(query);
+    }, [query]);
 
     const handlePageChange = (page: number) => {
         setSearchParams((prev) => {
@@ -1384,14 +1414,14 @@ export default function UserProfile() {
                                                                 
                                                             </span>
                                                             
-                                                            <input 
-                                                                type="search" 
+                                                            <input
+                                                                type="search"
                                                                 placeholder={t("pages.userProfile.searchCharacters")}
-                                                                value={query}
+                                                                value={searchQuery}
                                                                 onChange={(e) => handleSearchChange(e.target.value)}
                                                             />
 
-                                                            {query && (
+                                                            {searchQuery && (
                                                                 <button
                                                                     type="button"
                                                                     className="w-4 h-4 font-nerdfont leading-none text-base cursor-pointer bg-base-100"
