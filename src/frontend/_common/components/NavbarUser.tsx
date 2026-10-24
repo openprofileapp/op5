@@ -354,18 +354,20 @@ export default function NavbarUser() {
                         </Link>
                     </li>
 
-                    <li>
-                        <Link
-                            className="flex items-center justify-between gap-4"
-                            to={`/account/partners`}
-                            onClick={closeContextMenu}
-                        >
-                            Partner Stats
-                            <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
-                                
-                            </span>
-                        </Link>
-                    </li>
+                    {window.session.permissions.array.includes("PARTNER_ACCESS") && (
+                        <li>
+                            <Link
+                                className="flex items-center justify-between gap-4"
+                                to={`/account/partners`}
+                                onClick={closeContextMenu}
+                            >
+                                Partner Stats
+                                <span className="font-nerdfont text-lg flex w-4 leading-none items-center justify-center">
+                                    
+                                </span>
+                            </Link>
+                        </li>
+                    )}
 
                     <hr />
 
