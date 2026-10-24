@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client";
 
 import { GetUserItemType } from "../../../_common/types/user.type.js";
-import { useInteractions } from "../../_common/hooks/useInteractions.hook.js";
-import { ContextMenuBuilder } from "../../_common/components/ContextMenuBuilder.js";
-import { cdnBaseUrl } from "../../_common/scripts/domains.js";
-import Badges from "../../_common/components/Badges.js";
-import Presence from "../../_common/components/Presence.js";
+import { useInteractions } from "../hooks/useInteractions.hook.js";
+import { ContextMenuBuilder } from "./ContextMenuBuilder.js";
+import { cdnBaseUrl } from "../scripts/domains.js";
+import Badges from "./Badges.js";
+import Presence from "./Presence.js";
 
 type Props = {
     data: GetUserItemType;

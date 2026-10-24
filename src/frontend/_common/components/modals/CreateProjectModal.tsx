@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 
-import ProjectCard from "../../../main/components/ProjectCard.js";
+import ProjectCard from "../ProjectCard.js";
 import ImageInput from "../ImageInput.js";
 import { useObjectURL } from "../../hooks/useObjectURL.hook.js";
 

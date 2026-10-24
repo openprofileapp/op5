@@ -1,5 +1,5 @@
 import QRCodeStyling from "qr-code-styling";
-import { cdnBaseUrl } from "../../_common/scripts/domains.js";
+import { cdnBaseUrl } from "./domains.js";
 
 type Props = {
     format?: "png" | "svg";

@@ -6,7 +6,7 @@ import JSZip from "jszip";
 import { cdnBaseUrl } from "../../scripts/domains.js";
 import { toast } from "../../scripts/toast.js";
 import { formatNumber } from "kage-library/client";
-import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
+import { formatDisplayNameToUrl } from "../../scripts/formatDisplayNameToUrl.js";
 import Badges from "../Badges.js";
 import { GetAssetType } from "../../../../_common/types/asset.type.js";
 import { useInteractions } from "../../hooks/useInteractions.hook.js";

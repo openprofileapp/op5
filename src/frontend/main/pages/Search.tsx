@@ -8,7 +8,7 @@ import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCar
 import { GetPublishedCharacterItemType } from "../../../_common/types/characters/character.type.js";
 import { apiBaseUrl, cdnBaseUrl } from "../../_common/scripts/domains.js";
 import { GetUserItemType } from "../../../_common/types/user.type.js";
-import UserCard from "../components/UserCard.js";
+import UserCard from "../../_common/components/UserCard.js";
 
 type TabType = 
     | "characters"

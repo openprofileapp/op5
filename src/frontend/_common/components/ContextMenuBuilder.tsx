@@ -8,7 +8,7 @@ import { parseDuration } from 'kage-library/client';
 import { useInteractions } from '../hooks/useInteractions.hook.js';
 import { useTranslation } from 'react-i18next';
 import { GetAssetType } from '../../../_common/types/asset.type.js';
-import { formatDisplayNameToUrl } from '../../main/scripts/formatDisplayNameToUrl.js';
+import { formatDisplayNameToUrl } from '../scripts/formatDisplayNameToUrl.js';
 import { apiBaseUrl, cdnBaseUrl, studioBaseUrl } from '../scripts/domains.js';
 import { GetCollectionItemType } from '../../../_common/types/collection.type.js';
 import { toast } from '../scripts/toast.js';

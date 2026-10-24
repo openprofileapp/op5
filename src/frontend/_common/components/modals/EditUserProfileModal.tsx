@@ -10,7 +10,7 @@ import ImageInput from "../ImageInput.js";
 import { useObjectURL } from "../../hooks/useObjectURL.hook.js";
 import ColorInput from "../ColorInput.js";
 import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
-import UserCard from "../../../main/components/UserCard.js";
+import UserCard from "../UserCard.js";
 import { apiBaseUrl, cdnBaseUrl, supportBaseUrl } from "../../scripts/domains.js";
 import ExternalLink from "../ExternalLink.js";
 import { GetLinkType } from "../../../../_common/types/link.type.js";

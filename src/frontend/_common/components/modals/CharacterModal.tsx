@@ -8,7 +8,7 @@ import ZoomableMedia from "../ZoomableMedia.js";
 import { formatNumber } from "kage-library/client";
 import Badges from "../Badges.js";
 import { formatShortRelative } from "../../scripts/time.js";
-import { formatDisplayNameToUrl } from "../../../main/scripts/formatDisplayNameToUrl.js";
+import { formatDisplayNameToUrl } from "../../scripts/formatDisplayNameToUrl.js";
 import { useModals } from "../../hooks/ModalContext.hook.js";
 
 export interface CharacterModalRef {
