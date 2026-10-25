@@ -12,11 +12,13 @@ import CreateAssetModal from "../../_common/components/modals/CreateAssetModal.j
 import { cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { recommendedTags } from "../../_common/scripts/tags.js";
 import NavbarUser from "../../_common/components/NavbarUser.js";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
 
 export default function Navbar() {
     const { ready: isTranslationReady } = useTranslation();
     const location = useLocation();
     const { pathname } = location;
+    const { bugReportModal } = useModals();
 
     const [scrolled, setScrolled] = useState(false);
 
@@ -296,26 +298,30 @@ export default function Navbar() {
 
                     {window.session?.userId && (
                         <>
-                            <button
-                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent"
-                                data-tip="Create"
-                                data-guide="create"
-                                onClick={() => {
-                                    const dialog = document.getElementById("create-asset") as HTMLDialogElement | null;
-                                    dialog?.showModal();
-                                }}
-                            >
-                                <span className="font-nerdfont text-xl"></span>
-                            </button>
-
-                            {window.location.hostname.startsWith("nightly") && (
+                            {window.session.permissions.array.includes("CREATE_ASSETS") && (
                                 <button
                                     className="cursor-pointer tooltip tooltip-bottom tooltip-accent"
-                                    data-tip="Report Bugs"
+                                    data-tip="Create"
+                                    data-guide="create"
+                                    onClick={() => {
+                                        const dialog = document.getElementById("create-asset") as HTMLDialogElement | null;
+                                        dialog?.showModal();
+                                    }}
+                                >
+                                    <span className="font-nerdfont text-xl"></span>
+                                </button>
+                            )}
+
+                            {
+                                window.location.hostname.startsWith("nightly") &&
+                                window.session.permissions.array.includes("CREATE_REPORTS") &&
+                            (
+                                <button
+                                    className="cursor-pointer tooltip tooltip-bottom tooltip-accent"
+                                    data-tip="Report Bug"
                                     data-guide="report"
                                     onClick={() => {
-                                        const dialog = document.getElementById("report") as HTMLDialogElement | null;
-                                        dialog?.showModal();
+                                        bugReportModal.open();
                                     }}
                                 >
                                     <span className="font-nerdfont text-xl"></span>

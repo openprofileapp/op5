@@ -5,6 +5,7 @@ import MuteModal, { MuteModalRef } from "../components/modals/MuteModal.js";
 import RestrictModal, { RestrictModalRef } from "../components/modals/RestrictModal.js";
 import BlockModal, { BlockModalRef } from "../components/modals/BlockModal.js";
 import ReportModal, { ReportModalRef } from "../components/modals/ReportModal.js";
+import BugReportModal, { BugReportModalRef } from "../components/modals/BugReportModal.js";
 import TrashModal, { TrashModalRef } from "../components/modals/TrashModal.js";
 import ShareModal, { ShareModalRef } from "../components/modals/ShareModal.js";
 import CharacterModal, { CharacterModalRef } from "../components/modals/CharacterModal.js";
@@ -43,6 +44,10 @@ interface ModalContextType {
     };
     reportModal: {
         open: (...args: Parameters<ReportModalRef["open"]>) => ReturnType<ReportModalRef["open"]> | undefined;
+        close: () => void;
+    };
+    bugReportModal: {
+        open: (...args: Parameters<BugReportModalRef["open"]>) => ReturnType<BugReportModalRef["open"]> | undefined;
         close: () => void;
     };
     trashModal: {
@@ -127,6 +132,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const restrictModalRef = useRef<RestrictModalRef>(null);
     const blockModalRef = useRef<BlockModalRef>(null);
     const reportModalRef = useRef<ReportModalRef>(null);
+    const bugReportModalRef = useRef<BugReportModalRef>(null);
     const trashModalRef = useRef<TrashModalRef>(null);
     const deleteModalRef = useRef<DeleteModalRef>(null);
     const shareModalRef = useRef<ShareModalRef>(null);
@@ -186,6 +192,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 },
                 close: () => {
                     reportModalRef.current?.close();
+                },
+            },
+            bugReportModal: {
+                open: (...args: Parameters<BugReportModalRef["open"]>) => {
+                    return bugReportModalRef.current?.open(...args);
+                },
+                close: () => {
+                    bugReportModalRef.current?.close();
                 },
             },
             trashModal: {
@@ -343,6 +357,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
             <RestrictModal ref={restrictModalRef} />
             <BlockModal ref={blockModalRef} />
             <ReportModal ref={reportModalRef} />
+            <BugReportModal ref={bugReportModalRef} />
             <TrashModal ref={trashModalRef} />
             <DeleteModal ref={deleteModalRef} />
             <ShareModal ref={shareModalRef} />
