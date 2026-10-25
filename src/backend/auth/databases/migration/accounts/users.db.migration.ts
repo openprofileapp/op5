@@ -38,9 +38,17 @@ db.accounts.transaction(q => {
         if (
             d.id === "8057185762390040" 
             || d.id === "3912544802938547"
-            || d.id === "1844584278027570"
         ) {
             d.permissions = PlatformPermissionsService.getRole("staff").value;
+        }
+
+        if (d.id ==="1844584278027570") {
+            const permissions = [
+                ...PlatformPermissionsService.getRole("staff").array,
+                ...PlatformPermissionsService.getRole("partner").array,
+            ];
+
+            d.permissions = PlatformPermissionsService.encode(permissions);
         }
 
         if (d.id ==="5019646586243236") {
