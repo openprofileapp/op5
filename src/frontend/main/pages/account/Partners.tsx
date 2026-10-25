@@ -420,7 +420,7 @@ export default function Partners() {
                                                 colSpan={3}
                                                 className="text-center py-10 text-base-content/70"
                                             >
-                                                No registrations found.
+                                                Invite someone for them to appear here
                                             </td>
                                         </tr>
                                     )}
