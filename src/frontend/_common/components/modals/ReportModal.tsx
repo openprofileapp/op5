@@ -4,6 +4,7 @@ import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { toast } from "../../scripts/toast.js";
 import { TypeableDropdownInput } from "../TypeableDropdownInput.js";
 import { GetAssetType } from "../../../../_common/types/asset.type.js";
+import { apiBaseUrl } from "../../scripts/domains.js";
 
 export interface ReportModalRef {
     open: (data: GetAssetType) => void;
@@ -17,8 +18,16 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
 
     const [data, setData] = useState<GetAssetType>();
 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const [type, setType] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+
     const resetState = () => {
         setData(undefined);
+        setType("");
+        setDescription("");
+        setIsLoading(false);
     };
 
     useImperativeHandle(ref, () => ({
@@ -61,7 +70,7 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                 </form>
                 
                 <h3 className="font-bold text-2xl text-center">
-                    {t("components.modals.report.title")} {data.displayName}
+                    {t("components.modals.report.title")} {data.displayName || data.id}
                 </h3>
 
                 <p className="pb-5 py-4 text-sub text-sm text-center">
@@ -80,7 +89,7 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                     </div>                    
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                     <legend className="flex flex-col items-start w-full fieldset-legend text-sm font-normal">
                         {t("components.modals.report.type")}
                         <TypeableDropdownInput
@@ -93,11 +102,11 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                                 { id: "safety", name: t("components.modals.report.safety") },
                                 { id: "impersonation", name: t("components.modals.report.impersonation") },
                                 { id: "ai", name: t("components.modals.report.ai") },
-                                { id: "bug", name: t("components.modals.report.bug") },
                                 { id: "other", name: t("components.modals.report.other") }
                             ]}
                             placeholder={t("components.modals.report.placeholder")}
                             typeable={false}
+                            onChange={(value) => setType(value as string)}
                         />
                     </legend>
 
@@ -110,6 +119,7 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                             spellCheck={false}
                             autoCorrect="off"
                             autoCapitalize="off"
+                            onChange={(event) => setDescription(event.target.value)}
                         />
                     </legend>
                 </div>
@@ -117,21 +127,54 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                 <div className="pt-4 mb-5 flex gap-2 flex-row relative">
                     <button
                         className={`btn flex-1 bg-accent text-white border-accent`}
-                        onClick={() => {
-                            handleClose();
+                        onClick={async () => {
+                            setIsLoading(true);
 
-                            // DEVELOPER NEEDED: Setup reports API and loading
-
-                            toast.show(
-                                `${t("components.modals.report.result")}`, 
-                                { icon: "", type: "success" }
+                            const response = await fetch(
+                                `${apiBaseUrl}/v3/report/content`, 
+                                { 
+                                    credentials: "include", 
+                                    method: "POST", 
+                                    headers: {"Content-Type": "application/json"}, 
+                                    body: JSON.stringify({ 
+                                        contentId: data.id, 
+                                        type, 
+                                        description
+                                    })
+                                }
                             );
+
+                            const json = await response.json();
+
+                            if (response.ok) {
+                                setIsLoading(false);
+
+                                handleClose();
+
+                                toast.show(
+                                    `${t("components.modals.report.result")}`, 
+                                    { icon: "", type: "success" }
+                                );
+                            } else {
+                                setIsLoading(false);
+
+                                toast.show(
+                                    `${t("words.FailedTo")} submit report on ${data.displayName || data.id}`,
+                                    {
+                                        subtext: `${json.id || ""}${json.id ? ": " : ""}${json.message}`,
+                                        type: "error",
+                                    }
+                                );
+                            }
                         }}
                     >
                         <div className="font-nerdfont leading-none absolute left-4 text-lg">
                             
                         </div>
-                        {t("components.modals.report.submit")}
+
+                        <span className={`${isLoading ? "loading" : ""}`}>
+                            {t("components.modals.report.submit")}
+                        </span>
                     </button>
                 </div>
 
@@ -139,13 +182,6 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                     {t("components.modals.report.footer")}
                 </span>
             </div>
-            <form 
-                method="dialog" 
-                className="modal-backdrop"
-                onClick={handleClose}
-            >
-                <button type="submit">close</button>
-            </form>
         </dialog>
     );
 });
