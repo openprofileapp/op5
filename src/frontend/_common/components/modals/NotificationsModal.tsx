@@ -66,7 +66,13 @@ const NotificationsModal = forwardRef<NotificationsModalRef>((_, ref) => {
             setNotificationSubscriptionsRef.current = setNotificationSubscriptions;
 
             setIsContentSelected(
-                Boolean("notifications" in data && data?.notifications?.subscriptions?.isSubscribedToContent)
+                "notifications" in data
+                    ? (
+                        data.notifications?.subscriptions?.isSubscribedToContent ??
+                        data.interactions?.follows?.hasInteracted ??
+                        true
+                    )
+                    : (data.interactions?.follows?.hasInteracted ?? true)
             );
 
             setIsCollaborationSelected(

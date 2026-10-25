@@ -164,6 +164,29 @@ async function postInteractionEvent(
             );
 
             assertDbSuccess(insertResult);
+
+            if (type === "follows") {
+                const notificationResult = db.notifications.query(
+                    `INSERT INTO subscriptions (
+                        source,
+                        target, 
+                        isSubscribedToContent,
+                        isSubscribedToCollaborationChanges,
+                        isSubscribedToNewComments,
+                        isSubscribedToNewInteractions
+                    ) VALUES (?, ?, ?, ?, ?, ?)`,
+                    [
+                        sourceId,
+                        targetId,
+                        1,
+                        0,
+                        0,
+                        0
+                    ]
+                );
+
+                assertDbSuccess(notificationResult);
+            }
         }
     });
 
