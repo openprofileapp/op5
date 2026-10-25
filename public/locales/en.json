@@ -338,7 +338,7 @@
         "placeholder": "What type of report are you filing?",
         "description": "Describe your report with the most details possible so we can properly address the issue.",
         "submit": "Submit Report",
-        "result": "Thanks for the report",
+        "result": "Thanks for your report!",
         "abuse": "Abuse & Harassment",
         "spam": "Spam & Deceptive Behavior",
         "inappropriate": "Inappropriate Content",
