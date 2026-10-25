@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -25,15 +25,7 @@ type PartnerInvite = InviteType & {
     premiumUsers?: number;
 };
 
-type PartnerResponse = {
-    invites?: PartnerInvite[];
-    users?: PartnerUser[];
-    totalUsers?: number;
-    totalPages?: number;
-    nextOffset?: number | null;
-};
-
-export default function Partners() {
+export default function Partner() {
     const { ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -44,8 +36,6 @@ export default function Partners() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isCopied, setIsCopied] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [retryCount, setRetryCount] = useState(0);
 
     const [currentPage, setCurrentPage] = useState(initialPage);
     const [totalPages, setTotalPages] = useState(1);
@@ -106,10 +96,9 @@ export default function Partners() {
         });
     };
 
-    const fetchPartnerData = useCallback(
-        async (signal: AbortSignal) => {
+    useEffect(() => {
+        const fetchPartnerData = async () => {
             setIsLoading(true);
-            setError(null);
 
             try {
                 const params = new URLSearchParams({
@@ -120,18 +109,19 @@ export default function Partners() {
                 const res = await fetch(
                     `${apiBaseUrl}/v3/invites/owner/${window.session?.userId}?${params.toString()}`,
                     {
-                        credentials: "include",
-                        signal
+                        credentials: "include"
                     }
                 );
 
-                const data: PartnerResponse & {
-                    message?: string;
-                } = await res.json();
+                const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(
-                        data.message || `Request failed (${res.status})`
+                    toast.show(
+                        "Failed to load partner partner data",
+                        {
+                            subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
+                            type: "error",
+                        }
                     );
                 }
 
@@ -147,42 +137,15 @@ export default function Partners() {
                                 : currentPage)
                     )
                 );
-            } catch (err) {
-                if (err instanceof Error && err.name === "AbortError") {
-                    return;
-                }
-
-                console.error(err);
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load registrations.";
-
-                setError(message);
-
-                toast.show("Failed to load registrations", {
-                    subtext: message,
-                    type: "error"
-                });
+            } catch (error) {
+                console.log(error)
             } finally {
-                if (!signal.aborted) {
-                    setIsLoading(false);
-                }
+                setIsLoading(false);
             }
-        },
-        [currentPage]
-    );
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        void fetchPartnerData(controller.signal);
-
-        return () => {
-            controller.abort();
         };
-    }, [fetchPartnerData, retryCount]);
+
+        fetchPartnerData();
+    }, [currentPage]);
 
     const copyToClipboard = async (text: string) => {
         if (!text) return;
@@ -323,23 +286,6 @@ export default function Partners() {
                         <div className="bg-alt flex items-center justify-center w-full h-132 md:w-148 rounded-lg border border-alt">
                             <span className="loading loading-spinner loading-lg" />
                             <span className="ml-3">Loading...</span>
-                        </div>
-                    ) : error ? (
-                        <div
-                            role="alert"
-                            className="alert alert-error w-full md:w-148"
-                        >
-                            <span>{error}</span>
-
-                            <button
-                                type="button"
-                                className="btn btn-sm"
-                                onClick={() =>
-                                    setRetryCount(count => count + 1)
-                                }
-                            >
-                                Retry
-                            </button>
                         </div>
                     ) : (
                         <div className="bg-alt overflow-auto w-full h-132 md:w-148 rounded-lg border border-alt">
