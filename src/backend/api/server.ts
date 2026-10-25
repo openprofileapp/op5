@@ -34,6 +34,7 @@ import articleRoutes from "./routes/article.routes.js";
 import checkRoute from "./routes/check.route.js";
 import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 import integrationRoute from "./routes/integration.route.js";
+import reportRoutes from "./routes/report.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -186,6 +187,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(240), 
     articleRoutes
+);
+
+v3.use(
+    "/report", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(8), 
+    reportRoutes
 );
 
 v3.use(
