@@ -235,7 +235,10 @@ async function bootstrap() {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 <>
-                    {whoIsResponse.displayName || whoIsResponse.primaryUsername || whoIsResponse.id} invited you to join OpenProfile with a gift of 30 days{" "}
+                    <Link to={`${mainBaseUrl}/user/${whoIsResponse.primaryUsername}`} className="underline">
+                        {whoIsResponse.displayName || whoIsResponse.primaryUsername || whoIsResponse.id}
+                    </Link>
+                    {" "}invited you to join OpenProfile with a gift of 30 days{" "}
                     <Link to={`${mainBaseUrl}/premium`} className="underline">
                         premium
                     </Link>
