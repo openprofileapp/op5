@@ -29,21 +29,35 @@ db.badges.transaction(q => {
         user: "8057185762390040",
         type: "staff",
         text: "Social Media Manager",
-        date: "2026-05-08T01:53:00.000Z"
+        date: "2026-05-08 01:53:00"
     });
 
     rows.push({
         user: "3912544802938547",
         type: "staff",
         text: "Graphics Designer",
-        date: "2026-06-12T00:17:00.000Z"
+        date: "2026-06-12 00:17:00"
     });
 
     rows.push({
         user: "1844584278027570",
         type: "staff",
         text: "Support Agent",
-        date: "2026-10-18T17:18:00.000Z"
+        date: "2026-10-18 17:18:00"
+    });
+
+    rows.push({
+        user: "5719552362357773",
+        type: "partner",
+        text: "avatarkage",
+        date: "2026-10-25 06:50:00"
+    });
+
+    rows.push({
+        user: "1844584278027570",
+        type: "partner",
+        text: "kiraskun",
+        date: "2026-10-25 10:12:00"
     });
 
     for (const d of rows) {

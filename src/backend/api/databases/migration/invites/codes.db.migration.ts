@@ -20,6 +20,12 @@ db.invites.transaction(q => {
         date: "2026-10-25 06:54:00"
     });
 
+    result.rows.push({
+        user: "1844584278027570",
+        code: "kiraskun",
+        date: "2026-10-25 10:12:00"
+    });
+
     for (const d of result.rows) {
         const result = q(
             `INSERT INTO codes (
