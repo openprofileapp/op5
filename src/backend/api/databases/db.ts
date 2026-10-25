@@ -26,7 +26,8 @@ const paths = {
     templates: "data/databases/templates.sqlite",
     blocks: "data/databases/blocks.sqlite",
     articles: "data/databases/articles.sqlite",
-    changelogs: "data/databases/changelogs.sqlite"
+    changelogs: "data/databases/changelogs.sqlite",
+    reports: "data/databases/reports.sqlite"
 }
 
 export const db = {
@@ -47,7 +48,8 @@ export const db = {
     templates: new Database(paths.templates),
     blocks: new Database(paths.blocks),
     articles: new Database(paths.articles),
-    changelogs: new Database(paths.changelogs)
+    changelogs: new Database(paths.changelogs),
+    reports: new Database(paths.reports)
 };
 
 db.audits.transaction(q => {
@@ -544,6 +546,18 @@ db.changelogs.transaction(q => {
     };
 });
 
+db.reports.transaction(q => {
+    if (!q("SELECT * FROM content LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/reports/content.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM bugs LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/reports/bugs.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+});
+
 db.characters.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.characters.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 db.characters.query(`ATTACH DATABASE '${paths.interactions}' AS interactions`);
@@ -573,7 +587,8 @@ export const mdb = {
     profiles: new Database("data/databases/migration/profiles.db"),
     accounts: new Database("data/databases/migration/accounts.db"),
     partners: new Database("data/databases/migration/partners.db"),
-    interactions: new Database("data/databases/migration/interactions.db")
+    interactions: new Database("data/databases/migration/interactions.db"),
+    moderation: new Database("data/databases/migration/moderation.db")
 };
 
 async function waitForMDB() {
@@ -624,6 +639,7 @@ async function waitForMDB() {
 
             import("./migration/notifications/inbox.db.migration.js");
 
+            import("./migration/reports/bugs.db.migration.js");
         ;
         }
 
