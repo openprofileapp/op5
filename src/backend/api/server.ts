@@ -35,6 +35,7 @@ import checkRoute from "./routes/check.route.js";
 import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 import integrationRoute from "./routes/integration.route.js";
 import reportRoutes from "./routes/report.routes.js";
+import privateInviteRoutes from "./routes/privateInvite.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -99,7 +100,14 @@ v3.use(
 
 // WARNING: Do NOT validate session here. It will cause a recursion with auth server
 v3.use(
+    "/invites/private", 
+    rateLimitMiddleware(240), 
+    privateInviteRoutes
+);
+
+v3.use(
     "/invites", 
+    fetchSessionMiddleware,
     rateLimitMiddleware(240), 
     inviteRoutes
 );
