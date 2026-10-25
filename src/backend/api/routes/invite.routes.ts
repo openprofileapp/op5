@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getInvitesController } from "../controllers/invite.controller.js";
+import { getInvitesController } from "../controllers/invites.controller.js";
 
 const inviteRoutes = Router();
 

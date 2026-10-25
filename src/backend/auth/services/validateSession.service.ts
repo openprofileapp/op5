@@ -224,8 +224,8 @@ export default async function validateSession(
     // If invite is valid, save as cookie
     if (inviteCode !== row.inviteCode) {
         const inviteData: InviteType = await wc.callAPI(
-            `https://${config.domains.api}/v3/invites/code/${inviteCode}`,
-            { auth: `Bearer ${accessToken}` }
+            `https://${config.domains.api}/v3/invites/private/code/${inviteCode}`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
         );
 
         if (
