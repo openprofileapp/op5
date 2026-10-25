@@ -117,8 +117,6 @@ export default function SearchProfiles() {
                 );
                 const data = await res.json();
 
-                console.log(data);
-
                 setProfiles(data.items || []);
                 setCount(data.pages || 0);
                 if (data.nextOffset !== undefined) {
