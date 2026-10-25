@@ -29,7 +29,7 @@ import Layout from "./Layout.js"
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
 import Browse from "./pages/Browse.js"
-import Partners from "./pages/account/Partners.js"
+import Partner from "./pages/account/Partner.js"
 import Premium from "./pages/Premium.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
@@ -98,7 +98,7 @@ const router = createBrowserRouter([
 
             { path: "/account/onboarding", element: <Onboarding /> },
             { path: "/account/library", element: <ComingSoon /> },
-            { path: "/account/partner", element: <Partners /> },
+            { path: "/account/partner", element: <Partner /> },
 
             { path: "/user/:id/:tab?", element: <UserProfile /> },
             { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
