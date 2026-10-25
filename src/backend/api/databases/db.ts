@@ -640,6 +640,7 @@ async function waitForMDB() {
             import("./migration/interactions/favorites.db.migration.js");
 
             import("./migration/notifications/inbox.db.migration.js");
+            import("./migration/notifications/subscriptions.db.migration.js");
 
             import("./migration/reports/bugs.db.migration.js");
         ;
