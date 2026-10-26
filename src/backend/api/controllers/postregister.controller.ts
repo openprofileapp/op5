@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { AdvancedError } from "kage-library";
-import { log, wc } from "../instances.js";
+import { log, snowflake, wc } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
@@ -72,6 +72,23 @@ export const postregisterController = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(usernameResult);
+
+        const collectionResult = db.collections.query(
+            `INSERT INTO collections (
+                id,
+                ownerId,
+                displayName,
+                isFavorites
+            ) VALUES (?, ?, ?, ?)`,
+            [
+                snowflake.gen(),
+                id,
+                "My Favorites",
+                1
+            ]
+        );
+
+        assertDbSuccess(collectionResult);
 
         const uniqueBadges = Array.from(new Set(badges));
 
