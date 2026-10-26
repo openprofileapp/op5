@@ -1,6 +1,6 @@
-import React from "react"
+import React, { useEffect } from "react"
 import ReactDOM from "react-dom/client"
-import { createBrowserRouter, Navigate, RouterProvider, Outlet, Link } from "react-router-dom"
+import { createBrowserRouter, Navigate, RouterProvider, Outlet, Link, useNavigate, useParams } from "react-router-dom"
 import { HelmetProvider } from "react-helmet-async"
 import { I18nextProvider } from "react-i18next"
 
@@ -83,6 +83,59 @@ function RootLayout() {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+function CharacterRedirect() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        async function redirectToOwner() {
+            try {
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/whatis/${id}`,
+                    { credentials: "include" }
+                );
+
+                if (!response.ok) {
+                    navigate("/404", { replace: true });
+                    return;
+                }
+
+                const whatIsCharacterData: WhatIsType = await response.json();
+
+                if (whatIsCharacterData.ownerId) {
+                    const response = await fetch(
+                        `${apiBaseUrl}/v3/whatis/${whatIsCharacterData.ownerId}`,
+                        { credentials: "include" }
+                    );
+
+                    if (!response.ok) {
+                        navigate("/404", { replace: true });
+                        return;
+                    }
+
+                    const whatIsOwnerData: WhatIsType = await response.json();
+                    
+                    navigate(
+                        `/user/${whatIsOwnerData.primaryUsername}/characters?view=${id}`,
+                        { replace: true }
+                    );
+                }
+            } catch {
+                navigate("/404", { replace: true });
+            }
+        }
+
+        redirectToOwner();
+    }, [id, navigate]);
+
+    return (
+        <div className="flex min-h-screen items-center justify-center">
+            <span className="loading loading-lg" />
+        </div>
+    );
+}
+
 const router = createBrowserRouter([
     {
         element: <RootLayout />,
@@ -105,6 +158,7 @@ const router = createBrowserRouter([
             { path: "/account/notifications", element: <Notifications /> },
 
             { path: "/user/:id/:tab?", element: <UserProfile /> },
+            { path: "/character/:id", element: <CharacterRedirect /> },
             { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
 
             ...markdownRoutes.flatMap(({ paths, fileName }) =>
