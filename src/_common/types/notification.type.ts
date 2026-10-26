@@ -1,3 +1,6 @@
+import { GeoIpType } from "./geoIp.type.js";
+import { WhatIsType } from "./whatIs.type.js";
+
 export type NotificationNameType = 
     | "WEBPUSH_SUBSCRIBE"
     | "NEW_LIKE"
@@ -6,8 +9,6 @@ export type NotificationNameType =
     | "FRIEND_REQUEST_SENT"
     | "FRIEND_REQUEST_ACCEPTED"
     | "CHATS_MILESTONE"
-    | "FOLLOWS_MILESTONE"
-    | "LIKES_MILESTONE"
     | "READS_MILESTONE"
     | "SHARES_MILESTONE"
     | "VIEWS_MILESTONE"
@@ -19,15 +20,32 @@ export type NotificationNameType =
     | "PRECURSOR_REGISTRATION"
     | "PARTNER_CODE_USED"
     | "ADD_TO_COLLECTION"
+    | "PUBLISHED_CHARACTER"
+    | "REPORT_CREATED"
+    | "UPDATED_CHARACTER"
+    | "LOGIN"
 ;
+
+type NotificationDataType = {
+    source?: WhatIsType;
+    target?: WhatIsType;
+    count?: number;
+    geoIp?: GeoIpType;
+    collection?: WhatIsType;
+}
 
 export type NotificationInboxType = {
     userId: string;
-    type: string;
-    data: object;
+    type: NotificationNameType;
+    data: NotificationDataType;
     isRead: boolean;
     readDate: string;
     sentDate: string;
+}
+
+export type GetNotificationInboxType = {
+    items: NotificationInboxType[];
+    count: number;
 }
 
 export type NotificationSubscriptionType = {

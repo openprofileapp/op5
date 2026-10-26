@@ -15,19 +15,23 @@ export default function createNotificationBody(type: NotificationNameType): stri
         case "FRIEND_REQUEST_ACCEPTED":
             return "{SOURCE} accepted {TARGET} friend request"
         case "CHATS_MILESTONE":
-            return "{SOURCE} reached {COUNT} chats"
-        case "FOLLOWS_MILESTONE":
-            return "{SOURCE} reached {COUNT} follows"
-        case "LIKES_MILESTONE":
-            return "{SOURCE} reached {COUNT} likes"
+            return "{TARGET} reached {COUNT} chats"
         case "READS_MILESTONE":
-            return "{SOURCE} reached {COUNT} reads"
+            return "{TARGET} reached {COUNT} reads"
         case "SHARES_MILESTONE":
-            return "{SOURCE} reached {COUNT} shares"
+            return "{TARGET} reached {COUNT} shares"
         case "VIEWS_MILESTONE":
-            return "{SOURCE} reached {COUNT} views"
+            return "{TARGET} reached {COUNT} views"
         case "ADD_TO_COLLECTION":
-            return "{SOURCE} added {TARGET} to \"{COLLECTION}\" collection"
+            return "{SOURCE} added {TARGET} to {COLLECTION}"
+        case "PUBLISHED_CHARACTER":
+            return "{SOURCE} published {TARGET}"
+        case "UPDATED_CHARACTER":
+            return "{SOURCE} updated {TARGET}"
+        case "REPORT_CREATED":
+            return "Thanks for your report!"
+        case "LOGIN":
+            return "Unauthorized login attempt from {LOCATION} has been blocked"
         default:
             return null
     }
