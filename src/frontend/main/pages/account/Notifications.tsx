@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Metadata from "../../_common/components/Metadata.js";
-import CharacterCard from "../../_common/components/CharacterCard.js";
-import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
-import ProjectCard from "../../_common/components/ProjectCard.js";
-import UserCard from "../../_common/components/UserCard.js";
+import Metadata from "../../../_common/components/Metadata.js";
+import CharacterCard from "../../../_common/components/CharacterCard.js";
+import SkeletonCharacterCard from "../../../_common/components/SkeletonCharacterCard.js";
+import ProjectCard from "../../../_common/components/ProjectCard.js";
+import UserCard from "../../../_common/components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
-import { Pagination } from "../../_common/components/Pagination.js";
-import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
-import { apiBaseUrl } from "../../_common/scripts/domains.js";
+import { Pagination } from "../../../_common/components/Pagination.js";
+import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
+import { apiBaseUrl } from "../../../_common/scripts/domains.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
