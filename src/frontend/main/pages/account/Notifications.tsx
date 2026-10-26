@@ -174,13 +174,11 @@ export default function Notifications() {
                     )}
                 </div>
 
-                <div className="top-14 left-1/2 -translate-x-1/2 absolute flex justify-center">
-                    <Pagination 
-                        pageCount={count} 
-                        currentPage={currentPage}
-                        onPageChange={(page) => handlePageChange(page)}
-                    />
-                </div>
+                <Pagination 
+                    pageCount={count} 
+                    currentPage={currentPage}
+                    onPageChange={(page) => handlePageChange(page)}
+                />
 
                 <div className="flex flex-wrap gap-4">
 
