@@ -74,8 +74,6 @@ export default async function sendNotificationService(
         "FRIEND_REQUEST_SENT",
         "FRIEND_REQUEST_ACCEPTED",
         "CHATS_MILESTONE",
-        "FOLLOWS_MILESTONE",
-        "LIKES_MILESTONE",
         "READS_MILESTONE",
         "SHARES_MILESTONE",
         "VIEWS_MILESTONE",
@@ -86,7 +84,11 @@ export default async function sendNotificationService(
         "PREMIUM_REGISTRATION",
         "PRECURSOR_REGISTRATION",
         "PARTNER_CODE_USED",
-        "ADD_TO_COLLECTION"
+        "ADD_TO_COLLECTION",
+        "PUBLISHED_CHARACTER",
+        "REPORT_CREATED",
+        "UPDATED_CHARACTER",
+        "LOGIN"
     );
 
     if (!allowedTypes.has(type)) {
@@ -132,8 +134,8 @@ export default async function sendNotificationService(
     // DEVELOPER NEEDED: Never send milestone notifications twice
 
     const data = JSON.stringify({
-        ...(sourceId && { sourceId }),
-        ...(targetId && { targetId }),
+        ...(sourceId && { source: sourceId }),
+        ...(targetId && { target: targetId }),
         ...(count && { count }),
         ...(geoIp && { geoIp }),
         ...(collectionId && { collectionId })
