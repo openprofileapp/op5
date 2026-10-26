@@ -584,6 +584,10 @@ db.blocks.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 db.invites.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
 
+db.notifications.query(`ATTACH DATABASE '${paths.users}' AS users`);
+db.notifications.query(`ATTACH DATABASE '${paths.characters}' AS characters`);
+db.notifications.query(`ATTACH DATABASE '${paths.collections}' AS collections`);
+
 // Migration (old databases)
 export const mdb = {
     profiles: new Database("data/databases/migration/profiles.db"),
