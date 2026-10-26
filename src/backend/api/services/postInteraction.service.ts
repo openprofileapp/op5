@@ -167,7 +167,7 @@ async function postInteractionEvent(
 
             if (type === "follows") {
                 const notificationResult = db.notifications.query(
-                    `INSERT INTO subscriptions (
+                    `INSERT OR IGNORE INTO subscriptions (
                         source,
                         target, 
                         isSubscribedToContent,
@@ -286,12 +286,6 @@ async function postInteractionNotification(
         let milestoneType: NotificationNameType | undefined;
 
         switch(type) {
-            case "follows":
-                milestoneType = "FOLLOWS_MILESTONE";
-                break;
-            case "likes":
-                milestoneType = "LIKES_MILESTONE";
-                break;
             case "reads":
                 milestoneType = "READS_MILESTONE";
                 break;
