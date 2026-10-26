@@ -13,7 +13,7 @@ import { apiBaseUrl } from "../../_common/scripts/domains.js";
 
 // DEFINE TYPE PROFILE SOMEWHERE GLOBALLY
 
-export default function SearchProfiles() {
+export default function Browse() {
     const { tag } = useParams();
     const { t, ready: isTranslationReady } = useTranslation();
     const location = useLocation();
