@@ -4,8 +4,6 @@ import { useTranslation } from "react-i18next";
 import Metadata from "../../_common/components/Metadata.js";
 import CharacterCard from "../../_common/components/CharacterCard.js";
 import SkeletonCharacterCard from "../../_common/components/SkeletonCharacterCard.js";
-import ProjectCard from "../../_common/components/ProjectCard.js";
-import UserCard from "../../_common/components/UserCard.js";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { Pagination } from "../../_common/components/Pagination.js";
 import { TypeableDropdownInput } from "../../_common/components/TypeableDropdownInput.js";
@@ -18,7 +16,6 @@ export default function Browse() {
     const { t, ready: isTranslationReady } = useTranslation();
     const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [users, setUsers] = useState<unknown[]>([]);
     const [profiles, setProfiles] = useState<unknown[]>([]);
     const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page") || "1"));
     const [sortBy, setSortBy] = useState(searchParams.get("sortBy") || "recommended");
@@ -48,6 +45,7 @@ export default function Browse() {
         const sortParam = searchParams.get("sortBy") || "recommended";
 
         if (pageParam !== currentPage) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCurrentPage(pageParam);
             setNextOffset(null);
         }
@@ -55,7 +53,7 @@ export default function Browse() {
             setSortBy(sortParam);
             setNextOffset(null);
         }
-    }, [searchParams]);
+    }, [currentPage, searchParams, sortBy]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -83,29 +81,8 @@ export default function Browse() {
         });
     };
 
-    // If current page change, update the browser url query
-
-    /*useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const res = await fetch(
-                    `${apiBaseUrl}/v3/users`,
-                    { credentials: "include" }
-                );
-                const data = await res.json();
-
-                setUsers(data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUsers();
-    }, []);*/
-
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(true);
 
         const fetchProfiles = async () => {
@@ -130,7 +107,7 @@ export default function Browse() {
         };
 
         fetchProfiles();
-    }, [location.pathname, currentPage, tag, endpoint, sortBy]);
+    }, [location.pathname, currentPage, tag, endpoint, sortBy, nextOffset]);
 
     if (!isTranslationReady) return null;
     
@@ -188,81 +165,10 @@ export default function Browse() {
                         ))
                     }
 
-                    {!loading && false && (
-                        <>
-                            <ProjectCard
-                                id="1655391085225720"
-                                aura={{ isEnabled: true, type: "flow", primary: "#76d1ff", secondary: "#76d1ff" }}
-                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/dragonights_banner_comic_1024_png.png"
-                                name="Dragonights"
-                                slug="dragonights"
-                                owner={{ id: "5019646586243236", username: "j9studios", name: "J9 Studios", isVerified: true, type: "publisher" }}
-                                status="Follow to keep up with the J9 universe. Follow to keep up with the J9 universe."
-                                about="Dragonights is an upcoming 3D-animated sci-fi action TV series set in the J9 Universe. Rated TV-14 for fantasy violence."
-                                interactions={{ views: { count: 481, interacted: true }, follows: { count: 6, interacted: true }, profiles: { count: 52, interacted: true }, fanflairs: { count: 5 } }}
-                            />
-
-                            <ProjectCard
-                                id="1655391085225720"
-                                aura={{ isEnabled: true, type: "flow", primary: "#7b22fd", secondary: "#e6d044" }}
-                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/pq_bookert@2xww.jpg"
-                                name="Portal Quest"
-                                slug="portalquestproject.com"
-                                owner={{ id: "5019646586243236", username: "1052", name: "1052 Productions", isVerified: false, type: "publisher" }}
-                                status="One of the oldest Minecraft animated films"
-                                about="Ermythia, a beautiful world where alien relics hold incredible powers and where legendary heroes once known as the Overseers protected the land from rising dangers alongside the Ender Knights. However, this is a different era, an era where wicked forces have stolen the relics from the tombs of the fallen heroes and are now threatening the remaining peace."
-                                interactions={{ views: { count: 124, interacted: true }, follows: { count: 4, interacted: false }, profiles: { count: 12, interacted: false } }}
-                            />
-
-                            <ProjectCard
-                                id="1655391085225720"
-                                aura={{ isEnabled: true, type: "flow", primary: "#4c6369", secondary: "#151b2f" }}
-                                banner="https://us-east-1.tixte.net/uploads/cdn.avatarka.ge/card_preview.png"
-                                name="Urban Legends"
-                                slug="legends-of-urban"
-                                owner={{ id: "5019646586243236", username: "avatarkage", name: "AvatarKage", isVerified: true, type: "author" }}
-                                status="On hold since 2023"
-                                about="A work-in-progress video game revolving the world of martial arts."
-                                interactions={{ views: { count: 16, interacted: true }, follows: { count: 1, interacted: false }, profiles: { count: 1, interacted: true } }}
-                            />
-                        </>
-                    )}
-
-                    {/* Fix the inputs; eg: name -> displayName */}
-
-                    {!loading && false && users.map((d: any) => (
-                        <UserCard
-                            id={d.id}
-                            aura={{
-                                isEnabled: d.isAuraEnabled,
-                                type: d.auraType,
-                                primary: d.auraPrimary,
-                                secondary: d.auraSecondary
-                            }}
-                            avatar={d.avatar ? `https://cdn.openprofile.app${d.avatar}` : ""}
-                            banner={d.banner ? `https://cdn.openprofile.app${d.banner}` : ""}
-                            displayName={d.displayName}
-                            username={d.username}
-                            status={d.status}
-                            badges={d.badges}
-                            about={d.about}
-                            isMature={d.isMature}
-                            visibility={d.visibility}
-                            interactions={{
-                                views: {
-                                    count: 0,
-                                    interacted: true
-                                },
-                                likes: {
-                                    count: 0,
-                                    interacted: false
-                                }
-                            }}
-                        />
-                    ))}
-                    
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {!loading && profiles.map((d: any, index: number) => (
                         <CharacterCard
+                            key={index}
                             data={d}
                         />
                     ))}
