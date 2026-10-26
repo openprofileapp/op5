@@ -2,6 +2,8 @@ import { DateTime } from "luxon";
 
 import { db, mdb } from "../../db.js";
 import { log } from "../../../instances.js";
+import { assertDbSuccess } from "../../../../../_common/asserts/dbSuccess.assert.js";
+import { CollectionType } from "../../../../../_common/types/collection.type.js";
 
 const result = mdb.accounts.query("SELECT * from notifications");
 
@@ -10,26 +12,13 @@ db.notifications.transaction(q => {
 
     for (const d of result.rows) {
         if (d.type === "LOGIN") continue;
-        
-        // DEVELOPER NEEDED: Maybe reformat this to display the case id so it can render moderation info
-        if (d.type === "CASE_CREATED") {
-            d.data = {}
-        };
 
         if (d.type === "FOLLOW" && d.data === "{}") {
             d.type = "NEW_FOLLOW"
         }
 
-        if (d.type === "FOLLOW" && d.data !== "{}") {
-            d.type = "FOLLOWS_MILESTONE"
-        }
-
         if (d.type === "LIKE" && d.data === "{}") {
             d.type = "NEW_LIKE"
-        }
-
-        if (d.type === "LIKE" && d.data !== "{}") {
-            d.type = "LIKES_MILESTONE"
         }
 
         if (d.type === "READ") {
@@ -44,7 +33,21 @@ db.notifications.transaction(q => {
             d.type = "VIEWS_MILESTONE"
         }
 
-        // DEVELOPER NEEDED: Maybe "FAVORITE" becomes "ADDED_TO_FAVORITES"
+        if (d.type === "PROFILE_PUBLISH") {
+            d.type = "PUBLISHED_CHARACTER"
+        }
+
+        if (d.type === "FAVORITE") {
+            d.type = "ADD_TO_COLLECTION"
+        }
+
+        if (d.type === "PROFILE_UPDATE") {
+            d.type = "UPDATED_CHARACTER"
+        }
+
+        if (d.type === "UPDATED_CHARACTER" && d.id === d.user) {
+            continue;
+        }
 
         let parsedData: Record<string, unknown> = {};
 
@@ -68,9 +71,23 @@ db.notifications.transaction(q => {
             }
         }
 
+        let collection;
+
+        if (d.type === "ADD_TO_COLLECTION") {
+            const result = db.collections.query<CollectionType>(
+                "SELECT * FROM collections WHERE ownerId = ? AND isFavorites = 1",
+                [d.user]
+            );
+
+            assertDbSuccess(result)
+
+            collection = result.rows?.[0]?.id;
+        }
+
         const mergedData = JSON.stringify({
-            ...(d.user != null && { sourceId: d.user }),
-            ...(d.asset != null && { targetId: d.asset }),
+            ...(d.user != null && { source: d.user }),
+            ...(d.asset != null && { target: d.asset }),
+            ...(d.type === "ADD_TO_COLLECTION" && { collection }),
             ...parsedData,
         });
 
