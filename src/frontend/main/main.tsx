@@ -29,20 +29,23 @@ import Layout from "./Layout.js"
 import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
 import Browse from "./pages/Browse.js"
-import Partner from "./pages/account/Partner.js"
 import Premium from "./pages/Premium.js"
+import UserProfile from "./pages/UserProfile.js"
+
+import Read from "./pages/Read.js"
+import MarkdownFile from "./pages/MarkdownFile.js"
 
 import Onboarding from "./pages/account/Onboarding.js"
-import MarkdownFile from "./pages/MarkdownFile.js"
+import Partner from "./pages/account/Partner.js"
+import Notifications from "./pages/account/Notifications.js"
 
 import ComingSoon from "../_common/pages/ComingSoon.js"
 import NotFound from "../_common/pages/NotFound.js"
 import Unavailable from "../_common/pages/Unavailable.js"
 import Maintenance from "../_common/pages/Maintenance.js"
 
-import UserProfile from "./pages/UserProfile.js"
 import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
-import Read from "./pages/Read.js"
+
 import { WhatIsType } from "../../_common/types/whatIs.type.js"
 import { InviteType } from "../../_common/types/invite.type.js"
 
@@ -99,6 +102,7 @@ const router = createBrowserRouter([
             { path: "/account/onboarding", element: <Onboarding /> },
             { path: "/account/library", element: <ComingSoon /> },
             { path: "/account/partner", element: <Partner /> },
+            { path: "/account/notifications", element: <Notifications /> },
 
             { path: "/user/:id/:tab?", element: <UserProfile /> },
             { path: "/read/:assetId/:categoryId?/:blockId?", element: <Read /> },
