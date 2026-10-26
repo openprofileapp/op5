@@ -12,6 +12,7 @@ import { CollectionType } from "../../../_common/types/collection.type.js";
 import getCollectionsService from "./getCollections.service.js";
 import { AssetNameType, GetAssetType } from "../../../_common/types/asset.type.js";
 import { WhatIsType } from "../../../_common/types/whatIs.type.js";
+import getDraftCharactersService from "./getDraftCharacters.service.js";
 
 function hasBadge(badges: GetBadgeType[], badgeType: BadgeNameType): boolean {
     return badges.some((b) => b.type === badgeType);
@@ -118,16 +119,30 @@ export default function whatIs(
     assertDbSuccess(characterResult);
 
     if (characterResult.rowCount !== 0) {
-        const getResult = getPublishedCharactersService({
-            id,
-            internalPermissionsBypass,
-            getAs: internalPermissionsBypass ? "" : getAs
-        });
+        if (getAs === characterResult.rows[0].ownerId) {
+            const getResult = getDraftCharactersService({
+                id,
+                internalPermissionsBypass,
+                getAs: internalPermissionsBypass ? "" : getAs
+            });
 
-        const data = getResult.items[0];
+            const data = getResult.items[0];
 
-        if (data) {
-            return formatReturnData("CHARACTER", data)
+            if (data) {
+                return formatReturnData("CHARACTER", data)
+            }
+        } else {
+            const getResult = getPublishedCharactersService({
+                id,
+                internalPermissionsBypass,
+                getAs: internalPermissionsBypass ? "" : getAs
+            });
+
+            const data = getResult.items[0];
+
+            if (data) {
+                return formatReturnData("CHARACTER", data)
+            }
         }
     }
 
