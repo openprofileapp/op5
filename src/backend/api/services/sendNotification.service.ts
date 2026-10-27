@@ -77,18 +77,17 @@ export default async function sendNotificationService(
         "READS_MILESTONE",
         "SHARES_MILESTONE",
         "VIEWS_MILESTONE",
-        "VERIFIED_REGISTRATION",
-        "PARTNER_REGISTRATION",
-        "VERIFIED_PARTNER_REGISTRATION",
-        "LIFETIME_PREMIUM_REGISTRATION",
-        "PREMIUM_REGISTRATION",
-        "PRECURSOR_REGISTRATION",
+        "ACCOUNT_VERIFIED",
+        "PARTNER_PROGRAM",
         "PARTNER_CODE_USED",
+        "GIFTED_PREMIUM",
         "ADD_TO_COLLECTION",
         "PUBLISHED_CHARACTER",
         "REPORT_CREATED",
         "UPDATED_CHARACTER",
-        "LOGIN"
+        "LOGIN",
+        "ASSIGNED_STAFF",
+        "EARNED_AWARD"
     );
 
     if (!allowedTypes.has(type)) {

@@ -51,7 +51,7 @@ db.notifications.transaction(q => {
 
         let parsedData: Record<string, unknown> = {};
 
-        if (d.data != null) {
+        if (d.data !== null) {
             let value = d.data;
 
             if (typeof value === "string") {
@@ -85,8 +85,8 @@ db.notifications.transaction(q => {
         }
 
         const mergedData = JSON.stringify({
-            ...(d.user != null && { source: d.user }),
-            ...(d.asset != null && { target: d.asset }),
+            ...(d.user !== null && { source: d.user }),
+            ...(d.asset !== null && { target: d.asset }),
             ...(d.type === "ADD_TO_COLLECTION" && { collection }),
             ...parsedData,
         });

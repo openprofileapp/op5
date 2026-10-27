@@ -48,8 +48,8 @@ export default function getNotificationsService({
             `
                 SELECT id
                 FROM drafts
-                WHERE id LIKE ?
-                    OR displayName LIKE ?
+                WHERE LOWER(id) LIKE LOWER(?)
+                    OR LOWER(displayName) LIKE LOWER(?)
             `,
             [queryTerm, queryTerm]
         );
@@ -64,8 +64,8 @@ export default function getNotificationsService({
             `
                 SELECT id
                 FROM collections
-                WHERE id LIKE ?
-                    OR displayName LIKE ?
+                WHERE LOWER(id) LIKE LOWER(?)
+                    OR LOWER(displayName) LIKE LOWER(?)
             `,
             [queryTerm, queryTerm]
         );
@@ -102,7 +102,7 @@ export default function getNotificationsService({
     const queryClause = queryTerm
         ? `
             AND (
-                inbox.data LIKE ?
+                LOWER(inbox.data) LIKE LOWER(?)
 
                 OR EXISTS (
                     SELECT 1
@@ -116,9 +116,9 @@ export default function getNotificationsService({
                             OR json_extract(inbox.data, '$.target') = u.id
                         )
                         AND (
-                            u.displayName LIKE ?
-                            OR un.username LIKE ?
-                            OR u.id LIKE ?
+                            LOWER(u.displayName) LIKE LOWER(?)
+                            OR LOWER(un.username) LIKE LOWER(?)
+                            OR LOWER(u.id) LIKE LOWER(?)
                         )
                 )
 
@@ -129,7 +129,7 @@ export default function getNotificationsService({
         `
         : "";
 
-    const queryParams: string[] = queryTerm
+    const queryParams: (string | number)[] = queryTerm
         ? [
             queryTerm,
             queryTerm,
@@ -137,6 +137,8 @@ export default function getNotificationsService({
             queryTerm,
             ...matchingCharacterIds,
             ...matchingCharacterIds,
+            ...matchingCharacterIds,
+            ...matchingCollectionIds,
             ...matchingCollectionIds,
             ...matchingCollectionIds
         ]
@@ -155,7 +157,9 @@ export default function getNotificationsService({
             WHERE inbox.userId = ?
                 ${typeClause}
                 ${queryClause}
-            ORDER BY inbox.sentDate DESC
+            ORDER BY
+                inbox.isRead ASC,
+                inbox.sentDate DESC
             LIMIT ? OFFSET ?
         `,
         [
@@ -187,6 +191,22 @@ export default function getNotificationsService({
     assertDbSuccess(countResult);
 
     const totalCount = Number(countResult.rows[0]?.total ?? 0);
+
+    const unreadResult = db.users.query<{ unreadCount: number }>(
+        `
+            SELECT COUNT(*) AS unreadCount
+            FROM inbox
+            WHERE userId = ?
+                AND isRead = 0
+        `,
+        [userId]
+    );
+
+    assertDbSuccess(unreadResult);
+
+    const unreadCount = Number(
+        unreadResult.rows[0]?.unreadCount ?? 0
+    );
 
     const entitiesById = new Map<string, WhatIsType | null>();
 
@@ -232,6 +252,7 @@ export default function getNotificationsService({
 
     return {
         items,
-        count: totalCount
+        count: totalCount,
+        unreadCount
     } as GetNotificationInboxType;
 }

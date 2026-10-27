@@ -206,24 +206,25 @@ export async function registerAccount({
         if (row.isPartner) {
             permissions = PlatformPermissionsService.getRole("partner");
             badges.push("PARTNER");
-            notifications.push("PARTNER_REGISTRATION");
+            notifications.push("PARTNER_PROGRAM");
         }
 
         if (row.isVerified) {
             permissions = PlatformPermissionsService.getRole("verified");
             badges.push("VERIFIED");
-            notifications.push("VERIFIED_REGISTRATION");
+            notifications.push("ACCOUNT_VERIFIED");
         }
 
         if (row.isPartner && row.isVerified) {
             permissions = PlatformPermissionsService.getRole("verifiedPartner");
-            notifications.push("VERIFIED_PARTNER_REGISTRATION");
+            notifications.push("PARTNER_PROGRAM");
+            notifications.push("ACCOUNT_VERIFIED");
         }
 
         if (row.isLifetimePremium) {
             permissions = PlatformPermissionsService.getRole("premium");
             badges.push("PREMIUM");
-            notifications.push("LIFETIME_PREMIUM_REGISTRATION");
+            notifications.push("GIFTED_PREMIUM");
             isAuraEnabled = 1;
         }
     }
@@ -314,8 +315,7 @@ export async function registerAccount({
             comment: String(registrationsCountResult.rowCount + 1)
         });
 
-        notifications.push("LIFETIME_PREMIUM_REGISTRATION");
-        notifications.push("PRECURSOR_REGISTRATION");
+        notifications.push("GIFTED_PREMIUM");
 
         isAuraEnabled = 1;
     } else if (session.inviteCode) {
@@ -325,7 +325,7 @@ export async function registerAccount({
 
         badges.push("PREMIUM");
 
-        notifications.push("PREMIUM_REGISTRATION");
+        notifications.push("GIFTED_PREMIUM");
         notifications.push("PARTNER_CODE_USED");
 
         isAuraEnabled = 1;

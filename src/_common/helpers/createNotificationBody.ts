@@ -29,9 +29,19 @@ export default function createNotificationBody(type: NotificationNameType): stri
         case "UPDATED_CHARACTER":
             return "{SOURCE} updated {TARGET}"
         case "REPORT_CREATED":
-            return "Thanks for your report!"
+            return "Thanks for your report"
         case "LOGIN":
             return "Unauthorized login attempt from {LOCATION} has been blocked"
+        case "ACCOUNT_VERIFIED":
+            return "Your account has been verified"
+        case "PARTNER_PROGRAM":
+            return "Your application to join the partner program has been accepted"
+        case "GIFTED_PREMIUM":
+            return "{SOURCE} gifted you {COUNT} premium"
+        case "ASSIGNED_STAFF":
+            return "Your account has been marked as a staff of OpenProfile"
+        case "EARNED_AWARD":
+            return "You earned the {AWARD} award"
         default:
             return null
     }

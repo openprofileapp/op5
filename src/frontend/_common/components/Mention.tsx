@@ -34,7 +34,7 @@ export default function Mention({
             >
                 <div
                     className={`
-                        ${isNotification ? "mx-2 flex items-center gap-2" : "mention"}
+                        ${isNotification ? "flex items-center gap-2" : "mention"}
                         flex items-center gap-2
                         ${isNotification ? "rounded-full border border-base-300 bg-transparent px-3 py-1" : ""}
                     `}
@@ -82,7 +82,7 @@ export default function Mention({
         >
             <div
                 className={`
-                    ${isNotification ? "mx-2 flex items-center gap-2" : "mention"}
+                    ${isNotification ? "flex items-center gap-2" : "mention"}
                     ${isNotification ? "" : "aura-effect"}
                     ${isNotification ? "border-1 rounded-full px-3 py-1 border-base-300 bg-transparent" : ""}
                 `}

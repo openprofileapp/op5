@@ -625,6 +625,9 @@ async function waitForMDB() {
             import("./migration/users/usernames.db.migration.js");
             import("./migration/users/webpush.db.migration.js");
 
+            import("./migration/notifications/inbox.db.migration.js");
+            import("./migration/notifications/subscriptions.db.migration.js");
+
             import("./migration/badges.db.migration.js");
             import("./migration/awards.db.migration.js");
             import("./migration/links.db.migration.js");
@@ -642,9 +645,6 @@ async function waitForMDB() {
             import("./migration/interactions/reads.db.migration.js");
             import("./migration/interactions/views.db.migration.js");
             import("./migration/interactions/favorites.db.migration.js");
-
-            import("./migration/notifications/inbox.db.migration.js");
-            import("./migration/notifications/subscriptions.db.migration.js");
 
             import("./migration/reports/bugs.db.migration.js");
         ;

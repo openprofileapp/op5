@@ -9,10 +9,12 @@ import LoginModal from "../../_common/components/modals/LoginModal.js";
 import MfaModal from "../../_common/components/modals/MfaModal.js";
 import CreateAssetModal from "../../_common/components/modals/CreateAssetModal.js";
 
-import { cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
+import { apiBaseUrl, cdnBaseUrl, mainBaseUrl, studioBaseUrl } from "../../_common/scripts/domains.js";
 import { recommendedTags } from "../../_common/scripts/tags.js";
 import NavbarUser from "../../_common/components/NavbarUser.js";
 import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { toast } from "../../_common/scripts/toast.js";
+import { formatNumber } from "kage-library/client";
 
 export default function Navbar() {
     const { ready: isTranslationReady } = useTranslation();
@@ -20,7 +22,8 @@ export default function Navbar() {
     const { pathname } = location;
     const { bugReportModal } = useModals();
 
-    const [scrolled, setScrolled] = useState(false);
+    const [scrolled, setScrolled] = useState<boolean>(false);
+    const [unreadCount, setUnreadCount] = useState<number>(0);
 
     const isBannerPage = pathname === "/";
     const hideBottomBorder = isBannerPage && !window.session?.userId && !scrolled;
@@ -62,6 +65,63 @@ export default function Navbar() {
 
         return () => window.removeEventListener("scroll", handleScroll);
     }, [isBannerPage]);
+
+    useEffect(() => {
+        if (!window.session?.userId) {
+            setUnreadCount(0);
+            return;
+        }
+
+        let controller: AbortController | null = null;
+
+        const fetchUnreadCount = async () => {
+            controller?.abort();
+            controller = new AbortController();
+
+            try {
+                const params = new URLSearchParams({
+                    limit: "0"
+                });
+
+                const response = await fetch(
+                    `${apiBaseUrl}/v3/notifications/inbox?${params.toString()}`,
+                    {
+                        credentials: "include",
+                        signal: controller.signal
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    toast.show(
+                        `Failed to load notifications`,
+                        {
+                            subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
+                            type: "error",
+                        }
+                    )
+                }
+
+                setUnreadCount(Number(data.unreadCount ?? 0));
+            } catch (error) {
+                if (error instanceof Error && error.name !== "AbortError") {
+                    console.error(error);
+                }
+            }
+        };
+
+        void fetchUnreadCount();
+
+        const interval = window.setInterval(() => {
+            void fetchUnreadCount();
+        }, 5000); // 5 seconds
+
+        return () => {
+            window.clearInterval(interval);
+            controller?.abort();
+        };
+    }, [setUnreadCount]);
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -332,18 +392,26 @@ export default function Navbar() {
                                 <span className="font-nerdfont text-xl">󰍡</span>
                                 <div className="tooltip-content">
                                     <div className="font-bold">Messages</div>
-                                    <div className="text-xs">No new messages!</div>
+                                    <div className="text-xs">No new messages</div>
                                 </div>
                             </button>
 
-                            <button className="cursor-pointer tooltip tooltip-bottom tooltip-accent">
-                                <span className="font-nerdfont text-xl">󰂚</span>
+                            <Link 
+                                className="cursor-pointer tooltip tooltip-bottom tooltip-accent"
+                                to={`${mainBaseUrl}/account/notifications`}
+                            >
+                                {unreadCount > 0 && window.session?.user?.presence !== "dnd" && (
+                                    <span className="absolute -bottom-1 -right-3 border-2 border-base-100 ml-3 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-medium text-white">
+                                        {formatNumber(unreadCount).short}
+                                    </span>
+                                )}
+                                
+                                <span className={`font-nerdfont text-xl ${unreadCount > 0 && "text-accent"}`}>󰂚</span>
                                 <div className="tooltip-content">
                                     <div className="font-bold">Notifications</div>
-                                    <div className="text-xs">No new notifications!</div>
+                                    <div className="text-xs">{unreadCount > 0 ? `${formatNumber(unreadCount).string} new notification${unreadCount === 1 ? "" : "s"}` : "No new notifications"}</div>
                                 </div>
-                            </button>
-                            {/* Maybe clicking the bell should display last 5-10 notifications with a see all link */}
+                            </Link>
                         </>
                     )}
 

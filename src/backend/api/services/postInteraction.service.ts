@@ -253,17 +253,19 @@ async function postInteractionNotification(
     type: InteractionNameType,
     eventData: InteractionEventResult
 ) {
-    const { newInteraction, count } = eventData;
+    const { count } = eventData;
 
     let notificationType: NotificationNameType | undefined;
 
-    switch (`${type}:${newInteraction}`) {
-        case "follows:true":
+    switch (type) {
+        case "follows":
             notificationType = "NEW_FOLLOW";
             break;
-        case "likes:true":
+        case "likes":
             notificationType = "NEW_LIKE";
             break;
+
+        // Send and accept friend requests here
     }
 
     const whatIsData = whatIs(targetId);

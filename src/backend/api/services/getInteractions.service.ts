@@ -47,12 +47,12 @@ export default function getInteractionsService({
         const conditions = [];
         const conditionParams = [];
 
-        if (target != null) {
+        if (target !== null) {
             conditions.push("target = ?");
             conditionParams.push(target);
         }
 
-        if (source != null) {
+        if (source !== null) {
             conditions.push("source = ?");
             conditionParams.push(source);
         }
@@ -67,7 +67,7 @@ export default function getInteractionsService({
 
         let randomItemSql = "";
 
-        if (getRandom != null && !Number.isNaN(getRandom) && getRandom > 0) {
+        if (getRandom !== null && !Number.isNaN(getRandom) && getRandom > 0) {
             selectParams.push(...conditionParams);
             selectParams.push(getRandom);
 
@@ -87,7 +87,7 @@ export default function getInteractionsService({
         selectParams.push(...conditionParams);
 
         selectParams.push(getAs ?? null, getAs ?? null);
-        if (target != null) {
+        if (target !== null) {
             selectParams.push(target);
         }
 
@@ -97,7 +97,7 @@ export default function getInteractionsService({
                 ${randomItemSql}
                 'latestDate', (SELECT MAX(date) FROM ${table} ${whereSql}),
                 'count', (SELECT COUNT(*) FROM ${table} ${whereSql}),
-                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM ${table} WHERE source = ? ${target != null ? "AND target = ?" : ""}) THEN json('true') ELSE json('false') END
+                'hasInteracted', CASE WHEN ? IS NOT NULL AND EXISTS (SELECT 1 FROM ${table} WHERE source = ? ${target !== null ? "AND target = ?" : ""}) THEN json('true') ELSE json('false') END
             )
         `;
     };

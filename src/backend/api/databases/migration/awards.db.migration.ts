@@ -60,3 +60,47 @@ db.awards.transaction(q => {
         if (!result.success) return log.db.error(result.error).save();
     }
 });
+
+db.notifications.transaction(q => {
+    if (!result.success) return log.db.error(result.error).save();
+
+    const rows = [...result.rows].sort(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    for (const d of rows) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        d.type = d.type?.toUpperCase();
+
+        if (!allowed.includes(d.type as AwardNameType)) {
+            continue;
+        }
+
+        d.award = d.type;
+        d.type = "EARNED_AWARD";
+
+        const mergedData = JSON.stringify({
+            ...(d.award !== null && { award: d.award })
+        });
+
+        const insertResult = q(
+            `INSERT INTO inbox (
+                userId,
+                type,
+                data,
+                sentDate
+            ) VALUES (?, ?, ?, ?)`,
+            [
+                d.user,
+                d.type,
+                mergedData,
+                DateTime.fromSQL(d.date as string, { zone: "utc" }).toISO()
+            ]
+        );
+
+        if (!insertResult.success) return log.db.error(insertResult.error).save();
+    }
+});
