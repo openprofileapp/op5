@@ -2,13 +2,53 @@ import { useTranslation } from "react-i18next";
 
 import Metadata from "../../_common/components/Metadata.js";
 import { Link } from "react-router-dom";
-import { mainBaseUrl } from "../../_common/scripts/domains.js";
+import { authBaseUrl, mainBaseUrl } from "../../_common/scripts/domains.js";
+import { useState } from "react";
+import { toast } from "../../_common/scripts/toast.js";
 
 export default function Premium() {
     const { ready: isTranslationReady } = useTranslation();
 
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
     const isPremium = window?.session?.permissions?.array?.includes("PREMIUM_ACCESS");
     const isPrecursor = window?.session?.user?.awards?.some((award) => award.type === "PRECURSOR")
+
+    const handleSubscribe = async () => {
+        if (isSubscribing || isPremium || isPrecursor) return;
+
+        setIsSubscribing(true);
+
+        try {
+            const response = await fetch(
+                `${authBaseUrl}/billing/subscribe`, 
+                { credentials: "include" }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setIsSubscribing(false);
+
+                toast.show(
+                    "Failed to subscribe",
+                    {
+                        subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
+                        type: "error",
+                    }
+                );
+            } else {
+                window.location.assign(data.approvalUrl);
+            }
+        } catch (error) {
+            setIsSubscribing(false);
+
+            toast.show("Failed to create field", {
+                subtext: String(error),
+                type: "error",
+            });
+        }
+    };
 
     const auraStyle: React.CSSProperties = {
         ["--aura-type" as string]: "aura-flow",
@@ -120,14 +160,19 @@ export default function Premium() {
                                 </li>
                             </ul>
 
-                            <div 
-                                className="mt-6 tooltip tooltip-accent"
-                                data-tip="Coming Soon"
-                            >
-                                <button className={`btn btn-disabled bg-premium text-black btn-block`}>
-                                    {!isPremium 
-                                        ? "Subscribe" 
-                                        : "Current Plan"
+                            <div className="mt-6">
+                                <button
+                                    className="btn bg-premium text-black disabled:btn-disabled btn-block"
+                                    onClick={handleSubscribe}
+                                    disabled={isSubscribing || isPremium || isPrecursor}
+                                >
+                                    {isSubscribing
+                                        ? (<span className="loading"></span>)
+                                        : isPremium
+                                            ? isPrecursor
+                                                ? "Included with your account"
+                                                : "Current Plan"
+                                                    : "Subscribe"
                                     }
                                 </button>
                             </div>
