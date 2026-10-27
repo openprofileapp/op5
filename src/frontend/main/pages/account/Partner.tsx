@@ -132,7 +132,7 @@ export default function Partner() {
                     Math.max(
                         1,
                         data.totalPages ??
-                            (data.nextOffset != null
+                            (data.nextOffset !== null
                                 ? currentPage + 1
                                 : currentPage)
                     )
