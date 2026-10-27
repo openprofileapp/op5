@@ -25,7 +25,10 @@ export const captchaController = async (req: Request, res: Response) => {
         }
 
         if (!token) {
-            throw new AdvancedError({ code: 400, message: "Invalid token" });
+            throw new AdvancedError({ 
+                code: 400, 
+                message: "Invalid token" 
+            });
         }
 
         const result: Hcaptcha = await wc.callAPI(
