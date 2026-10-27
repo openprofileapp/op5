@@ -146,6 +146,8 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
 
         if (data.status === "ready") {
             ws.send(JSON.stringify({ message: "connected" }));
+
+            checkIdleTimer(sessionId, ws.userId);
         }
 
         if (data.active) {
