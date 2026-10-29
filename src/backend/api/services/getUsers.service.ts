@@ -150,6 +150,7 @@ export default function getUsersService({
     const queryClause = trimmedQuery 
         ? `AND (
             users.displayName LIKE ? 
+            OR users.id LIKE ? 
             OR users.about LIKE ? 
             OR users.tags LIKE ?
             OR usernames.username LIKE ?
@@ -157,7 +158,7 @@ export default function getUsersService({
         : "";
 
     const queryParams = trimmedQuery 
-        ? [...Array(4).fill(queryTerm)] 
+        ? [...Array(5).fill(queryTerm)] 
         : [];
 
     const trimmedTag = tag?.trim();

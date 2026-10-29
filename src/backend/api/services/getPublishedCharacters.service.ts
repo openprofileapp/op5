@@ -146,6 +146,7 @@ export default function getPublishedCharactersService({
     const queryClause = trimmedQuery 
         ? `AND (
             published.id LIKE ? 
+            OR published.ownerId LIKE ? 
             OR published.displayName LIKE ? 
             OR published.about LIKE ? 
             OR published.slug LIKE ? 
@@ -156,7 +157,7 @@ export default function getPublishedCharactersService({
         : "";
 
     const queryParams = trimmedQuery 
-        ? [...Array(7).fill(queryTerm)] 
+        ? [...Array(8).fill(queryTerm)] 
         : [];
 
     const trimmedTag = tag?.trim();

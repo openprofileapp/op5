@@ -93,6 +93,7 @@ export default function getDraftCharactersService({
     const queryClause = trimmedQuery 
         ? `AND (
             drafts.id LIKE ? 
+            OR drafts.ownerId LIKE ? 
             OR drafts.displayName LIKE ? 
             OR drafts.about LIKE ? 
             OR drafts.tags LIKE ?
@@ -102,7 +103,7 @@ export default function getDraftCharactersService({
         : "";
 
     const queryParams = trimmedQuery 
-        ? [...Array(6).fill(queryTerm)] 
+        ? [...Array(7).fill(queryTerm)] 
         : [];
 
     const trimmedTag = tag?.trim();
