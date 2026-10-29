@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
     permissions TEXT NOT NULL DEFAULT '0',
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
-    earnedRevenueUSD INTEGER DEFAULT 0,
     initialIp TEXT,
     hasReadTerms INTEGER NOT NULL DEFAULT 0,
     lastReadTermsVersion TEXT NOT NULL DEFAULT '0',
