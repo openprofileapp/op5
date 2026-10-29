@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { DateTime } from "luxon";
 
 import { AdvancedError } from "kage-library";
 
@@ -127,6 +128,9 @@ const paymentEventTypes = new Set([
     "PAYMENT.CAPTURE.COMPLETED",
     "PAYMENT.CAPTURE.REFUNDED",
     "PAYMENT.CAPTURE.REVERSED",
+
+    "PAYMENT.PAYOUTS-ITEM.SUCCEEDED",
+    "PAYMENT.PAYOUTS-ITEM.FAILED",
 
     "CUSTOMER.DISPUTE.CREATED",
     "CUSTOMER.DISPUTE.UPDATED",
@@ -310,8 +314,27 @@ export const webhookController = async (req: Request, res: Response) => {
                     const premiumCost = 4.99;
                     // const taxPercentage = 6;
                     const initialPartnerSplitPercentage = 65;
-                    const reoccuringPartnerSplitPercentage = 5;
+                    const recurringPartnerSplitPercentage = 5;
                     let partnerSplit = 0;
+
+                    const now = DateTime.utc();
+                    const nowIso = now.toISO();
+                    const in30DaysIso = now.plus({ days: 30 }).toISO();
+
+                    const updateSubscription = db.billing.query(
+                        `
+                            UPDATE subscriptions
+                            SET dateStarted = ?, dateEnded = ?
+                            WHERE id = ?
+                        `,
+                        [
+                            nowIso,
+                            in30DaysIso,
+                            resource.billing_agreement_id,
+                        ]
+                    );
+
+                    assertDbSuccess(updateSubscription);
 
                     const getPreviousPayments = db.billing.query(
                         `
@@ -331,7 +354,7 @@ export const webhookController = async (req: Request, res: Response) => {
                     if (getPreviousPayments.rowCount === 0) {
                         partnerSplit = premiumCost * (initialPartnerSplitPercentage / 100);
                     } else {
-                        partnerSplit = premiumCost * (reoccuringPartnerSplitPercentage / 100);
+                        partnerSplit = premiumCost * (recurringPartnerSplitPercentage / 100);
                     }
 
                     const insertPayment = db.billing.query(
@@ -393,9 +416,51 @@ export const webhookController = async (req: Request, res: Response) => {
 
                         assertDbSuccess(insertPayout);
 
-                        // Assign partner stats (call API)
+                        
 
-                        // Pay partner (it will mark the payout as completed)
+
+
+
+
+
+
+                        // Save the ids to db then the response ids
+
+                        // MOVE THIS TO CASHOUT API
+                        // billing/cashout
+
+                        // TAKES A $0.25 MIN (we won't cover it; no min to cashout)
+                        // DISPLAY MODAL WITH EMAIL (and confirm email) AND WARNING ^
+                        const payoutResponse = await fetch(
+                            `${paypalBaseUrl}/v1/payments/payouts`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    Authorization: `Bearer ${tokenData.access_token}`,
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    sender_batch_header: {
+                                        sender_batch_id: crypto.randomUUID(),
+                                        email_subject: "Your OpenProfile Partner Earnings",
+                                    },
+                                    items: [
+                                        {
+                                            recipient_type: "EMAIL",
+                                            amount: {
+                                                value: partnerSplit.toFixed(2),
+                                                currency: "USD",
+                                            },
+                                            receiver: "sb-pent353577642@personal.example.com",
+                                            note: `OpenProfile Partner Program: Revenue share earned from an invited user's${getPreviousPayments.rowCount === 0 ? " " : " recurring "}Premium subscription.`,
+                                            sender_item_id: crypto.randomUUID(), // use snowflake
+                                        },
+                                    ],
+                                }),
+                            }
+                        );
+
+                        const payout = await payoutResponse.json();
                     }
 
                     await wc.callAPI(
@@ -444,8 +509,56 @@ export const webhookController = async (req: Request, res: Response) => {
                     break;
                 }
 
+                case "PAYMENT.PAYOUTS-ITEM.SUCCEEDED": {
+                    /*
+                        12:42:19 [INFO] {
+                            transaction_id: "7B527729B9143193F"
+                            payout_item_fee: {
+                                currency: "USD"
+                                value: "0.25"
+                            }
+                            transaction_status: "SUCCESS"
+                            sender_batch_id: "3df8f0e3-35d8-4d6b-bfd9-6318d1668954"
+                            time_processed: "2026-10-29T16:41:55Z"
+                            activity_id: "27M36287MC048832X"
+                            payout_item: {
+                                recipient_type: "EMAIL"
+                                amount: {
+                                    currency: "USD"
+                                    value: "0.25"
+                                }
+                                note: "OpenProfile Partner Program: Revenue share earned from an invited user's recurring Premium subscription."
+                                receiver: "sb-pent353577642@personal.example.com"
+                                sender_item_id: "3058face-d7a9-4626-b3c6-d4ff2cc6eadd"
+                                recipient_wallet: "PAYPAL"
+                            }
+                            links: [
+                                {
+                                    href: "https://api.sandbox.paypal.com/v1/payments/payouts-item/JVE7PKG4MKTUS"
+                                    rel: "self"
+                                    method: "GET"
+                                    encType: "application/json"
+                                }
+                                {
+                                    href: "https://api.sandbox.paypal.com/v1/payments/payouts/W9XETF4FUWKAQ"
+                                    rel: "batch"
+                                    method: "GET"
+                                    encType: "application/json"
+                                }
+                            ]
+                            payout_item_id: "JVE7PKG4MKTUS"
+                            payout_batch_id: "W9XETF4FUWKAQ"
+                        }
+                    */
 
+                    // LOG THE FEE IN THE DB
 
+                    break;
+                }
+
+                case "PAYMENT.PAYOUTS-ITEM.FAILED": {
+                    break;
+                }
 
 
 
