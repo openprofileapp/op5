@@ -9,7 +9,6 @@ export type UserAccountType = {
     permissions: string;
     locale: string;
     timezone: string;
-    earnedRevenueUSD: number;
     initialIp: string;
     hasReadTerms: boolean;
     lastReadTermsVersion: string;
