@@ -25,7 +25,7 @@ import disconnectRoute from "./routes/connection/disconnect.route.js";
 import checkRoute from "./routes/check.route.js";
 import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 import integrationRoute from "./routes/integration.route.js";
-import billingRoute from "./routes/billing.route.js";
+import billingRoutes from "./routes/billing.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -85,7 +85,7 @@ router.use(
     "/billing", 
     validateSessionMiddleware,
     rateLimitMiddleware(240), 
-    billingRoute
+    billingRoutes
 );
 
 /* 
