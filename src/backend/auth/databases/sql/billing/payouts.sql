@@ -1,8 +1,17 @@
 CREATE TABLE IF NOT EXISTS payouts (
-    paymentId TEXT NOT NULL,
+    transactionId TEXT,
+    refPaymentId TEXT NOT NULL,
     userId TEXT NOT NULL,
+    email TEXT NOT NULL,
+    subtotal INTEGER DEFAULT 0,
+    fee INTEGER DEFAULT 0,
     total INTEGER DEFAULT 0,
     currency TEXT NOT NULL,
     status TEXT NOT NULL,
-    date TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    senderBatchId TEXT,
+    senderItemId TEXT,
+    payoutBatchId TEXT,
+    payoutItemId TEXT,
+    dateCreated TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    dateProcessed TEXT
 );
