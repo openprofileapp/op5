@@ -10,12 +10,13 @@ export default function Premium() {
     const { ready: isTranslationReady } = useTranslation();
 
     const [isSubscribing, setIsSubscribing] = useState(false);
+    const [isUnsubscribing, setIsUnsubscribing] = useState(false);
 
     const isPremium = window?.session?.permissions?.array?.includes("PREMIUM_ACCESS");
     const isPrecursor = window?.session?.user?.awards?.some((award) => award.type === "PRECURSOR")
 
     const handleSubscribe = async () => {
-        if (isSubscribing || isPremium || isPrecursor) return;
+        // if (isSubscribing || isPremium || isPrecursor) return;
 
         setIsSubscribing(true);
 
@@ -50,6 +51,43 @@ export default function Premium() {
         }
     };
 
+    const handleUnsubscribe = async () => {
+        // if (isUnsubscribing || !isPremium || isPrecursor) return;
+
+        setIsUnsubscribing(true);
+
+        try {
+            const response = await fetch(
+                `${authBaseUrl}/billing/unsubscribe`,
+                { credentials: "include" }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                toast.show("Failed to unsubscribe", {
+                    subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
+                    type: "error"
+                });
+
+                return;
+            }
+
+            toast.show("Subscription canceled", {
+                type: "success"
+            });
+
+            window.location.reload();
+        } catch (error) {
+            toast.show("Failed to unsubscribe", {
+                subtext: String(error),
+                type: "error"
+            });
+        } finally {
+            setIsUnsubscribing(false);
+        }
+    };
+
     const auraStyle: React.CSSProperties = {
         ["--aura-type" as string]: "aura-flow",
         ["--aura-primary" as string]: "var(--color-premium)",
@@ -65,7 +103,7 @@ export default function Premium() {
                 allowIndex={false}
             />
 
-            <div className="flex flex-col gap-12 min-h-[calc(100vh-64px)] flex items-center justify-center py-16">
+            <div className="flex flex-col gap-12 min-h-[calc(100vh-64px)] items-center justify-center py-16">
                 <span className="text-4xl font-bold pointer-events-none">
                     Support OpenProfile
                 </span>
@@ -93,14 +131,20 @@ export default function Premium() {
                                 </li>
                             </ul>
 
-                            <div 
-                                className="mt-auto tooltip tooltip-accent"
-                                data-tip="Coming Soon"
-                            >
-                                <button className={`btn btn-disabled bg-accent text-white btn-block`}>
-                                    {!isPremium 
-                                        ? "Current Plan" 
-                                        : isPrecursor ? "Not available for your account" : "Switch Plan"
+                            <div className="mt-auto">
+                                <button
+                                // ${!isPremium || isPrecursor || isUnsubscribing ? "btn-disabled" : ""}
+                                    className={`btn bg-accent text-white btn-block `}
+                                    onClick={handleUnsubscribe}
+                                    // disabled={!isPremium || isPrecursor || isUnsubscribing}
+                                >
+                                    {isUnsubscribing
+                                        ? (<span className="loading"></span>)
+                                        : isPremium
+                                            ? isPrecursor
+                                                ? "Not available for your account"
+                                                : "Switch Plan"
+                                                    : "Current Plan"
                                     }
                                 </button>
                             </div>
@@ -162,9 +206,15 @@ export default function Premium() {
 
                             <div className="mt-6">
                                 <button
-                                    className="btn bg-premium text-black disabled:btn-disabled btn-block"
+                                // ${/*isSubscribing || isPremium || isPrecursor ? "btn-disabled" : ""*/} 
+                                    className={`btn bg-premium text-black btn-block`}
                                     onClick={handleSubscribe}
-                                    disabled={isSubscribing || isPremium || isPrecursor}
+                                    // disabled={isSubscribing || isPremium || isPrecursor}
+
+                                    // ADD A PROMPT FOR EACH EXPLAINING THEY WILL BE BILLED MONTHYL AND THEY CAN CANCL ANY TIME THEN ON CLICK CALL THE API
+                                    // YOU WILL BE CHARGED $4.99 MONTHLY
+                                    // YOU CAN CANCEL FOR A FULL REFUND WITHIN 48 HOURS ONLY ONCE (AFTER MARK; THIS IS NOT ELIGIABLE FOR REFUND)
+                                    // YOU WILL BE REIRECTED TO PAYPAL
                                 >
                                     {isSubscribing
                                         ? (<span className="loading"></span>)
