@@ -360,6 +360,7 @@ export const config = {
             },
             channels: {
                 status: "1226198336009408583",
+                statusDev: "1564950143185199225",
                 commands: "907182663775948841",
                 commandsDev: "1514196888138678392",
                 logs: "1207075758082629692"
