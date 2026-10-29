@@ -9,8 +9,10 @@ export type PaymentType = {
     id: string;
     subscriptionId: string;
     userId: string;
-    amount: number;
+    subtotal: number;
+    tax: number;
+    total: number;
     currency: string;
     status: PaymentStatusType;
-    date: string;
+    dateCreated: string;
 }
