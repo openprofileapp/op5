@@ -583,6 +583,7 @@ db.templates.query(`ATTACH DATABASE '${paths.media}' AS media`);
 db.blocks.query(`ATTACH DATABASE '${paths.media}' AS media`);
 
 db.invites.query(`ATTACH DATABASE '${paths.badges}' AS badges`);
+db.invites.query(`ATTACH DATABASE '${paths.users}' AS users`);
 
 db.notifications.query(`ATTACH DATABASE '${paths.users}' AS users`);
 db.notifications.query(`ATTACH DATABASE '${paths.characters}' AS characters`);
