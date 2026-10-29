@@ -1,7 +1,9 @@
 import { config } from "../../../../app.config.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 import { db } from "../databases/db.js";
+import { wc } from "../instances.js";
 import whatIs from "./whatIs.service.js";
 
 type Props = {
@@ -12,7 +14,28 @@ type Props = {
     offset?: number;
 };
 
-export default function getInviteService({
+type SubscriptionRecord = Record<string, string | null>;
+
+async function getSubscriptionMap(
+    userIds: string[]
+): Promise<SubscriptionRecord> {
+    const uniqueUserIds = [...new Set(userIds)];
+
+    if (uniqueUserIds.length === 0) {
+        return {};
+    }
+
+    return await wc.callAPI<SubscriptionRecord>(
+        `https://${config.domains.auth}/billing/get`,
+        {
+            method: "POST",
+            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+            body: { userIds: uniqueUserIds }
+        }
+    );
+}
+
+export default async function getInviteService({
     code,
     owner,
     getAs,
@@ -25,11 +48,11 @@ export default function getInviteService({
               [code]
           )
         : owner
-        ? db.invites.query(
-              "SELECT * FROM codes WHERE ownerId = ? ORDER BY createdDate DESC",
-              [owner]
-          )
-        : null;
+          ? db.invites.query(
+                "SELECT * FROM codes WHERE ownerId = ? ORDER BY createdDate DESC",
+                [owner]
+            )
+          : null;
 
     assertNotNull(result);
     assertDbSuccess(result);
@@ -41,6 +64,10 @@ export default function getInviteService({
     const invites = result.rows;
     const limit = config.limits.assetsPerPage;
     const safeOffset = Math.max(0, Math.floor(offset));
+
+    const createdAfter = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+    ).toISOString();
 
     if (code) {
         const invite = invites[0];
@@ -59,26 +86,46 @@ export default function getInviteService({
 
         const uses = Number(usesResult.rows[0]?.count ?? 0);
 
-        const premiumResult = db.invites.query(
-            `SELECT COUNT(DISTINCT u.userId) AS count
-             FROM uses u
-             INNER JOIN badges b ON b.id = u.userId
-             WHERE u.code = ?
-               AND b.type = 'PREMIUM'`,
+        const allUsersResult = db.invites.query(
+            `SELECT DISTINCT userId
+             FROM uses
+             WHERE code = ?`,
             [invite.code]
         );
 
-        assertDbSuccess(premiumResult);
+        assertDbSuccess(allUsersResult);
 
-        const premiumUsers = Number(
-            premiumResult.rows[0]?.count ?? 0
+        const allUserIds = allUsersResult.rows.map(
+            row => String(row.userId)
+        );
+
+        const subscriptions = await getSubscriptionMap(allUserIds);
+
+        const premiumUsers = allUserIds.filter(
+            userId => subscriptions[userId] === "Subscribed"
+        ).length;
+
+        const createdResult = db.invites.query(
+            `SELECT COUNT(DISTINCT u.userId) AS count
+             FROM uses u
+             INNER JOIN users usr ON usr.id = u.userId
+             WHERE u.code = ?
+               AND usr.createdDate >= ?`,
+            [invite.code, createdAfter]
+        );
+
+        assertDbSuccess(createdResult);
+
+        const usersLast30Days = Number(
+            createdResult.rows[0]?.count ?? 0
         );
 
         if (!includeUsers) {
             return {
                 ...invite,
                 uses,
-                premiumUsers
+                premiumUsers,
+                usersLast30Days
             };
         }
 
@@ -93,15 +140,20 @@ export default function getInviteService({
 
         assertDbSuccess(usersResult);
 
-        const users = usersResult.rows.map(row => ({
-            ...whatIs(row.userId as string, false, getAs),
-            date: row.date
-        }));
+        const users = usersResult.rows
+            .map(row => ({
+                ...whatIs(String(row.userId), false, getAs),
+                date: row.date,
+                subscriptionType:
+                    subscriptions[String(row.userId)] ?? null
+            }))
+            .filter(user => user.subscriptionType !== null);
 
         return {
             ...invite,
             uses,
             premiumUsers,
+            usersLast30Days,
             users
         };
     }
@@ -112,7 +164,10 @@ export default function getInviteService({
         return invites;
     }
 
-    const codeList = invites.map(invite => invite.code as string);
+    const codeList = invites.map(
+        invite => invite.code as string
+    );
+
     const placeholders = codeList.map(() => "?").join(",");
 
     const usesResult = db.invites.query(
@@ -132,20 +187,51 @@ export default function getInviteService({
         ])
     );
 
-    const premiumResult = db.invites.query(
-        `SELECT u.code, COUNT(DISTINCT u.userId) AS count
-         FROM uses u
-         INNER JOIN badges b ON b.id = u.userId
-         WHERE u.code IN (${placeholders})
-           AND b.type = 'PREMIUM'
-         GROUP BY u.code`,
+    const allUsersResult = db.invites.query(
+        `SELECT DISTINCT code, userId
+         FROM uses
+         WHERE code IN (${placeholders})`,
         codeList
     );
 
-    assertDbSuccess(premiumResult);
+    assertDbSuccess(allUsersResult);
 
-    const premiumMap = new Map<string, number>(
-        premiumResult.rows.map(row => [
+    const allUserIds = [
+        ...new Set(
+            allUsersResult.rows.map(row => String(row.userId))
+        )
+    ];
+
+    const subscriptions = await getSubscriptionMap(allUserIds);
+
+    const premiumMap = new Map<string, number>();
+
+    for (const row of allUsersResult.rows) {
+        const inviteCode = String(row.code);
+        const userId = String(row.userId);
+
+        if (subscriptions[userId] === "Subscribed") {
+            premiumMap.set(
+                inviteCode,
+                (premiumMap.get(inviteCode) ?? 0) + 1
+            );
+        }
+    }
+
+    const createdResult = db.invites.query(
+        `SELECT u.code, COUNT(DISTINCT u.userId) AS count
+         FROM uses u
+         INNER JOIN users usr ON usr.id = u.userId
+         WHERE u.code IN (${placeholders})
+           AND usr.createdDate >= ?
+         GROUP BY u.code`,
+        [...codeList, createdAfter]
+    );
+
+    assertDbSuccess(createdResult);
+
+    const createdMap = new Map<string, number>(
+        createdResult.rows.map(row => [
             row.code as string,
             Number(row.count)
         ])
@@ -154,7 +240,9 @@ export default function getInviteService({
     const enrichedInvites = invites.map(invite => ({
         ...invite,
         uses: usesMap.get(invite.code as string) ?? 0,
-        premiumUsers: premiumMap.get(invite.code as string) ?? 0
+        premiumUsers: premiumMap.get(invite.code as string) ?? 0,
+        usersLast30Days:
+            createdMap.get(invite.code as string) ?? 0
     }));
 
     if (!includeUsers) {
@@ -172,11 +260,15 @@ export default function getInviteService({
 
     assertDbSuccess(usersResult);
 
-    const users = usersResult.rows.map(row => ({
-        code: row.code,
-        ...whatIs(row.userId as string, false, getAs),
-        date: row.date
-    }));
+    const users = usersResult.rows
+        .map(row => ({
+            code: row.code,
+            ...whatIs(String(row.userId), true, getAs),
+            date: row.date,
+            subscriptionType:
+                subscriptions[String(row.userId)] ?? null
+        }))
+        .filter(user => user.subscriptionType !== null);
 
     return {
         invites: enrichedInvites,
