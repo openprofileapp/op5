@@ -12,7 +12,7 @@ import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 
-export const postregisterController = async (req: Request, res: Response) => {
+export const postRegisterController = async (req: Request, res: Response) => {
     try {
         const { 
             id,
@@ -184,11 +184,7 @@ export const postregisterController = async (req: Request, res: Response) => {
             {
                 method: "POST",
                 auth: `ApiSecret ${getEnv("API_SECRET")}`,
-                body: {
-                    userId: id,
-                    username,
-                    displayName
-                }
+                body: { userId: id }
             }
         );
     } catch(error) {

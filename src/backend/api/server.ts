@@ -21,7 +21,7 @@ import interactionRoutes from "./routes/interaction.routes.js";
 import webPushRoute from "./routes/webPush.route.js";
 import auditRoute from "./routes/audit.route.js";
 import usernamesRoute from "./routes/usernames.route.js";
-import postregisterRoute from "./routes/postregister.route.js";
+import postRegisterRoute from "./routes/postRegister.route.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import advertisementRoute from "./routes/advertisement.route.js";
@@ -187,7 +187,7 @@ v3.use(
 v3.use(
     "/postregister", 
     rateLimitMiddleware(240), 
-    postregisterRoute
+    postRegisterRoute
 );
 
 v3.use(
