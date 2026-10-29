@@ -514,10 +514,38 @@ export default function Navbar() {
                     <span className="dock-label">Create</span>
                 </button>
 
-                <button>
+                <Link
+                    to={`${mainBaseUrl}/account/notifications`}
+                    className={isActive(`${mainBaseUrl}/account/notifications`) ? "text-accent" : ""}
+                >
                     <div className="text-xl font-nerdfont">󰂚</div>
                     <span className="dock-label">Notifications</span>
-                </button>
+                </Link>
+
+                <Link
+                    to={
+                        window.session?.user?.usernames?.[0]
+                            ? `${mainBaseUrl}/user/${window.session.user.usernames?.[0].username}`
+                            : `${mainBaseUrl}/account/dashboard`
+                    }
+                    className={
+                        isActive(`/user/${window.session?.user?.usernames?.[0].username}`)
+                            ? "text-accent"
+                            : ""
+                    }
+                >
+                    <div className="avatar mb-[0.8px]">
+                        <div className="w-6 h-6 rounded-full overflow-hidden">
+                            <img
+                                src={`${cdnBaseUrl}${window.session?.user?.avatar || window.config.metadata.assets.noImage}`}
+                                alt="My Profile"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
+
+                    <span className="dock-label">My Profile</span>
+                </Link>
             </div>
         </>
     );
