@@ -103,6 +103,7 @@ export default function getNotificationsService({
         ? `
             AND (
                 LOWER(inbox.data) LIKE LOWER(?)
+                OR LOWER(inbox.type) LIKE LOWER(?)
 
                 OR EXISTS (
                     SELECT 1
@@ -131,6 +132,7 @@ export default function getNotificationsService({
 
     const queryParams: (string | number)[] = queryTerm
         ? [
+            queryTerm,
             queryTerm,
             queryTerm,
             queryTerm,
