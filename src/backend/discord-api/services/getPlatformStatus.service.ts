@@ -187,7 +187,7 @@ export default async function getPlatformStatusService() {
 
     const channelId = config.isProduction 
         ? config.integrations.discord.channels.status 
-        : config.integrations.discord.channels.commandsDev
+        : config.integrations.discord.channels.statusDev
 
     const channel = await discord.channels.fetch(channelId);
 
@@ -195,25 +195,16 @@ export default async function getPlatformStatusService() {
         throw new Error(`Channel ${channelId} is not a text-based channel`);
     }
 
-    const messages = await channel.messages.fetch(
-        { limit: 100 }
-    );
-
-    const latestMessage = messages.first();
-
-    if (latestMessage && latestMessage?.author?.id === discord?.user?.id) {
-        await latestMessage.edit(payload);
-        return;
-    }
+    const messages = await channel.messages.fetch({ limit: 100 });
 
     const existingStatusMessage = messages.find(
         message => message.author.id === discord?.user?.id
     );
 
     if (existingStatusMessage) {
-        await existingStatusMessage.delete();
+        await existingStatusMessage.edit(payload);
+        return;
     }
-
 
     await discordMessage.send(channelId, payload);
 }
