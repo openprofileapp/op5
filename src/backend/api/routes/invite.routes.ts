@@ -6,5 +6,6 @@ const inviteRoutes = Router();
 
 inviteRoutes.get("/code/:code", getInvitesController);
 inviteRoutes.get("/owner/:ownerId", getInvitesController);
+inviteRoutes.get("/user/:userId", getInvitesController);
 
 export default inviteRoutes;
