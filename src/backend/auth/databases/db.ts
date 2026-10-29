@@ -9,7 +9,8 @@ const log = new Logger({
 });
 
 export const db = {
-    accounts: new Database("data/databases/accounts.sqlite")
+    accounts: new Database("data/databases/accounts.sqlite"),
+    billing: new Database("data/databases/billing.sqlite")
 };
 
 db.accounts.transaction(q => {
@@ -49,6 +50,23 @@ db.accounts.transaction(q => {
     };
 });
 
+db.billing.transaction(q => {
+    if (!q("SELECT * FROM subscriptions LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.auth}/billing/subscriptions.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM payments LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.auth}/billing/payments.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+
+    if (!q("SELECT * FROM payouts LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.auth}/billing/payouts.sql`);
+        if (!result.success) return log.db.error(result.error).save();
+    };
+});
+
 // Migration (old databases)
 export const mdb = {
     accounts: new Database("data/databases/migration/accounts.db")
@@ -64,6 +82,7 @@ async function waitForMDB() {
             import("./migration/accounts/emails.db.migration.js");
             import("./migration/accounts/users.db.migration.js");
             import("./migration/accounts/bots.db.migration.js");
+            
             import("./migration/accounts/subscriptions.db.migration.js");
 
             return;
