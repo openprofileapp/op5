@@ -18,11 +18,13 @@ type PartnerUser = WhatIsType & {
     date?: string;
     createdDate?: string;
     code?: string;
+    subscriptionType?: string;
 };
 
 type PartnerInvite = InviteType & {
     uses?: number;
     premiumUsers?: number;
+    usersLast30Days?: string;
 };
 
 export default function Partner() {
@@ -45,8 +47,16 @@ export default function Partner() {
 
     const inviteCode = invites[0]?.code ?? "";
 
+    // eslint-disable-next-line react-hooks/purity
+    const [currentTime, setCurrentTime] = useState(Date.now());
+
     const registrations = invites.reduce(
         (total, invite) => total + Number(invite.uses ?? 0),
+        0
+    );
+
+    const registrationsLast30Days = invites.reduce(
+        (total, invite) => total + Number(invite.usersLast30Days ?? 0),
         0
     );
 
@@ -65,6 +75,16 @@ export default function Partner() {
 
     // DEVELOPER NEEDED: Replace value with auth API that retuns the earnings
     const earnings = 0;
+
+    useEffect(() => {
+        const interval = window.setInterval(() => {
+            setCurrentTime(Date.now());
+        }, 1000);
+
+        return () => {
+            window.clearInterval(interval);
+        };
+    }, []);
 
     useEffect(() => {
         const pageParam = Math.max(
@@ -97,8 +117,18 @@ export default function Partner() {
     };
 
     useEffect(() => {
-        const fetchPartnerData = async () => {
-            setIsLoading(true);
+        let isMounted = true;
+        let controller: AbortController | null = null;
+
+        const fetchPartnerData = async (showLoading = false) => {
+            if (document.hidden) return;
+
+            controller?.abort();
+            controller = new AbortController();
+
+            if (showLoading) {
+                setIsLoading(true);
+            }
 
             try {
                 const params = new URLSearchParams({
@@ -109,21 +139,18 @@ export default function Partner() {
                 const res = await fetch(
                     `${apiBaseUrl}/v3/invites/owner/${window.session?.userId}?${params.toString()}`,
                     {
-                        credentials: "include"
+                        credentials: "include",
+                        signal: controller.signal
                     }
                 );
 
                 const data = await res.json();
 
                 if (!res.ok) {
-                    toast.show(
-                        "Failed to load partner partner data",
-                        {
-                            subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
-                            type: "error",
-                        }
-                    );
+                    throw new Error(data.message || "Failed to load partner data");
                 }
+
+                if (!isMounted) return;
 
                 setInvites(data.invites ?? []);
                 setUsers(data.users ?? []);
@@ -131,20 +158,64 @@ export default function Partner() {
                 setTotalPages(
                     Math.max(
                         1,
-                        data.totalPages ??
-                            (data.nextOffset !== null
-                                ? currentPage + 1
-                                : currentPage)
+                        Number(
+                            data.totalPages ??
+                                (data.nextOffset != null
+                                    ? currentPage + 1
+                                    : currentPage)
+                        )
                     )
                 );
             } catch (error) {
-                console.log(error)
+                if (
+                    error instanceof Error &&
+                    error.name === "AbortError"
+                ) {
+                    return;
+                }
+
+                console.error("Failed to fetch partner data:", error);
+
+                if (showLoading && isMounted) {
+                    toast.show("Failed to load partner data", {
+                        type: "error"
+                    });
+                }
             } finally {
-                setIsLoading(false);
+                if (isMounted && showLoading) {
+                    setIsLoading(false);
+                }
             }
         };
 
-        fetchPartnerData();
+        fetchPartnerData(true);
+
+        const interval = window.setInterval(() => {
+            fetchPartnerData();
+        }, 30000); // 30 seconds
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                fetchPartnerData();
+            }
+        };
+
+        document.addEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+        );
+
+        return () => {
+            isMounted = false;
+            controller?.abort();
+
+            window.clearInterval(interval);
+
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+        };
     }, [currentPage]);
 
     const copyToClipboard = async (text: string) => {
@@ -169,14 +240,14 @@ export default function Partner() {
         }
     };
 
-    const getPremiumBadge = (premium: WhatIsType["isPremium"]) => {
+    const premiumBadge = (premium: string) => {
         if (!premium) {
-            return <span className="text-sub">Free</span>;
+            return <span className="text-sub">Not Subscribed</span>;
         }
 
         return (
             <span className="badge bg-premium text-[#1a1a1a]">
-                Premium
+                {premium}
             </span>
         );
     };
@@ -185,7 +256,10 @@ export default function Partner() {
 
     return (
         <>
-            <Metadata title="Partner Stats" allowIndex={false} />
+            <Metadata 
+                title="Partner Stats" 
+                allowIndex={false} 
+            />
 
             <div className="mt-14 md:mt-0 flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
                 <div className="flex-1 flex items-center justify-center">
@@ -227,6 +301,10 @@ export default function Partner() {
                             <span className="text-2xl">
                                 {registrations}
                             </span>
+
+                            <span className="font-normal text-sub text-xs">
+                                Last 30 Days: {registrationsLast30Days}
+                            </span>
                         </div>
 
                         <div className="col-start-2 row-start-2 text-lg font-bold">
@@ -257,11 +335,15 @@ export default function Partner() {
 
                         <div className="col-start-3 row-start-2 font-bold flex flex-col gap-4">
                             <span className="text-base">
-                                Premium Users
+                                Subscribed Users
                             </span>
 
                             <span className="text-2xl">
                                 {premiumUsers}
+                            </span>
+
+                            <span className="font-normal text-sub text-xs">
+                                Estimated Monthly: ${(premiumUsers * 0.25).toFixed(2)}
                             </span>
                         </div>
 
@@ -272,6 +354,10 @@ export default function Partner() {
 
                             <span className="font-bold text-2xl">
                                 ${earnings.toFixed(2)}
+                            </span>
+
+                            <span className="font-normal text-sub text-xs">
+                                Lifetime: ${earnings.toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -347,15 +433,16 @@ export default function Partner() {
                                             </td>
 
                                             <td className="text-right px-2 whitespace-nowrap">
-                                                {getPremiumBadge(
-                                                    user.isPremium
+                                                {premiumBadge(
+                                                    user.subscriptionType as string
                                                 )}
                                             </td>
 
-                                            <td className="text-right px-6 whitespace-nowrap">
-                                                {formatShortRelative(
-                                                    user.date
-                                                ) ?? "—"}
+                                            <td
+                                                className="text-right px-6 whitespace-nowrap"
+                                                data-current-time={currentTime}
+                                            >
+                                                {formatShortRelative(user.date ?? user.createdDate) ?? "—"}
                                             </td>
                                         </tr>
                                     ))}
@@ -372,7 +459,7 @@ export default function Partner() {
                                     )}
                                 </tbody>
 
-                                {totalPages > 1 && (
+                                {users.length > 0 && totalPages > 1 && (
                                     <tfoot>
                                         <tr>
                                             <td
