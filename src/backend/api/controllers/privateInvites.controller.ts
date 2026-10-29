@@ -25,7 +25,7 @@ export const getPrivateInvitesController = async (req: Request, res: Response) =
             assertNotNull([code, ownerId]);
         }
 
-        const invite = getInviteService({
+        const invite = await getInviteService({
             code,
             owner: ownerId
         })
