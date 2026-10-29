@@ -47,6 +47,36 @@ export default function getEnv(key: string) {
             ? process.env["INTEGRATION_DISCORD_BOT_TOKEN"]
             : process.env["INTEGRATION_DISCORD_NIGHTLY_BOT_TOKEN"]
     }
+
+    if (key === "INTEGRATION_PAYPAL_CLIENT") {
+        return config.isProduction 
+            ? process.env["INTEGRATION_PAYPAL_CLIENT"]
+            : process.env["INTEGRATION_PAYPAL_SANDBOX_CLIENT"]
+    }
+
+    if (key === "INTEGRATION_PAYPAL_SECRET") {
+        return config.isProduction 
+            ? process.env["INTEGRATION_PAYPAL_SECRET"]
+            : process.env["INTEGRATION_PAYPAL_SANDBOX_SECRET"]
+    }
+
+    if (key === "INTEGRATION_PAYPAL_WEBHOOK_ID") {
+        if (config.isNightly) {
+            return config.isProduction
+                ? process.env["INTEGRATION_PAYPAL_NIGHTLY_WEBHOOK_ID"]
+                : process.env["INTEGRATION_PAYPAL_NIGHTLY_SANDBOX_WEBHOOK_ID"];
+        }
+
+        return config.isProduction
+            ? process.env["INTEGRATION_PAYPAL_WEBHOOK_ID"]
+            : process.env["INTEGRATION_PAYPAL_SANDBOX_WEBHOOK_ID"];
+    }
+
+    if (key === "INTEGRATION_PAYPAL_PLAN_ID") {
+        return config.isProduction 
+            ? process.env["INTEGRATION_PAYPAL_PLAN_ID"]
+            : process.env["INTEGRATION_PAYPAL_SANDBOX_PLAN_ID"]
+    }
     
     assertNotNull(key);
 
