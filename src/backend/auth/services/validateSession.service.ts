@@ -431,7 +431,7 @@ export default async function validateSession(
                 }
             );
 
-            // Send a notification to user
+            // DEVELOPER NEEDED: Send a notification to user
             // https://api.openprofile.app/v3/notification/send
             // https://api.openprofile.app/v3/notification/push ???
             // Used to send any kind of notification; uses ApiSecret auth
