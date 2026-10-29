@@ -407,43 +407,34 @@ export async function registerAccount({
         );
 
         assertDbSuccess(connectionResult);
-
-        if (isPrecursor) {
-            const subscriptionResult = q(
-                `INSERT INTO subscriptions (
-                    id, 
-                    userId,
-                    plan,
-                    method
-                ) VALUES (?, ?, ?, ?)`,
-                [
-                    snowflake.gen(),
-                    userId,
-                    "lifetime-premium",
-                    "precursor"
-                ]
-            );
-
-            assertDbSuccess(subscriptionResult);
-        } else if (isPartnerInvited) {
-            const subscriptionResult = q(
-                `INSERT INTO subscriptions (
-                    id, 
-                    userId,
-                    plan,
-                    method
-                ) VALUES (?, ?, ?, ?)`,
-                [
-                    snowflake.gen(),
-                    userId,
-                    "premium-trial",
-                    "partner"
-                ]
-            );
-            
-            assertDbSuccess(subscriptionResult);
-        }
     });
+
+    if (isPrecursor || isPartnerInvited) {
+        const now = new Date().toISOString();
+
+        const subscriptionResult = db.billing.query(
+            `INSERT INTO subscriptions (
+                id,
+                userId,
+                plan,
+                method,
+                status,
+                dateCreated,
+                dateStarted
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                snowflake.gen(),
+                userId,
+                isPrecursor ? "PREMIUM_LIFETIME" : "PREMIUM_MONTHLY",
+                isPrecursor ? "PRECURSOR_GIFT" : "PARTNER_GIFT",
+                "ACTIVE",
+                now,
+                now
+            ]
+        );
+
+        assertDbSuccess(subscriptionResult);
+    }
 
     const postRegisterResult: { ok: boolean } = await wc.callAPI(
         `https://${config.domains.api}/v3/postregister`,
