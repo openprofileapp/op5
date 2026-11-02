@@ -2,10 +2,12 @@ import { Router } from "express";
 
 import { discordLinkedRolesController } from "../controllers/integrations/discordLinkedRoles.controller.js";
 import { getConnectedAccountController } from "../controllers/integrations/getConnectedAccount.controller.js";
+import { getExternalAccountController } from "../controllers/integrations/getExternalAccount.controller.js";
 
-const integrationRoute = Router();
+const integrationRoutes = Router();
 
-integrationRoute.get("/discord", discordLinkedRolesController);
-integrationRoute.get("/get/:type/:id", getConnectedAccountController);
+integrationRoutes.get("/discord", discordLinkedRolesController);
+integrationRoutes.get("/get/internal/:type/:id", getConnectedAccountController);
+integrationRoutes.get("/get/external/:type/:id", getExternalAccountController);
 
-export default integrationRoute;
+export default integrationRoutes;
