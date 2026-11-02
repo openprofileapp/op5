@@ -10,7 +10,8 @@ import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js
 import { db } from "../../databases/db.js";
 import { i18n, wc } from "../../../_common/instances.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
-import { SubscriptionStatusType } from "../../types/subscription.type.js";
+import { SubscriptionStatusType, SubscriptionType } from "../../../../_common/types/subscription.type.js";
+import { PaymentType } from "../../types/payment.type.js";
 
 type PayPalWebhookEvent = {
     id: string;
@@ -27,6 +28,7 @@ type PayPalWebhookEvent = {
         state?: string;
         status_update_time?: string;
 
+        sale_id?: string;
         plan_id?: string;
         billing_agreement_id?: string;
         custom?: string;
@@ -282,26 +284,81 @@ export const webhookController = async (req: Request, res: Response) => {
                 });
             }
 
+            const oldResult = db.billing.query<SubscriptionType>(
+                    "SELECT * FROM subscriptions WHERE id = ? AND method = 'PAYPAL'",
+                    [subscriptionId]
+                );
+
+            assertDbSuccess(oldResult);
+
             const result = db.billing.query(
                 `
                     UPDATE subscriptions
                     SET status = ?
                     WHERE id = ?
-                        AND method = ?
+                        AND method = 'PAYPAL'
                         AND (
-                            ? IN ('CANCELED', 'EXPIRED')
-                            OR status NOT IN ('CANCELED', 'EXPIRED')
+                            status NOT IN ('CANCELED', 'EXPIRED')
+                            OR (
+                                ? = 'ACTIVE'
+                                AND status = 'CANCELED'
+                            )
                         )
                 `,
                 [
                     newStatus,
                     subscriptionId,
-                    "PAYPAL",
-                    newStatus,
+                    newStatus
                 ]
             );
 
             assertDbSuccess(result);
+
+            if (newStatus === "ACTIVE") {
+                if (oldResult.rows?.[0]?.status === "SUSPENDED") {
+                    // CALL ADD PREMIUM API HERE
+
+                    await wc.callAPI(
+                        `https://${config.domains.discord_api}/v1/notifications/subscriptions/reactivated`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: { 
+                                userId: oldResult.rows?.[0]?.userId, 
+                                subscriptionId
+                            }
+                        }
+                    );
+                } else {
+                    await wc.callAPI(
+                        `https://${config.domains.discord_api}/v1/notifications/subscriptions/new`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: { 
+                                userId: oldResult.rows?.[0]?.userId, 
+                                subscriptionId
+                            }
+                        }
+                    );
+                }
+            }
+
+            if (newStatus === "SUSPENDED") {
+                // CALL REMOVE PREMIUM API HERE
+
+                await wc.callAPI(
+                    `https://${config.domains.discord_api}/v1/notifications/subscriptions/suspended`,
+                    {
+                        method: "POST",
+                        auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                        body: { 
+                            userId: oldResult.rows?.[0]?.userId, 
+                            subscriptionId
+                        }
+                    }
+                );
+            }
 
             return res.sendStatus(200);
         }
@@ -315,11 +372,30 @@ export const webhookController = async (req: Request, res: Response) => {
                     // const taxPercentage = 6;
                     const initialPartnerSplitPercentage = 65;
                     const recurringPartnerSplitPercentage = 5;
-                    let partnerSplit = 0;
+                    let partnerSplit = "0";
 
-                    const now = DateTime.utc();
-                    const nowIso = now.toISO();
-                    const in30DaysIso = now.plus({ days: 30 }).toISO();
+                   const now = DateTime.utc();
+
+                    const existingSubscription = db.billing.query<SubscriptionType>(
+                        `
+                            SELECT dateEnded
+                            FROM subscriptions
+                            WHERE id = ?
+                        `,
+                        [resource.billing_agreement_id]
+                    );
+
+                    assertDbSuccess(existingSubscription)
+
+                    const existingDateEnded = existingSubscription.rows?.[0]?.dateEnded;
+
+                    const baseDate =
+                        existingDateEnded && DateTime.fromSQL(existingDateEnded, { zone: "utc" }).isValid
+                            ? DateTime.fromSQL(existingDateEnded, { zone: "utc" }).toUTC()
+                            : now;
+
+                    const startDate = now;
+                    const endDate = (baseDate > now ? baseDate : now).plus({ days: 30 });
 
                     const updateSubscription = db.billing.query(
                         `
@@ -328,8 +404,8 @@ export const webhookController = async (req: Request, res: Response) => {
                             WHERE id = ?
                         `,
                         [
-                            nowIso,
-                            in30DaysIso,
+                            startDate.toISO(),
+                            endDate.toISO(),
                             resource.billing_agreement_id,
                         ]
                     );
@@ -352,32 +428,36 @@ export const webhookController = async (req: Request, res: Response) => {
                     assertDbSuccess(getPreviousPayments);
 
                     if (getPreviousPayments.rowCount === 0) {
-                        partnerSplit = premiumCost * (initialPartnerSplitPercentage / 100);
+                        partnerSplit = (premiumCost * (initialPartnerSplitPercentage / 100)).toFixed(2);
                     } else {
-                        partnerSplit = premiumCost * (recurringPartnerSplitPercentage / 100);
+                        partnerSplit = (premiumCost * (recurringPartnerSplitPercentage / 100)).toFixed(2);
                     }
 
                     const insertPayment = db.billing.query(
                         `
                             INSERT INTO payments (
-                                id, 
-                                subscriptionId, 
+                                id,
+                                subscriptionId,
                                 userId,
+                                email,
                                 subtotal,
                                 tax,
                                 total,
+                                partnerSplit,
                                 currency,
                                 status
                             )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         `,
                         [
                             resource.id,
                             resource.billing_agreement_id,
                             resource.custom,
+                            resource.subscriber?.email_address,
                             premiumCost,
                             (Number(resource.amount?.total) - premiumCost).toFixed(2),
                             Number(resource.amount?.total),
+                            Number(partnerSplit),
                             resource.amount?.currency,
                             "COMPLETED"
                         ]
@@ -385,8 +465,14 @@ export const webhookController = async (req: Request, res: Response) => {
 
                     assertDbSuccess(insertPayment);
 
-                    // Assign premium (call API incuding calling discord update roles)
-                    // ^ Incude the last subscrption date for the badge. If less than 2 months, use the old date
+                    await wc.callAPI(
+                        `https://${config.domains.discord_api}/v3/post/subscribe`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: { userId: resource.custom }
+                        }
+                    );
 
                     const inviteResponse = await wc.callAPI<{ ownerId: string, code: string }>(
                         `https://${config.domains.api}/v3/invites/user/${resource.custom}`,
@@ -394,93 +480,28 @@ export const webhookController = async (req: Request, res: Response) => {
                     );
 
                     if (inviteResponse?.ownerId) {
-                        const insertPayout = db.billing.query(
+                        const updateRevenue = db.accounts.query(
                             `
-                                INSERT INTO payouts (
-                                    paymentId, 
-                                    userId,
-                                    total,
-                                    currency,
-                                    status
-                                )
-                                VALUES (?, ?, ?, ?, ?)
+                                UPDATE users
+                                SET
+                                    availableEarningsUSD = ROUND(availableEarningsUSD + ?, 2),
+                                    lifetimeEarningsUSD = ROUND(lifetimeEarningsUSD + ?, 2)
+                                WHERE id = ?
                             `,
                             [
-                                resource.id,
-                                inviteResponse.ownerId,
-                                partnerSplit.toFixed(2),
-                                resource.amount?.currency,
-                                "PENDING"
+                                partnerSplit,
+                                partnerSplit,
+                                inviteResponse?.ownerId
                             ]
                         );
 
-                        assertDbSuccess(insertPayout);
-
-                        
-
-
-
-
-
-
-
-                        // Save the ids to db then the response ids
-
-                        // MOVE THIS TO CASHOUT API
-                        // billing/cashout
-
-                        // TAKES A $0.25 MIN (we won't cover it; no min to cashout)
-                        // DISPLAY MODAL WITH EMAIL (and confirm email) AND WARNING ^
-                        const payoutResponse = await fetch(
-                            `${paypalBaseUrl}/v1/payments/payouts`,
-                            {
-                                method: "POST",
-                                headers: {
-                                    Authorization: `Bearer ${tokenData.access_token}`,
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    sender_batch_header: {
-                                        sender_batch_id: crypto.randomUUID(),
-                                        email_subject: "Your OpenProfile Partner Earnings",
-                                    },
-                                    items: [
-                                        {
-                                            recipient_type: "EMAIL",
-                                            amount: {
-                                                value: partnerSplit.toFixed(2),
-                                                currency: "USD",
-                                            },
-                                            receiver: "sb-pent353577642@personal.example.com",
-                                            note: `OpenProfile Partner Program: Revenue share earned from an invited user's${getPreviousPayments.rowCount === 0 ? " " : " recurring "}Premium subscription.`,
-                                            sender_item_id: crypto.randomUUID(), // use snowflake
-                                        },
-                                    ],
-                                }),
-                            }
-                        );
-
-                        const payout = await payoutResponse.json();
+                        assertDbSuccess(updateRevenue);
                     }
-
-                    await wc.callAPI(
-                        `https://${config.domains.discord_api}/v1/notifications/subscriptions/new`,
-                        {
-                            method: "POST",
-                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
-                            body: { 
-                                userId: resource.custom, 
-                                subscriptionId: resource.billing_agreement_id 
-                            }
-                        }
-                    );
 
                     break;
                 }
 
                 case "PAYMENT.SALE.REFUNDED": {
-                    // NO REFUND FOR THE TIME BEING
-
                     const updatePayment = db.billing.query(
                         `
                             UPDATE payments
@@ -489,13 +510,37 @@ export const webhookController = async (req: Request, res: Response) => {
                         `,
                         [
                             "REFUNDED",
-                            resource.id
+                            resource.sale_id
                         ]
                     );
 
                     assertDbSuccess(updatePayment);
 
-                    // Remove premium (call API)
+                    const getPayment = db.billing.query<PaymentType>(
+                        `
+                            SELECT *
+                            FROM payments
+                            WHERE id = ?
+                            LIMIT 1
+                        `,
+                        [resource.sale_id]
+                    );
+
+                    assertDbSuccess(getPayment);
+
+                    if (getPayment.rowCount !== 0) {
+                        await wc.callAPI(
+                            `https://${config.domains.discord_api}/v1/notifications/subscriptions/refunded`,
+                            {
+                                method: "POST",
+                                auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                                body: { 
+                                    userId: resource.custom, 
+                                    subscriptionId: getPayment.rows[0].subscriptionId
+                                }
+                            }
+                        );
+                    }
 
                     break;
                 }
@@ -549,6 +594,29 @@ export const webhookController = async (req: Request, res: Response) => {
                             payout_item_id: "JVE7PKG4MKTUS"
                             payout_batch_id: "W9XETF4FUWKAQ"
                         }
+
+
+                        const insertPayout = db.billing.query(
+                            `
+                                INSERT INTO payouts (
+                                    paymentId, 
+                                    userId,
+                                    total,
+                                    currency,
+                                    status
+                                )
+                                VALUES (?, ?, ?, ?, ?)
+                            `,
+                            [
+                                resource.id,
+                                inviteResponse.ownerId,
+                                partnerSplit,
+                                resource.amount?.currency,
+                                "PENDING"
+                            ]
+                        );
+
+                        assertDbSuccess(insertPayout);
                     */
 
                     // LOG THE FEE IN THE DB
@@ -571,7 +639,43 @@ export const webhookController = async (req: Request, res: Response) => {
 
 
 
+/*
+// MOVE THIS TO CASHOUT API
+                        // billing/cashout
 
+                        // TAKES A $0.25 MIN (we won't cover it; no min to cashout)
+                        // DISPLAY MODAL WITH EMAIL (and confirm email and amount) AND WARNING ^
+                        const payoutResponse = await fetch(
+                            `${paypalBaseUrl}/v1/payments/payouts`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    Authorization: `Bearer ${tokenData.access_token}`,
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    sender_batch_header: {
+                                        sender_batch_id: crypto.randomUUID(),
+                                        email_subject: "Your OpenProfile Partner Earnings",
+                                    },
+                                    items: [
+                                        {
+                                            recipient_type: "EMAIL",
+                                            amount: {
+                                                value: partnerSplit,
+                                                currency: "USD",
+                                            },
+                                            receiver: "sb-pent353577642@personal.example.com",
+                                            note: `OpenProfile Partner Program: Revenue share earned from an invited user's${getPreviousPayments.rowCount === 0 ? " " : " recurring "}Premium subscription.`,
+                                            sender_item_id: crypto.randomUUID(), // use snowflake
+                                        },
+                                    ],
+                                }),
+                            }
+                        );
+
+                        const payout = await payoutResponse.json();
+ */
 
 
 
