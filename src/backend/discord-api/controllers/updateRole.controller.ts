@@ -23,7 +23,7 @@ export const updateRoleController = async (req: Request, res: Response) => {
                 discordUserId, 
                 roleId
             );
-        } else {
+        } else if (action === "remove") {
             await discordRoles.remove(
                 discordUserId, 
                 roleId
