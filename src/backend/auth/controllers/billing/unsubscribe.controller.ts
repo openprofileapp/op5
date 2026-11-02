@@ -8,12 +8,15 @@ import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
 import { db } from "../../databases/db.js";
-import { SubscriptionType } from "../../types/subscription.type.js";
+import { SubscriptionType } from "../../../../_common/types/subscription.type.js";
 import { log } from "../../instances.js";
 import { i18n, wc } from "../../../_common/instances.js";
+import { PaymentType } from "../../types/payment.type.js";
 
 export const unsubscribeController = async (req: Request, res: Response) => {
     try {
+        const { requestRefund, reason } = req.body;
+        
         await assertBearer(req);
         assertAccount(req.session);
 
@@ -24,10 +27,7 @@ export const unsubscribeController = async (req: Request, res: Response) => {
                 WHERE userId = ?
                     AND plan = ?
                     AND method = ?
-                    AND status IN (
-                        'ACTIVE',
-                        'SUSPENDED'
-                    )
+                    AND status IN ('ACTIVE', 'SUSPENDED')
                 LIMIT 1
             `,
             [
@@ -44,11 +44,18 @@ export const unsubscribeController = async (req: Request, res: Response) => {
         if (!subscription) {
             throw new AdvancedError({
                 code: 404,
-                message: "No subscription found",
+                message: "No active subscription found",
             });
         }
 
         const subscriptionId = subscription.id;
+
+        if (!subscriptionId) {
+            throw new AdvancedError({
+                code: 500,
+                message: "PayPal subscription ID is missing",
+            });
+        }
 
         const paypalBaseUrl = config.isProduction
             ? "https://api-m.paypal.com"
@@ -74,6 +81,12 @@ export const unsubscribeController = async (req: Request, res: Response) => {
         );
 
         if (!tokenResponse.ok) {
+            const details = await tokenResponse.text();
+
+            log.unknown.error(
+                new Error(`PayPal authentication failed: ${details}`)
+            ).save();
+
             throw new AdvancedError({
                 code: 502,
                 message: "Failed to authenticate with PayPal",
@@ -84,14 +97,12 @@ export const unsubscribeController = async (req: Request, res: Response) => {
             access_token: string;
         };
 
-        const accessToken = tokenData.access_token;
-
         const cancelResponse = await fetch(
             `${paypalBaseUrl}/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}/cancel`,
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${tokenData.access_token}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
@@ -101,39 +112,142 @@ export const unsubscribeController = async (req: Request, res: Response) => {
         );
 
         if (!cancelResponse.ok) {
+            const details = await cancelResponse.text();
+
+            log.unknown.error(
+                new Error(
+                    `PayPal cancellation failed (${cancelResponse.status}): ${details}`
+                )
+            ).save();
+
             throw new AdvancedError({
                 code: 502,
-                message: "Unable to cancel subscription",
+                message: "Unable to cancel subscription with PayPal",
             });
         }
 
-        const result = db.billing.query(
+        const patchSubscriptions = db.billing.query(
             `
                 UPDATE subscriptions
-                SET status = ?
+                SET status = ?, endReason = ?
                 WHERE id = ?
                     AND userId = ?
                     AND method = ?
             `,
             [
                 "CANCELED",
-                subscriptionId,
+                reason,
+                subscription.id,
                 req.session.userId,
                 "PAYPAL",
             ]
         );
 
-        assertDbSuccess(result);
+        assertDbSuccess(patchSubscriptions);
+
+        const getPayment = db.billing.query<PaymentType>(
+            `
+                SELECT *
+                FROM payments
+                WHERE subscriptionId = ?
+                AND userId = ?
+                AND status = 'COMPLETED'
+                ORDER BY dateCreated DESC
+                LIMIT 1
+            `,
+            [subscription.id, req.session.userId]
+        );
+
+        assertDbSuccess(getPayment);
+
+        const payment = getPayment?.rows?.[0];
+
+        const paymentDate = payment?.dateCreated
+            ? new Date(payment.dateCreated).getTime()
+            : NaN;
+
+        const paymentAge = Date.now() - paymentDate;
+
+        const getRefundedPayments = db.billing.query<PaymentType>(
+            `
+                SELECT *
+                FROM payments
+                WHERE status = 'REFUNDED'
+                AND userId = ?
+            `,
+            [req.session.userId]
+        );
+
+        assertDbSuccess(getRefundedPayments);
+
+        const allowRefund =
+            getRefundedPayments.rowCount === 0 &&
+            Boolean(requestRefund) &&
+            payment?.status === "COMPLETED" &&
+            Number.isFinite(paymentDate) &&
+            paymentAge >= 0 &&
+            paymentAge < 48 * 60 * 60 * 1000; // 48 hours
+
+        if (allowRefund) {
+            const patchSubscriptions = db.billing.query(
+                `
+                    UPDATE subscriptions
+                    SET dateEnded = ?
+                    WHERE id = ?
+                        AND userId = ?
+                        AND method = ?
+                `,
+                [
+                    new Date().toISOString(),
+                    subscription.id,
+                    req.session.userId,
+                    "PAYPAL",
+                ]
+            );
+
+            assertDbSuccess(patchSubscriptions);
+
+            // Remove premium (call API)
+
+            const refundResponse = await fetch(
+                `${paypalBaseUrl}/v1/payments/sale/${encodeURIComponent(payment.id)}/refund`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${tokenData.access_token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        reason: "User requested refund",
+                    }),
+                }
+            );
+
+            if (!refundResponse.ok) {
+                const details = await refundResponse.text();
+
+                log.unknown.error(
+                    new Error(
+                        `PayPal refund failed (${refundResponse.status}): ${details}`
+                    )
+                ).save();
+
+                throw new AdvancedError({
+                    code: 502,
+                    message: "Unable to refund subscription with PayPal",
+                });
+            }
+        }
 
         await wc.callAPI(
             `https://${config.domains.discord_api}/v1/notifications/subscriptions/canceled`,
             {
                 method: "POST",
                 auth: `ApiSecret ${getEnv("API_SECRET")}`,
-                body: { 
-                    userId: req.session.userId, 
-                    subscriptionId
-                }
+                body: {
+                    userId: req.session.userId,
+                    subscriptionId: subscription.id
+                },
             }
         );
 
