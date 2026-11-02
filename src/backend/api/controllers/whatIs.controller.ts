@@ -24,7 +24,7 @@ export const whatIsController = async (req: Request, res: Response) => {
                 true
             );
 
-            res.status(200).json({
+            return res.status(200).json({
                 ...whatIsData
             });
         }
