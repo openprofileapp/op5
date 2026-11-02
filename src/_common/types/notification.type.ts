@@ -24,7 +24,6 @@ export type NotificationNameType =
     | "LOGIN"
     | "ASSIGNED_STAFF"
     | "EARNED_AWARD"
-    | "PREMIUM_ACTIVATED"
 ;
 
 type NotificationDataType = {

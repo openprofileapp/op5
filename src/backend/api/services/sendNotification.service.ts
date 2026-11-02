@@ -87,8 +87,7 @@ export default async function sendNotificationService(
         "UPDATED_CHARACTER",
         "LOGIN",
         "ASSIGNED_STAFF",
-        "EARNED_AWARD",
-        "PREMIUM_ACTIVATED"
+        "EARNED_AWARD"
     );
 
     if (!allowedTypes.has(type)) {
