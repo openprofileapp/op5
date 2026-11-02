@@ -7,6 +7,7 @@ import {
     loginWithDiscord, 
     loginWithGitHub, 
     loginWithGoogle, 
+    loginWithMicrosoft, 
     loginWithX
 } from "../../scripts/oauth2.js";
 
@@ -90,14 +91,26 @@ export default function LoginModal() {
 
                     {/* Microsoft */}
                     <button 
-                        className="btn btn-disabled hidden flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
+                        className="btn flex-1 bg-white font-normal text-black border-white tooltip tooltip-top" 
                         data-tip="Microsoft"
-                        onClick={() => {
-                            setLoading("google");
+                        onClick={async () => {
+                            try {
+                                setLoading("microsoft");
+                                (document.getElementById("login") as HTMLDialogElement)?.close();
+                                const { token } = await showCaptcha();
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+
+                                const response = await loginWithMicrosoft(token);
+                                if (!response?.ok) throw new Error();
+                            } catch {
+                                setLoading(null);
+                                (document.getElementById("login") as HTMLDialogElement)?.show();
+                                toast.show("CAPTCHA failed! Please try again.", { icon: "󰚩", type: "error" });
+                            }
                         }}
                     >
                         <div className={`${loading === "microsoft" ? "loading" : ""}`}>
-                            <svg height="30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M96 96H247V247H96" fill="#f24f23"></path><path d="M265 96V247H416V96" fill="#7eba03"></path><path d="M96 265H247V416H96" fill="#3ca4ef"></path><path d="M265 265H416V416H265" fill="#f9ba00"></path></svg>
+                            {loading === "microsoft" ? (<></>) : (<svg height="30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M96 96H247V247H96" fill="#f24f23"></path><path d="M265 96V247H416V96" fill="#7eba03"></path><path d="M96 265H247V416H96" fill="#3ca4ef"></path><path d="M265 265H416V416H265" fill="#f9ba00"></path></svg>)}
                         </div>
                     </button>
 

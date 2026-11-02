@@ -1,0 +1,195 @@
+import type { Request, Response } from "express";
+
+import { AdvancedError, URL } from "kage-library";
+
+import { i18n, wc } from "../../../_common/instances.js";
+import getEnv from "../../../../_common/helpers/getEnv.js";
+import { config } from "../../../../../app.config.js";
+import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
+import loginOrRegisterAccountService from "../../services/loginOrRegisterAccount.service.js";
+import { log } from "../../instances.js";
+import fetchGeoIp from "../../helpers/fetchGeoIp.js";
+
+type ExternalTokenResponse = {
+    token_type: string;
+    scope: string;
+    expires_in: number;
+    ext_expires_in: number;
+    access_token: string;
+    id_token: string;
+};
+
+type ExternalAccountResponse = {
+    userPrincipalName: string;
+    id: string;
+    displayName: string;
+    surname: string;
+    givenName: string;
+    preferredLanguage: string;
+    mail: string;
+    mobilePhone: string;
+    jobTitle: string;
+    officeLocation?: string;
+    businessPhones?: string;
+    ageGroup?: string | null;
+    avatar?: string;
+};
+
+export const microsoftLoginController = async (req: Request, res: Response) => {
+    try {
+        const { code } = req.query;
+
+        assertNotNull(req.session.sessionId);
+
+        if (typeof code !== "string") {
+            throw new AdvancedError({ 
+                code: 400, 
+                message: i18n.t("responses.invalidAuthorizationCode")
+            });
+        }
+
+        const externalToken: ExternalTokenResponse = await wc.callAPI(
+            "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    client_id: config.integrations.oauth2.microsoft as string,
+                    client_secret: getEnv("INTEGRATION_MICROSOFT_AUTH_SECRET_VALUE") as string,
+                    grant_type: "authorization_code",
+                    code,
+                    redirect_uri: `https://${config.domains.auth}/login/microsoft`,
+                    scope: "openid profile email User.Read"
+                }).toString()
+            }
+        );
+
+        const externalResponse: ExternalAccountResponse = await wc.callAPI(
+            "https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,mail,userPrincipalName",
+            { auth: `Bearer ${externalToken.access_token}` }
+        );
+
+        try {
+            const photoResponse = await fetch(
+                "https://graph.microsoft.com/v1.0/me/photo/$value",
+                {
+                    headers: {
+                        Authorization: `Bearer ${externalToken.access_token}`
+                    }
+                }
+            );
+
+            if (photoResponse.ok) {
+                const contentType = photoResponse.headers.get("content-type");
+
+                if (contentType?.startsWith("image/")) {
+                    const imageBuffer = Buffer.from(
+                        await photoResponse.arrayBuffer()
+                    );
+
+                    externalResponse.avatar = `data:${contentType};base64,${imageBuffer.toString("base64")}`;
+                }
+            }
+        } catch (error) {
+            log.auth.error(error).save();
+        }
+
+        const response = await loginOrRegisterAccountService({
+            session: req.session,
+            ip: (await fetchGeoIp(req.ip || "")).ip,
+            delegationToken: req.cookies?.delegationToken,
+            email: externalResponse.mail,
+            isEmailVerified: true,
+            username: externalResponse.mail.replace("@outlook.com", "").toLowerCase(),
+            displayName: externalResponse.displayName?.trim(),
+            avatar: externalResponse.avatar,
+            // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
+            externalConnectionName: "MICROSOFT",
+            externalConnectionId: externalResponse.id,
+            externalConnectionText: externalResponse.mail
+        });
+
+        const url = new URL(`https://${config.domains.main}`);
+
+        if (response) {
+            if (response.mfaToken) {
+                res.cookie("mfaToken", response.mfaToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    domain: `.${url.domain}`,
+                    path: "/",
+                    maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
+                });
+
+                return res.status(200).json({
+                    action: "DISPLAY_MFA"
+                });
+            } else {
+                if (response.sessionId) {
+                    res.cookie("sessionId", response.sessionId, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+                    });
+                }
+
+                if (response.accessToken) {
+                    res.cookie("accessToken", response.accessToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * config.limits.accessTokenExpireInMinutes
+                    });
+                }
+
+                if (response.sessionToken) {
+                    res.cookie("sessionToken", response.sessionToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                    });
+                }
+
+                if (response.delegationToken) {
+                    res.cookie("delegationToken", response.delegationToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: "none",
+                        domain: `.${url.domain}`,
+                        path: "/",
+                        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+                    });
+                }
+
+                return res.redirect(
+                    // DEVELOPER NEEDED: hasCompletedOnboarding
+                    `https://${config.domains.main}` // ?redirect=LINK OR /onboarding thing
+                );
+            }
+        }
+    } catch(error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
+        }
+    }
+};
