@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     locale TEXT DEFAULT 'en-us',
     timezone TEXT DEFAULT 'America/New_York',
     initialIp TEXT,
+    availableEarningsUSD INTEGER NOT NULL DEFAULT 0,
+    lifetimeEarningsUSD INTEGER NOT NULL DEFAULT 0,
     hasReadTerms INTEGER NOT NULL DEFAULT 0,
     lastReadTermsVersion TEXT NOT NULL DEFAULT '0',
     hasCompletedOnboarding INTEGER NOT NULL DEFAULT 0,
