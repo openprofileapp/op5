@@ -70,7 +70,7 @@ export const googleLoginController = async (req: Request, res: Response) => {
             email: externalResponse.email,
             isEmailVerified: externalResponse.email_verified,
             username: externalResponse.email.replace("@gmail.com", "").toLowerCase(),
-            displayName: externalResponse.name,
+            displayName: externalResponse.name?.trim(),
             avatar: externalResponse.picture,
             // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
             externalConnectionName: "GOOGLE",

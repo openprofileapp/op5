@@ -77,7 +77,7 @@ export const githubLoginController = async (req: Request, res: Response) => {
             email: externalEmailResponse[0].email,
             isEmailVerified: externalEmailResponse[0].verified,
             username: externalUserResponse.login.toLowerCase(),
-            displayName: externalUserResponse.name,
+            displayName: externalUserResponse.name?.trim(),
             avatar: externalUserResponse.avatar_url,
             // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
             about: externalUserResponse.bio,

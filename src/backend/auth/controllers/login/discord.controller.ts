@@ -71,7 +71,7 @@ export const discordLoginController = async (req: Request, res: Response) => {
             email: externalResponse.email,
             isEmailVerified: externalResponse.verified,
             username: externalResponse.username.toLowerCase(),
-            displayName: externalResponse.global_name,
+            displayName: externalResponse.global_name?.trim(),
             avatar: `https://cdn.discordapp.com/avatars/${externalResponse.id}/${externalResponse.avatar}.png?size=512`,
             banner: `https://cdn.discordapp.com/banners/${externalResponse.id}/${externalResponse.banner}.png?size=1024`,
             // DEVELOPER NEEDED: Pass the theme from client storage localStorage.getItem("theme") ?? "dark"
