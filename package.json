@@ -20,7 +20,7 @@
     "start": "pm2 start ecosystem.config.cjs && pm2 monit",
     "dev": "pm2 start dev.ecosystem.config.cjs && pm2 monit",
     "stop": "pm2 stop all && pm2 kill",
-    "sandbox": "tsx sandbox/%npm_config_name%.test.ts",
+    "sandbox": "tsx sandbox/$npm_config_name.test.ts",
     "backup": "tsx dev/backup.ts",
     "update": "npm update --force && cd src-tauri && cargo update && cd ../",
     "build": "tsx dev/node/buildApp.mts",
