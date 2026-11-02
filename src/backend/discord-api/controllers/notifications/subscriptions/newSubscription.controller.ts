@@ -32,7 +32,7 @@ export const newSubscriptionController = async (req: Request, res: Response) => 
                 embeds: [
                     {
                     author: {
-                        name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} subscribed to premium.`,
+                        name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} subscribed to Premium.`,
                         icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
                         url: `https://${config.domains.main}/user/${whatIs.id}`
                     },
