@@ -1,0 +1,204 @@
+import type { Request, Response } from "express";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { AdvancedError } from "kage-library";
+import { log, snowflake, wc } from "../instances.js";
+import { i18n } from "../../_common/instances.js";
+import { db } from "../databases/db.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
+import postInteractionService from "../services/postInteraction.service.js";
+import sendNotificationService from "../services/sendNotification.service.js";
+import { NotificationNameType } from "../../../_common/types/notification.type.js";
+import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
+import { config } from "../../../../app.config.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
+
+export const postUnsubscribeController = async (req: Request, res: Response) => {
+    try {
+        const { 
+            id,
+            username,
+            displayName,
+            avatar,
+            banner,
+            isAuraEnabled,
+            auraColor,
+            about,
+            theme,
+            badges,
+            awards,
+            notifications,
+            inviteCode
+        } = req.body;
+
+        assertApiSecret(req);
+        assertNotNull(id);
+
+        const userResult = db.users.query(
+            `INSERT INTO users (
+                id, 
+                displayName,
+                avatar,
+                banner,
+                about,
+                theme,
+                isAuraEnabled,
+                auraPrimary
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                id,
+                displayName,
+                avatar,
+                banner,
+                about,
+                theme,
+                isAuraEnabled,
+                auraColor || "#ce1616"
+            ]
+        );
+
+        assertDbSuccess(userResult);
+
+        const usernameResult = db.users.query(
+            `INSERT INTO usernames (
+                userId, 
+                username,
+                isPrimary
+            ) VALUES (?, ?, ?)`,
+            [
+                id,
+                username,
+                1
+            ]
+        );
+
+        assertDbSuccess(usernameResult);
+
+        const collectionResult = db.collections.query(
+            `INSERT INTO collections (
+                id,
+                ownerId,
+                displayName,
+                isFavorites
+            ) VALUES (?, ?, ?, ?)`,
+            [
+                snowflake.gen(),
+                id,
+                "My Favorites",
+                1
+            ]
+        );
+
+        assertDbSuccess(collectionResult);
+
+        const uniqueBadges = Array.from(new Set(badges));
+
+        if (uniqueBadges.length > 0) {
+            const placeholders = uniqueBadges.map(() => "(?, ?)").join(", ");
+            const values = uniqueBadges.flatMap((badge) => [id, badge]);
+
+            const badgesResult = db.badges.query(
+                `INSERT INTO badges (
+                    id, 
+                    type
+                ) VALUES ${placeholders}`,
+                values
+            );
+
+            assertDbSuccess(badgesResult);
+        }
+
+        const uniqueAwards = Array.from(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            new Map(awards.map(award => [award.type, award])).values()
+        );
+
+        if (uniqueAwards.length > 0) {
+            const placeholders = uniqueAwards.map(() => "(?, ?, ?)").join(", ");
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const values = uniqueAwards.flatMap(award => [id, award.type, award.comment]);
+
+            const awardsResult = db.awards.query(
+                `INSERT INTO awards (
+                    id,
+                    type,
+                    comment
+                ) VALUES ${placeholders}`,
+                values
+            );
+
+            assertDbSuccess(awardsResult);
+        }
+
+        if (inviteCode) {
+            const useResult = db.invites.query(
+                `INSERT INTO uses (
+                    userId,
+                    code
+                ) VALUES (?, ?)`,
+                [
+                    id,
+                    inviteCode
+                ]
+            );
+
+            assertDbSuccess(useResult);
+
+            const codeResult = db.invites.query(
+                `UPDATE codes 
+                SET usesLeft = CASE 
+                    WHEN isUnlimited = 0 THEN usesLeft - 1 
+                    ELSE usesLeft 
+                END
+                WHERE code = ?`,
+                [
+                    inviteCode
+                ]
+            );
+
+            assertDbSuccess(codeResult);
+        }
+
+        res.status(200).json({
+            ok: true
+        });
+
+        const uniqueNotifications = Array.from(new Set(notifications));
+
+        for (const notification of uniqueNotifications) {
+            await sendNotificationService(
+                id,
+                notification as NotificationNameType
+            );
+        }
+
+        await postInteractionService(
+            id,
+            "9534968913312158", 
+            "follows"
+        );
+
+        await wc.callAPI(
+            `https://${config.domains.discord_api}/v1/notifications/accounts/new`,
+            {
+                method: "POST",
+                auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                body: { userId: id }
+            }
+        );
+    } catch(error) {
+        if (error instanceof AdvancedError) {
+            log.db.error(error).save();
+            return res.status(error.code).json({
+                id: error.id,
+                message: error.message
+            });
+        } else {
+            log.unknown.error(error).save();
+            return res.status(500).json({
+                message: i18n.t("responses.unknown"),
+            });
+        }
+    }
+};
