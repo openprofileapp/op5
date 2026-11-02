@@ -1,14 +1,14 @@
 import type { Request, Response } from "express";
-import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { AdvancedError } from "kage-library";
+
+import { config } from "../../../../app.config.js";
+import getEnv from "../../../_common/helpers/getEnv.js";
 import { log, wc } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
 import { db } from "../databases/db.js";
-import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import sendNotificationService from "../services/sendNotification.service.js";
 import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
-import { config } from "../../../../app.config.js";
-import getEnv from "../../../_common/helpers/getEnv.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 
 export const postSubscribeController = async (req: Request, res: Response) => {
     try {
@@ -23,7 +23,7 @@ export const postSubscribeController = async (req: Request, res: Response) => {
         );
 
         const badgesResult = db.badges.query(
-            `INSERT INTO badges (
+            `INSERT OR IGNORE INTO badges (
                 id, 
                 type,
                 date
@@ -37,16 +37,37 @@ export const postSubscribeController = async (req: Request, res: Response) => {
 
         assertDbSuccess(badgesResult);
 
-        // ASSIGN DISCORD ROLE HERE
+        const usersResult = db.users.query(
+            `
+                UPDATE users
+                SET isAuraEnabled = 1
+                WHERE id = ?
+            `,
+            [id]
+        );
+
+        assertDbSuccess(usersResult);
+
+        await wc.callAPI(
+            `https://${config.domains.auth}/permissions/${id}/add/premium`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
+
+        const connectedAccount = await wc.callAPI<{ externalId: string }>(
+            `https://${config.domains.auth}/integration/get/external/discord/${id}`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
+
+        if (connectedAccount.externalId) {
+            await wc.callAPI(
+                `https://${config.domains.discord_api}/v1/roles/${connectedAccount.externalId}/add/${config.integrations.discord.roles.premium}`,
+                { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+            );
+        }
 
         res.status(200).json({
             ok: true
         });
-
-        await sendNotificationService(
-            id,
-            "PREMIUM_ACTIVATED"
-        );
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
