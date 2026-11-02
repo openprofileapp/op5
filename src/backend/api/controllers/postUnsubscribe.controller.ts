@@ -1,192 +1,86 @@
 import type { Request, Response } from "express";
-import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
 import { AdvancedError } from "kage-library";
-import { log, snowflake, wc } from "../instances.js";
+
+import { log, wc } from "../instances.js";
 import { i18n } from "../../_common/instances.js";
 import { db } from "../databases/db.js";
-import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
-import postInteractionService from "../services/postInteraction.service.js";
-import sendNotificationService from "../services/sendNotification.service.js";
-import { NotificationNameType } from "../../../_common/types/notification.type.js";
 import { assertApiSecret } from "../../_common/asserts/apiSecret.assert.js";
+import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import { config } from "../../../../app.config.js";
 import getEnv from "../../../_common/helpers/getEnv.js";
 
 export const postUnsubscribeController = async (req: Request, res: Response) => {
     try {
-        const { 
-            id,
-            username,
-            displayName,
-            avatar,
-            banner,
-            isAuraEnabled,
-            auraColor,
-            about,
-            theme,
-            badges,
-            awards,
-            notifications,
-            inviteCode
-        } = req.body;
+        const { id } = req.body;
 
         assertApiSecret(req);
         assertNotNull(id);
 
-        const userResult = db.users.query(
-            `INSERT INTO users (
-                id, 
-                displayName,
-                avatar,
-                banner,
-                about,
-                theme,
-                isAuraEnabled,
-                auraPrimary
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        const badgesResult = db.badges.query(
+            `DELETE FROM badges
+            WHERE id = ? AND type = ? LIMIT 1`,
             [
                 id,
-                displayName,
-                avatar,
-                banner,
-                about,
-                theme,
-                isAuraEnabled,
-                auraColor || "#ce1616"
+                "PREMIUM"
             ]
         );
 
-        assertDbSuccess(userResult);
+        assertDbSuccess(badgesResult);
 
-        const usernameResult = db.users.query(
-            `INSERT INTO usernames (
-                userId, 
-                username,
-                isPrimary
-            ) VALUES (?, ?, ?)`,
-            [
-                id,
-                username,
-                1
-            ]
+        const usersResult = db.users.query(
+            `
+                UPDATE users
+                SET isAuraEnabled = 0
+                WHERE id = ?
+            `,
+            [id]
         );
 
-        assertDbSuccess(usernameResult);
+        assertDbSuccess(usersResult);
 
-        const collectionResult = db.collections.query(
-            `INSERT INTO collections (
-                id,
-                ownerId,
-                displayName,
-                isFavorites
-            ) VALUES (?, ?, ?, ?)`,
-            [
-                snowflake.gen(),
-                id,
-                "My Favorites",
-                1
-            ]
+        const publishedCharactersResult = db.characters.query(
+            `
+                UPDATE published
+                SET isAuraEnabled = 0
+                WHERE ownerId = ?
+            `,
+            [id]
         );
 
-        assertDbSuccess(collectionResult);
+        assertDbSuccess(publishedCharactersResult);
 
-        const uniqueBadges = Array.from(new Set(badges));
-
-        if (uniqueBadges.length > 0) {
-            const placeholders = uniqueBadges.map(() => "(?, ?)").join(", ");
-            const values = uniqueBadges.flatMap((badge) => [id, badge]);
-
-            const badgesResult = db.badges.query(
-                `INSERT INTO badges (
-                    id, 
-                    type
-                ) VALUES ${placeholders}`,
-                values
-            );
-
-            assertDbSuccess(badgesResult);
-        }
-
-        const uniqueAwards = Array.from(
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            new Map(awards.map(award => [award.type, award])).values()
+        const draftCharactersResult = db.characters.query(
+            `
+                UPDATE drafts
+                SET isAuraEnabled = 0
+                WHERE ownerId = ?
+            `,
+            [id]
         );
 
-        if (uniqueAwards.length > 0) {
-            const placeholders = uniqueAwards.map(() => "(?, ?, ?)").join(", ");
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            const values = uniqueAwards.flatMap(award => [id, award.type, award.comment]);
+        assertDbSuccess(draftCharactersResult);
 
-            const awardsResult = db.awards.query(
-                `INSERT INTO awards (
-                    id,
-                    type,
-                    comment
-                ) VALUES ${placeholders}`,
-                values
+        await wc.callAPI(
+            `https://${config.domains.auth}/permissions/${id}/remove/premium`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
+
+        const connectedAccount = await wc.callAPI<{externalId: string}>(
+            `https://${config.domains.auth}/integration/get/external/discord/${id}`,
+            { auth: `ApiSecret ${getEnv("API_SECRET")}` }
+        );
+
+        if (connectedAccount.externalId) {
+            await wc.callAPI<{ dateStarted: string }>(
+                `https://${config.domains.discord_api}/v1/roles/${connectedAccount.externalId}/remove/${config.integrations.discord.roles.premium}`,
+                { auth: `ApiSecret ${getEnv("API_SECRET")}` }
             );
-
-            assertDbSuccess(awardsResult);
-        }
-
-        if (inviteCode) {
-            const useResult = db.invites.query(
-                `INSERT INTO uses (
-                    userId,
-                    code
-                ) VALUES (?, ?)`,
-                [
-                    id,
-                    inviteCode
-                ]
-            );
-
-            assertDbSuccess(useResult);
-
-            const codeResult = db.invites.query(
-                `UPDATE codes 
-                SET usesLeft = CASE 
-                    WHEN isUnlimited = 0 THEN usesLeft - 1 
-                    ELSE usesLeft 
-                END
-                WHERE code = ?`,
-                [
-                    inviteCode
-                ]
-            );
-
-            assertDbSuccess(codeResult);
         }
 
         res.status(200).json({
             ok: true
         });
-
-        const uniqueNotifications = Array.from(new Set(notifications));
-
-        for (const notification of uniqueNotifications) {
-            await sendNotificationService(
-                id,
-                notification as NotificationNameType
-            );
-        }
-
-        await postInteractionService(
-            id,
-            "9534968913312158", 
-            "follows"
-        );
-
-        await wc.callAPI(
-            `https://${config.domains.discord_api}/v1/notifications/accounts/new`,
-            {
-                method: "POST",
-                auth: `ApiSecret ${getEnv("API_SECRET")}`,
-                body: { userId: id }
-            }
-        );
     } catch(error) {
         if (error instanceof AdvancedError) {
             log.db.error(error).save();
