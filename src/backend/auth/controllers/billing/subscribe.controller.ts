@@ -10,7 +10,7 @@ import { assertBearer } from "../../../_common/asserts/bearer.assert.js";
 import { assertAccount } from "../../../_common/asserts/account.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../../databases/db.js";
-import { SubscriptionType } from "../../types/subscription.type.js";
+import { SubscriptionType } from "../../../../_common/types/subscription.type.js";
 
 export const subscribeController = async (req: Request, res: Response) => {
     try {
@@ -25,6 +25,10 @@ export const subscribeController = async (req: Request, res: Response) => {
         const clientSecret = getEnv("INTEGRATION_PAYPAL_SECRET") as string;
         const planId = getEnv("INTEGRATION_PAYPAL_PLAN_ID") as string;
 
+        const userId = req.session.userId;
+        const plan = "PREMIUM_MONTHLY";
+        const method = "PAYPAL";
+
         const existingSubscription = db.billing.query<SubscriptionType>(
             `
                 SELECT *
@@ -32,33 +36,22 @@ export const subscribeController = async (req: Request, res: Response) => {
                 WHERE userId = ?
                     AND plan = ?
                     AND method = ?
-                    AND status IN (
-                        'PENDING',
-                        'ACTIVE',
-                        'SUSPENDED'
-                    )
+                    AND status IN ('PENDING', 'ACTIVE', 'SUSPENDED')
+                ORDER BY
+                    CASE
+                        WHEN status = 'ACTIVE' THEN 1
+                        WHEN status = 'SUSPENDED' THEN 2
+                        WHEN status = 'PENDING' THEN 3
+                        ELSE 4
+                    END
                 LIMIT 1
             `,
-            [
-                req.session.userId,
-                "PREMIUM_MONTHLY",
-                "PAYPAL",
-            ]
+            [userId, plan, method]
         );
 
         assertDbSuccess(existingSubscription);
 
         const existing = existingSubscription.rows?.[0];
-
-        if (
-            existing &&
-            (existing.status === "ACTIVE" || existing.status === "SUSPENDED")
-        ) {
-            throw new AdvancedError({
-                code: 409,
-                message: "You are already subscribed",
-            });
-        }
 
         const credentials = Buffer.from(
             `${clientId}:${clientSecret}`
@@ -94,6 +87,86 @@ export const subscribeController = async (req: Request, res: Response) => {
             "Content-Type": "application/json",
         };
 
+        if (
+            existing &&
+            (existing.status === "ACTIVE" || existing.status === "SUSPENDED")
+        ) {
+            const existingResponse = await fetch(
+                `${paypalBaseUrl}/v1/billing/subscriptions/${encodeURIComponent(existing.id)}`,
+                {
+                    method: "GET",
+                    headers: paypalHeaders,
+                }
+            );
+
+            if (!existingResponse.ok) {
+                throw new AdvancedError({
+                    code: 502,
+                    message: "Unable to retrieve existing PayPal subscription",
+                });
+            }
+
+            const paypalSubscription = await existingResponse.json() as {
+                status: string;
+            };
+
+            if (
+                paypalSubscription.status === "ACTIVE" ||
+                paypalSubscription.status === "SUSPENDED"
+            ) {
+                if (paypalSubscription.status !== existing.status) {
+                    const updateResult = db.billing.query(
+                        `
+                            UPDATE subscriptions
+                            SET status = ?
+                            WHERE id = ?
+                                AND userId = ?
+                        `,
+                        [
+                            paypalSubscription.status,
+                            existing.id,
+                            userId,
+                        ]
+                    );
+
+                    assertDbSuccess(updateResult);
+                }
+
+                throw new AdvancedError({
+                    code: 409,
+                    message: "You are already subscribed",
+                });
+            }
+
+            if (
+                paypalSubscription.status === "CANCELLED" ||
+                paypalSubscription.status === "EXPIRED"
+            ) {
+                const updateResult = db.billing.query(
+                    `
+                        UPDATE subscriptions
+                        SET status = ?
+                        WHERE id = ?
+                            AND userId = ?
+                    `,
+                    [
+                        paypalSubscription.status === "CANCELLED"
+                            ? "CANCELED"
+                            : "EXPIRED",
+                        existing.id,
+                        userId,
+                    ]
+                );
+
+                assertDbSuccess(updateResult);
+            } else {
+                throw new AdvancedError({
+                    code: 409,
+                    message: `Existing PayPal subscription has status ${paypalSubscription.status}`,
+                });
+            }
+        }
+
         if (existing?.status === "PENDING") {
             const existingResponse = await fetch(
                 `${paypalBaseUrl}/v1/billing/subscriptions/${encodeURIComponent(existing.id)}`,
@@ -110,36 +183,116 @@ export const subscribeController = async (req: Request, res: Response) => {
                 });
             }
 
-            const existingPayPalSubscription =
-                await existingResponse.json() as {
-                    status: string;
-                    links?: {
-                        rel: string;
-                        href: string;
-                    }[];
-                };
+            const pendingSubscription = await existingResponse.json() as {
+                id: string;
+                status: string;
+                links?: {
+                    rel: string;
+                    href: string;
+                }[];
+            };
 
-            if (existingPayPalSubscription.status !== "APPROVAL_PENDING") {
-                throw new AdvancedError({
-                    code: 409,
-                    message: "Existing PayPal subscription is no longer pending approval",
+            if (pendingSubscription.status === "APPROVAL_PENDING") {
+                const approvalUrl = pendingSubscription.links?.find(
+                    (link) => link.rel === "approve"
+                )?.href;
+
+                if (!approvalUrl) {
+                    throw new AdvancedError({
+                        code: 502,
+                        message: "PayPal did not provide an approval URL",
+                    });
+                }
+
+                return res.json({
+                    approvalUrl,
                 });
             }
 
-            const approvalUrl = existingPayPalSubscription.links?.find(
-                (link) => link.rel === "approve"
-            )?.href;
+            if (
+                pendingSubscription.status === "ACTIVE" ||
+                pendingSubscription.status === "SUSPENDED"
+            ) {
+                const updateResult = db.billing.query(
+                    `
+                        UPDATE subscriptions
+                        SET status = ?
+                        WHERE id = ?
+                            AND userId = ?
+                    `,
+                    [
+                        pendingSubscription.status,
+                        existing.id,
+                        userId,
+                    ]
+                );
 
-            if (!approvalUrl) {
+                assertDbSuccess(updateResult);
+
                 throw new AdvancedError({
                     code: 409,
-                    message: "PayPal did not provide an approval URL for the pending subscription",
+                    message: "You are already subscribed",
                 });
             }
 
-            return res.json({
-                approvalUrl,
-            });
+            if (
+                pendingSubscription.status === "CANCELLED" ||
+                pendingSubscription.status === "EXPIRED"
+            ) {
+                const updateResult = db.billing.query(
+                    `
+                        UPDATE subscriptions
+                        SET status = ?
+                        WHERE id = ?
+                            AND userId = ?
+                    `,
+                    [
+                        pendingSubscription.status === "CANCELLED"
+                            ? "CANCELED"
+                            : "EXPIRED",
+                        existing.id,
+                        userId,
+                    ]
+                );
+
+                assertDbSuccess(updateResult);
+            } else {
+                throw new AdvancedError({
+                    code: 409,
+                    message: `Existing PayPal subscription has status ${pendingSubscription.status}`,
+                });
+            }
+        }
+
+        const canceledSubscription = db.billing.query<SubscriptionType>(
+            `
+                SELECT *
+                FROM subscriptions
+                WHERE userId = ?
+                    AND plan = ?
+                    AND method = ?
+                    AND status = 'CANCELED'
+                ORDER BY dateEnded DESC
+                LIMIT 1
+            `,
+            [userId, plan, method]
+        );
+
+        assertDbSuccess(canceledSubscription);
+
+        const canceled = canceledSubscription.rows?.[0];
+
+        let startTime: string | undefined;
+
+        if (canceled?.dateEnded) {
+            const endDate = new Date(canceled.dateEnded);
+
+            if (
+                !Number.isNaN(endDate.getTime()) &&
+                endDate.getTime() > Date.now()
+            ) {
+                startTime = endDate.toISOString();
+            }
         }
 
         const planResponse = await fetch(
@@ -175,7 +328,12 @@ export const subscribeController = async (req: Request, res: Response) => {
                 headers: paypalHeaders,
                 body: JSON.stringify({
                     plan_id: planId,
-                    custom_id: String(req.session.userId),
+                    custom_id: String(userId),
+
+                    ...(startTime
+                        ? { start_time: startTime }
+                        : {}),
+
                     application_context: {
                         brand_name: config.metadata.name,
                         user_action: "SUBSCRIBE_NOW",
@@ -187,6 +345,14 @@ export const subscribeController = async (req: Request, res: Response) => {
         );
 
         if (!subscriptionResponse.ok) {
+            const errorDetails = await subscriptionResponse.text();
+
+            log.unknown.error(
+                new Error(
+                    `PayPal subscription creation failed: ${errorDetails}`
+                )
+            ).save();
+
             throw new AdvancedError({
                 code: 502,
                 message: "Unable to create subscription",
@@ -195,6 +361,7 @@ export const subscribeController = async (req: Request, res: Response) => {
 
         const subscription = await subscriptionResponse.json() as {
             id: string;
+            status: string;
             links?: {
                 rel: string;
                 href: string;
@@ -212,7 +379,7 @@ export const subscribeController = async (req: Request, res: Response) => {
             });
         }
 
-        const result = db.billing.query(
+        const insertResult = db.billing.query(
             `
                 INSERT INTO subscriptions (
                     id,
@@ -224,17 +391,17 @@ export const subscribeController = async (req: Request, res: Response) => {
             `,
             [
                 subscription.id,
-                req.session.userId,
-                "PREMIUM_MONTHLY",
-                "PAYPAL",
+                userId,
+                plan,
+                method,
                 "PENDING",
             ]
         );
 
-        assertDbSuccess(result);
+        assertDbSuccess(insertResult);
 
         return res.json({
-            approvalUrl,
+            approvalUrl
         });
     } catch (error) {
         if (error instanceof AdvancedError) {
