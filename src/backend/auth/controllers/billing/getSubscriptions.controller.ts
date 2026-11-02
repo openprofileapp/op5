@@ -7,7 +7,7 @@ import { i18n } from "../../../_common/instances.js";
 import { assertApiSecret } from "../../../_common/asserts/apiSecret.assert.js";
 import { assertDbSuccess } from "../../../../_common/asserts/dbSuccess.assert.js";
 import { db } from "../../databases/db.js";
-import { SubscriptionType } from "../../types/subscription.type.js";
+import { SubscriptionType } from "../../../../_common/types/subscription.type.js";
 
 export const getSubscriptionsController = async (req: Request, res: Response) => {
     try {
@@ -42,11 +42,30 @@ export const getSubscriptionsController = async (req: Request, res: Response) =>
                 SELECT *
                 FROM subscriptions
                 WHERE userId IN (${placeholders})
-                    AND status IN (
-                        'PENDING',
-                        'ACTIVE',
-                        'SUSPENDED'
+                    AND (
+                        status IN (
+                            'ACTIVE',
+                            'SUSPENDED'
+                        )
+                        OR (
+                            plan = 'PREMIUM_MONTHLY'
+                            AND method = 'PAYPAL'
+                            AND status = 'CANCELED'
+                            AND (
+                                dateEnded IS NULL
+                                OR dateEnded > CURRENT_TIMESTAMP
+                            )
+                        )
                     )
+                ORDER BY
+                    CASE
+                        WHEN plan = 'PREMIUM_LIFETIME' THEN 1
+                        WHEN method IN ('OFFICIAL_GIFT', 'PARTNER_GIFT') THEN 2
+                        WHEN status = 'ACTIVE' THEN 3
+                        WHEN status = 'SUSPENDED' THEN 4
+                        WHEN status = 'CANCELED' THEN 5
+                        ELSE 6
+                    END
             `,
             uniqueUserIds
         );
@@ -62,24 +81,34 @@ export const getSubscriptionsController = async (req: Request, res: Response) =>
         for (const subscription of result.rows ?? []) {
             const userId = String(subscription.userId);
 
-            let text;
+            if (subscriptions[userId] !== null) {
+                continue;
+            }
+
+            let text: string;
 
             if (subscription.plan === "PREMIUM_LIFETIME") {
-                text = "Lifetime"
+                text = "Lifetime";
+            } else if (
+                subscription.method === "OFFICIAL_GIFT" ||
+                subscription.method === "PARTNER_GIFT"
+            ) {
+                text = "Gift";
+            } else if (
+                subscription.plan === "PREMIUM_MONTHLY" &&
+                subscription.method === "PAYPAL" &&
+                subscription.status === "CANCELED" &&
+                (
+                    subscription.dateEnded == null ||
+                    new Date(subscription.dateEnded).getTime() > Date.now()
+                )
+            ) {
+                text = "Canceled";
             } else {
-                if (
-                    subscription.method === "OFFICIAL_GIFT" ||
-                    subscription.method === "PARTNER_GIFT"
-                ) {
-                    text = "Gift"
-                } else {
-                    text = "Subscribed"
-                }
+                text = "Subscribed";
             }
 
-            if (subscriptions[userId] === null) {
-                subscriptions[userId] = text;
-            }
+            subscriptions[userId] = text;
         }
 
         return res.json(subscriptions);
