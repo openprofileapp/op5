@@ -14,6 +14,7 @@ import TemplateField from "../../_common/components/TemplateField.js";
 import { GetTemplateValueType } from "../../../_common/types/template/value.type.js";
 import Metadata from "../../_common/components/Metadata.js";
 import { CategoryIdType } from "../../../_common/scripts/categories.js";
+import { pluralize } from "../../../_common/helpers/pluralize.js";
 
 function getCategoryIcon(types: CategoryIdType[]) {    
     const priorityOrder: CategoryIdType[] =
@@ -282,36 +283,6 @@ export default function Read() {
                 block: "start",
             });
     }, []);
-
-    const pluralize = (value: string): string => {
-        const trimmed = value.trim();
-
-        if (!trimmed) return value;
-
-        if (/(s|x|z|ch|sh)$/i.test(trimmed)) {
-            if (/ss$/i.test(trimmed)) {
-                return `${trimmed}es`;
-            }
-
-            return trimmed.endsWith("s")
-                ? trimmed
-                : `${trimmed}es`;
-        }
-
-        if (/[^aeiou]y$/i.test(trimmed)) {
-            return `${trimmed.slice(0, -1)}ies`;
-        }
-
-        if (/(?:f|fe)$/i.test(trimmed)) {
-            if (/(?:roof|chief|belief|chef)$/i.test(trimmed)) {
-                return `${trimmed}s`;
-            }
-
-            return trimmed.replace(/fe?$/i, "ves");
-        }
-
-        return `${trimmed}s`;
-    };
 
     const resolveDynamicValues = useCallback(
         (fieldIdOrExpression: string | undefined): string => {
