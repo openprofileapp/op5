@@ -316,7 +316,16 @@ export const webhookController = async (req: Request, res: Response) => {
 
             if (newStatus === "ACTIVE") {
                 if (oldResult.rows?.[0]?.status === "SUSPENDED") {
-                    // CALL ADD PREMIUM API HERE
+                    await wc.callAPI(
+                        `https://${config.domains.api}/v3/post/subscribe`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: {
+                                id: oldResult.rows?.[0]?.userId
+                            }
+                        }
+                    );
 
                     await wc.callAPI(
                         `https://${config.domains.discord_api}/v1/notifications/subscriptions/reactivated`,
@@ -345,7 +354,16 @@ export const webhookController = async (req: Request, res: Response) => {
             }
 
             if (newStatus === "SUSPENDED") {
-                // CALL REMOVE PREMIUM API HERE
+                await wc.callAPI(
+                    `https://${config.domains.api}/v3/post/unsubscribe`,
+                    {
+                        method: "POST",
+                        auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                        body: {
+                            id: req.session.userId
+                        }
+                    }
+                );
 
                 await wc.callAPI(
                     `https://${config.domains.discord_api}/v1/notifications/subscriptions/suspended`,
@@ -466,11 +484,13 @@ export const webhookController = async (req: Request, res: Response) => {
                     assertDbSuccess(insertPayment);
 
                     await wc.callAPI(
-                        `https://${config.domains.discord_api}/v3/post/subscribe`,
+                        `https://${config.domains.api}/v3/post/subscribe`,
                         {
                             method: "POST",
                             auth: `ApiSecret ${getEnv("API_SECRET")}`,
-                            body: { userId: resource.custom }
+                            body: { 
+                                id: resource.custom 
+                            }
                         }
                     );
 

@@ -207,7 +207,16 @@ export const unsubscribeController = async (req: Request, res: Response) => {
 
             assertDbSuccess(patchSubscriptions);
 
-            // Remove premium (call API)
+            await wc.callAPI(
+                `https://${config.domains.api}/v3/post/unsubscribe`,
+                {
+                    method: "POST",
+                    auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                    body: {
+                        id: req.session.userId
+                    }
+                }
+            );
 
             const refundResponse = await fetch(
                 `${paypalBaseUrl}/v1/payments/sale/${encodeURIComponent(payment.id)}/refund`,
