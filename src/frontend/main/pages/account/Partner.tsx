@@ -6,7 +6,8 @@ import Metadata from "../../../_common/components/Metadata.js";
 import {
     cdnBaseUrl,
     apiBaseUrl,
-    mainBaseUrl
+    mainBaseUrl,
+    authBaseUrl
 } from "../../../_common/scripts/domains.js";
 import { WhatIsType } from "../../../../_common/types/whatIs.type.js";
 import { InviteType } from "../../../../_common/types/invite.type.js";
@@ -40,7 +41,10 @@ export default function Partner() {
     const [isCopied, setIsCopied] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(initialPage);
-    const [totalPages, setTotalPages] = useState(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+
+    const [availableEarnings, setAvailableEarnings] = useState<number>(0);
+    const [lifetimeEarnings, setLifetimeEarnings] = useState<number>(0);
 
     const [users, setUsers] = useState<PartnerUser[]>([]);
     const [invites, setInvites] = useState<PartnerInvite[]>([]);
@@ -72,9 +76,6 @@ export default function Partner() {
                   Math.round((premiumUsers / registrations) * 100)
               )
             : 0;
-
-    // DEVELOPER NEEDED: Replace value with auth API that retuns the earnings
-    const earnings = 0;
 
     useEffect(() => {
         const interval = window.setInterval(() => {
@@ -126,6 +127,8 @@ export default function Partner() {
             controller?.abort();
             controller = new AbortController();
 
+            const signal = controller.signal;
+
             if (showLoading) {
                 setIsLoading(true);
             }
@@ -136,21 +139,37 @@ export default function Partner() {
                     page: currentPage.toString()
                 });
 
-                const res = await fetch(
-                    `${apiBaseUrl}/v3/invites/owner/${window.session?.userId}?${params.toString()}`,
-                    {
-                        credentials: "include",
-                        signal: controller.signal
-                    }
-                );
+                const [partnerRes, earningsRes] = await Promise.all([
+                    fetch(
+                        `${apiBaseUrl}/v3/invites/owner/${window.session?.userId}?${params.toString()}`,
+                        {
+                            credentials: "include",
+                            signal
+                        }
+                    ),
+                    fetch(
+                        `${authBaseUrl}/billing/earnings/${window.session?.userId}`,
+                        {
+                            credentials: "include",
+                            signal
+                        }
+                    )
+                ]);
 
-                const data = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(data.message || "Failed to load partner data");
+                if (!partnerRes.ok) {
+                    throw new Error("Failed to load partner data");
                 }
 
-                if (!isMounted) return;
+                if (!earningsRes.ok) {
+                    throw new Error("Failed to load earnings");
+                }
+
+                const [data, earningsData] = await Promise.all([
+                    partnerRes.json(),
+                    earningsRes.json()
+                ]);
+
+                if (!isMounted || signal.aborted) return;
 
                 setInvites(data.invites ?? []);
                 setUsers(data.users ?? []);
@@ -166,6 +185,10 @@ export default function Partner() {
                         )
                     )
                 );
+
+                setAvailableEarnings(earningsData.available);
+                setLifetimeEarnings(earningsData.lifetime);
+
             } catch (error) {
                 if (
                     error instanceof Error &&
@@ -182,7 +205,7 @@ export default function Partner() {
                     });
                 }
             } finally {
-                if (isMounted && showLoading) {
+                if (isMounted && showLoading && !signal.aborted) {
                     setIsLoading(false);
                 }
             }
@@ -197,6 +220,8 @@ export default function Partner() {
         const handleVisibilityChange = () => {
             if (!document.hidden) {
                 fetchPartnerData();
+            } else {
+                controller?.abort();
             }
         };
 
@@ -243,6 +268,14 @@ export default function Partner() {
     const premiumBadge = (premium: string) => {
         if (!premium) {
             return <span className="text-sub">Not Subscribed</span>;
+        }
+
+        if (premium === "Canceled") {
+            return (
+                <span>
+                    {premium}
+                </span>
+            );
         }
 
         return (
@@ -353,11 +386,11 @@ export default function Partner() {
                             </span>
 
                             <span className="font-bold text-2xl">
-                                ${earnings.toFixed(2)}
+                                ${(availableEarnings || 0).toFixed(2)}
                             </span>
 
                             <span className="font-normal text-sub text-xs">
-                                Lifetime: ${earnings.toFixed(2)}
+                                Lifetime: ${(lifetimeEarnings || 0).toFixed(2)}
                             </span>
                         </div>
                     </div>
