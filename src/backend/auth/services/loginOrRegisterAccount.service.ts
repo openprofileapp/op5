@@ -107,6 +107,26 @@ function addDelegation(
 
     const hashedDelegationToken = crypto.createHash("sha256").update(delegationToken).digest("hex");
 
+    const existingDelegationResult = db.accounts.query<SessionType>(
+        `SELECT * FROM sessions
+        WHERE userId = ? AND delegationToken = ?
+        LIMIT 1`,
+        [userId, hashedDelegationToken]
+    );
+
+    assertDbSuccess(existingDelegationResult);
+
+    const existingDelegation = existingDelegationResult.rows[0];
+
+    if (existingDelegation) {
+        return {
+            sessionId: existingDelegation.sessionId,
+            accessToken: updateToken(existingDelegation.sessionId, "ACCESS"),
+            sessionToken: updateToken(existingDelegation.sessionId, "SESSION"),
+            delegationToken
+        };
+    }
+
     const existingDelegationsResult = db.accounts.query(
         `SELECT 1 FROM sessions WHERE delegationToken = ?`,
         [hashedDelegationToken]
@@ -303,7 +323,7 @@ export async function registerAccount({
 
     assertDbSuccess(registrationsCountResult);
 
-    if (registrationsCountResult.rowCount <= 503) {
+    if (registrationsCountResult.rowCount <= 500) {
         isPrecursor = true;
 
         permissions = PlatformPermissionsService.getRole("premium");
@@ -437,7 +457,7 @@ export async function registerAccount({
     }
 
     const postRegisterResult: { ok: boolean } = await wc.callAPI(
-        `https://${config.domains.api}/v3/postregister`,
+        `https://${config.domains.api}/v3/post/register`,
         {
             method: "POST",
             auth: `ApiSecret ${getEnv("API_SECRET")}`,
