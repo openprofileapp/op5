@@ -1,5 +1,6 @@
 export type ConnectionNameType = 
     "GOOGLE" |
+    "MICROSOFT" |
     "DISCORD" |
     "GITHUB" |
     "X"
