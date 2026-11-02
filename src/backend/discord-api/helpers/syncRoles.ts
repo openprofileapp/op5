@@ -31,7 +31,7 @@ export default async function syncRoles() {
     for (const member of members.values()) {
         try {
             const authResponse: Props = await wc.callAPI(
-                `https://${config.domains.auth}/integration/get/discord/${member.id}`,
+                `https://${config.domains.auth}/integration/get/internal/discord/${member.id}`,
                 { auth: `ApiSecret ${getEnv("API_SECRET")}` }
             );
 
