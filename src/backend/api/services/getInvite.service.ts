@@ -147,7 +147,6 @@ export default async function getInviteService({
                 subscriptionType:
                     subscriptions[String(row.userId)] ?? null
             }))
-            .filter(user => user.subscriptionType !== null);
 
         return {
             ...invite,
@@ -268,7 +267,6 @@ export default async function getInviteService({
             subscriptionType:
                 subscriptions[String(row.userId)] ?? null
         }))
-        .filter(user => user.subscriptionType !== null);
 
     return {
         invites: enrichedInvites,
