@@ -1,92 +1,101 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Metadata from "../../_common/components/Metadata.js";
 import { Link } from "react-router-dom";
 import { authBaseUrl, mainBaseUrl } from "../../_common/scripts/domains.js";
-import { useState } from "react";
+import { useModals } from "../../_common/hooks/ModalContext.hook.js";
+import { GetSubscriptionType } from "../../../_common/types/subscription.type.js";
 import { toast } from "../../_common/scripts/toast.js";
 
 export default function Premium() {
     const { ready: isTranslationReady } = useTranslation();
+    const { subscribeModal, unsubscribeModal } = useModals();
 
-    const [isSubscribing, setIsSubscribing] = useState(false);
-    const [isUnsubscribing, setIsUnsubscribing] = useState(false);
+    const [data, setData] = useState<GetSubscriptionType | null>(null);
+    const [isPremiumActivating, setIsPremiumActivating] = useState(false);
+    const [isPremium, setIsPremium] = useState(false);
 
-    const isPremium = window?.session?.permissions?.array?.includes("PREMIUM_ACCESS");
-    const isPrecursor = window?.session?.user?.awards?.some((award) => award.type === "PRECURSOR")
-
-    const handleSubscribe = async () => {
-        // if (isSubscribing || isPremium || isPrecursor) return;
-
-        setIsSubscribing(true);
-
-        try {
-            const response = await fetch(
-                `${authBaseUrl}/billing/subscribe`, 
-                { credentials: "include" }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setIsSubscribing(false);
-
-                toast.show(
-                    "Failed to subscribe",
-                    {
-                        subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
-                        type: "error",
-                    }
+    useEffect(() => {
+        const fetchSubscription = async () => {
+            try {
+                const response = await fetch(
+                    `${authBaseUrl}/billing/subscription`,
+                    { credentials: "include" }
                 );
-            } else {
-                window.location.assign(data.approvalUrl);
-            }
-        } catch (error) {
-            setIsSubscribing(false);
 
-            toast.show("Failed to create field", {
-                subtext: String(error),
-                type: "error",
-            });
-        }
-    };
+                const data: GetSubscriptionType = await response.json();
 
-    const handleUnsubscribe = async () => {
-        // if (isUnsubscribing || !isPremium || isPrecursor) return;
+                if (!response.ok) {
+                    toast.show("Failed to get subscription data", {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        subtext: `${data.id || ""}${data.id ? ": " : ""}${data?.message}`,
+                        type: "error"
+                    });
 
-        setIsUnsubscribing(true);
+                    return;
+                }
 
-        try {
-            const response = await fetch(
-                `${authBaseUrl}/billing/unsubscribe`,
-                { credentials: "include" }
-            );
+                setData(data);
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                toast.show("Failed to unsubscribe", {
-                    subtext: `${data.id || ""}${data.id ? ": " : ""}${data.message}`,
+                setIsPremium(
+                    data?.subscription?.method === "PAYPAL" 
+                    && data?.subscription?.status !== "PENDING"
+                    && data?.subscription?.status !== "CANCELED"
+                )
+            } catch (error) {
+                toast.show("Failed to get subscription data", {
+                    subtext: String(error),
                     type: "error"
                 });
-
-                return;
             }
+        };
 
-            toast.show("Subscription canceled", {
-                type: "success"
-            });
+        fetchSubscription();
 
-            window.location.reload();
-        } catch (error) {
-            toast.show("Failed to unsubscribe", {
-                subtext: String(error),
-                type: "error"
-            });
-        } finally {
-            setIsUnsubscribing(false);
+        const interval = setInterval(() => {
+            fetchSubscription();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (
+            data?.hasPaid ||
+            (data?.endDate && new Date(data.endDate) > new Date())
+        ) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsPremiumActivating(false);
         }
-    };
+    }, [data?.endDate, data?.hasPaid]);
+
+    useEffect(() => {
+        const url = new URL(window.location.href);
+
+        const paymentParams = ["token", "ba_token", "subscription_id"];
+
+        const hasParams = paymentParams.some((param) =>
+            url.searchParams.has(param)
+        );
+
+        if (hasParams) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsPremium(true);
+            setIsPremiumActivating(true);
+
+            paymentParams.forEach((param) => {
+                url.searchParams.delete(param);
+            });
+
+            window.history.replaceState({}, "", url.toString());
+        }
+    }, []);
+
+    const isPrecursor = data?.subscription?.method === "PRECURSOR_GIFT"
+
+    const isGifted = data?.subscription?.method === "PARTNER_GIFT"
 
     const auraStyle: React.CSSProperties = {
         ["--aura-type" as string]: "aura-flow",
@@ -133,17 +142,18 @@ export default function Premium() {
 
                             <div className="mt-auto">
                                 <button
-                                // ${!isPremium || isPrecursor || isUnsubscribing ? "btn-disabled" : ""}
-                                    className={`btn bg-accent text-white btn-block `}
-                                    onClick={handleUnsubscribe}
-                                    // disabled={!isPremium || isPrecursor || isUnsubscribing}
+                                    className={`btn bg-accent text-white btn-block ${isGifted || isPrecursor || !isPremium  || isPremiumActivating? "btn-disabled" : ""}`}
+                                    onClick={unsubscribeModal.open}
+                                    disabled={isGifted || isPrecursor || !isPremium || isPremiumActivating}
                                 >
-                                    {isUnsubscribing
-                                        ? (<span className="loading"></span>)
-                                        : isPremium
-                                            ? isPrecursor
-                                                ? "Not available for your account"
-                                                : "Switch Plan"
+                                    {isGifted
+                                        ? "Not available during a gift"
+                                        : isPrecursor
+                                            ? "Not available for your account"
+                                            : isPremiumActivating
+                                                ? "Not available during activation"
+                                                : isPremium
+                                                    ? "Switch Plan"
                                                     : "Current Plan"
                                     }
                                 </button>
@@ -174,6 +184,9 @@ export default function Premium() {
                                 </div>
                             </div>
                             <ul className="mt-6 flex flex-col gap-3 text-sm">
+                                <li className="text-sub">
+                                    <span>All in Standard plus:</span>
+                                </li>
                                 <li>
                                     <span className="inline-block w-3 text-center text-base leading-none font-nerdfont text-success mr-2"></span>
                                     <span>No ads</span>
@@ -206,22 +219,22 @@ export default function Premium() {
 
                             <div className="mt-6">
                                 <button
-                                // ${/*isSubscribing || isPremium || isPrecursor ? "btn-disabled" : ""*/} 
-                                    className={`btn bg-premium text-black btn-block`}
-                                    onClick={handleSubscribe}
-                                    // disabled={isSubscribing || isPremium || isPrecursor}
-
-                                    // ADD A PROMPT FOR EACH EXPLAINING THEY WILL BE BILLED MONTHYL AND THEY CAN CANCL ANY TIME THEN ON CLICK CALL THE API
-                                    // YOU WILL BE CHARGED $4.99 MONTHLY
-                                    // YOU CAN CANCEL FOR A FULL REFUND WITHIN 48 HOURS ONLY ONCE (AFTER MARK; THIS IS NOT ELIGIABLE FOR REFUND)
-                                    // YOU WILL BE REIRECTED TO PAYPAL
+                                    className={`btn bg-premium text-black btn-block ${isPrecursor || isPremium || isPremiumActivating ? "btn-disabled" : ""}`}
+                                    onClick={subscribeModal.open}
+                                    disabled={isPrecursor || isPremium || isPremiumActivating}
                                 >
-                                    {isSubscribing
-                                        ? (<span className="loading"></span>)
-                                        : isPremium
-                                            ? isPrecursor
-                                                ? "Included with your account"
-                                                : "Current Plan"
+                                    {isPremiumActivating && (
+                                        <span className="loading"></span>
+                                    )}
+
+                                    {isGifted
+                                        ? "Subscribe now. Pay when your gift ends."
+                                        : isPrecursor
+                                            ? "Included with your account"
+                                            : isPremiumActivating
+                                                ? "Premium is activating..."
+                                                : isPremium
+                                                    ? "Current Plan"
                                                     : "Subscribe"
                                     }
                                 </button>
