@@ -8,7 +8,7 @@ import i18n from "../_common/i18n.js"
 import { ModalProvider } from "../_common/hooks/ModalContext.hook.js"
 
 import setupWebPushNotifications from "../_common/scripts/webPush.js"
-import { apiBaseUrl, mainBaseUrl } from "../_common/scripts/domains.js"
+import { apiBaseUrl, authBaseUrl, mainBaseUrl } from "../_common/scripts/domains.js"
 import { banner } from "../_common/scripts/banner.js"
 import { verifySession } from "../_common/scripts/session.js"
 import { applyTheme, fonts } from "../_common/scripts/themes.js"
@@ -48,6 +48,8 @@ import { getImportantChanges } from "../_common/scripts/getImportantChanges.js"
 
 import { WhatIsType } from "../../_common/types/whatIs.type.js"
 import { InviteType } from "../../_common/types/invite.type.js"
+import { GetSubscriptionType } from "../../_common/types/subscription.type.js"
+import { formatShortRelative } from "../_common/scripts/time.js"
 
 const markdownRoutes = [
     {
@@ -318,6 +320,42 @@ async function bootstrap() {
                     }
                 }
             );
+        }
+
+        if (
+            !localStorage.getItem("hasSeenSubscribeBanner") 
+            && window.session?.userId
+        ) {
+            const response = await fetch(
+                `${authBaseUrl}/billing/subscription`,
+                { credentials: "include" }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch invite: ${response.status}`);
+            }
+
+            const data: GetSubscriptionType = await response.json();
+
+            if (data.isCanceledAndLastWeek) {
+                banner.show(
+                    `Your ad-free experience and other benefits will end on ${formatShortRelative(data?.endDate)}.`,
+                    {
+                        type: "premium",
+                        button: {
+                            label: "Resubscribe",
+                            onClick: () => {
+                                window.dispatchEvent(new Event("open-subscribe-modal"));
+                            }
+                        },
+                        closeAction: {
+                            onClick: () => {
+                                localStorage.setItem("hasSeenSubscribeBanner", "true");
+                            }
+                        }
+                    }
+                );
+            }
         }
     }
 
