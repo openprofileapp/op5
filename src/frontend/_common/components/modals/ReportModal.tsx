@@ -86,7 +86,7 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                         <div>
                             {t("components.modals.report.rowTitle")}
                         </div>
-                    </div>                    
+                    </div>
                 </div>
 
                 <div className="flex flex-col">
