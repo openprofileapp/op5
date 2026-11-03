@@ -12,6 +12,7 @@ import { i18n, wc } from "../../../_common/instances.js";
 import { assertNotNull } from "../../../../_common/asserts/notNull.assert.js";
 import { SubscriptionStatusType, SubscriptionType } from "../../../../_common/types/subscription.type.js";
 import { PaymentType } from "../../types/payment.type.js";
+import { PayoutType } from "../../types/payout.type.js";
 
 type PayPalWebhookEvent = {
     id: string;
@@ -27,6 +28,16 @@ type PayPalWebhookEvent = {
         status?: string;
         state?: string;
         status_update_time?: string;
+        transaction_id? :string;
+        payout_item_fee?: {
+            currency?: string;
+            value?: string;
+        }
+
+        sender_batch_id?: string;
+        payout_item: {
+            sender_item_id: string;
+        }
 
         sale_id?: string;
         plan_id?: string;
@@ -102,6 +113,8 @@ type PayPalWebhookEvent = {
             method?: string;
             encType?: string;
         }>;
+        payout_batch_id ?:string;
+        payout_item_id ?:string;
     };
 
     links?: Array<{
@@ -575,72 +588,60 @@ export const webhookController = async (req: Request, res: Response) => {
                 }
 
                 case "PAYMENT.PAYOUTS-ITEM.SUCCEEDED": {
-                    /*
-                        12:42:19 [INFO] {
-                            transaction_id: "7B527729B9143193F"
-                            payout_item_fee: {
-                                currency: "USD"
-                                value: "0.25"
-                            }
-                            transaction_status: "SUCCESS"
-                            sender_batch_id: "3df8f0e3-35d8-4d6b-bfd9-6318d1668954"
-                            time_processed: "2026-10-29T16:41:55Z"
-                            activity_id: "27M36287MC048832X"
-                            payout_item: {
-                                recipient_type: "EMAIL"
-                                amount: {
-                                    currency: "USD"
-                                    value: "0.25"
-                                }
-                                note: "OpenProfile Partner Program: Revenue share earned from an invited user's recurring Premium subscription."
-                                receiver: "sb-pent353577642@personal.example.com"
-                                sender_item_id: "3058face-d7a9-4626-b3c6-d4ff2cc6eadd"
-                                recipient_wallet: "PAYPAL"
-                            }
-                            links: [
-                                {
-                                    href: "https://api.sandbox.paypal.com/v1/payments/payouts-item/JVE7PKG4MKTUS"
-                                    rel: "self"
-                                    method: "GET"
-                                    encType: "application/json"
-                                }
-                                {
-                                    href: "https://api.sandbox.paypal.com/v1/payments/payouts/W9XETF4FUWKAQ"
-                                    rel: "batch"
-                                    method: "GET"
-                                    encType: "application/json"
-                                }
-                            ]
-                            payout_item_id: "JVE7PKG4MKTUS"
-                            payout_batch_id: "W9XETF4FUWKAQ"
+                    const updatePayout = db.billing.query(
+                        `
+                            UPDATE payouts
+                            SET
+                                transactionId = ?,
+                                fee = ?,
+                                payoutBatchId = ?,
+                                payoutItemId = ?,
+                                status = ?,
+                                dateProcessed = ?
+                            WHERE senderBatchId = ?
+                            AND senderItemId = ?
+                        `,
+                        [
+                            resource.transaction_id,
+                            resource.payout_item_fee?.value ?? "0.00",
+                            resource.payout_batch_id,
+                            resource.payout_item_id,
+                            "COMPLETED",
+                            new Date().toISOString(),
+                            resource.sender_batch_id,
+                            resource.payout_item?.sender_item_id
+                        ]
+                    );
+
+                    assertDbSuccess(updatePayout);
+
+                    const payout = db.billing.query<PayoutType>(
+                        `
+                            SELECT *
+                            FROM payouts
+                            WHERE senderBatchId = ?
+                            AND senderItemId = ?
+                            LIMIT 1
+                        `,
+                        [
+                            resource.sender_batch_id,
+                            resource.payout_item?.sender_item_id
+                        ]
+                    );
+
+                    assertDbSuccess(payout);
+
+                    await wc.callAPI(
+                        `https://${config.domains.discord_api}/v1/notifications/partner/withdrawl`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: {
+                                userId: payout.rows[0].userId
+                            },
                         }
-
-
-                        const insertPayout = db.billing.query(
-                            `
-                                INSERT INTO payouts (
-                                    paymentId, 
-                                    userId,
-                                    total,
-                                    currency,
-                                    status
-                                )
-                                VALUES (?, ?, ?, ?, ?)
-                            `,
-                            [
-                                resource.id,
-                                inviteResponse.ownerId,
-                                partnerSplit,
-                                resource.amount?.currency,
-                                "PENDING"
-                            ]
-                        );
-
-                        assertDbSuccess(insertPayout);
-                    */
-
-                    // LOG THE FEE IN THE DB
-
+                    );
+                    
                     break;
                 }
 
@@ -648,71 +649,36 @@ export const webhookController = async (req: Request, res: Response) => {
                     break;
                 }
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-// MOVE THIS TO CASHOUT API
-                        // billing/cashout
-
-                        // TAKES A $0.25 MIN (we won't cover it; no min to cashout)
-                        // DISPLAY MODAL WITH EMAIL (and confirm email and amount) AND WARNING ^
-                        const payoutResponse = await fetch(
-                            `${paypalBaseUrl}/v1/payments/payouts`,
-                            {
+                case "CUSTOMER.DISPUTE.CREATED": {
+                        await wc.callAPI(
+                            `https://${config.domains.discord_api}/v1/notifications/dispute/created`,
+                            { 
                                 method: "POST",
-                                headers: {
-                                    Authorization: `Bearer ${tokenData.access_token}`,
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    sender_batch_header: {
-                                        sender_batch_id: crypto.randomUUID(),
-                                        email_subject: "Your OpenProfile Partner Earnings",
-                                    },
-                                    items: [
-                                        {
-                                            recipient_type: "EMAIL",
-                                            amount: {
-                                                value: partnerSplit,
-                                                currency: "USD",
-                                            },
-                                            receiver: "sb-pent353577642@personal.example.com",
-                                            note: `OpenProfile Partner Program: Revenue share earned from an invited user's${getPreviousPayments.rowCount === 0 ? " " : " recurring "}Premium subscription.`,
-                                            sender_item_id: crypto.randomUUID(), // use snowflake
-                                        },
-                                    ],
-                                }),
+                                auth: `ApiSecret ${getEnv("API_SECRET")}` 
                             }
                         );
-
-                        const payout = await payoutResponse.json();
- */
-
-
-
-
-
-
-
-
-                case "CUSTOMER.DISPUTE.CREATED": {
                     break;
                 }
 
                 case "CUSTOMER.DISPUTE.UPDATED": {
+                        await wc.callAPI(
+                            `https://${config.domains.discord_api}/v1/notifications/dispute/updated`,
+                            { 
+                                method: "POST",
+                                auth: `ApiSecret ${getEnv("API_SECRET")}` 
+                            }
+                        );
                     break;
                 }
 
                 case "CUSTOMER.DISPUTE.RESOLVED": {
+                        await wc.callAPI(
+                            `https://${config.domains.discord_api}/v1/notifications/dispute/resolved`,
+                            { 
+                                method: "POST",
+                                auth: `ApiSecret ${getEnv("API_SECRET")}` 
+                            }
+                        );
                     break;
                 }
 
