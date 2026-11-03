@@ -5,7 +5,6 @@ export type PayoutStatusType =
 
 export type PayoutType = {
     transactionId: string;
-    refPaymentId: string;
     userId: string;
     email: string;
     subtotal: number;
