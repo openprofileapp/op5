@@ -32,13 +32,13 @@ export const suspendedSubscriptionController = async (req: Request, res: Respons
             {
                 embeds: [
                     {
-                    author: {
-                        name: `${pluralize(whatIs.displayName || whatIs.primaryUsername || whatIs.id)} Premium subscription got suspended.`,
-                        icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
-                        url: `https://${config.domains.main}/user/${whatIs.id}`
-                    },
-                    color: 0x1540cf,
-                    description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
+                        author: {
+                            name: `${pluralize(whatIs.displayName || whatIs.primaryUsername || whatIs.id)} Premium subscription got suspended.`,
+                            icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
+                            url: `https://${config.domains.main}/user/${whatIs.id}`
+                        },
+                        color: 0x1540cf,
+                        description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
                     }
                 ]
             }

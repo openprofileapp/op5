@@ -31,13 +31,13 @@ export const refundedSubscriptionController = async (req: Request, res: Response
             {
                 embeds: [
                     {
-                    author: {
-                        name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} refunded their Premium subscription.`,
-                        icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
-                        url: `https://${config.domains.main}/user/${whatIs.id}`
-                    },
-                    color: 0x1540cf,
-                    description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
+                        author: {
+                            name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} refunded their Premium subscription.`,
+                            icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
+                            url: `https://${config.domains.main}/user/${whatIs.id}`
+                        },
+                        color: 0x1540cf,
+                        description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
                     }
                 ]
             }

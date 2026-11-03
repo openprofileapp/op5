@@ -32,13 +32,13 @@ export const reactivatedSubscriptionController = async (req: Request, res: Respo
             {
                 embeds: [
                     {
-                    author: {
-                        name: `${pluralize(whatIs.displayName || whatIs.primaryUsername || whatIs.id)} Premium subscription got reactivated.`,
-                        icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
-                        url: `https://${config.domains.main}/user/${whatIs.id}`
-                    },
-                    color: 0x1540cf,
-                    description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
+                        author: {
+                            name: `${pluralize(whatIs.displayName || whatIs.primaryUsername || whatIs.id)} Premium subscription got reactivated.`,
+                            icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
+                            url: `https://${config.domains.main}/user/${whatIs.id}`
+                        },
+                        color: 0x1540cf,
+                        description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
                     }
                 ]
             }

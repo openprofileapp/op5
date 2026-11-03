@@ -31,13 +31,13 @@ export const newAccountController = async (req: Request, res: Response) => {
             {
                 embeds: [
                     {
-                    author: {
-                        name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} registered an account.`,
-                        icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
-                        url: `https://${config.domains.main}/user/${whatIs.id}`
-                    },
-                    color: 0x13a10e,
-                    description: `-# View the [console](https://${config.domains.console}/user/${whatIs.primaryUsername || whatIs.id}) for more details.`
+                        author: {
+                            name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} registered an account.`,
+                            icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
+                            url: `https://${config.domains.main}/user/${whatIs.id}`
+                        },
+                        color: 0x13a10e,
+                        description: `-# View the [console](https://${config.domains.console}/user/${whatIs.primaryUsername || whatIs.id}) for more details.`
                     }
                 ]
             }

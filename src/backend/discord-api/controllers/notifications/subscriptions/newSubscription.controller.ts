@@ -31,13 +31,13 @@ export const newSubscriptionController = async (req: Request, res: Response) => 
             {
                 embeds: [
                     {
-                    author: {
-                        name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} subscribed to Premium.`,
-                        icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
-                        url: `https://${config.domains.main}/user/${whatIs.id}`
-                    },
-                    color: 0x13a10e,
-                    description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
+                        author: {
+                            name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} subscribed to Premium.`,
+                            icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
+                            url: `https://${config.domains.main}/user/${whatIs.id}`
+                        },
+                        color: 0x13a10e,
+                        description: `-# View the [console](https://${config.domains.console}/billing/subscription/${subscriptionId}) for more details.`
                     }
                 ]
             }
