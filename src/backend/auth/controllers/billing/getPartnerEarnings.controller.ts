@@ -44,9 +44,23 @@ export const getPartnerEarningsController = async (req: Request, res: Response) 
 
         const account = result.rows[0]
 
+        const latestPayout = db.billing.query(
+            `
+                SELECT *
+                FROM payouts
+                WHERE userId = ?
+                ORDER BY dateCreated DESC
+                LIMIT 1
+            `,
+            [req.session.userId]
+        );
+
+        assertDbSuccess(latestPayout);
+
         return res.json({
             available: account.availableEarningsUSD,
-            lifetime: account.lifetimeEarningsUSD
+            lifetime: account.lifetimeEarningsUSD,
+            lastPayoutEmail: latestPayout.rows?.[0]?.email
         });
     } catch (error) {
         if (error instanceof AdvancedError) {
