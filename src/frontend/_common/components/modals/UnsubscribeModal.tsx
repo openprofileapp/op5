@@ -2,14 +2,13 @@ import { useTranslation } from "react-i18next";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 
 import { toast } from "../../scripts/toast.js";
-import { GetAssetType } from "../../../../_common/types/asset.type.js";
 import { authBaseUrl } from "../../scripts/domains.js";
 import { formatShortRelative } from "../../scripts/time.js";
 import { GetSubscriptionType } from "../../../../_common/types/subscription.type.js";
 import { CheckboxInput } from "../CheckboxInput.js";
 
 export interface UnsubscribeModalRef {
-    open: (data: GetAssetType) => void;
+    open: () => void;
     close: () => void;
 }
 
