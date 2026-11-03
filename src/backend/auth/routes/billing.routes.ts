@@ -7,6 +7,7 @@ import { getSubscriptionsController } from "../controllers/billing/getSubscripti
 import { getPartnerEarningsController } from "../controllers/billing/getPartnerEarnings.controller.js";
 import { getSubscriptionController } from "../controllers/billing/getSubscription.controller.js";
 import { getOldestStartDateController } from "../controllers/billing/getOldestStartDate.controller.js";
+import { withdrawController } from "../controllers/billing/withdraw.controller.js";
 
 const billingRoutes = Router();
 
@@ -17,5 +18,6 @@ billingRoutes.post("/get", getSubscriptionsController);
 billingRoutes.get("/earnings/:userId", getPartnerEarningsController);
 billingRoutes.get("/subscription", getSubscriptionController);
 billingRoutes.get("/subscriptions/date/:userId", getOldestStartDateController);
+billingRoutes.post("/withdraw", withdrawController);
 
 export default billingRoutes;
