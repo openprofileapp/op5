@@ -14,6 +14,7 @@ import { InviteType } from "../../../../_common/types/invite.type.js";
 import { toast } from "../../../_common/scripts/toast.js";
 import { Pagination } from "../../../_common/components/Pagination.js";
 import { formatShortRelative } from "../../../_common/scripts/time.js";
+import { useModals } from "../../../_common/hooks/ModalContext.hook.js";
 
 type PartnerUser = WhatIsType & {
     date?: string;
@@ -31,6 +32,7 @@ type PartnerInvite = InviteType & {
 export default function Partner() {
     const { ready: isTranslationReady } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { withdrawModal } = useModals();
 
     const initialPage = Math.max(
         1,
@@ -388,6 +390,13 @@ export default function Partner() {
                             <span className="font-bold text-2xl">
                                 ${(availableEarnings || 0).toFixed(2)}
                             </span>
+
+                            <button 
+                                className="btn btn-accent"
+                                onClick={withdrawModal.open}
+                            >
+                                Withdraw
+                            </button>
 
                             <span className="font-normal text-sub text-xs">
                                 Lifetime: ${(lifetimeEarnings || 0).toFixed(2)}
