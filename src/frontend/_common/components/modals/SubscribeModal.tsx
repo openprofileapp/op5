@@ -14,7 +14,7 @@ import { GetSubscriptionType } from "../../../../_common/types/subscription.type
 import { formatShortRelative } from "../../scripts/time.js";
 
 export interface SubscribeModalRef {
-    open: () => Promise<void>;
+    open: () => void;
     close: () => void;
 }
 
