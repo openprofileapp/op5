@@ -36,6 +36,7 @@ import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 import integrationRoute from "./routes/integration.route.js";
 import reportRoutes from "./routes/report.routes.js";
 import privateInviteRoutes from "./routes/privateInvite.routes.js";
+import moderateRoute from "./routes/moderate.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -201,6 +202,13 @@ v3.use(
     fetchSessionMiddleware, 
     rateLimitMiddleware(8), 
     reportRoutes
+);
+
+v3.use(
+    "/moderate", 
+    fetchSessionMiddleware, 
+    rateLimitMiddleware(240), 
+    moderateRoute
 );
 
 v3.use(

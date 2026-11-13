@@ -12,6 +12,8 @@ import createNotificationBody from "../../../../_common/helpers/createNotificati
 import Mention from "../../../_common/components/Mention.js";
 import { WhatIsType } from "../../../../_common/types/whatIs.type.js";
 import { formatShortRelative } from "../../../_common/scripts/time.js";
+import getModerationReason from "../../../../_common/helpers/getModerationReason.js";
+import { ModerationReasonNameType } from "../../../../_common/types/moderation.type.js";
 
 function getNotificationsIcon(type: NotificationNameType) {
     switch (type) {
@@ -28,11 +30,8 @@ function getNotificationsIcon(type: NotificationNameType) {
         case "FRIEND_REQUEST_ACCEPTED":
             return "";
         case "CHATS_MILESTONE":
-            return (<span className="text-premium">󰔸</span>);
         case "READS_MILESTONE":
-            return (<span className="text-premium">󰔸</span>);
         case "SHARES_MILESTONE":
-            return (<span className="text-premium">󰔸</span>);
         case "VIEWS_MILESTONE":
             return (<span className="text-premium">󰔸</span>);
         case "ADD_TO_COLLECTION":
@@ -43,6 +42,7 @@ function getNotificationsIcon(type: NotificationNameType) {
             return (<span className="text-info"></span>);
         case "REPORT_CREATED":
             return (<span className="text-accent"></span>);
+        case "NEW_MODERATION_CASE":
         case "LOGIN":
             return (<span className="text-warning"></span>);
         case "GIFTED_PREMIUM":
@@ -300,7 +300,7 @@ export default function Notifications() {
 
                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 break-words [overflow-wrap:anywhere]">
                     {createNotificationBody(notification.type)
-                        ?.split(/(\{SOURCE\}|\{TARGET\}|\{COUNT\}|\{COLLECTION\}|\{LOCATION\}|\{AWARD\})/g)
+                        ?.split(/(\{SOURCE\}|\{TARGET\}|\{COUNT\}|\{COLLECTION\}|\{LOCATION\}|\{AWARD\}|\{REASON\})/g)
                         .map((part, partIndex) => {
                             if (part === "{SOURCE}") {
                                 return (
@@ -386,6 +386,38 @@ export default function Notifications() {
                                     >
                                         {data.award?.toLowerCase()}
                                     </span>
+                                );
+                            }
+
+                            if (part === "{REASON}") {
+                                const reason = getModerationReason(data?.reason as ModerationReasonNameType);
+
+                                
+
+                                return (
+                                    <div className="flex flex-col gap-4 mt-2 text-sm bg-warning/20 border border-warning p-4 rounded"
+                                        key={partIndex}
+                                    >
+                                        <span className="inline-flex items-center gap-1">
+                                            {data.target?.id === window.session?.userId ? (
+                                                "You have "
+                                            ) : (
+                                                <>
+                                                    <Mention
+                                                        data={data.target as WhatIsType}
+                                                        isNotification={true}
+                                                    />
+
+                                                    {"has "}
+                                                </>
+                                            )}
+
+                                            been moderated for {reason.name}. Visit your account standing in settings to see how this affects your account.</span>
+                                        <span>Reason: {reason.description}</span>
+                                        {data.note && (
+                                            <span className="text-xs">Moderator Note: {data.note}</span>
+                                        )}
+                                    </div>
                                 );
                             }
 
@@ -489,6 +521,7 @@ export default function Notifications() {
                                     { id: "SHARES_MILESTONE", name: "Share Milestones" },
                                     { id: "EARNED_AWARD", name: "Earned Awards" },
                                     { id: "GIFTED_PREMIUM", name: "Premium Subscription Gifts" },
+                                    { id: "NEW_MODERATION_CASE", name: "Moderation Cases" },
                                     { id: "LOGIN", name: "Login Attempts" }
                                 ]}
                                 placeholder="Filter Results"

@@ -27,6 +27,7 @@ import { assertDbSuccess } from "../../_common/asserts/dbSuccess.assert.js";
 import integrationRoutes from "./routes/integration.route.js";
 import billingRoutes from "./routes/billing.routes.js";
 import permissionsRoute from "./routes/permissions.route.js";
+import suspendRoutes from "./routes/suspend.routes.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -93,6 +94,12 @@ router.use(
     "/permissions", 
     rateLimitMiddleware(240), 
     permissionsRoute
+);
+
+router.use(
+    "/moderation", 
+    rateLimitMiddleware(240), 
+    suspendRoutes
 );
 
 /* 

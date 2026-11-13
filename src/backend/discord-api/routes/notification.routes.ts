@@ -10,10 +10,12 @@ import { createdDisputeController } from "../controllers/notifications/dispute/c
 import { updatedDisputeController } from "../controllers/notifications/dispute/updatedDispute.controller.js";
 import { resolvedDisputeController } from "../controllers/notifications/dispute/resolvedDispute.controller.js";
 import { withdrawlController } from "../controllers/notifications/partner/withdrawl.controller.js";
+import { moderatedAccountController } from "../controllers/notifications/accounts/moderatedAccount.controller.js";
 
 const notificationRoutes = Router();
 
 notificationRoutes.post("/accounts/new", newAccountController);
+notificationRoutes.post("/accounts/moderated", moderatedAccountController);
 
 notificationRoutes.post("/subscriptions/new", newSubscriptionController);
 notificationRoutes.post("/subscriptions/canceled", canceledSubscriptionController);
