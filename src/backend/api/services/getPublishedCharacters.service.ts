@@ -242,17 +242,28 @@ export default function getPublishedCharactersService({
         }
 
         visibilityCondition = `(
-            (published.visibility = 'public') OR
+            published.visibility = 'public' OR
             (published.visibility = 'registered' AND ? = 1) OR
             (published.visibility = 'followers' AND follows.source IS NOT NULL) OR
-            (published.visibility = 'friends' AND friendsOut.source IS NOT NULL AND friendsIn.source IS NOT NULL) OR
-            (published.visibility = 'unlisted' AND (${isUnlistedAllowed ? '1 = 1' : 'published.ownerId = ?'})) OR
             (
-                published.visibility = 'private' AND 
+                published.visibility = 'friends' AND
+                friendsOut.source IS NOT NULL AND
+                friendsIn.source IS NOT NULL
+            ) OR
+            (
+                published.visibility = 'unlisted' AND
+                (${isUnlistedAllowed ? '1 = 1' : 'published.ownerId = ?'})
+            ) OR
+            (
+                published.visibility IN ('private', 'hidden') AND
                 (
-                    published.ownerId = ? OR 
+                    published.ownerId = ? OR
                     ${hasDirectViewPermission ? '1 = 1' : '1 = 0'} OR
-                    ${hasDelegatedAccounts ? 'published.ownerId IN (' + delegatedAccounts.map(() => '?').join(',') + ')' : '1 = 0'}
+                    ${
+                        hasDelegatedAccounts
+                            ? `published.ownerId IN (${delegatedAccounts.map(() => '?').join(',')})`
+                            : '1 = 0'
+                    }
                 )
             )
         )`;
