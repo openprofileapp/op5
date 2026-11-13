@@ -16,7 +16,7 @@ export const publishDatasetController = async (req: Request, res: Response) => {
 
         await assertBearer(req);
         assertAccount(req.session);
-        assertPlatformPermissions(req.session, "CREATE_ASSETS");
+        assertPlatformPermissions(req.session, ["CREATE_ASSETS", "PARTNER_ACCESS", "VERIFIED_ACCESS"]);
 
         const getResult = db.templates.query<DatasetItemType>(
             "SELECT * FROM draft_datasets WHERE id = ? LIMIT 1",

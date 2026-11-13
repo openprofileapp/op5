@@ -22,7 +22,7 @@ export const publishTemplateController = async (req: Request, res: Response) => 
 
         await assertBearer(req);
         assertAccount(req.session);
-        assertPlatformPermissions(req.session, "CREATE_ASSETS");
+        assertPlatformPermissions(req.session, ["CREATE_ASSETS", "PARTNER_ACCESS", "VERIFIED_ACCESS"]);
 
         const getResult = db.templates.query<TemplateType>(
             "SELECT * FROM drafts WHERE id = ? LIMIT 1",
