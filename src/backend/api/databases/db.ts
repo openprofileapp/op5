@@ -27,7 +27,8 @@ const paths = {
     blocks: "data/databases/blocks.sqlite",
     articles: "data/databases/articles.sqlite",
     changelogs: "data/databases/changelogs.sqlite",
-    reports: "data/databases/reports.sqlite"
+    reports: "data/databases/reports.sqlite",
+    moderation: "data/databases/moderation.sqlite"
 }
 
 export const db = {
@@ -49,7 +50,8 @@ export const db = {
     blocks: new Database(paths.blocks),
     articles: new Database(paths.articles),
     changelogs: new Database(paths.changelogs),
-    reports: new Database(paths.reports)
+    reports: new Database(paths.reports),
+    moderation: new Database(paths.moderation)
 };
 
 db.audits.transaction(q => {
@@ -554,6 +556,13 @@ db.reports.transaction(q => {
 
     if (!q("SELECT * FROM bugs LIMIT 1").success) { 
         const result = q(`${config.folders.sql.api}/reports/bugs.sql`);
+        if (!result.success) log.db.error(result.error).save();
+    };
+});
+
+db.moderation.transaction(q => {
+    if (!q("SELECT * FROM cases LIMIT 1").success) { 
+        const result = q(`${config.folders.sql.api}/moderation/cases.sql`);
         if (!result.success) log.db.error(result.error).save();
     };
 });
