@@ -42,6 +42,8 @@ export default function createNotificationBody(type: NotificationNameType): stri
             return "Your account has been marked as a staff of OpenProfile"
         case "EARNED_AWARD":
             return "You earned the {AWARD} award"
+        case "NEW_MODERATION_CASE":
+            return "{REASON}"
         default:
             return null
     }
