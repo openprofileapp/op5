@@ -10,6 +10,8 @@ import { satisfiesAll } from "../../_common/helpers/satisfiesAll.js";
 import whatIs from "./whatIs.service.js";
 import { config } from "../../../../app.config.js";
 import { SubscriptionsType } from "../../../frontend/_common/components/modals/NotificationsModal.js";
+import { AwardNameType } from "../../../_common/types/award.type.js";
+import { ModerationReasonNameType } from "../../../_common/types/moderation.type.js";
 
 export const notificationMilestones = [ 
     10, 25, 50, 75,
@@ -30,6 +32,9 @@ type Props = {
     count?: number;
     geoIp?: GeoIpType;
     collectionId?: string;
+    award?: AwardNameType;
+    reason?: ModerationReasonNameType;
+    note?: string;
 };
 
 /**
@@ -46,7 +51,10 @@ export default async function sendNotificationService(
     targetId,
     count,
     geoIp,
-    collectionId
+    collectionId,
+    award,
+    reason,
+    note
 }: Props = {}): Promise<void> {    
     assertNotNull([userId, type]);
 
@@ -87,7 +95,8 @@ export default async function sendNotificationService(
         "UPDATED_CHARACTER",
         "LOGIN",
         "ASSIGNED_STAFF",
-        "EARNED_AWARD"
+        "EARNED_AWARD",
+        "NEW_MODERATION_CASE"
     );
 
     if (!allowedTypes.has(type)) {
@@ -137,29 +146,43 @@ export default async function sendNotificationService(
         ...(targetId && { target: targetId }),
         ...(count && { count }),
         ...(geoIp && { geoIp }),
-        ...(collectionId && { collectionId })
+        ...(collectionId && { collectionId }),
+        ...(award && { award }),
+        ...(reason && { reason }),
+        ...(note && { note })
     });
 
-    let isValid = false;
+    const isValid = false;
+
+    const deletableTypes: NotificationNameType[] = [
+        "NEW_LIKE",
+        "NEW_FOLLOW",
+        "FRIEND_REQUEST_SENT",
+        "ADD_TO_COLLECTION"
+    ];
 
     db.notifications.transaction(q => {
+        if (deletableTypes.includes(type as NotificationNameType)) {
+            const result = q(
+                `DELETE FROM inbox
+                WHERE userId = ? AND type = ? AND data = ?`,
+                [userId, type, data]
+            );
+
+            assertDbSuccess(result);
+
+            if (result.changes !== 0) {
+                return;
+            }
+        }
+
         const result = q(
-            `DELETE FROM inbox WHERE userId = ? AND type = ? AND data = ?`,
+            `INSERT INTO inbox (userId, type, data)
+            VALUES (?, ?, ?)`,
             [userId, type, data]
         );
 
         assertDbSuccess(result);
-
-        if (result.changes === 0) {
-            isValid = true
-
-            const result = q(
-                `INSERT INTO inbox (userId, type, data) VALUES (?, ?, ?)`,
-                [userId, type, data]
-            )
-
-            assertDbSuccess(result);
-        }
     });
 
     if (isValid && whatIsData) {

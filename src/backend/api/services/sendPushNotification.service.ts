@@ -43,7 +43,9 @@ export default async function sendPushNotificationService(
     count,
     geoIp,
     collectionId
-}: Props = {}): Promise<void> {    
+}: Props = {}): Promise<void> {
+    if (!config.isProduction && !userId) return; 
+
     assertNotNull([userId, type]);
 
     // DEVELOPER NEEDED: Log push notifications to an audit log and clear it every hour.
