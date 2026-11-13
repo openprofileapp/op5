@@ -353,6 +353,22 @@ export default function CharacterCard({
                         </span>
                     </div>
                 )}
+
+                {(
+                    window.session.userId === data.owner.id) && 
+                (
+                    data.visibility === "hidden"
+                ) && (
+                    <div className="tooltip tooltip-top tooltip-accent">
+                        <div className="tooltip-content">
+                            <div className="font-bold">Hidden by Moderator</div>
+                            <div className="text-xs">Only visible to you. Make the requested changes then resubmit your appeal. (not possible at this current time)</div>
+                        </div>
+                        <span className="grid place-items-center font-nerdfont text-xl">
+                            󰈉
+                        </span>
+                    </div>
+                )}
             </div>
 
             {(!isPreview && !isTrash) && 
