@@ -580,10 +580,56 @@ export const webhookController = async (req: Request, res: Response) => {
 
                 case "PAYMENT.SALE.REVERSED": {
 
-                    // Insert into reverse attempt
                     // Warn the account for attempt charge back
 
-                    // IF CHARGED BACK WITHIN 48 HOURS OF FRIST SUBCIPTION, ALLOW IT. ELSE, LIMIT THE ACCOUNT UNLESS REVIEWED BY STAFF
+                    // Use api here, not raw service
+
+                    /*
+                        // Uses automatic predefined actions, could be warn or ban
+                        moderationService.auto(
+                            userId, 
+                            {
+                                reason,
+                                moderator
+                            }
+                        );
+                        
+                        // Uses automatic stepping to take action after a certain number of warns
+                        moderationService.warn(
+                            userId, 
+                            {
+                                reason,
+                                moderator
+                            }
+                        );
+
+                        moderationService.suspend(
+                            userId, 
+                            {
+                                reason,
+                                moderator,
+                                duration
+                            }
+                        );
+
+                        moderationService.updateVisibilty(
+                            assetId, 
+                            {
+                                visibility,
+                                reason,
+                                moderator
+                            }
+                        );
+
+                        moderationService.updateContentFlags(
+                            assetId, 
+                            {
+                                flag,
+                                reason,
+                                moderator
+                            }
+                        );
+                    */
                     break;
                 }
 
