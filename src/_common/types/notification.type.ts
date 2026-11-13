@@ -1,5 +1,6 @@
 import { AwardNameType } from "./award.type.js";
 import { GeoIpType } from "./geoIp.type.js";
+import { ModerationReasonNameType } from "./moderation.type.js";
 import { WhatIsType } from "./whatIs.type.js";
 
 export type NotificationNameType = 
@@ -24,6 +25,7 @@ export type NotificationNameType =
     | "LOGIN"
     | "ASSIGNED_STAFF"
     | "EARNED_AWARD"
+    | "NEW_MODERATION_CASE"
 ;
 
 type NotificationDataType = {
@@ -33,6 +35,8 @@ type NotificationDataType = {
     geoIp?: GeoIpType;
     collection?: WhatIsType;
     award?: AwardNameType
+    reason?: ModerationReasonNameType;
+    note?: string;
 }
 
 export type NotificationInboxType = {
