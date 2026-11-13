@@ -120,7 +120,8 @@ export function ContextMenuBuilder({
         shareModal,
         editUserProfileModal,
         editTemplateModal,
-        editCharacterModal
+        editCharacterModal,
+        moderateModal
     } = useModals();
     
     const [isSubMenuFlipped, setIsSubMenuFlipped] = useState<boolean>(false);
@@ -1350,12 +1351,7 @@ export function ContextMenuBuilder({
                 onClick={async () => {
                     closeContextMenu(data.id);
 
-                    // DEVELOPER NEEDED: Add moderation modal
-                    // moderateModal.open(data);
-                    toast.show(
-                        "DEVELOPER NEEDED: Add moderation modal", 
-                        { type: "warning" }
-                    );
+                    moderateModal.open(data);
                 }}
             >
                 <button className={`
