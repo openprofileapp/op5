@@ -49,7 +49,7 @@ export const contentReportController = async (req: Request, res: Response) => {
 
         const validTypes = [
             "abuse", "spam", "inappropriate", 
-            "dmca", "misuse", "safety", 
+            "dmca", "misuse", "safety", "flags",
             "impersonation", "ai", "other"
         ]
 
