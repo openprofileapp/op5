@@ -94,14 +94,15 @@ const ReportModal = forwardRef<ReportModalRef>((_, ref) => {
                         {t("components.modals.report.type")}
                         <TypeableDropdownInput
                             options={[
+                                { id: "inappropriate", name: t("components.modals.report.inappropriate") },
                                 { id: "abuse", name: t("components.modals.report.abuse") },
                                 { id: "spam", name: t("components.modals.report.spam") },
-                                { id: "inappropriate", name: t("components.modals.report.inappropriate") },
-                                { id: "dmca", name: t("components.modals.report.dmca") },
-                                { id: "misuse", name: t("components.modals.report.misuse") },
                                 { id: "safety", name: t("components.modals.report.safety") },
                                 { id: "impersonation", name: t("components.modals.report.impersonation") },
+                                { id: "dmca", name: t("components.modals.report.dmca") },
+                                { id: "flags", name: t("components.modals.report.flags") },
                                 { id: "ai", name: t("components.modals.report.ai") },
+                                { id: "misuse", name: t("components.modals.report.misuse") },
                                 { id: "other", name: t("components.modals.report.other") }
                             ]}
                             placeholder={t("components.modals.report.placeholder")}
