@@ -346,6 +346,7 @@
         "misuse": "Platform Misuse",
         "safety": "Privacy & Safety",
         "impersonation": "Impersonation",
+        "flags": "Missing Sensitive or Mature Warnings",
         "ai": "AI-Generated Content",
         "bug": "Technical Error & Bugs",
         "other": "Other"
