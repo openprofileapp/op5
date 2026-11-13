@@ -6,14 +6,12 @@ PERMISSIONS SERVICE AND CAUSE MAJOR DATA VULNERABILITIES
 */
 
 import { AdvancedError } from "kage-library";
-import whatIs from "./whatIs.service.js";
-import { GetPublishedCharacterType } from "../../../_common/types/characters/character.type.js";
-import { GetUserType } from "../../../_common/types/user.type.js";
-import getPublishedCharactersService from "./getPublishedCharacters.service.js";
+
 import { db } from "../databases/db.js";
 import { PermissionsType } from "../../../_common/types/permissions.type.js";
 import { assertNotNull } from "../../../_common/asserts/notNull.assert.js";
-import getUsersService from "./getUsers.service.js";
+import getAssetType from "./getAssetType.service.js";
+import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 
 const index = {
     VIEW: 0n, // View asset overview
@@ -306,62 +304,102 @@ export default class AssetPermissionsService {
         userId: string,
         permissions: AssetPermissionName | AssetPermissionName[],
         assetId: string
-    ) {
+    ): boolean {
         assertNotNull([userId, permissions, assetId]);
 
-        const assetType = whatIs(
-            assetId
-        )
+        const assetType = getAssetType(assetId);
 
-        assertNotNull(assetType);
+        let ownerId: string | null = null;
 
-        // DEVELOPER NEEDED: Must check drafts, not pubished ones
-        const asset: GetPublishedCharacterType | GetUserType | null = 
-            assetType.type === "CHARACTER" ? getPublishedCharactersService({ 
-                id: assetId,
-                internalPermissionsBypass: true
-            }) :
-            // DEVELOPER NEEDED: Add collections and universes
-            assetType.type === "USER" ? getUsersService({ 
-                idOrUsername: assetId,
-                internalPermissionsBypass: true
-            }) :
-            null;
+        switch (assetType) {
+            case "USER": {
+                const result = db.users.query<{ id: string }>(
+                    "SELECT id FROM users WHERE id = ?",
+                    [assetId]
+                );
 
-        assertNotNull(asset)
-        
-        const item = asset.items[0];
+                assertDbSuccess(result);
 
-        assertNotNull(item)
+                ownerId = result.rows[0]?.id ?? null;
+                break;
+            }
 
-        if (
-            userId === item.id ||
-            ("owner" in item && item.owner.id === userId)
-        ) {
+            case "CHARACTER": {
+                const draftResult = db.characters.query<{
+                    id: string;
+                    ownerId: string;
+                }>(
+                    "SELECT id, ownerId FROM drafts WHERE id = ? OR slug = ?",
+                    [assetId, assetId]
+                );
+
+                assertDbSuccess(draftResult);
+
+                if (draftResult.rowCount > 0) {
+                    ownerId = draftResult.rows[0].ownerId;
+
+                    return userId === ownerId;
+                }
+
+                const publishedResult = db.characters.query<{
+                    id: string;
+                    ownerId: string;
+                }>(
+                    `SELECT id, ownerId
+                    FROM main.published
+                    WHERE id = ? OR slug = ?`,
+                    [assetId, assetId]
+                );
+
+                assertDbSuccess(publishedResult);
+
+                ownerId = publishedResult.rows[0]?.ownerId ?? null;
+                break;
+            }
+
+            case "COLLECTION": {
+                const result = db.collections.query<{
+                    id: string;
+                    ownerId: string;
+                }>(
+                    "SELECT id, ownerId FROM collections WHERE id = ?",
+                    [assetId]
+                );
+
+                assertDbSuccess(result);
+
+                ownerId = result.rows[0]?.ownerId ?? null;
+                break;
+            }
+
+            default:
+                return false;
+        }
+
+        if (!ownerId) {
+            return false;
+        }
+
+        if (userId === ownerId) {
             return true;
         }
 
         const permissionsResult = db.users.query<PermissionsType>(
-            "SELECT * FROM permissions WHERE userId = ? AND assetId = ?",
+            `SELECT permissions
+            FROM permissions
+            WHERE userId = ? AND assetId = ?`,
             [userId, assetId]
         );
 
-        if (!permissionsResult.success) {
-            throw new AdvancedError({
-                code: 500,
-                message: "An error occurred while fetching permissions",
-                details: permissionsResult.error
-            })
+        assertDbSuccess(permissionsResult);
+
+        if (permissionsResult.rowCount === 0) {
+            return false;
         }
 
-        if (permissionsResult.rowCount > 0) {
-            console.log(permissionsResult.rows[0])
-            return this.has(
-                permissionsResult.rows[0].permissions,
-                permissions
-            )
-        }
-
-        return false;
+        return this.has(
+            permissionsResult.rows[0].permissions,
+            permissions
+        );
     }
 }
