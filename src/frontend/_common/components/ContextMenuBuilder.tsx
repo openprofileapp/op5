@@ -43,6 +43,10 @@ export type ContextMenuBuilderOptions = {
     setIsFollowing?: Dispatch<SetStateAction<boolean>>;
     setIsFollowInteractionLoading?: (loading: boolean) => void;
     setFollowCount?: Dispatch<SetStateAction<number>>;
+    isFollowingBack?: boolean;
+    isFollowBackInteractionLoading?: boolean;
+    setIsFollowingBack?: Dispatch<SetStateAction<boolean>>;
+    setIsFollowBackInteractionLoading?: (loading: boolean) => void;
     isLiked?: boolean;
     isLikeInteractionLoading?: boolean;
     setIsLiked?: Dispatch<SetStateAction<boolean>>;
@@ -82,6 +86,10 @@ export function ContextMenuBuilder({
     setIsFollowing,
     setIsFollowInteractionLoading,
     setFollowCount,
+    isFollowingBack,
+    isFollowBackInteractionLoading,
+    setIsFollowingBack,
+    setIsFollowBackInteractionLoading,
     isLiked,
     isLikeInteractionLoading,
     setIsLiked,
@@ -106,6 +114,7 @@ export function ContextMenuBuilder({
     const {
         handleDismissInteraction,
         handleFollowInteraction,
+        handleRemoveFollowerInteraction,
         handleLikeInteraction,
         handleHideInteraction
     } = useInteractions();
@@ -758,6 +767,46 @@ export function ContextMenuBuilder({
 
                     <span className={`${isFollowInteractionLoading ? "loading" : ""} ${textClassList}`}>
                         {isFollowing ? "" : ""}
+                    </span>
+                </button>
+            </li>
+        ),
+
+        removeFollow: (props: Props = {}): ReactNode => Boolean(setIsFollowingBack)
+            // @ts-ignore
+            && (data.visibility !== "friends" && !data.isFriends)
+            && !isHidden 
+            && window.session.userId 
+            && !isOwner 
+            && !isBlocked
+            && "isFollowed" in data
+            && data.isFollowed
+        && (
+            <li
+                className={`
+                    ${props.isQuickAction ? `${quickActionClassList} ${tooltipClassList}` : ""}
+                    ${isFollowingBack ? "" : "hidden"}
+                `}
+                data-tip="Remove Follower"
+                onClick={async () => {
+                    await handleRemoveFollowerInteraction(
+                        data,
+                        // @ts-ignore
+                        isFollowingBack,
+                        isFollowBackInteractionLoading,
+                        setIsFollowingBack,
+                        setIsFollowBackInteractionLoading
+                    );
+                }}
+            >
+                <button className={`
+                        text-accent justify-between
+                        ${props.isQuickAction && quickActionClassList}
+                    `}>
+                    {!props.isQuickAction ? "Remove Follower" : ""}
+
+                    <span className={`${isFollowBackInteractionLoading ? "loading" : ""} ${textClassList}`}>
+                        
                     </span>
                 </button>
             </li>

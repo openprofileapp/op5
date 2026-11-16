@@ -129,6 +129,9 @@ export default function UserProfile() {
     const [followCount, setFollowCount] = useState<number>(0);
     const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState<boolean>(false);
 
+    const [isFollowingBack, setIsFollowingBack] = useState<boolean>(false);
+    const [isFollowBackInteractionLoading, setIsFollowBackInteractionLoading] = useState<boolean>(false);
+
     const [isHidden, setIsHidden] = useState<boolean>(false);
     const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
@@ -335,6 +338,7 @@ export default function UserProfile() {
                 setIsSensitive(data?.isSensitive);
                 setIsMature(data?.isMature);
                 setIsFollowing(data?.interactions?.follows?.hasInteracted || false);
+                setIsFollowingBack(data?.isFollowed || false)
                 setFollowCount(data?.interactions?.follows?.count || 0);
                 setIsHidden(data?.interactions?.hides?.hasInteracted || false);
                 setIsRestricted(data?.interactions?.restricts?.hasInteracted || false);
@@ -476,6 +480,10 @@ export default function UserProfile() {
         setIsFollowing,
         setIsFollowInteractionLoading,
         setFollowCount,
+        isFollowingBack,
+        isFollowBackInteractionLoading,
+        setIsFollowingBack,
+        setIsFollowBackInteractionLoading,
         isHidden,
         isHideInteractionLoading,
         setIsHidden,
@@ -574,7 +582,7 @@ export default function UserProfile() {
     const Banner = data?.banner ? "img" : "div";
     const Avatar = (data?.avatar || data?.animatedAvatar) ? ZoomableMedia : "img";
 
-    const buttonClassList = "flex flex-1 gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
+    const buttonClassList = "flex flex-1 min-w-fit gap-2 h-8 px-3 text-sm btn btn-base-200 border-base-300";
     const buttonTextClassList = "text-base font-nerdfont w-4";
 
     const boxClassList = "bg-base-100 border border-base-300 p-6 base-200 rounded-lg h-fit z-1";
@@ -751,6 +759,7 @@ export default function UserProfile() {
                                     contextMenuBuilder.notInterested(),
                                     isHidden && 
                                         contextMenuBuilder.separator(),
+                                    contextMenuBuilder.removeFollow(),
                                     contextMenuBuilder.restrict(),
                                     contextMenuBuilder.block(),
                                     contextMenuBuilder.report(),
@@ -902,7 +911,7 @@ export default function UserProfile() {
                                             </div>
 
                                             {window.session.userId && (
-                                                <div className="flex justify-between gap-2 flex-wrap w-full mt-4">
+                                                <div className="flex gap-2 flex-wrap w-full mt-4">
                                                     {window.session.userId === data?.id && (
                                                         <button
                                                             className={buttonClassList}
@@ -939,7 +948,7 @@ export default function UserProfile() {
                                                             <span className={`${isFollowInteractionLoading ? "loading" : ""} ${buttonTextClassList}`}>
                                                                 {isFollowing ? "" : ""}
                                                             </span>
-                                                            {isFollowing ? t("words.Unfollow") : t("words.Follow")}
+                                                            {isFollowing ? t("words.Unfollow") : isFollowingBack ? "Follow Back" : t("words.Follow")}
                                                         </button>
                                                     )}
 

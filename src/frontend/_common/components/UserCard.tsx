@@ -34,6 +34,9 @@ export default function UserCard({
     const [followCount, setFollowCount] = useState<number>(data.interactions?.follows?.count || 0);
     const [isFollowInteractionLoading, setIsFollowInteractionLoading] = useState<boolean>(false);
 
+    const [isFollowingBack, setIsFollowingBack] = useState<boolean>(data.isFollowed);
+    const [isFollowBackInteractionLoading, setIsFollowBackInteractionLoading] = useState<boolean>(false);
+
     const [isHidden, setIsHidden] = useState<boolean>(Boolean(data.interactions?.hides?.hasInteracted));
     const [isHideInteractionLoading, setIsHideInteractionLoading] = useState<boolean>(false);
 
@@ -53,6 +56,10 @@ export default function UserCard({
         setIsFollowing,
         setIsFollowInteractionLoading,
         setFollowCount,
+        isFollowingBack,
+        isFollowBackInteractionLoading,
+        setIsFollowingBack,
+        setIsFollowBackInteractionLoading,
         isHidden,
         isHideInteractionLoading,
         setIsHidden,
@@ -253,6 +260,7 @@ export default function UserCard({
                     contextMenuBuilder.notInterested(),
                     isHidden && 
                         contextMenuBuilder.separator(),
+                    contextMenuBuilder.removeFollow(),
                     contextMenuBuilder.restrict(),
                     contextMenuBuilder.block(),
                     contextMenuBuilder.report(),

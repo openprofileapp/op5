@@ -2,9 +2,12 @@ import { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { DateTime } from "luxon";
 
+import { possessivize } from "@kagejs/utilities";
+
 import { postInteraction } from "../scripts/postInteraction.js";
 import { toast } from "../scripts/toast.js";
 import { GetAssetType } from "../../../_common/types/asset.type.js";
+import { apiBaseUrl } from "../scripts/domains.js";
 
 export const useInteractions = () => {
     const { t, ready: isTranslationReady } = useTranslation();
@@ -141,6 +144,52 @@ export const useInteractions = () => {
             }
         } finally {
             setIsFollowInteractionLoading(false);
+        }
+    };
+
+    const handleRemoveFollowerInteraction = async (
+        data: GetAssetType,
+        isFollowingBack: boolean,
+        isFollowBackInteractionLoading: boolean,
+        setIsFollowingBack: Dispatch<SetStateAction<boolean>>,
+        setIsFollowBackInteractionLoading: (loading: boolean) => void
+    ): Promise<boolean> => {
+        if (!isTranslationReady || isFollowBackInteractionLoading) return false;
+
+        setIsFollowBackInteractionLoading(true);
+
+        try {
+            const response = await fetch(
+                `${apiBaseUrl}/v3/interactions/remove-follower/${data.id}`, 
+                { credentials: "include" }
+            );
+
+            const responseData = await response.json();
+
+            const is422 = responseData.code === 422;
+
+            if (response.ok) {
+                setIsFollowingBack(false);
+
+                toast.show(
+                    `${t("words.You")} removed ${possessivize(data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id)} follow`,
+                    { type: "error" }
+                );
+
+                return true;
+            } else {
+                toast.show(
+                    `${t("words.FailedTo")} remove ${possessivize(data.displayName || ("usernames" in data && data.usernames.find(u => u.isPrimary)?.username) || data.id)} follow`,
+                    {
+                        subtext: `${is422 ? "" : `${responseData.id || ""}${responseData.id ? ": " : ""}` }${responseData.message}`,
+                        type: "error",
+                    }
+                );
+                
+                return false;
+            }
+        } finally {
+            setIsFollowBackInteractionLoading(false);
         }
     };
 
@@ -364,6 +413,7 @@ export const useInteractions = () => {
         handleDismissInteraction,
         handleViewInteraction,
         handleFollowInteraction,
+        handleRemoveFollowerInteraction,
         handleLikeInteraction,
         handleHideInteraction,
         handleRestrictInteraction,
