@@ -178,6 +178,9 @@ export const config = {
         setIdlePresenceInMinutes: 10
     },
 
+    // Platform mascot
+    mascotAccountId: "0000000000000000",
+
     // Displays the maintenance landing
     maintenance: {
         isEnabled: isMaintenance,
