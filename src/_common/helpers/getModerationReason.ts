@@ -102,6 +102,20 @@ export default function getModerationReason(
                 severity: "MINOR"
             }
         }
+        case "CHARGEBACK": {
+            return {
+                name: "Chargeback",
+                description: "Filing a chargeback against the platform is strictly prohibited, regardless of the reason.",
+                severity: "SEVERE"
+            }
+        }
+        case "ILLEGAL_CONTENT": {
+            return {
+                name: "Illegal Content",
+                description: "Content that promotes, facilitates, depicts, or requests assistance with illegal activities, including criminal conduct, prohibited transactions, or other unlawful behavior.",
+                severity: "SEVERE"
+            }
+        }
         default: {
             return {
                 name: "Unknown",
