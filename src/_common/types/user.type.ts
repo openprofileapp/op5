@@ -66,6 +66,7 @@ export type GetUserItemType = Omit<
     links: GetLinkType[];
     interactions?: Partial<GetInteractionCollection>;
     isFriends: boolean;
+    isFollowed: boolean;
     statistics :Partial<StatisticsType>
     collections?: CollectionType[]
     notifications: GetNotificationCollection;

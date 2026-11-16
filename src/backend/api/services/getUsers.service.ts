@@ -548,6 +548,21 @@ export default function getUsersService({
         const parsedInteractions = parseJson(row.interactions);
         const isFollowing = Boolean(parsedInteractions?.follows?.hasInteracted);
 
+        const isFollowedResult = db.interactions.query(
+            `SELECT 1
+            FROM follows
+            WHERE source = ?
+            AND target = ?
+            LIMIT 1`,
+            [row.id, getAs]
+        )
+
+        assertDbSuccess(isFollowedResult);
+
+        const isFollowed = Boolean(
+            getAs && isFollowedResult.rowCount > 0
+        );
+
         let statistics = {
             followers: 0,
             likes: 0,
@@ -636,6 +651,7 @@ export default function getUsersService({
             flags: ExperimentsService.decode(row.flags as string),
             interactions: parsedInteractions,
             isFriends: isMutualFriend,
+            isFollowed,
             statistics,
             notifications: parseJson(row.notifications),
         };
