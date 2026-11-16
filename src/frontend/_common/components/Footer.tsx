@@ -46,6 +46,10 @@ export default function Footer() {
                                     <Link className="link-hover text-sub" to={`${mainBaseUrl}/premium`}>
                                         Premium
                                     </Link>
+
+                                    <Link className="link-hover text-sub" to={`${mainBaseUrl}/download`}>
+                                        Download
+                                    </Link>
                                 </div>
 
                                 <div className="flex flex-col gap-2.5">

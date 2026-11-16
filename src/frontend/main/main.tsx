@@ -30,6 +30,7 @@ import Home from "./pages/Home.js"
 import Search from "./pages/Search.js"
 import Browse from "./pages/Browse.js"
 import Premium from "./pages/Premium.js"
+import Download from "./pages/Download.js"
 import UserProfile from "./pages/UserProfile.js"
 
 import Read from "./pages/Read.js"
@@ -153,6 +154,7 @@ const router = createBrowserRouter([
             { path: "/browse/:tag", element: <Browse /> },
 
             { path: "/premium", element: <Premium /> },
+            { path: "/download", element: <Download /> },
 
             { path: "/account/onboarding", element: <Onboarding /> },
             { path: "/account/library", element: <ComingSoon /> },
