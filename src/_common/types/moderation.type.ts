@@ -16,6 +16,7 @@ export type ModerationReasonNameType =
     | "AI_GENERATED_CONTENT"
     | "ILLEGAL_CONTENT"
     | "FILTER_BYPASS"
+    | "CHARGEBACK"
 ;
 
 export type ModerationStatusType =

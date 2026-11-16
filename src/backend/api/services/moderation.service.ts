@@ -296,6 +296,17 @@ function getModerationAction(
             }
         }
 
+        case "CHARGEBACK": {
+            return {
+                account: {
+                    type: "warn",
+                    duration,
+                    revokePermissions,
+                    revokePermissionsDuration
+                }
+            }
+        }
+
         case "PLATFORM_MISUSE":
         case "PLATFORM_MANIPULATION":
         case "ILLEGAL_CONTENT":

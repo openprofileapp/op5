@@ -579,57 +579,19 @@ export const webhookController = async (req: Request, res: Response) => {
                 }
 
                 case "PAYMENT.SALE.REVERSED": {
-
-                    // Warn the account for attempt charge back
-
-                    // Use api here, not raw service
-
-                    /*
-                        // Uses automatic predefined actions, could be warn or ban
-                        moderationService.auto(
-                            userId, 
-                            {
-                                reason,
-                                moderator
+                    await wc.callAPI(
+                        `https://${config.domains.api}/v3/moderate`,
+                        {
+                            method: "POST",
+                            auth: `ApiSecret ${getEnv("API_SECRET")}`,
+                            body: { 
+                                targetId: resource.custom,
+                                moderatorId: config.mascotAccountId,
+                                reason: "CHARGEBACK"
                             }
-                        );
-                        
-                        // Uses automatic stepping to take action after a certain number of warns
-                        moderationService.warn(
-                            userId, 
-                            {
-                                reason,
-                                moderator
-                            }
-                        );
+                        }
+                    );
 
-                        moderationService.suspend(
-                            userId, 
-                            {
-                                reason,
-                                moderator,
-                                duration
-                            }
-                        );
-
-                        moderationService.updateVisibilty(
-                            assetId, 
-                            {
-                                visibility,
-                                reason,
-                                moderator
-                            }
-                        );
-
-                        moderationService.updateContentFlags(
-                            assetId, 
-                            {
-                                flag,
-                                reason,
-                                moderator
-                            }
-                        );
-                    */
                     break;
                 }
 
