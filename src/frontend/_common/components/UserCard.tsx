@@ -311,7 +311,7 @@ export default function UserCard({
                     alt={t("words.avatar")}
                 />
 
-                {data.animatedAvatar && (
+                {data.animatedAvatar && data.badges.some(badge => badge.type === "PREMIUM") && (
                     <img
                         className="absolute rounded-full h-21 w-21 object-cover transition-opacity duration-200 opacity-0 group-hover:opacity-100 group-hover/avatar:opacity-100"
                         src={

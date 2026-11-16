@@ -480,7 +480,7 @@ export default function CharacterCard({
                         alt={t("words.avatar")}
                     />
 
-                    {data.animatedAvatar && (
+                    {data.animatedAvatar && data.owner.isPremium && (
                         <img
                             className={`${avatarClassList} opacity-0 group-hover:opacity-100`}
                             src={data.animatedAvatar}

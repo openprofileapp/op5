@@ -876,7 +876,7 @@ export default function UserProfile() {
                                                             alt={t("words.avatar")}
                                                         />
 
-                                                        {data?.animatedAvatar && (
+                                                         {data.animatedAvatar && data.badges.some(badge => badge.type === "PREMIUM") && (
                                                             <Avatar
                                                                 className="absolute rounded-full top-0 h-32 w-32 object-cover"
                                                                 id={"avatar"}
