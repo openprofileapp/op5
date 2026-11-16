@@ -65,6 +65,7 @@ const BugReportModal = forwardRef<BugReportModalRef>((_, ref) => {
         || type === "localization"
         || type === "performance"
         || type === "accessibility"
+        || type === "automod"
     ;
 
     const DescriptionInput = isClientError ? "textarea" : "input";
