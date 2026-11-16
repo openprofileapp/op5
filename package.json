@@ -48,6 +48,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@kagejs/automod": "^2.0.0",
+    "@kagejs/utilities": "^2.6.1",
     "@ladjs/country-language": "^1.0.3",
     "@sapphire/stopwatch": "^1.5.4",
     "@tailwindcss/typography": "^0.5.19",
