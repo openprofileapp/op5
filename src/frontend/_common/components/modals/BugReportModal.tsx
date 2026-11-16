@@ -116,6 +116,7 @@ const BugReportModal = forwardRef<BugReportModalRef>((_, ref) => {
                                     { id: "performance", name: "Performance & Lag" },
                                     { id: "crash", name: "Client Crash" },
                                     { id: "accessibility", name: "Accessibility" },
+                                    { id: "automod", name: "AutoMod" },
                                     { id: "other", name: "Other" }
                                 ]}
                                 value={type}

@@ -21,6 +21,7 @@ import { DateInput } from "../DateInput.js";
 import { CheckboxInput } from "../CheckboxInput.js";
 import { recommendedTags } from "../../scripts/tags.js";
 import TagInput from "../TagInput.js";
+import { useModals } from "../../hooks/ModalContext.hook.js";
 
 export interface EditUserProfileModalRef {
     open: (
@@ -210,6 +211,7 @@ function SortableLinkItem({
 
 const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
+    const { automodModal } = useModals();
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
     const onSaveRef = useRef<((updatedData: GetUserItemType) => void) | null>(null);
@@ -496,6 +498,10 @@ const EditUserProfileModal = forwardRef<EditUserProfileModalRef>((_, ref) => {
                         type: "error",
                     }
                 );
+
+                if (response.status === 512) {
+                    automodModal.open(responseData);
+                }
             }
         } catch (error) {
             console.error(`Failed to save profile:`, error);

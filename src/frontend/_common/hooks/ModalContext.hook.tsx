@@ -37,6 +37,7 @@ import SubscribeModal from "../components/modals/SubscribeModal.js";
 import UnsubscribeModal from "../components/modals/UnsubscribeModal.js";
 import WithdrawModal from "../components/modals/WithdrawModal.js";
 import ModerateModal from "../components/modals/ModerateModal.js";
+import AutomodModal from "../components/modals/AutomodModal.js";
 
 const modals = {
     notificationsModal: NotificationsModal,
@@ -67,6 +68,7 @@ const modals = {
     unsubscribeModal: UnsubscribeModal,
     withdrawModal: WithdrawModal,
     moderateModal: ModerateModal,
+    automodModal: AutomodModal,
 } as const;
 
 type ModalKey = keyof typeof modals;

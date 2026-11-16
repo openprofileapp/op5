@@ -47,7 +47,7 @@ export const bugReportController = async (req: Request, res: Response) => {
         const validTypes = [
             "ui", "error", "functionality", 
             "localization", "performance", "crash", 
-            "accessibility", "other"
+            "accessibility", "other", "automod"
         ]
 
         if (!validTypes.includes(type)) {
@@ -62,6 +62,7 @@ export const bugReportController = async (req: Request, res: Response) => {
             || type === "localization"
             || type === "performance"
             || type === "accessibility"
+            || type === "automod"
         ;
 
         if (
@@ -111,8 +112,6 @@ export const bugReportController = async (req: Request, res: Response) => {
         );
 
         assertDbSuccess(insertResult);
-
-        // DEVELOPER NEEDED: Remove the algorithm score
 
         // DEVELOPER NEEDED: Send notification to user
 

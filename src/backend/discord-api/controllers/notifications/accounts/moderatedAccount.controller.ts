@@ -32,7 +32,7 @@ export const moderatedAccountController = async (req: Request, res: Response) =>
                 embeds: [
                     {
                         author: {
-                            name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} moderated an account.`,
+                            name: `${whatIs.displayName || whatIs.primaryUsername || whatIs.id} ${userId === config.mascotAccountId ? "auto-" : ""}moderated an account.`,
                             icon_url: `https://${config.domains.cdn}${whatIs.avatar ?? config.metadata.assets.noImage}`,
                             url: `https://${config.domains.main}/user/${whatIs.id}`
                         },

@@ -16,6 +16,7 @@ import { UsernameType } from "../../../../_common/types/username.type.js";
 import { config } from "../../../../../app.config.js";
 import getEnv from "../../../../_common/helpers/getEnv.js";
 import { InterestsService } from "../../services/interests.service.js";
+import { assertAutomodFilters } from "../../../_common/asserts/automod.assert.js";
 
 const VALID_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
@@ -136,6 +137,12 @@ export const updateUsers = async (req: Request, res: Response) => {
             if (!allowedFields.has(key) || value === undefined) {
                 continue;
             }
+
+            assertAutomodFilters(
+                String(value), 
+                req.session.userId, 
+                "EDIT_USER_MODAL"
+            );
 
             if (key === "usernames") {
                 if (!Array.isArray(value)) {

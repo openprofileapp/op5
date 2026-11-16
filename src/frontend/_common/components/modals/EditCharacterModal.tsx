@@ -277,7 +277,7 @@ function ChangeLogEntry({
 
 const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
     const { t, ready: isTranslationReady } = useTranslation();
-    const { publishModal, unpublishModal } = useModals();
+    const { publishModal, unpublishModal, automodModal } = useModals();
     
     const dialogRef = useRef<HTMLDialogElement | null>(null);
 
@@ -593,6 +593,10 @@ const EditCharacterModal = forwardRef<EditCharacterModalRef>((_, ref) => {
                         type: "error",
                     }
                 );
+
+                if (response.status === 512) {
+                    automodModal.open(responseData);
+                }
             }
         } catch (error) {
             console.error(`Failed to save profile:`, error);

@@ -16,6 +16,7 @@ import { MediaType } from "../../../../_common/types/media.type.js";
 import { InterestsService } from "../../services/interests.service.js";
 import updateCharacterLastEditedDate from "../../helpers/updateCharacterLastUpdatedDate.js";
 import { ChangelogType } from "../../../../_common/types/changelogs.type.js";
+import { assertAutomodFilters } from "../../../_common/asserts/automod.assert.js";
 
 const ALLOWED_VISIBILITIES = ["public", "unlisted", "registered", "followers", "friends", "private"];
 const VALID_SEND_VISIBILITIES = ["default", "public", "registered", "followers", "friends", "private"] as const;
@@ -118,6 +119,12 @@ export const updateCharacters = async (req: Request, res: Response) => {
             if (!allowedFields.has(key) || value === undefined) {
                 continue;
             }
+
+            assertAutomodFilters(
+                String(value), 
+                req.session.userId, 
+                "EDIT_CHARACTER_MODAL"
+            );
 
             if (key === "media") {
                 if (!Array.isArray(value)) {
