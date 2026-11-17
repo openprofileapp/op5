@@ -51,6 +51,7 @@ import { WhatIsType } from "../../_common/types/whatIs.type.js"
 import { InviteType } from "../../_common/types/invite.type.js"
 import { GetSubscriptionType } from "../../_common/types/subscription.type.js"
 import { formatShortRelative } from "../_common/scripts/time.js"
+import Settings from "./pages/account/Settings.js"
 
 const markdownRoutes = [
     {
@@ -160,6 +161,7 @@ const router = createBrowserRouter([
             { path: "/account/library", element: <ComingSoon /> },
             { path: "/account/partner", element: <Partner /> },
             { path: "/account/notifications", element: <Notifications /> },
+            { path: "/account/settings/:section?", element: <Settings /> },
 
             { path: "/user/:id/:tab?", element: <UserProfile /> },
             { path: "/character/:id", element: <CharacterRedirect /> },
