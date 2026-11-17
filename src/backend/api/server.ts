@@ -37,6 +37,7 @@ import integrationRoute from "./routes/integration.route.js";
 import reportRoutes from "./routes/report.routes.js";
 import privateInviteRoutes from "./routes/privateInvite.routes.js";
 import moderateRoute from "./routes/moderate.route.js";
+import permissionsRoute from "./routes/permissions.route.js";
 
 /* 
 ————————————————————————————————————————————————————————————————
@@ -221,6 +222,12 @@ v3.use(
     "/integrations", 
     rateLimitMiddleware(240), 
     integrationRoute
+);
+
+v3.use(
+    "/permissions", 
+    rateLimitMiddleware(240), 
+    permissionsRoute
 );
 
 /* 
