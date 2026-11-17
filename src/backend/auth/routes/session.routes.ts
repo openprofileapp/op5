@@ -5,6 +5,7 @@ import { validateSessionMiddleware } from "../middlewares/validateSession.middle
 import validateSession from "../services/validateSession.service.js";
 import { AdvancedError } from "kage-library";
 import { log } from "../instances.js";
+import { sessionsController } from "../controllers/sessions.controller.js";
 
 const sessionRoute = Router();
 
@@ -39,5 +40,7 @@ sessionRoute.post("/", async (req: Request, res: Response) => {
         }
     }
 });
+
+sessionRoute.get("/all", sessionsController)
 
 export default sessionRoute;
