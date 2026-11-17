@@ -5,7 +5,7 @@ import { AdvancedError } from "kage-library";
 
 import { db } from "../databases/db.js";
 import { log } from "../instances.js";
-import { SessionType } from "../types/session.type.js";
+import { SessionType } from "../../../_common/types/session.type.js";
 import { i18n } from "../../_common/instances.js";
 
 export const isAccessTokenValidController = async (req: Request, res: Response) => {

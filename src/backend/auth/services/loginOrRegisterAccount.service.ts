@@ -11,7 +11,7 @@ import { ConnectionNameType } from "../types/connection.type.js";
 import { db } from "../databases/db.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import updateToken from "../helpers/updateToken.js";
-import { SessionType } from "../types/session.type.js";
+import { SessionType } from "../../../_common/types/session.type.js";
 import PlatformPermissionsService from "../../_common/services/platformPermissions.service.js";
 import { ReservedAccountType } from "../types/reservedAccount.type.js";
 import { BadgeNameType } from "../../../_common/types/badge.type.js";

@@ -5,7 +5,7 @@ import { AdvancedError, URL } from "kage-library";
 
 import { db } from "../databases/db.js";
 import { log } from "../instances.js";
-import { SessionType } from "../types/session.type.js";
+import { SessionType } from "../../../_common/types/session.type.js";
 import { config } from "../../../../app.config.js";
 import { assertDbSuccess } from "../../../_common/asserts/dbSuccess.assert.js";
 import updateToken from "../helpers/updateToken.js";
