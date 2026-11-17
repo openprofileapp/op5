@@ -24,7 +24,7 @@ export const CheckboxInput: React.FC<Props> = ({
     return (
         <label
             className={`
-                flex items-center gap-2 w-full px-3 h-10 transition-colors 
+                flex items-center gap-3 w-full p-3 min-h-10 transition-colors 
                 ${!isDropdownOption ? "rounded border border-base-300" : ""}
                 ${selected ? "bg-base-200" : "bg-base-100"}
                 ${disabled ? "text-[#636363] cursor-not-allowed" : "cursor-pointer"} 
@@ -41,7 +41,7 @@ export const CheckboxInput: React.FC<Props> = ({
                 onChange={(e) => onChange(e.target.checked ? 1 : 0)}
             />
 
-            <span className="text-sm flex-1 truncate">
+            <span className="text-sm flex-1">
                 {label}
             </span>
         </label>
