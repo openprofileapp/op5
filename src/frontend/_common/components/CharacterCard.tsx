@@ -354,11 +354,7 @@ export default function CharacterCard({
                     </div>
                 )}
 
-                {(
-                    window.session.userId === data.owner.id) && 
-                (
-                    data.visibility === "hidden"
-                ) && (
+                {(data.visibility === "hidden") && (
                     <div className="tooltip tooltip-top tooltip-accent">
                         <div className="tooltip-content">
                             <div className="font-bold">Hidden by Moderator</div>
