@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { formatNumber } from "kage-library/client";
 
 import Metadata from "../../../_common/components/Metadata.js";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Pagination } from "../../../_common/components/Pagination.js";
 import { TypeableDropdownInput } from "../../../_common/components/TypeableDropdownInput.js";
 import { apiBaseUrl, supportBaseUrl } from "../../../_common/scripts/domains.js";
@@ -392,8 +392,6 @@ export default function Notifications() {
                             if (part === "{REASON}") {
                                 const reason = getModerationReason(data?.reason as ModerationReasonNameType);
 
-                                
-
                                 return (
                                     <div className="flex flex-col gap-4 mt-2 text-sm bg-warning/20 border border-warning p-4 rounded"
                                         key={partIndex}
@@ -412,7 +410,7 @@ export default function Notifications() {
                                                 </>
                                             )}
 
-                                            been moderated for {reason.name}. Visit your account standing in settings to see how this affects your account.</span>
+                                            been moderated for {reason.name}. Visit your  <Link className="underline text-warning" to={"/account/settings/standing"}>account standing</Link> to see how this affects your account.</span>
                                         <span>Reason: {reason.description}</span>
                                         {data.note && (
                                             <span className="text-xs">Moderator Note: {data.note}</span>
